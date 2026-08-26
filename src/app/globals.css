@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f1e9;
+  --foreground: #1e2a24;
+  --ink-muted: #667269;
+  --accent: #d9653d;
+  --line: rgba(30, 42, 36, 0.14);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.maintenance-shell {
+  position: relative;
+  display: flex;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background: #f4f1e9;
+}
+
+.maintenance-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  opacity: 0.55;
+  background-image: linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(90deg, black, transparent 74%);
+}
+
+.maintenance-content {
+  width: min(100%, 780px);
+  padding: clamp(2rem, 7vw, 6.5rem) clamp(1.5rem, 9vw, 10rem);
+  animation: arrive 700ms ease-out both;
+}
+
+.brand-mark {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.brand-mark-icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--foreground);
+  color: #f4f1e9;
+  font-family: Georgia, serif;
+  font-size: 1.15rem;
+}
+
+.status-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: clamp(5rem, 15vh, 10rem);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 5px rgba(217, 101, 61, 0.14);
+}
+
+h1 {
+  max-width: 650px;
+  margin: 1.25rem 0 1.5rem;
+  color: var(--foreground);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3.2rem, 7vw, 6.5rem);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+}
+
+.maintenance-copy {
+  max-width: 430px;
+  color: var(--ink-muted);
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.maintenance-info {
+  display: flex;
+  gap: 3rem;
+  margin-top: 3.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.maintenance-info div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.info-label {
+  color: var(--ink-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.maintenance-info strong {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.maintenance-footer {
+  margin-top: 5rem;
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+}
+
+.maintenance-orbit {
+  position: absolute;
+  z-index: -1;
+  border: 1px solid rgba(217, 101, 61, 0.42);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.orbit-one {
+  top: 13%;
+  right: -16vw;
+  width: 72vw;
+  aspect-ratio: 1;
+}
+
+.orbit-two {
+  top: 31%;
+  right: 2vw;
+  width: 40vw;
+  aspect-ratio: 1;
+  border-color: rgba(30, 42, 36, 0.14);
+}
+
+@keyframes arrive {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  .maintenance-content { padding: 2rem 1.5rem 3rem; }
+  .status-label { margin-top: 7rem; }
+  .maintenance-info { gap: 1.5rem; }
+  .maintenance-info strong { font-size: 0.8rem; }
+  .orbit-one { top: 41%; right: -52vw; width: 120vw; }
+  .orbit-two { top: 55%; right: -10vw; width: 75vw; }
+}
