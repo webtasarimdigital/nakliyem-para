@@ -191,7 +191,25 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
           </Button>
 
           <p className="text-[11px] text-slate-400 text-center">
-            Devam ederek <a href="/kullanim-kosullari" className="underline hover:text-slate-600">Kullanım Koşulları</a> ve <a href="/kvkk" className="underline hover:text-slate-600">KVKK Aydınlatma Metni</a>&apos;ni kabul etmiş olursunuz.
+            Devam ederek{' '}
+            <a
+              href="/kullanim-kosullari"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-slate-600 font-medium"
+            >
+              Kullanım Koşulları
+            </a>{' '}
+            ve{' '}
+            <a
+              href="/kvkk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-slate-600 font-medium"
+            >
+              KVKK Aydınlatma Metni
+            </a>
+            &apos;ni kabul etmiş olursunuz.
           </p>
         </form>
       </div>

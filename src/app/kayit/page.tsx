@@ -280,9 +280,9 @@ export default function KayitPage() {
                 required
               />
               <span className="text-xs text-slate-500 font-medium leading-relaxed">
-                <Link href="/kullanim-kosullari" className="text-[#F95700] font-bold hover:underline">Kullanım Koşulları</Link>
+                <Link href="/kullanim-kosullari" target="_blank" rel="noopener noreferrer" className="text-[#F95700] font-bold hover:underline">Kullanım Koşulları</Link>
                 {' '}ve{' '}
-                <Link href="/kvkk" className="text-[#F95700] font-bold hover:underline">KVKK Aydınlatma Metni</Link>
+                <Link href="/kvkk" target="_blank" rel="noopener noreferrer" className="text-[#F95700] font-bold hover:underline">KVKK Aydınlatma Metni</Link>
                 &apos;ni okudum, kabul ediyorum.
               </span>
             </label>

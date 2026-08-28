@@ -13,16 +13,16 @@ export const GlobalAppBand: React.FC = () => {
   }
 
   return (
-    <div className="bg-[#0D1B2A] text-white text-xs border-b border-slate-800 relative z-40 transition-all">
+    <div className="bg-[#F95700] text-white text-xs border-b border-orange-600 relative z-40 transition-all shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2 flex flex-col sm:flex-row items-center justify-between gap-2">
         {/* Left copy */}
         <div className="flex items-center gap-2 text-center sm:text-left">
-          <span className="p-1 rounded-md bg-[#146EF5] text-white shrink-0">
+          <span className="p-1 rounded-lg bg-white/20 text-white shrink-0">
             <Smartphone className="w-3.5 h-3.5" />
           </span>
           <div>
-            <span className="font-semibold">{settings.mobileAppBandTitle}</span>
-            <span className="hidden md:inline text-slate-400 ml-1.5 font-normal">
+            <span className="font-black tracking-tight">{settings.mobileAppBandTitle}</span>
+            <span className="hidden md:inline text-white/90 ml-1.5 font-medium">
               {settings.mobileAppBandSubtitle}
             </span>
           </div>
@@ -34,7 +34,7 @@ export const GlobalAppBand: React.FC = () => {
             href={settings.appStoreUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white font-medium text-[11px] transition-colors border border-white/10"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#0A1128] hover:bg-[#132247] text-white font-black text-[11px] transition-all shadow-xs"
           >
             <Apple className="w-3.5 h-3.5 fill-current" />
             <span>App Store</span>
@@ -44,15 +44,15 @@ export const GlobalAppBand: React.FC = () => {
             href={settings.googlePlayUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white font-medium text-[11px] transition-colors border border-white/10"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#0A1128] hover:bg-[#132247] text-white font-black text-[11px] transition-all shadow-xs"
           >
-            <Play className="w-3 h-3 fill-current" />
+            <Play className="w-3.5 h-3.5 fill-current text-[#F95700]" />
             <span>Google Play</span>
           </a>
 
           <button
             onClick={() => setIsVisible(false)}
-            className="p-1 text-slate-400 hover:text-white rounded transition-colors ml-1"
+            className="p-1 text-white/80 hover:text-white rounded transition-colors ml-1 cursor-pointer"
             aria-label="Kapat"
           >
             <X className="w-3.5 h-3.5" />

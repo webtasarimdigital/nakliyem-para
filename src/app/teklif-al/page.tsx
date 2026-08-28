@@ -71,7 +71,7 @@ function RequestWizardContent() {
   const [destinationTruckAccess, setDestTruckAccess] = useState(true);
 
   const [packagingPreference, setPackagingPreference] = useState<'CARRIER_PACKS' | 'CUSTOMER_PACKS' | 'BOTH_OFFERS'>('BOTH_OFFERS');
-  const [extraServices, setExtraServices] = useState<string[]>(['disassembly_assembly', 'insured']);
+  const [extraServices, setExtraServices] = useState<string[]>([]);
 
   // Room item checklist state
   const [showDetailedItems, setShowDetailedItems] = useState(false);
@@ -230,43 +230,116 @@ function RequestWizardContent() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 md:py-12">
-      {/* Step Progress Bar */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between text-xs font-black text-slate-500 mb-2">
-          <span>Adım {step} / {totalSteps + 1}</span>
-          <span className="text-[#F95700]">
-            {step === 1 && 'Hizmet Türü'}
-            {step === 2 && 'Nereden / Nereye'}
-            {step === 3 && 'Ev & Eşya Büyüklüğü'}
-            {step === 4 && 'Taşınma Tarihi'}
-            {step === 5 && 'Bina & Kat Bilgileri'}
-            {step === 6 && 'Paketleme & Ek Hizmetler'}
-            {step === 7 && 'Fotoğraflar & Video Ekspertiz'}
-            {step === 8 && 'İletişim & Gizlilik'}
-            {step === 9 && 'Talebi Onayla & Yayınla'}
-          </span>
+    <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-10 md:py-16">
+      {/* ── INTERACTIVE CARGO ROLLING TO TRUCK PROGRESS BAR ── */}
+      <div className="mb-10 bg-white rounded-3xl border-2 border-slate-200 p-5 sm:p-6 shadow-xs select-none">
+        
+        {/* Step Info Row */}
+        <div className="flex items-center justify-between text-xs sm:text-sm font-black mb-3">
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-orange-100 text-[#C23E00] font-black text-xs">
+              Adım {step} / {totalSteps + 1}
+            </span>
+            <span className="text-[#0A1128] font-black hidden sm:inline">
+              {step === 1 && '🏠 Hizmet Türü'}
+              {step === 2 && '📍 Rota Seçimi'}
+              {step === 3 && '🛋️ Ev & Eşya Büyüklüğü'}
+              {step === 4 && '📅 Taşınma Tarihi'}
+              {step === 5 && '🏢 Kat & Mobil Asansör'}
+              {step === 6 && '📦 Paketleme & Ek Hizmetler'}
+              {step === 7 && '📸 Fotoğraf & Ekspertiz'}
+              {step === 8 && '🔒 İletişim & Gizlilik'}
+              {step === 9 && '🚛 Tıra Yükleme & Yayınlama'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-black text-slate-400">
+              %{Math.round((step / 9) * 100)} Tamamlandı
+            </span>
+            {step === 9 && (
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider animate-bounce">
+                🎉 Tıra Yüklendi!
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-[#F95700] transition-all duration-300 rounded-full"
-            style={{ width: `${(step / 9) * 100}%` }}
-          />
+        {/* The Animated Road Track with Rolling Cargo Box & Destination Truck */}
+        <div className="relative pt-6 pb-4">
+          
+          {/* Road / Track Background */}
+          <div className="h-4 bg-slate-100 rounded-full overflow-hidden relative border border-slate-200">
+            {/* Dashed highway center line */}
+            <div className="absolute inset-0 flex items-center justify-between px-2 opacity-30">
+              {Array.from({ length: 16 }).map((_, i) => (
+                <span key={i} className="w-3 h-1 bg-slate-400 rounded-full" />
+              ))}
+            </div>
+
+            {/* Filled Active Progress Track */}
+            <div
+              className="h-full bg-gradient-to-r from-orange-400 via-[#F95700] to-[#E04D00] transition-all duration-500 rounded-full relative"
+              style={{ width: `${Math.max(8, (step / 9) * 100)}%` }}
+            >
+              <div className="absolute inset-0 bg-white/20 animate-pulse rounded-full" />
+            </div>
+          </div>
+
+          {/* Left: Origin House Icon (Eski Ev) */}
+          <div className="absolute -top-1 left-0 flex flex-col items-center">
+            <div className="w-8 h-8 rounded-full bg-[#0A1128] text-white flex items-center justify-center text-xs shadow-md border-2 border-white">
+              🏠
+            </div>
+            <span className="text-[10px] font-black text-slate-400 mt-1">Ev</span>
+          </div>
+
+          {/* Dynamic Rolling Cargo Box (📦) that Glides Along the Road */}
+          <div
+            className="absolute -top-2 transition-all duration-500 pointer-events-none z-20"
+            style={{
+              left: `calc(${Math.min(88, Math.max(6, (step / 9) * 100))}% - 16px)`,
+            }}
+          >
+            <div className="relative flex flex-col items-center">
+              {/* Rolling / Bouncing Box Badge */}
+              <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-lg shadow-lg border-2 border-white animate-bounce">
+                📦
+              </div>
+              <span className="text-[9px] font-black bg-[#0A1128] text-white px-1.5 py-0.2 rounded mt-0.5 whitespace-nowrap shadow-xs">
+                {step === 9 ? 'Yüklendi' : 'Kolileniyor'}
+              </span>
+            </div>
+          </div>
+
+          {/* Right: The Waiting Logistics Truck (🚛 Nakliye Tırı) */}
+          <div className="absolute -top-3 right-0 flex flex-col items-center z-10">
+            <div className={`p-2 rounded-2xl flex items-center justify-center transition-all shadow-md border-2 ${
+              step === 9 
+                ? 'bg-[#F95700] border-amber-300 text-white scale-110 ring-4 ring-orange-400/30' 
+                : 'bg-[#0A1128] border-white text-white'
+            }`}>
+              <Truck className={`w-5 h-5 ${step === 9 ? 'text-white' : 'text-amber-400'}`} />
+            </div>
+            <span className="text-[10px] font-black text-slate-600 mt-1 flex items-center gap-0.5">
+              <span>Tır</span>
+              {step === 9 && <span className="text-emerald-500 font-bold">✓</span>}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Main Step Container */}
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8 animate-fade-in">
+      <div className="bg-white rounded-3xl shadow-sm border-2 border-slate-200 p-8 sm:p-12 animate-fade-in">
         
         {/* STEP 1: SERVICE TYPE */}
         {step === 1 && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+              <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
                 Ne tür bir nakliyat hizmeti arıyorsunuz?
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+              <p className="text-sm sm:text-base text-slate-500 font-medium mt-1.5">
                 İhtiyacınıza en uygun taşıma tipini seçin.
               </p>
             </div>

@@ -3,45 +3,79 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
-  Filter, Search, MapPin, Calendar, ArrowRight, SlidersHorizontal, X,
-  Check, Camera, Building2, Package, Truck, ChevronRight, MoveRight,
-  Star, ShieldCheck, Phone, MessageSquare, AlertCircle, Info,
-  ChevronDown, ChevronUp, Calculator, Clock, Award
+  Search,
+  MapPin,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
+  Phone,
+  SlidersHorizontal,
+  Check,
+  Building2,
+  Package,
+  Truck,
+  Warehouse,
+  ShieldCheck,
+  X,
+  LayoutGrid,
+  Home,
+  Armchair,
+  Boxes,
+  ArrowRight,
+  MoveRight,
+  Star,
+  Clock,
+  Sparkles,
+  Award
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { RouteDisplay } from '@/components/ui/RouteDisplay';
 import { Modal } from '@/components/ui/Modal';
+import { IntentAuthModal } from '@/components/ui/IntentAuthModal';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { db } from '@/lib/data/mock-db';
-import { MovingRequest } from '@/types';
+import { MovingRequest, ServiceCategory } from '@/types';
 
-// Rule-based match score
-function matchScore(req: MovingRequest, carrier: { city: string; serviceAreas: string[]; services: string[] }) {
-  let score = 0;
-  const reasons: string[] = [];
-  if (carrier.serviceAreas.includes(req.originCity) || carrier.serviceAreas.includes('TÜM_TÜRKİYE')) { score += 35; reasons.push('Hizmet bölgenizde'); }
-  if (carrier.serviceAreas.includes(req.destinationCity) || carrier.serviceAreas.includes('TÜM_TÜRKİYE')) { score += 25; reasons.push('Varış şehrinizde aktifsiniz'); }
-  if (carrier.city === req.originCity) { score += 15; reasons.push('Çıkış şehrinizdesiniz'); }
-  score += 15; reasons.push('Talep tarihinde müsaitsiniz');
-  const svcMap: Record<string, string> = { EVDEN_EVE: 'evden-eve', OFIS_TASIMA: 'ofis-tasima', PARCA_ESYA: 'parca-esya', ESYA_DEPOLAMA: 'depolama' };
-  if (carrier.services.includes(svcMap[req.serviceCategory])) { score += 10; reasons.push('Bu hizmeti veriyorsunuz'); }
-  return { score: Math.min(score, 100), reasons };
-}
+// Category pills styled exactly like the user's reference image
+const CATEGORY_TABS = [
+  { id: 'ALL', label: 'Tümü', icon: LayoutGrid, iconColor: 'text-white' },
+  { id: 'EVDEN_EVE', label: 'Evden Eve', icon: Home, iconColor: 'text-amber-500' },
+  { id: 'PARCA_ESYA', label: 'Ekspres Parça', icon: Package, iconColor: 'text-amber-500' },
+  { id: 'OFIS_TASIMA', label: 'Ofis', icon: Armchair, iconColor: 'text-amber-500' },
+  { id: 'ESYA_DEPOLAMA', label: 'Depolama', icon: Boxes, iconColor: 'text-amber-500' }
+];
 
-const HOME_SIZES = ['Studio', '1+1', '2+1', '3+1', '4+1', '5+1+'];
+const HOME_SIZE_FILTERS = ['Tümü', '1+1', '2+1', '3+1', '4+1+'];
 
 export default function CarrierJobsPage() {
+  const currentUser = db.getCurrentUser();
+  const isCarrier = currentUser?.role === 'CARRIER';
   const carrier = db.getCarriers()[0];
   const requests = db.getRequests();
-  const [filterCity, setFilterCity] = useState('');
-  const [filterDestCity, setFilterDestCity] = useState('');
-  const [filterHomeSize, setFilterHomeSize] = useState('');
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [offerModalReq, setOfferModalReq] = useState<MovingRequest | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
 
-  // Offer form state
+  const [activeCategory, setActiveCategory] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showFilterDrawer, setShowFilterDrawer] = useState(false);
+
+  // Additional route & size filters
+  const [filterOriginCity, setFilterOriginCity] = useState('');
+  const [filterDestCity, setFilterDestCity] = useState('');
+  const [filterSize, setFilterSize] = useState('Tümü');
+
+  const [activePhotoIndices, setActivePhotoIndices] = useState<Record<string, number>>({});
+  const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
+
+  // Quick inline offer inputs: { [reqId]: string }
+  const [quickOfferPrices, setQuickOfferPrices] = useState<Record<string, string>>({});
+  const [revealedPhones, setRevealedPhones] = useState<Record<string, boolean>>({});
+
+  // Auth gate modal
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authActionPayload, setAuthActionPayload] = useState<{ reqId: string; type: 'OFFER' | 'PHONE' } | null>(null);
+
+  // Comprehensive Offer Modal
+  const [offerModalReq, setOfferModalReq] = useState<MovingRequest | null>(null);
   const [offerPrice, setOfferPrice] = useState('');
   const [vatIncluded, setVatIncluded] = useState(true);
   const [packIncluded, setPackIncluded] = useState(false);
@@ -50,235 +84,467 @@ export default function CarrierJobsPage() {
   const [insuranceIncluded, setInsuranceIncluded] = useState(false);
   const [deliveryDuration, setDeliveryDuration] = useState('Aynı Gün');
   const [offerNotes, setOfferNotes] = useState('');
-  const [showCostCalc, setShowCostCalc] = useState(false);
-  const [costKm, setCostKm] = useState('');
-  const [costFuel, setCostFuel] = useState('');
-  const [costStaff, setCostStaff] = useState('');
-  const [costPack, setCostPack] = useState('');
-  const [costToll, setCostToll] = useState('');
   const [offerSubmitted, setOfferSubmitted] = useState(false);
 
-  const estimatedCost = [costKm, costFuel, costStaff, costPack, costToll]
-    .map(v => parseFloat(v) || 0)
-    .reduce((a, b) => a + b, 0);
-  const grossProfit = (parseFloat(offerPrice) || 0) - estimatedCost;
-
-  const filteredJobs = requests.filter(req => {
+  // Filter requests
+  const filteredRequests = requests.filter(req => {
     if (req.status !== 'ACTIVE') return false;
-    if (filterCity && req.originCity !== filterCity) return false;
+    if (activeCategory !== 'ALL' && req.serviceCategory !== activeCategory) return false;
+    if (filterOriginCity && req.originCity !== filterOriginCity) return false;
     if (filterDestCity && req.destinationCity !== filterDestCity) return false;
-    if (filterHomeSize && req.homeSize !== filterHomeSize) return false;
+    if (filterSize !== 'Tümü' && req.homeSize !== filterSize) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchCity = req.originCity.toLowerCase().includes(q) || req.destinationCity.toLowerCase().includes(q);
+      const matchCode = req.requestCode.toLowerCase().includes(q);
+      const matchName = req.customerName.toLowerCase().includes(q);
+      if (!matchCity && !matchCode && !matchName) return false;
+    }
     return true;
   });
 
-  const jobsWithScores = filteredJobs.map(req => ({
-    ...req,
-    ...matchScore(req, carrier),
-  })).sort((a, b) => b.score - a.score);
+  // Next / Prev photo in card carousel
+  const handleNextPhoto = (reqId: string, total: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActivePhotoIndices(prev => ({
+      ...prev,
+      [reqId]: ((prev[reqId] || 0) + 1) % total
+    }));
+  };
 
-  const activeFilters = [filterCity, filterDestCity, filterHomeSize].filter(Boolean).length;
+  const handlePrevPhoto = (reqId: string, total: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActivePhotoIndices(prev => ({
+      ...prev,
+      [reqId]: ((prev[reqId] || 0) - 1 + total) % total
+    }));
+  };
 
-  const handleSubmitOffer = () => {
-    if (!offerModalReq) return;
+  // Trigger offer action with auth gate
+  const handleQuickOfferSubmit = (req: MovingRequest, e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser || currentUser.role !== 'CARRIER') {
+      setAuthActionPayload({ reqId: req.id, type: 'OFFER' });
+      setAuthModalOpen(true);
+      return;
+    }
+
+    const price = quickOfferPrices[req.id];
+    if (!price || parseFloat(price) <= 0) {
+      setOfferModalReq(req);
+      setOfferPrice('');
+      return;
+    }
+
+    // Direct submit quick offer
     db.addOffer({
-      id: `offer_new_${Date.now()}`,
-      requestId: offerModalReq.id,
+      id: `off_${Date.now()}`,
+      requestId: req.id,
       carrierId: carrier.id,
       carrier,
-      price: parseFloat(offerPrice) || 0,
-      isVatIncluded: vatIncluded,
-      isPackagingIncluded: packIncluded,
-      isMobileElevatorIncluded: elevatorIncluded,
-      isAssemblyIncluded: assemblyIncluded,
-      isInsuranceIncluded: insuranceIncluded,
-      estimatedDeliveryDuration: deliveryDuration,
+      price: parseFloat(price),
+      isVatIncluded: true,
+      isPackagingIncluded: req.packagingPreference === 'CARRIER_PACKS',
+      isMobileElevatorIncluded: req.originRequiresMobileElevator || req.destinationRequiresMobileElevator,
+      isAssemblyIncluded: req.extraServices.includes('disassembly_assembly'),
+      isInsuranceIncluded: req.extraServices.includes('insured'),
+      estimatedDeliveryDuration: '24 Saat',
       validUntil: new Date(Date.now() + 7 * 86400000).toISOString(),
-      notes: offerNotes,
+      notes: 'Hızlı teklif iletildi.',
       status: 'PENDING',
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     });
+
+    setQuickOfferPrices(prev => ({ ...prev, [req.id]: '' }));
     setOfferSubmitted(true);
+    setOfferModalReq(req);
+  };
+
+  const handleShowPhone = (req: MovingRequest) => {
+    if (!currentUser || currentUser.role !== 'CARRIER') {
+      setAuthActionPayload({ reqId: req.id, type: 'PHONE' });
+      setAuthModalOpen(true);
+      return;
+    }
+    setRevealedPhones(prev => ({ ...prev, [req.id]: true }));
   };
 
   const resetOfferForm = () => {
-    setOfferPrice(''); setVatIncluded(true); setPackIncluded(false);
-    setAssemblyIncluded(false); setElevatorIncluded(false); setInsuranceIncluded(false);
-    setDeliveryDuration('Aynı Gün'); setOfferNotes(''); setShowCostCalc(false);
-    setCostKm(''); setCostFuel(''); setCostStaff(''); setCostPack(''); setCostToll('');
+    setOfferPrice('');
     setOfferSubmitted(false);
     setOfferModalReq(null);
   };
 
-  const popularCities = TURKEY_CITIES.filter(c => c.isPopular).slice(0, 10);
+  const resetFilters = () => {
+    setActiveCategory('ALL');
+    setSearchQuery('');
+    setFilterOriginCity('');
+    setFilterDestCity('');
+    setFilterSize('Tümü');
+  };
+
+  const hasActiveFilters = activeCategory !== 'ALL' || searchQuery || filterOriginCity || filterDestCity || filterSize !== 'Tümü';
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-12">
 
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">Açık Taşıma İşleri</h1>
-            <p className="text-sm text-slate-500 font-medium mt-0.5">
-              <strong className="text-[#F95700]">{jobsWithScores.length}</strong> aktif talep — rota eşleşmesine göre sıralı
-            </p>
+        {/* ── 1. HEADER (Title & Search Toggle exactly like screenshot) ── */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
+              Talepler
+            </h1>
+            <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-[#0A1128] text-xs font-black">
+              {filteredRequests.length} İş
+            </span>
           </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-black transition-all cursor-pointer ${showFilters || activeFilters > 0 ? 'border-[#F95700] bg-orange-50 text-[#F95700]' : 'border-slate-200 bg-white text-slate-700'}`}
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            Filtrele {activeFilters > 0 && `(${activeFilters})`}
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowFilterDrawer(!showFilterDrawer)}
+              className={`p-2.5 rounded-xl border-2 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-black ${
+                showFilterDrawer || filterOriginCity || filterDestCity || filterSize !== 'Tümü'
+                  ? 'border-[#F95700] bg-orange-50 text-[#C23E00]'
+                  : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+              }`}
+              title="Detaylı Filtreler"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              <span className="hidden sm:inline">Filtrele</span>
+            </button>
+
+            <button
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              className="p-2.5 rounded-xl border-2 border-slate-200 bg-white hover:border-slate-300 text-slate-700 transition-all cursor-pointer"
+              title="Arama Yap"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Filters */}
-        {showFilters && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-5 shadow-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">Çıkış Şehri</label>
-                <select value={filterCity} onChange={e => setFilterCity(e.target.value)}
-                  className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-900 focus:border-[#F95700] focus:outline-none bg-white">
-                  <option value="">Tüm Şehirler</option>
-                  {popularCities.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">Varış Şehri</label>
-                <select value={filterDestCity} onChange={e => setFilterDestCity(e.target.value)}
-                  className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-900 focus:border-[#F95700] focus:outline-none bg-white">
-                  <option value="">Tüm Şehirler</option>
-                  {popularCities.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5">Ev Büyüklüğü</label>
-                <select value={filterHomeSize} onChange={e => setFilterHomeSize(e.target.value)}
-                  className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-900 focus:border-[#F95700] focus:outline-none bg-white">
-                  <option value="">Tüm Büyüklükler</option>
-                  {HOME_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
+        {/* Expandable Search Input */}
+        {isSearchOpen && (
+          <div className="mb-5 animate-fade-in">
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Şehir, ilçe, müşteri adı veya talep kodu ara (#26134)..."
+                className="w-full pl-11 pr-10 py-3 rounded-2xl border-2 border-slate-300 text-sm font-bold text-slate-900 bg-white focus:border-[#F95700] focus:outline-none shadow-sm"
+                autoFocus
+              />
+              <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
-            {activeFilters > 0 && (
-              <button onClick={() => { setFilterCity(''); setFilterDestCity(''); setFilterHomeSize(''); }}
-                className="mt-3 text-xs font-bold text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1 cursor-pointer">
-                <X className="w-3.5 h-3.5" /> Filtreleri Temizle
-              </button>
-            )}
           </div>
         )}
 
-        {/* Job Cards */}
-        <div className="space-y-3">
-          {jobsWithScores.map((job) => {
-            const isExpanded = expandedId === job.id;
-            const myOfferForThis = db.getOffersForCarrier(carrier.id).find(o => o.requestId === job.id);
+        {/* ── 2. CATEGORY PILLS (Screenshot Match) ─────────────── */}
+        <div className="flex gap-2.5 overflow-x-auto pb-3 mb-6 no-scrollbar">
+          {CATEGORY_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isSelected = activeCategory === tab.id;
             return (
-              <div key={job.id} className={`bg-white rounded-2xl border-2 transition-all shadow-xs ${job.score >= 80 ? 'border-emerald-200 hover:border-emerald-300' : 'border-slate-200 hover:border-slate-300'}`}>
-                <div className="p-5">
-                  <div className="flex items-start gap-4">
-                    {/* Match Score */}
-                    <div className="shrink-0 text-center w-14">
-                      <div className={`text-xl font-black ${job.score >= 80 ? 'text-emerald-600' : job.score >= 60 ? 'text-amber-600' : 'text-slate-500'}`}>
-                        %{job.score}
-                      </div>
-                      <div className="text-[9px] font-black text-slate-400 uppercase leading-tight">eşleşme</div>
+              <button
+                key={tab.id}
+                onClick={() => setActiveCategory(tab.id)}
+                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap select-none ${
+                  isSelected
+                    ? 'bg-[#0A1128] text-white shadow-md ring-2 ring-[#0A1128]/20'
+                    : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50/80 shadow-2xs'
+                }`}
+              >
+                <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : tab.iconColor}`} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── 3. EXPANDABLE CITY / ROUTE / SIZE FILTER BAR ────────── */}
+        {showFilterDrawer && (
+          <div className="bg-white rounded-3xl border-2 border-slate-200 p-5 mb-8 shadow-xs animate-fade-in space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <span className="text-xs font-black text-[#0A1128] uppercase tracking-wider">Detaylı Güzergâh &amp; Hacim Filtresi</span>
+              {hasActiveFilters && (
+                <button onClick={resetFilters} className="text-xs font-black text-red-500 hover:underline">
+                  Filtreleri Temizle
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Çıkış İli (Nereden?)</label>
+                <select
+                  value={filterOriginCity}
+                  onChange={e => setFilterOriginCity(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-bold bg-slate-50 focus:border-[#F95700] focus:outline-none"
+                >
+                  <option value="">Tüm Şehirler</option>
+                  {TURKEY_CITIES.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Varış İli (Nereye?)</label>
+                <select
+                  value={filterDestCity}
+                  onChange={e => setFilterDestCity(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-bold bg-slate-50 focus:border-[#F95700] focus:outline-none"
+                >
+                  <option value="">Tüm Şehirler</option>
+                  {TURKEY_CITIES.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Ev Büyüklüğü</label>
+                <div className="flex gap-1">
+                  {HOME_SIZE_FILTERS.map(size => (
+                    <button
+                      key={size}
+                      onClick={() => setFilterSize(size)}
+                      className={`flex-1 py-2 rounded-xl text-xs font-black border transition-all ${
+                        filterSize === size
+                          ? 'border-[#F95700] bg-orange-50 text-[#C23E00]'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── 4. SPACIOUS REQUESTS FEED ───────────────────────── */}
+        <div className="space-y-6">
+          {filteredRequests.map((req) => {
+            const myOffer = db.getOffersForCarrier(carrier.id).find(o => o.requestId === req.id);
+            const photoList = req.photos.length > 0 ? req.photos : [
+              'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80',
+              'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80'
+            ];
+            const currentPhotoIdx = activePhotoIndices[req.id] || 0;
+            const isPhoneRevealed = revealedPhones[req.id];
+
+            return (
+              <div
+                key={req.id}
+                className="bg-white rounded-3xl border-2 border-slate-200 hover:border-[#F95700]/50 transition-all p-5 sm:p-7 shadow-xs space-y-5"
+              >
+                {/* 1. Header: User Avatar, Name, Code, Badges */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-[#5B7BA8] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-2xs">
+                      {req.customerName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                     </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{job.requestCode}</span>
-                          <span className="text-xs font-bold text-slate-600">{job.homeSize} Ev</span>
-                          {job.photos.length > 0 && (
-                            <span className="text-[10px] font-black text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded flex items-center gap-1">
-                              <Camera className="w-3 h-3" />{job.photos.length} Foto
-                            </span>
-                          )}
-                        </div>
-                        {myOfferForThis && (
-                          <span className="text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg shrink-0">
-                            Teklif Verildi
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2 font-black text-[#0A1128] text-base mb-2">
-                        <span>{job.originCity}</span>
-                        <span className="text-xs text-slate-400 font-medium">{job.originDistrict}</span>
-                        <MoveRight className="w-5 h-5 text-[#F95700] shrink-0" />
-                        <span>{job.destinationCity}</span>
-                        <span className="text-xs text-slate-400 font-medium">{job.destinationDistrict}</span>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 font-medium mb-2">
-                        <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{job.movingDate}</span>
-                        {job.packagingPreference === 'CARRIER_PACKS' && <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold">Paketleme İstiyor</span>}
-                        {job.originRequiresMobileElevator && <span className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded font-bold">Asansör İstiyor</span>}
-                        {job.extraServices.includes('insured') && <span className="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-bold">Sigortalı</span>}
-                      </div>
-
-                      {/* Match reasons */}
-                      <div className="flex flex-wrap gap-1.5 mb-3">
-                        {job.reasons.map((r, i) => (
-                          <span key={i} className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">✓ {r}</span>
-                        ))}
-                      </div>
-
-                      {/* Expand: Bina bilgileri */}
-                      {isExpanded && (
-                        <div className="bg-slate-50 rounded-xl border border-slate-100 p-3 mb-3 text-xs font-medium text-slate-600 grid grid-cols-2 gap-2">
-                          <div><span className="font-black text-slate-500">Çıkış Kat:</span> {job.originFloor}. kat</div>
-                          <div><span className="font-black text-slate-500">Asansör:</span> {job.originHasElevator ? 'Var' : 'Yok'}</div>
-                          <div><span className="font-black text-slate-500">Varış Kat:</span> {job.destinationFloor}. kat</div>
-                          <div><span className="font-black text-slate-500">Varış Asansör:</span> {job.destinationHasElevator ? 'Var' : 'Yok'}</div>
-                          {job.notes && <div className="col-span-2"><span className="font-black text-slate-500">Not:</span> {job.notes}</div>}
-                        </div>
-                      )}
-
-                      <div className="flex flex-wrap items-center gap-2">
-                        {!myOfferForThis ? (
-                          <Button variant="primary" size="sm" className="font-black"
-                            onClick={() => { setOfferModalReq(job); setOfferSubmitted(false); }}>
-                            Teklif Ver
-                          </Button>
-                        ) : (
-                          <span className="text-xs font-black text-amber-700 flex items-center gap-1">
-                            <Award className="w-4 h-4" />
-                            Teklifiniz: {myOfferForThis.price.toLocaleString('tr-TR')} TL
-                          </span>
-                        )}
-                        <button onClick={() => setExpandedId(isExpanded ? null : job.id)}
-                          className="text-xs text-slate-400 hover:text-slate-600 font-bold flex items-center gap-0.5 cursor-pointer transition-colors">
-                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                          {isExpanded ? 'Gizle' : 'Detay'}
-                        </button>
-                      </div>
+                    <div>
+                      <h3 className="font-black text-sm sm:text-base text-[#0A1128]">
+                        {req.customerName}
+                      </h3>
+                      <p className="text-xs text-slate-400 font-medium">Bireysel Müşteri</p>
                     </div>
                   </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs font-black text-slate-400">{req.requestCode}</span>
+                    <span className="px-2.5 py-1 rounded-full bg-red-600 text-white text-[11px] font-black tracking-wide shadow-2xs">
+                      Şimdi
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2. Route & Service Category Pill */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800">
+                    <span className="text-[#F95700] font-black">{req.originCity}</span>
+                    <MoveRight className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-slate-900 font-black">{req.destinationCity}</span>
+                  </div>
+
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 border border-orange-200 text-xs font-black text-[#C23E00]">
+                    <Home className="w-3.5 h-3.5" />
+                    <span>{req.serviceCategory === 'EVDEN_EVE' ? 'Evden Eve' : req.serviceCategory === 'OFIS_TASIMA' ? 'Ofis Taşıma' : 'Parça Eşya'}</span>
+                  </div>
+
+                  {myOffer && (
+                    <span className="px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-black">
+                      ✓ Teklifiniz: {myOffer.price.toLocaleString('tr-TR')} TL
+                    </span>
+                  )}
+                </div>
+
+                {/* 3. Large High-Res Photo Slider (Like Reference Image) */}
+                <div className="relative aspect-[16/9] sm:aspect-[2/1] rounded-2xl overflow-hidden bg-slate-900 group">
+                  <img
+                    src={photoList[currentPhotoIdx]}
+                    alt={`Eşya Görseli - ${req.requestCode}`}
+                    className="w-full h-full object-cover transition-all duration-300"
+                  />
+
+                  {/* Expand to Lightbox Button */}
+                  <button
+                    onClick={() => setLightboxPhoto(photoList[currentPhotoIdx])}
+                    className="absolute bottom-3 right-3 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white transition-colors cursor-pointer"
+                    title="Büyük Görsel"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                  </button>
+
+                  {/* Carousel Left / Right Controls if multiple photos */}
+                  {photoList.length > 1 && (
+                    <>
+                      <button
+                        onClick={(e) => handlePrevPhoto(req.id, photoList.length, e)}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-colors cursor-pointer"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => handleNextPhoto(req.id, photoList.length, e)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-colors cursor-pointer"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+
+                      {/* Dots Indicator */}
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-xs">
+                        {photoList.map((_, idx) => (
+                          <span
+                            key={idx}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              idx === currentPhotoIdx ? 'bg-white w-4' : 'bg-white/50'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* 4. Origin & Destination & Date Details */}
+                <div className="space-y-1.5 text-xs sm:text-sm font-bold text-slate-800">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[#F95700] shrink-0" />
+                    <span>{req.originCity}, {req.originDistrict} → {req.destinationCity}, {req.destinationDistrict}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span>{req.movingDate}&apos;da taşınacak ({req.isDateFlexible ? '±Esnek' : 'Kesin Tarih'})</span>
+                  </div>
+                </div>
+
+                {/* 5. Feature Badges (Home Size, Floor, Packaging) */}
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
+                    🛋️ {req.homeSize} Eşya
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
+                    🏢 Çıkış: {req.originFloor === 0 ? 'Zemin Kat' : `${req.originFloor}. Kat`} · {req.originHasElevator ? 'Asansör Var' : 'Merdiven'}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
+                    🏢 Varış: {req.destinationFloor === 0 ? 'Zemin Kat' : `${req.destinationFloor}. Kat`} · {req.destinationHasElevator ? 'Asansör Var' : 'Merdiven'}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
+                    📦 {req.packagingPreference === 'CARRIER_PACKS' ? 'Firma Paketlesin' : req.packagingPreference === 'CUSTOMER_PACKS' ? 'Kendim Paketleyeceğim' : 'İkisi İçin Teklif'}
+                  </span>
+                </div>
+
+                {/* 6. Notes if present */}
+                {req.notes && (
+                  <p className="text-xs text-slate-600 font-medium bg-slate-50 p-3.5 rounded-2xl border border-slate-100 leading-relaxed">
+                    &ldquo;{req.notes}&rdquo;
+                  </p>
+                )}
+
+                {/* 7. Action Bar: Quick Offer Input + Gönder + Numarayı Göster */}
+                <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  
+                  {/* Quick Offer Form */}
+                  <form
+                    onSubmit={(e) => handleQuickOfferSubmit(req, e)}
+                    className="flex-1 flex items-center gap-2 border-2 border-slate-200 focus-within:border-[#F95700] rounded-2xl p-1 bg-white"
+                  >
+                    <input
+                      type="number"
+                      value={quickOfferPrices[req.id] || ''}
+                      onChange={e => setQuickOfferPrices({ ...quickOfferPrices, [req.id]: e.target.value })}
+                      placeholder="Hemen teklifinizi yazın (TL)..."
+                      className="flex-1 px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                    />
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="sm"
+                      className="font-black text-xs px-6 py-2.5 rounded-xl shadow-xs shrink-0"
+                    >
+                      Teklif Ver
+                    </Button>
+                  </form>
+
+                  {/* Numarayı Göster Button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="md"
+                    className="font-black text-xs px-5 py-2.5 rounded-2xl shrink-0"
+                    leftIcon={<Phone className="w-3.5 h-3.5" />}
+                    onClick={() => handleShowPhone(req)}
+                  >
+                    {isPhoneRevealed ? req.customerPhone : 'Numarayı Göster'}
+                  </Button>
                 </div>
               </div>
             );
           })}
 
-          {jobsWithScores.length === 0 && (
-            <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-16 text-center">
-              <Truck className="w-16 h-16 text-slate-200 mx-auto mb-4" />
-              <h2 className="font-black text-slate-700 text-xl mb-2">Filtreye uygun iş bulunamadı</h2>
-              <button onClick={() => { setFilterCity(''); setFilterDestCity(''); setFilterHomeSize(''); }}
-                className="text-sm font-bold text-[#F95700] hover:underline">
-                Filtreleri temizle
-              </button>
+          {filteredRequests.length === 0 && (
+            <div className="bg-white rounded-3xl border-2 border-dashed border-slate-200 p-16 text-center">
+              <Truck className="w-14 h-14 text-slate-300 mx-auto mb-3" />
+              <h3 className="font-black text-slate-700 text-lg mb-1">Kriterlere uygun talep bulunamadı</h3>
+              <p className="text-xs text-slate-400 mb-4">Filtreleri sıfırlayarak tüm açık taşıma taleplerini görebilirsiniz.</p>
+              <Button variant="outline" size="sm" onClick={resetFilters} className="font-bold">
+                Filtreleri Sıfırla
+              </Button>
             </div>
           )}
         </div>
       </div>
 
-      {/* ── TEKLİF VER MODAL ──────────────────────────────────── */}
+      {/* ── INTENT AUTH MODAL (Gate for Guest / Non-Carrier) ── */}
+      <IntentAuthModal
+        isOpen={authModalOpen}
+        onClose={() => {
+          setAuthModalOpen(false);
+          setAuthActionPayload(null);
+        }}
+        targetRole="CARRIER"
+        title="Taleplere Teklif Vermek İçin Nakliyeci Girişi Yapın"
+        subtitle="Müşteri taleplerine teklif vermek, telefon numaralarına erişmek ve doğrudan iş almak için onaylı nakliyeci hesabınıza giriş yapın veya 7 gün ücretsiz deneyin."
+        onSuccess={() => {
+          setAuthModalOpen(false);
+          if (authActionPayload?.type === 'PHONE') {
+            setRevealedPhones(prev => ({ ...prev, [authActionPayload.reqId]: true }));
+          }
+        }}
+      />
+
+      {/* ── FULL OFFER MODAL ─────────────────────────────────── */}
       <Modal
         isOpen={!!offerModalReq}
         onClose={resetOfferForm}
@@ -286,116 +552,59 @@ export default function CarrierJobsPage() {
       >
         {offerModalReq && !offerSubmitted && (
           <div className="space-y-5">
-            {/* Talep özeti */}
-            <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+            <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200">
               <div className="flex items-center gap-2 text-sm font-black text-[#0A1128]">
                 <span>{offerModalReq.originCity}</span>
                 <MoveRight className="w-4 h-4 text-[#F95700] shrink-0" />
                 <span>{offerModalReq.destinationCity}</span>
               </div>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">{offerModalReq.homeSize} Ev · {offerModalReq.movingDate}</p>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                {offerModalReq.homeSize} Ev · {offerModalReq.movingDate}
+              </p>
             </div>
 
-            {/* Fiyat */}
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">Teklif Fiyatı (TL) *</label>
-              <input type="number" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} placeholder="24500"
-                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-lg font-black text-[#F95700] focus:border-[#F95700] focus:outline-none" />
-            </div>
-
-            {/* Kapsam */}
-            <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">Teklif Kapsamı</label>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { val: vatIncluded, set: setVatIncluded, label: 'KDV Dahil' },
-                  { val: packIncluded, set: setPackIncluded, label: 'Paketleme Dahil' },
-                  { val: assemblyIncluded, set: setAssemblyIncluded, label: 'Demontaj & Montaj' },
-                  { val: elevatorIncluded, set: setElevatorIncluded, label: 'Mobil Asansör' },
-                  { val: insuranceIncluded, set: setInsuranceIncluded, label: 'Sigorta Dahil' },
-                ].map(item => (
-                  <label key={item.label} className={`flex items-center gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${item.val ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 hover:border-slate-300'}`}>
-                    <div className={`w-4 h-4 rounded flex items-center justify-center border-2 shrink-0 ${item.val ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'}`}
-                      onClick={() => item.set(!item.val)}>
-                      {item.val && <Check className="w-3 h-3 text-white" />}
-                    </div>
-                    <span className="text-xs font-bold text-slate-700" onClick={() => item.set(!item.val)}>{item.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Teslim süresi */}
-            <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">Teslim Süresi</label>
-              <div className="flex gap-2">
-                {['Aynı Gün', '24 Saat', '2 Gün', '3+ Gün'].map(d => (
-                  <button key={d} onClick={() => setDeliveryDuration(d)}
-                    className={`flex-1 py-2 rounded-xl text-xs font-black border-2 cursor-pointer transition-all ${deliveryDuration === d ? 'border-[#F95700] bg-orange-50 text-[#F95700]' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
-                    {d}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Not */}
-            <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">Teklif Notu (Opsiyonel)</label>
-              <textarea value={offerNotes} onChange={e => setOfferNotes(e.target.value)} rows={3}
-                placeholder="Ek bilgiler, koşullar, özel teklifler..."
-                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 focus:border-[#F95700] focus:outline-none resize-none" />
-            </div>
-
-            {/* Maliyetimi Hesapla */}
-            <div>
-              <button onClick={() => setShowCostCalc(!showCostCalc)}
-                className="flex items-center gap-2 text-xs font-black text-slate-500 hover:text-[#F95700] transition-colors cursor-pointer">
-                <Calculator className="w-4 h-4" />
-                {showCostCalc ? 'Maliyet Hesabını Gizle' : 'Maliyetimi Hesapla (Opsiyonel)'}
-                {showCostCalc ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-              </button>
-
-              {showCostCalc && (
-                <div className="mt-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
-                  <p className="text-[11px] text-slate-500 font-medium mb-3">Bu bilgiler yalnızca size gösterilir, müşteri görmez.</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { val: costKm, set: setCostKm, label: 'Yakıt (TL)' },
-                      { val: costFuel, set: setCostFuel, label: 'KM Maliyeti (TL)' },
-                      { val: costStaff, set: setCostStaff, label: 'Personel (TL)' },
-                      { val: costPack, set: setCostPack, label: 'Paketleme (TL)' },
-                      { val: costToll, set: setCostToll, label: 'Otoyol/Köprü (TL)' },
-                    ].map(item => (
-                      <div key={item.label}>
-                        <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{item.label}</label>
-                        <input type="number" value={item.val} onChange={e => item.set(e.target.value)} placeholder="0"
-                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-900 focus:border-[#F95700] focus:outline-none bg-white" />
-                      </div>
-                    ))}
-                  </div>
-                  {estimatedCost > 0 && (
-                    <div className="mt-3 pt-3 border-t border-slate-200 flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-600">Tahmini Maliyet:</span>
-                      <span className="font-black text-slate-900">{estimatedCost.toLocaleString('tr-TR')} TL</span>
-                    </div>
-                  )}
-                  {estimatedCost > 0 && parseFloat(offerPrice) > 0 && (
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-xs font-bold text-slate-600">Tahmini Kâr:</span>
-                      <span className={`font-black text-sm ${grossProfit >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                        {grossProfit >= 0 ? '+' : ''}{grossProfit.toLocaleString('tr-TR')} TL
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Teklif Fiyatı (TL) *</label>
+              <input
+                type="number"
+                value={offerPrice}
+                onChange={e => setOfferPrice(e.target.value)}
+                placeholder="24500"
+                className="w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-lg font-black text-[#F95700] focus:border-[#F95700] focus:outline-none"
+              />
             </div>
 
             <div className="flex gap-3 pt-2">
-              <Button variant="outline" size="md" className="flex-1 font-bold" onClick={resetOfferForm}>İptal</Button>
-              <Button variant="primary" size="md" className="flex-1 font-black"
+              <Button variant="outline" size="md" className="flex-1 font-bold" onClick={resetOfferForm}>
+                İptal
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
+                className="flex-1 font-black"
                 disabled={!offerPrice || parseFloat(offerPrice) <= 0}
-                onClick={handleSubmitOffer}>
+                onClick={() => {
+                  db.addOffer({
+                    id: `off_${Date.now()}`,
+                    requestId: offerModalReq.id,
+                    carrierId: carrier.id,
+                    carrier,
+                    price: parseFloat(offerPrice),
+                    isVatIncluded: vatIncluded,
+                    isPackagingIncluded: packIncluded,
+                    isMobileElevatorIncluded: elevatorIncluded,
+                    isAssemblyIncluded: assemblyIncluded,
+                    isInsuranceIncluded: insuranceIncluded,
+                    estimatedDeliveryDuration: deliveryDuration,
+                    validUntil: new Date(Date.now() + 7 * 86400000).toISOString(),
+                    notes: offerNotes,
+                    status: 'PENDING',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                  });
+                  setOfferSubmitted(true);
+                }}
+              >
                 Teklifi Gönder
               </Button>
             </div>
@@ -403,20 +612,36 @@ export default function CarrierJobsPage() {
         )}
 
         {offerSubmitted && (
-          <div className="text-center py-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+          <div className="text-center py-4 space-y-4">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
               <Check className="w-8 h-8 text-emerald-600" />
             </div>
-            <h3 className="font-black text-[#0A1128] text-lg mb-2">Teklifiniz Gönderildi!</h3>
-            <p className="text-sm text-slate-500 font-medium mb-6">
-              Müşteri teklifinizi inceleyecek ve en kısa sürede yanıtlayacak.
-            </p>
+            <h3 className="font-black text-[#0A1128] text-lg">Teklifiniz İletildi!</h3>
+            <p className="text-xs text-slate-500 font-medium">Müşteri teklifinizi incelediğinde panelinizden ve SMS ile bilgilendirileceksiniz.</p>
             <Button variant="primary" size="md" className="font-black w-full" onClick={resetOfferForm}>
               Tamam
             </Button>
           </div>
         )}
       </Modal>
+
+      {/* ── FULLSCREEN PHOTO LIGHTBOX ────────────────────────── */}
+      {lightboxPhoto && (
+        <div
+          onClick={() => setLightboxPhoto(null)}
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 cursor-zoom-out"
+        >
+          <div className="relative max-w-4xl max-h-[90vh]">
+            <img src={lightboxPhoto} alt="Büyük Görsel" className="w-full h-full object-contain rounded-2xl" />
+            <button
+              onClick={() => setLightboxPhoto(null)}
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/40 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

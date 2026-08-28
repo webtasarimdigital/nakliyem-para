@@ -267,9 +267,9 @@ export default function GirisPage() {
 
           <p className="mt-4 text-center text-[11px] text-slate-400 leading-relaxed">
             Giriş yaparak{' '}
-            <Link href="/kullanim-kosullari" className="underline hover:text-slate-600">Kullanım Koşulları</Link>
+            <Link href="/kullanim-kosullari" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">Kullanım Koşulları</Link>
             {' '}ve{' '}
-            <Link href="/kvkk" className="underline hover:text-slate-600">KVKK Aydınlatma Metni</Link>
+            <Link href="/kvkk" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">KVKK Aydınlatma Metni</Link>
             &apos;ni kabul etmiş olursunuz.
           </p>
 
