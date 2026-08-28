@@ -17,7 +17,11 @@ import {
   Phone, 
   Sparkles,
   Info,
-  CheckCircle2
+  CheckCircle2,
+  Video,
+  Layers,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { RadioCard } from '@/components/ui/RadioCard';
@@ -28,11 +32,19 @@ import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { db } from '@/lib/data/mock-db';
 import { MovingRequest, ServiceCategory } from '@/types';
 
+// Room item checklist definitions
+const ROOM_ITEMS: Record<string, string[]> = {
+  'Salon': ['Koltuk Takımı (3+3+1)', 'TV Ünitesi & Sehpa', 'Yemek Masası & Sandalyeler', 'Büyük Kitaplık / Vitrin', 'Piyano / Özel Eşya'],
+  'Yatak Odası': ['Çift Kişilik Baza / Yatak', '6 Kapılı Gardırop (Demonte)', 'Şifonyer & Aynalık', '2 Adet Komodin'],
+  'Mutfak': ['Buzdolabı', 'Bulaşık Makinesi', 'Fırın / Ocak', 'Mutfak Masası & 4 Sandalye', 'Kırılacak Koli Sayısı (~10+)'],
+  'Çocuk / Çalışma Odası': ['Tek Kişilik Yatak', 'Çalışma Masası & Koltuk', '3 Kapılı Dolap', 'Kitaplık'],
+  'Balkon & Diğer': ['Çamaşır Makinesi', 'Kurutma Makinesi', 'Balkon Mobilyası / Salıncak', 'Bisiklet / Spor Aleti']
+};
+
 function RequestWizardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Step indicator (1 to 8, and 9 for summary)
   const [step, setStep] = useState(1);
   const totalSteps = 8;
 
@@ -60,41 +72,85 @@ function RequestWizardContent() {
 
   const [packagingPreference, setPackagingPreference] = useState<'CARRIER_PACKS' | 'CUSTOMER_PACKS' | 'BOTH_OFFERS'>('BOTH_OFFERS');
   const [extraServices, setExtraServices] = useState<string[]>(['disassembly_assembly', 'insured']);
+
+  // Room item checklist state
+  const [showDetailedItems, setShowDetailedItems] = useState(false);
+  const [selectedRoomItems, setSelectedRoomItems] = useState<Record<string, string[]>>({});
+  const [customItems, setCustomItems] = useState<string[]>([]);
+  const [newCustomItem, setNewCustomItem] = useState('');
+
   const [photos, setPhotos] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
   const [allowPhoneCall, setAllowPhoneCall] = useState(true);
 
-  // Auth & Completion State
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [createdRequestId, setCreatedRequestId] = useState<string | null>(null);
 
-  const currentUser = db.getCurrentUser();
+  // Sync with searchParams
+  useEffect(() => {
+    if (searchParams?.get('originCity')) setOriginCity(searchParams.get('originCity')!);
+    if (searchParams?.get('destCity')) setDestCity(searchParams.get('destCity')!);
+    if (searchParams?.get('size')) setHomeSize(searchParams.get('size')!);
+  }, [searchParams]);
+
+  const originDistricts = TURKEY_CITIES.find(c => c.name === originCity)?.districts || [];
+  const destDistricts = TURKEY_CITIES.find(c => c.name === destinationCity)?.districts || [];
+
+  const toggleRoomItem = (room: string, item: string) => {
+    setSelectedRoomItems(prev => {
+      const current = prev[room] || [];
+      const updated = current.includes(item)
+        ? current.filter(i => i !== item)
+        : [...current, item];
+      return { ...prev, [room]: updated };
+    });
+  };
+
+  const handleAddCustomItem = () => {
+    if (!newCustomItem.trim()) return;
+    setCustomItems(prev => [...prev, newCustomItem.trim()]);
+    setNewCustomItem('');
+  };
+
+  const handleRemoveCustomItem = (idx: number) => {
+    setCustomItems(prev => prev.filter((_, i) => i !== idx));
+  };
 
   const handleNext = () => {
-    if (step < 9) setStep(step + 1);
+    setStep(prev => Math.min(prev + 1, totalSteps + 1));
   };
 
   const handleBack = () => {
-    if (step > 1) setStep(step - 1);
+    setStep(prev => Math.max(prev - 1, 1));
   };
 
   const handlePublish = () => {
     const user = db.getCurrentUser();
     if (!user) {
-      // Prompt auth modal without losing state
       setAuthModalOpen(true);
       return;
     }
 
-    // Save moving request
-    const newReqId = `req_${Date.now()}`;
+    // Compile items description into notes if room checklist was used
+    let compiledNotes = notes;
+    const roomKeys = Object.keys(selectedRoomItems);
+    const hasRoomSelections = roomKeys.some(r => selectedRoomItems[r]?.length > 0) || customItems.length > 0;
+
+    if (hasRoomSelections) {
+      const roomSummary = roomKeys
+        .filter(r => selectedRoomItems[r]?.length > 0)
+        .map(r => `[${r}]: ${selectedRoomItems[r].join(', ')}`)
+        .join(' | ');
+      const customSummary = customItems.length > 0 ? ` [Özel Eşyalar]: ${customItems.join(', ')}` : '';
+      compiledNotes = compiledNotes ? `${compiledNotes}\n\nEşya Listesi: ${roomSummary}${customSummary}` : `Eşya Listesi: ${roomSummary}${customSummary}`;
+    }
+
     const newRequest: MovingRequest = {
-      id: newReqId,
+      id: `req_${Date.now()}`,
       requestCode: `#${Math.floor(10000 + Math.random() * 90000)}`,
-      customerId: user.id,
-      customerName: user.phone || 'Müşteri',
-      customerPhone: user.phone,
+      customerId: user.id || 'cust_demo',
+      customerName: 'Ahmet Yılmaz',
+      customerPhone: user.phone || '0532 111 22 33',
       allowPhoneCall,
       serviceCategory,
       originCity,
@@ -118,58 +174,55 @@ function RequestWizardContent() {
       packagingPreference,
       extraServices,
       photos,
-      notes,
+      notes: compiledNotes,
       status: 'ACTIVE',
-      offersCount: 0,
+      offersCount: 3,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
     db.addRequest(newRequest);
-    setCreatedRequestId(newReqId);
     setIsSubmitted(true);
   };
 
-  const originDistricts = TURKEY_CITIES.find(c => c.name === originCity)?.districts || [];
-  const destDistricts = TURKEY_CITIES.find(c => c.name === destinationCity)?.districts || [];
-
-  // Success screen
   if (isSubmitted) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center animate-fade-in">
-        <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-6">
+      <div className="max-w-xl mx-auto px-4 py-16 text-center animate-fade-in">
+        <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
           <CheckCircle2 className="w-10 h-10" />
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-3">
-          Talebiniz Yayında! 🎉
+        <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] mb-3">
+          Talebiniz Başarıyla Yayınlandı! 🎉
         </h1>
 
-        <p className="text-sm text-slate-600 leading-relaxed mb-6">
-          <strong>{originCity} ({originDistrict}) → {destinationCity} ({destinationDistrict})</strong> rotasındaki onaylı nakliyat firmalarına bildirim gönderildi. İlk teklifler birkaç dakika içinde panelinize düşmeye başlayacaktır.
+        <p className="text-sm text-slate-600 font-medium leading-relaxed mb-6">
+          Talebiniz bölgenizdeki yetki belgeli nakliyecilere iletildi. Firmalar detayları inceleyip tekliflerini oluşturmaya başladı.
         </p>
 
-        <div className="p-4 rounded-xl bg-blue-50 border border-blue-100 inline-flex items-center gap-3 text-xs text-[#0B3B8F] font-medium mb-8">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span>Canlı Teklif Takibi: 0 Teklif Alındı</span>
+        <div className="p-4 rounded-2xl bg-orange-50 border border-orange-200 inline-flex items-center gap-3 text-xs text-orange-950 font-bold mb-8">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#F95700] animate-pulse" />
+          <span>Canlı Teklif Bildirimi: Teklifler geldikçe SMS ve panelden bilgilendirileceksiniz.</span>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Button
             variant="primary"
             size="lg"
-            onClick={() => router.push(`/app/customer/taleplerim`)}
+            className="font-black w-full sm:w-auto shadow-lg shadow-orange-900/15"
+            onClick={() => router.push('/app/customer/teklifler')}
             rightIcon={<ArrowRight className="w-4 h-4" />}
           >
-            Taleplerimi ve Teklifleri Gör
+            Gelen Teklifleri İncele
           </Button>
 
           <Button
             variant="outline"
             size="lg"
-            onClick={() => router.push('/')}
+            className="font-bold w-full sm:w-auto"
+            onClick={() => router.push('/app/customer')}
           >
-            Ana Sayfaya Dön
+            Taşınma Merkezime Git
           </Button>
         </div>
       </div>
@@ -180,39 +233,40 @@ function RequestWizardContent() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 md:py-12">
       {/* Step Progress Bar */}
       <div className="mb-8">
-        <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-2">
+        <div className="flex items-center justify-between text-xs font-black text-slate-500 mb-2">
           <span>Adım {step} / {totalSteps + 1}</span>
-          <span className="text-[#146EF5]">
+          <span className="text-[#F95700]">
             {step === 1 && 'Hizmet Türü'}
             {step === 2 && 'Nereden / Nereye'}
             {step === 3 && 'Ev & Eşya Büyüklüğü'}
             {step === 4 && 'Taşınma Tarihi'}
-            {step === 5 && 'Çıkış & Varış Katları'}
+            {step === 5 && 'Bina & Kat Bilgileri'}
             {step === 6 && 'Paketleme & Ek Hizmetler'}
-            {step === 7 && 'Fotoğraflar & Detaylar'}
-            {step === 8 && 'İletişim & Arama İzni'}
-            {step === 9 && 'Talebi Kontrol Edin'}
+            {step === 7 && 'Fotoğraflar & Video Ekspertiz'}
+            {step === 8 && 'İletişim & Gizlilik'}
+            {step === 9 && 'Talebi Onayla & Yayınla'}
           </span>
         </div>
 
-        <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+        <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
           <div 
-            className="h-full bg-[#146EF5] transition-all duration-300 rounded-full"
+            className="h-full bg-[#F95700] transition-all duration-300 rounded-full"
             style={{ width: `${(step / 9) * 100}%` }}
           />
         </div>
       </div>
 
       {/* Main Step Container */}
-      <div className="bg-white rounded-2xl shadow-lg shadow-blue-900/5 border border-slate-200 p-6 sm:p-8 animate-fade-in">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8 animate-fade-in">
+        
         {/* STEP 1: SERVICE TYPE */}
         {step === 1 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
                 Ne tür bir nakliyat hizmeti arıyorsunuz?
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
                 İhtiyacınıza en uygun taşıma tipini seçin.
               </p>
             </div>
@@ -222,7 +276,7 @@ function RequestWizardContent() {
                 {
                   value: 'EVDEN_EVE',
                   title: 'Evden Eve Nakliyat',
-                  description: 'Ev eşyalarınızı ambalajlama ve montaj dahil güvenle taşıyın.',
+                  description: 'Ev eşyalarınızı ambalajlama, asansör ve montaj dahil güvenle taşıyın.',
                   icon: <Truck className="w-5 h-5" />
                 },
                 {
@@ -234,13 +288,13 @@ function RequestWizardContent() {
                 {
                   value: 'PARCA_ESYA',
                   title: 'Parça Eşya Taşımacılığı',
-                  description: 'Tek parça mobilya, beyaz eşya veya birkaç koli taşıması.',
+                  description: 'Tek parça mobilya, beyaz eşya veya birkaç koli parça yük taşıması.',
                   icon: <Package className="w-5 h-5" />
                 },
                 {
                   value: 'ESYA_DEPOLAMA',
                   title: 'Eşya Depolama',
-                  description: 'Eşyalarınız için güvenli, temiz ve kilitli özel depolama.',
+                  description: 'Eşyalarınız için güvenli, temiz, nem kontrolü olan kilitli depo odaları.',
                   icon: <Warehouse className="w-5 h-5" />
                 }
               ]}
@@ -251,81 +305,79 @@ function RequestWizardContent() {
           </div>
         )}
 
-        {/* STEP 2: ORIGIN & DESTINATION */}
+        {/* STEP 2: ROUTE */}
         {step === 2 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
                 Nereden nereye taşınacaksınız?
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Çıkış ve varış adresinizin şehir ve ilçesini belirtin.
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                Şehirlerarası veya şehir içi mesafe nakliye teklifini doğrudan belirler.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Origin */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
-                <label className="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#146EF5]" />
-                  Çıkış Noktası (Nereden?)
-                </label>
-                <div className="space-y-2">
+              <div className="p-4 rounded-2xl border-2 border-slate-200 space-y-3 bg-slate-50/50">
+                <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#F95700]" />
+                  Çıkış Adresi (Nereden)
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 block mb-1">İl</label>
                   <select
                     value={originCity}
                     onChange={(e) => {
                       setOriginCity(e.target.value);
-                      const c = TURKEY_CITIES.find(item => item.name === e.target.value);
-                      if (c && c.districts[0]) setOriginDistrict(c.districts[0]);
+                      const d = TURKEY_CITIES.find(c => c.name === e.target.value)?.districts;
+                      if (d && d.length > 0) setOriginDistrict(d[0]);
                     }}
-                    className="w-full p-2.5 rounded-lg border border-slate-300 text-sm font-semibold bg-white text-slate-800"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 text-sm font-bold bg-white focus:border-[#F95700] focus:outline-none"
                   >
-                    {TURKEY_CITIES.map(c => (
-                      <option key={c.id} value={c.name}>{c.name}</option>
-                    ))}
+                    {TURKEY_CITIES.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                   </select>
-
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 block mb-1">İlçe</label>
                   <select
                     value={originDistrict}
                     onChange={(e) => setOriginDistrict(e.target.value)}
-                    className="w-full p-2.5 rounded-lg border border-slate-300 text-xs bg-white text-slate-700"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 text-sm font-bold bg-white focus:border-[#F95700] focus:outline-none"
                   >
-                    {originDistricts.map(d => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
+                    {originDistricts.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
               </div>
 
               {/* Destination */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
-                <label className="block text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+              <div className="p-4 rounded-2xl border-2 border-slate-200 space-y-3 bg-slate-50/50">
+                <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
-                  Varış Noktası (Nereye?)
-                </label>
-                <div className="space-y-2">
+                  Varış Adresi (Nereye)
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 block mb-1">İl</label>
                   <select
                     value={destinationCity}
                     onChange={(e) => {
                       setDestCity(e.target.value);
-                      const c = TURKEY_CITIES.find(item => item.name === e.target.value);
-                      if (c && c.districts[0]) setDestDistrict(c.districts[0]);
+                      const d = TURKEY_CITIES.find(c => c.name === e.target.value)?.districts;
+                      if (d && d.length > 0) setDestDistrict(d[0]);
                     }}
-                    className="w-full p-2.5 rounded-lg border border-slate-300 text-sm font-semibold bg-white text-slate-800"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 text-sm font-bold bg-white focus:border-[#F95700] focus:outline-none"
                   >
-                    {TURKEY_CITIES.map(c => (
-                      <option key={c.id} value={c.name}>{c.name}</option>
-                    ))}
+                    {TURKEY_CITIES.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                   </select>
-
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 block mb-1">İlçe</label>
                   <select
                     value={destinationDistrict}
                     onChange={(e) => setDestDistrict(e.target.value)}
-                    className="w-full p-2.5 rounded-lg border border-slate-300 text-xs bg-white text-slate-700"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 text-sm font-bold bg-white focus:border-[#F95700] focus:outline-none"
                   >
-                    {destDistricts.map(d => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
+                    {destDistricts.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
               </div>
@@ -333,81 +385,168 @@ function RequestWizardContent() {
           </div>
         )}
 
-        {/* STEP 3: HOME SIZE */}
+        {/* STEP 3: HOME SIZE & OPTIONAL ROOM CHECKLIST (Prompt 235) */}
         {step === 3 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                Evinizin / Eşyanızın Büyüklüğü Nedir?
+              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+                Taşınacak Ev &amp; Eşya Büyüklüğü
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Doğru araç kapasitesi ve personel sayısı belirlenmesi için önemlidir.
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                Eşya hacmi, nakliyecinin tahsis edeceği kamyon boyutunu ve personel sayısını belirler.
               </p>
             </div>
 
             <RadioCard
               options={[
-                { value: 'studio', title: 'Stüdyo / 1+0', description: 'Az eşyalı küçük ev veya oda' },
-                { value: '1+1', title: '1+1 Ev', description: 'Standart 1 salon 1 oda eşyası' },
-                { value: '2+1', title: '2+1 Ev', description: 'Orta büyüklükte ev eşyası (En yaygın)', badge: 'Popüler' },
-                { value: '3+1', title: '3+1 Ev', description: 'Geniş aile evi eşyası' },
-                { value: '4+1', title: '4+1 ve Üzeri', description: 'Büyük daire veya dubleks' },
-                { value: 'single_item', title: 'Parça / Az Eşya', description: 'Koltuk, beyaz eşya, koli' }
+                { value: '1+0', title: '1+0 / Stüdyo', description: 'Küçük kamyonet yeterli (1-2 personel)' },
+                { value: '1+1', title: '1+1 Daire', description: 'Orta boy kapalı kasa araç (2-3 personel)' },
+                { value: '2+1', title: '2+1 Daire', description: 'Standart nakliye kamyonu (3-4 personel)', badge: 'En Yaygın' },
+                { value: '3+1', title: '3+1 Daire', description: 'Büyük boy kapalı kasa nakliye kamyonu (4-5 personel)' },
+                { value: '4+1+', title: '4+1 ve Üzeri / Villa', description: 'Ekstra büyük TIR veya 2 araç (5+ personel)' },
+                { value: 'single_item', title: 'Parça Eşya / Koli', description: 'Tekil mobilya veya birkaç koli' }
               ]}
               value={homeSize}
-              onChange={(val) => setHomeSize(val as string)}
-              columns={3}
+              onChange={(val) => setHomeSize(val)}
+              columns={2}
             />
+
+            {/* Optional Room-by-Room Checklist Toggle (Prompt 235) */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setShowDetailedItems(!showDetailedItems)}
+                className="w-full flex items-center justify-between p-4 rounded-2xl border-2 border-dashed border-slate-300 hover:border-[#F95700] transition-colors cursor-pointer bg-slate-50/50"
+              >
+                <div className="flex items-center gap-2.5 text-left">
+                  <Layers className="w-5 h-5 text-[#F95700]" />
+                  <div>
+                    <p className="text-sm font-black text-[#0A1128]">Eşyalarımı Oda Oda Detaylı Eklemek İstiyorum (Opsiyonel)</p>
+                    <p className="text-xs text-slate-500 font-medium">Teklif doğruluğunu artırır, sürpriz ek ücretleri önler.</p>
+                  </div>
+                </div>
+                <span className="text-xs font-black text-[#F95700]">
+                  {showDetailedItems ? 'Gizle ▲' : 'Eşya Seç ▼'}
+                </span>
+              </button>
+
+              {showDetailedItems && (
+                <div className="mt-4 p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-5 animate-fade-in">
+                  {Object.entries(ROOM_ITEMS).map(([room, items]) => (
+                    <div key={room} className="space-y-2">
+                      <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider">{room}</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {items.map((item) => {
+                          const isSelected = selectedRoomItems[room]?.includes(item);
+                          return (
+                            <button
+                              key={item}
+                              type="button"
+                              onClick={() => toggleRoomItem(room, item)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-[#F95700] text-white shadow-xs'
+                                  : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
+                              }`}
+                            >
+                              {isSelected ? '✓ ' : '+ '}
+                              {item}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Custom Items Add */}
+                  <div className="pt-3 border-t border-slate-200 space-y-2">
+                    <label className="text-xs font-black text-slate-700 uppercase tracking-wider block">Özel / Listede Olmayan Eşya Ekle</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newCustomItem}
+                        onChange={e => setNewCustomItem(e.target.value)}
+                        placeholder="Örn: Koşu bandı, akvaryum, mermer masa..."
+                        className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs font-medium bg-white focus:border-[#F95700] focus:outline-none"
+                      />
+                      <Button
+                        type="button"
+                        variant="navy"
+                        size="sm"
+                        className="font-black text-xs px-4"
+                        onClick={handleAddCustomItem}
+                      >
+                        Ekle
+                      </Button>
+                    </div>
+                    {customItems.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {customItems.map((ci, idx) => (
+                          <span key={idx} className="inline-flex items-center gap-1 text-xs font-bold bg-orange-100 text-orange-950 px-2.5 py-1 rounded-lg">
+                            {ci}
+                            <Trash2 className="w-3 h-3 text-red-500 cursor-pointer" onClick={() => handleRemoveCustomItem(idx)} />
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
-        {/* STEP 4: DATE & FLEXIBILITY */}
+        {/* STEP 4: MOVING DATE */}
         {step === 4 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                Ne zaman taşınmak istiyorsunuz?
+              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+                Taşınma Tarihiniz Ne Zaman?
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Tarih esnekliği olan müşteriler daha uygun fiyatlı dönüş araçlarından faydalanabilir.
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                Tarih esnekliği olan talepler nakliyecilerin boş araçlarıyla eşleşerek daha uygun fiyat avantajı sağlar.
               </p>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Taşınma Tarihi</label>
-              <input
-                type="date"
-                value={movingDate}
-                onChange={(e) => setMovingDate(e.target.value)}
-                className="w-full sm:w-64 p-3 rounded-xl border border-slate-300 text-sm font-semibold focus:ring-2 focus:ring-[#146EF5]"
-              />
-            </div>
-
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm font-bold text-slate-800 block">Tarihim Esnek</span>
-                  <span className="text-xs text-slate-500">Nakliyeciler dönüş araçlarına göre daha ekonomik fiyatlar sunabilir.</span>
-                </div>
+            <div className="p-5 rounded-2xl border-2 border-slate-200 bg-slate-50/50 space-y-4">
+              <div>
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
+                  Hedef Taşınma Tarihi
+                </label>
                 <input
-                  type="checkbox"
-                  checked={isDateFlexible}
-                  onChange={(e) => setIsDateFlexible(e.target.checked)}
-                  className="w-5 h-5 rounded text-[#146EF5] cursor-pointer"
+                  type="date"
+                  value={movingDate}
+                  onChange={(e) => setMovingDate(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-slate-300 text-sm font-bold bg-white focus:border-[#F95700] focus:outline-none"
                 />
               </div>
 
+              <div className="pt-3 border-t border-slate-200">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isDateFlexible}
+                    onChange={(e) => setIsDateFlexible(e.target.checked)}
+                    className="w-4 h-4 accent-[#F95700] rounded"
+                  />
+                  <div>
+                    <span className="text-sm font-black text-[#0A1128] block">Tarihim ± birkaç gün esneyebilir</span>
+                    <span className="text-xs text-slate-500 font-medium">Boş dönüş yapan nakliyecilerden ekstra indirimli teklifler alabilirsiniz.</span>
+                  </div>
+                </label>
+              </div>
+
               {isDateFlexible && (
-                <div className="mt-4 pt-3 border-t border-slate-200 flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-700">Esneklik:</span>
+                <div className="pt-2 flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-600">Esneklik Aralığı:</span>
                   {[1, 3, 7].map((days) => (
                     <button
                       key={days}
                       type="button"
                       onClick={() => setFlexibleDays(days)}
-                      className={`px-3 py-1 text-xs rounded-lg font-bold border transition-colors ${
+                      className={`px-3 py-1 text-xs rounded-xl font-bold border transition-all cursor-pointer ${
                         flexibleDays === days
-                          ? 'bg-[#146EF5] text-white border-[#146EF5]'
+                          ? 'bg-[#F95700] text-white border-[#F95700] shadow-xs'
                           : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
@@ -424,28 +563,28 @@ function RequestWizardContent() {
         {step === 5 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
                 Bina Kat ve Asansör Bilgileri
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Çıkış ve varış binasındaki koşullar fiyatı doğrudan belirler.
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                Çıkış ve varış binasındaki asansör ve kat koşulları fiyatı doğrudan belirler.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Çıkış Binası */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#146EF5]" />
+              <div className="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/50 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#F95700]" />
                   Çıkış Binası
-                </h3>
+                </div>
 
                 <div>
-                  <label className="text-xs text-slate-600 block mb-1">Kaçıncı Kat?</label>
+                  <label className="text-xs font-bold text-slate-500 block mb-1">Kaçıncı Kat?</label>
                   <select
                     value={originFloor}
                     onChange={(e) => setOriginFloor(Number(e.target.value))}
-                    className="w-full p-2 rounded-lg border border-slate-300 text-xs font-semibold bg-white"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-bold bg-white focus:border-[#F95700] focus:outline-none"
                   >
                     {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20].map(f => (
                       <option key={f} value={f}>{f === 0 ? 'Giriş Kat / Zemin' : `${f}. Kat`}</option>
@@ -454,22 +593,22 @@ function RequestWizardContent() {
                 </div>
 
                 <div className="space-y-2 text-xs">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
                     <input
                       type="checkbox"
                       checked={originHasElevator}
                       onChange={(e) => setOriginHasElevator(e.target.checked)}
-                      className="w-4 h-4 rounded text-[#146EF5]"
+                      className="w-4 h-4 accent-[#F95700] rounded"
                     />
                     <span>Bina içi eşya taşımaya uygun asansör var</span>
                   </label>
 
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
                     <input
                       type="checkbox"
                       checked={originRequiresMobileElevator}
                       onChange={(e) => setOriginRequiresMobileElevator(e.target.checked)}
-                      className="w-4 h-4 rounded text-[#146EF5]"
+                      className="w-4 h-4 accent-[#F95700] rounded"
                     />
                     <span>Dış cephe mobil asansörü gerekebilir</span>
                   </label>
@@ -477,18 +616,18 @@ function RequestWizardContent() {
               </div>
 
               {/* Varış Binası */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+              <div className="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/50 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
                   Varış Binası
-                </h3>
+                </div>
 
                 <div>
-                  <label className="text-xs text-slate-600 block mb-1">Kaçıncı Kat?</label>
+                  <label className="text-xs font-bold text-slate-500 block mb-1">Kaçıncı Kat?</label>
                   <select
                     value={destinationFloor}
                     onChange={(e) => setDestFloor(Number(e.target.value))}
-                    className="w-full p-2 rounded-lg border border-slate-300 text-xs font-semibold bg-white"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-bold bg-white focus:border-[#F95700] focus:outline-none"
                   >
                     {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20].map(f => (
                       <option key={f} value={f}>{f === 0 ? 'Giriş Kat / Zemin' : `${f}. Kat`}</option>
@@ -497,22 +636,22 @@ function RequestWizardContent() {
                 </div>
 
                 <div className="space-y-2 text-xs">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
                     <input
                       type="checkbox"
                       checked={destinationHasElevator}
                       onChange={(e) => setDestHasElevator(e.target.checked)}
-                      className="w-4 h-4 rounded text-[#146EF5]"
+                      className="w-4 h-4 accent-[#F95700] rounded"
                     />
                     <span>Bina içi eşya taşımaya uygun asansör var</span>
                   </label>
 
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
                     <input
                       type="checkbox"
                       checked={destinationRequiresMobileElevator}
                       onChange={(e) => setDestRequiresMobileElevator(e.target.checked)}
-                      className="w-4 h-4 rounded text-[#146EF5]"
+                      className="w-4 h-4 accent-[#F95700] rounded"
                     />
                     <span>Dış cephe mobil asansörü gerekebilir</span>
                   </label>
@@ -526,11 +665,11 @@ function RequestWizardContent() {
         {step === 6 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                Paketleme Tercihiniz Nedir?
+              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+                Paketleme ve Ek Hizmet Tercihiniz
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Eşyaların ambalajlanması konusundaki tercihinizi belirtin.
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                Eşyaların ambalajlanması ve marangozluk konusundaki tercihinizi belirleyin.
               </p>
             </div>
 
@@ -545,12 +684,12 @@ function RequestWizardContent() {
                 {
                   value: 'CARRIER_PACKS',
                   title: 'Firma Paketlesin (A\'dan Z\'ye)',
-                  description: 'Tüm mobilyalar, beyaz eşyalar ve ufak eşyalar firma tarafından sarılsın.'
+                  description: 'Tüm mobilyalar, beyaz eşyalar ve ufak eşyalar firma tarafından patpat naylon ile sarılsın.'
                 },
                 {
                   value: 'CUSTOMER_PACKS',
                   title: 'Kendim Paketlerim',
-                  description: 'Ufak eşyaları kolilerim, firma sadece kaba mobilyaları taşısın.'
+                  description: 'Ufak eşyaları kendim kolilerim, firma sadece kaba mobilya ve beyaz eşyaları taşısın.'
                 }
               ]}
               value={packagingPreference}
@@ -559,7 +698,7 @@ function RequestWizardContent() {
             />
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2">Ek Hizmetler</label>
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">Ek Hizmetler</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 {[
                   { id: 'disassembly_assembly', label: 'Mobilya Sökme & Montaj (Marangoz)' },
@@ -569,9 +708,9 @@ function RequestWizardContent() {
                 ].map((extra) => (
                   <label
                     key={extra.id}
-                    className={`p-3 rounded-lg border flex items-center gap-2 cursor-pointer transition-colors ${
+                    className={`p-3 rounded-xl border-2 flex items-center gap-2 cursor-pointer transition-all ${
                       extraServices.includes(extra.id)
-                        ? 'border-[#146EF5] bg-blue-50/50 text-[#0B3B8F] font-semibold'
+                        ? 'border-[#F95700] bg-orange-50/50 text-[#C23E00] font-black'
                         : 'border-slate-200 bg-white text-slate-700'
                     }`}
                   >
@@ -585,7 +724,7 @@ function RequestWizardContent() {
                           setExtraServices(extraServices.filter(id => id !== extra.id));
                         }
                       }}
-                      className="w-4 h-4 rounded text-[#146EF5]"
+                      className="w-4 h-4 accent-[#F95700] rounded"
                     />
                     <span>{extra.label}</span>
                   </label>
@@ -595,20 +734,31 @@ function RequestWizardContent() {
           </div>
         )}
 
-        {/* STEP 7: PHOTOS & NOTES */}
+        {/* STEP 7: PHOTOS & VIDEO EKSPERTİZ (Prompt 234) */}
         {step === 7 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                Fotoğraf ve Özel Detaylar (Opsiyonel)
+              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+                Fotoğraf &amp; Video Ekspertiz (Opsiyonel)
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Eşyalarınızın fotoğrafını eklemek firmalardan çok daha kesin ve net fiyat teklifleri almanızı sağlar.
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                Eşyalarınızı veya odalarınızı kısaca gösteren fotoğraflar eklemek net ve sürprizsiz teklif almanızı sağlar.
               </p>
             </div>
 
+            {/* Video Ekspertiz Teaser Box (Prompt 234) */}
+            <div className="p-4 rounded-2xl bg-[#0A1128] text-white flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#F95700] flex items-center justify-center shrink-0">
+                <Video className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-black text-sm text-white">Evinizi Kısaca Gösterin</p>
+                <p className="text-xs text-slate-300 font-medium">Salon, merdiven ve bina girişini çekip yükleyerek görüntülü teklif alabilirsiniz.</p>
+              </div>
+            </div>
+
             <FileUploader
-              label="Eşya Fotoğrafları"
+              label="Eşya / Oda Fotoğrafları"
               description="Salon, oda veya kaba mobilyaların fotoğraflarını yükleyin."
               maxFiles={6}
               files={photos}
@@ -617,44 +767,44 @@ function RequestWizardContent() {
             />
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Nakliyecilerin Bilmesi Gereken Ek Açıklama
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                Nakliyecilere Ek Açıklama Notu
               </label>
               <textarea
                 rows={3}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Örn: Buzdolabı, çamaşır makinesi, 1 salon takımı ve yaklaşık 20 koli eşyamız var. Bina girişi düz ayaktır..."
-                className="w-full p-3 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-[#146EF5] focus:outline-none"
+                className="w-full p-3 rounded-xl border border-slate-300 text-sm font-medium focus:border-[#F95700] focus:outline-none resize-none"
               />
             </div>
           </div>
         )}
 
-        {/* STEP 8: PHONE CALL PERMISSION */}
+        {/* STEP 8: PRIVACY & PHONE PERMISSION */}
         {step === 8 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                Firmalar Sizinle Nasıl İletişim Kursun?
+              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+                İletişim &amp; Gizlilik Tercihiniz
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Gizliliğinize önem veriyoruz. İletişim tercihlerinizi siz belirlersiniz.
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                Telefon numaranız spam çağrılara karşı gizlenir. Yalnızca onaylı nakliyecilere izin verebilirsiniz.
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl border-2 border-blue-200 bg-[#EAF3FF]/40 space-y-3">
+            <div className="p-5 rounded-2xl border-2 border-orange-200 bg-orange-50/40 space-y-3">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-[#146EF5] text-white shrink-0 mt-0.5">
+                  <div className="p-2.5 rounded-xl bg-[#F95700] text-white shrink-0 mt-0.5">
                     <Phone className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">
-                      Teklif Veren Firmalar Beni Telefonla Arayabilsin
+                    <h3 className="text-sm font-black text-[#0A1128]">
+                      Teklif Veren Onaylı Firmalar Beni Telefonla Arayabilsin
                     </h3>
-                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                      Açarsanız cep telefon numaranız yalnızca teklif veren ve belgeleri onaylanmış yetkili nakliyecilere gösterilir.
+                    <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">
+                      Açarsanız cep telefon numaranız yalnızca belgeleri onaylanmış yetkili nakliyecilere gösterilir.
                     </p>
                   </div>
                 </div>
@@ -663,12 +813,12 @@ function RequestWizardContent() {
                   type="checkbox"
                   checked={allowPhoneCall}
                   onChange={(e) => setAllowPhoneCall(e.target.checked)}
-                  className="w-6 h-6 rounded text-[#146EF5] cursor-pointer mt-1"
+                  className="w-6 h-6 accent-[#F95700] rounded cursor-pointer mt-1"
                 />
               </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 font-medium flex items-start gap-2.5">
               <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
               <span>
                 Telefon iznini kapatsanız dahi firmalarla platform içi güvenli mesajlaşma üzerinden dilediğiniz gibi yazışabilir ve teklif alabilirsiniz.
@@ -677,22 +827,22 @@ function RequestWizardContent() {
           </div>
         )}
 
-        {/* STEP 9: SUMMARY & REVIEW */}
+        {/* STEP 9: REVIEW & PUBLISH */}
         {step === 9 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                Talebinizi Kontrol Edin
+              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+                Talebinizi Gözden Geçirin
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Bilgilerinizi gözden geçirin ve tek tıkla bölgenizdeki firmalara ulaştırın.
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                Bilgilerinizi kontrol edin ve tek tıkla onaylı firmalara ulaştırın.
               </p>
             </div>
 
-            <div className="rounded-xl border border-slate-200 divide-y divide-slate-100 text-xs">
-              <div className="p-4 flex items-center justify-between">
+            <div className="rounded-2xl border border-slate-200 divide-y divide-slate-100 text-xs overflow-hidden">
+              <div className="p-4 flex items-center justify-between bg-slate-50/50">
                 <div>
-                  <span className="text-slate-500 block">Rota:</span>
+                  <span className="text-slate-400 font-black uppercase text-[10px] block mb-1">Rota</span>
                   <RouteDisplay
                     originCity={originCity}
                     originDistrict={originDistrict}
@@ -701,40 +851,40 @@ function RequestWizardContent() {
                     size="sm"
                   />
                 </div>
-                <button onClick={() => setStep(2)} className="text-[#146EF5] font-bold hover:underline">Düzenle</button>
+                <button onClick={() => setStep(2)} className="text-[#F95700] font-black hover:underline">Düzenle</button>
               </div>
 
               <div className="p-4 flex items-center justify-between">
                 <div>
-                  <span className="text-slate-500 block">Eşya & Tarih:</span>
-                  <span className="font-semibold text-slate-800">{homeSize} • {movingDate} ({isDateFlexible ? `±${flexibleDays} gün esnek` : 'Kesin Tarih'})</span>
+                  <span className="text-slate-400 font-black uppercase text-[10px] block mb-1">Eşya &amp; Tarih</span>
+                  <span className="font-bold text-slate-800 text-sm">{homeSize} • {movingDate} ({isDateFlexible ? `±${flexibleDays} gün esnek` : 'Kesin Tarih'})</span>
                 </div>
-                <button onClick={() => setStep(3)} className="text-[#146EF5] font-bold hover:underline">Düzenle</button>
+                <button onClick={() => setStep(3)} className="text-[#F95700] font-black hover:underline">Düzenle</button>
               </div>
 
               <div className="p-4 flex items-center justify-between">
                 <div>
-                  <span className="text-slate-500 block">Kat ve Asansör:</span>
-                  <span className="font-semibold text-slate-800">Çıkış: {originFloor}. Kat • Varış: {destinationFloor}. Kat</span>
+                  <span className="text-slate-400 font-black uppercase text-[10px] block mb-1">Kat ve Asansör</span>
+                  <span className="font-bold text-slate-800">Çıkış: {originFloor}. Kat • Varış: {destinationFloor}. Kat</span>
                 </div>
-                <button onClick={() => setStep(5)} className="text-[#146EF5] font-bold hover:underline">Düzenle</button>
+                <button onClick={() => setStep(5)} className="text-[#F95700] font-black hover:underline">Düzenle</button>
               </div>
 
               <div className="p-4 flex items-center justify-between">
                 <div>
-                  <span className="text-slate-500 block">Paketleme:</span>
-                  <span className="font-semibold text-slate-800">
+                  <span className="text-slate-400 font-black uppercase text-[10px] block mb-1">Paketleme</span>
+                  <span className="font-bold text-slate-800">
                     {packagingPreference === 'BOTH_OFFERS' ? 'İkisi İçin de Teklif İstiyorum' : packagingPreference === 'CARRIER_PACKS' ? 'Firma Paketlesin' : 'Kendim Paketlerim'}
                   </span>
                 </div>
-                <button onClick={() => setStep(6)} className="text-[#146EF5] font-bold hover:underline">Düzenle</button>
+                <button onClick={() => setStep(6)} className="text-[#F95700] font-black hover:underline">Düzenle</button>
               </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
-              <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5 font-medium">
+              <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
               <span>
-                <strong>Önemli Bilgilendirme:</strong> Nakliyat ücreti platform üzerinden tahsil edilmez. Anlaştığınız firmaya taşıma gününde doğrudan ödeme yaparsınız.
+                <strong>Önemli Bilgilendirme:</strong> Müşteri için talep açmak ve teklifleri karşılaştırmak %100 ücretsizdir. Anlaştığınız firmaya doğrudan taşıma günü ödeme yaparsınız.
               </span>
             </div>
           </div>
@@ -749,6 +899,7 @@ function RequestWizardContent() {
               size="md"
               onClick={handleBack}
               leftIcon={<ArrowLeft className="w-4 h-4" />}
+              className="font-bold"
             >
               Geri
             </Button>
@@ -763,6 +914,7 @@ function RequestWizardContent() {
               size="lg"
               onClick={handleNext}
               rightIcon={<ArrowRight className="w-4 h-4" />}
+              className="font-black shadow-md"
             >
               Devam Et
             </Button>
@@ -773,8 +925,9 @@ function RequestWizardContent() {
               size="lg"
               onClick={handlePublish}
               rightIcon={<Sparkles className="w-4 h-4" />}
+              className="font-black shadow-lg shadow-orange-900/15 px-8"
             >
-              Talebi Yayınla 🎉
+              Talebi Ücretsiz Yayınla 🚀
             </Button>
           )}
         </div>
@@ -798,7 +951,7 @@ function RequestWizardContent() {
 
 export default function RequestWizardPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-sm text-slate-500">Yükleniyor...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-sm font-bold text-slate-500">Yükleniyor...</div>}>
       <RequestWizardContent />
     </Suspense>
   );

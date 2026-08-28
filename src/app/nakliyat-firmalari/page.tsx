@@ -46,7 +46,7 @@ export default function NakliyatFirmalariDirectoryPage() {
             <Link
               key={city.slug}
               href={`/nakliyat-firmalari/${city.slug}`}
-              className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:border-[#146EF5] hover:text-[#146EF5] text-xs font-semibold text-slate-700 transition-all shadow-2xs"
+              className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:border-[#F95700] hover:text-[#F95700] text-xs font-bold text-slate-700 transition-all shadow-2xs"
             >
               {city.name} Nakliyat ({city.districts.length} İlçe)
             </Link>
@@ -63,26 +63,26 @@ export default function NakliyatFirmalariDirectoryPage() {
 
       {/* All Verified Carriers Listing */}
       <div className="mt-10">
-        <h2 className="text-xl font-bold text-slate-900 mb-6">Tüm Doğrulanmış Firmalar ({carriers.length})</h2>
+        <h2 className="text-xl font-black text-[#0A1128] mb-6">Tüm Doğrulanmış Firmalar ({carriers.length})</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {carriers.map((c) => (
             <div
               key={c.id}
-              className="bg-white rounded-2xl border border-slate-200 hover:border-[#146EF5] p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+              className="bg-white rounded-3xl border border-slate-200 hover:border-[#F95700] p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
             >
               <div>
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center">
                     {c.logoUrl ? (
                       <img src={c.logoUrl} alt={c.companyName} className="w-full h-full object-cover" />
                     ) : (
-                      <Truck className="w-7 h-7 text-[#146EF5]" />
+                      <Truck className="w-7 h-7 text-[#F95700]" />
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <Link href={`/firma/${c.slug}`} className="font-bold text-base text-slate-900 group-hover:text-[#146EF5] truncate block">
+                    <Link href={`/firma/${c.slug}`} className="font-black text-base text-[#0A1128] group-hover:text-[#F95700] truncate block">
                       {c.companyName}
                     </Link>
 

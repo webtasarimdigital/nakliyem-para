@@ -13,31 +13,38 @@ export const metadata: Metadata = {
 
 export default function OfisTasimaPage() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <section className="bg-gradient-to-b from-[#EAF3FF]/80 via-white to-[#F7F9FC] py-14 md:py-20 border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <div className="flex flex-col min-h-screen bg-[#F8FAFC]">
+      <section className="bg-[#0A1128] text-white py-16 sm:py-20 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-[#0B3B8F] text-xs font-bold mb-4">
-              <Sparkles className="w-3.5 h-3.5 text-[#146EF5]" />
-              <span>Kurumsal & Planlı Taşımacılık</span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F95700]/20 text-[#F95700] text-xs font-black mb-4 border border-[#F95700]/30 shadow-xs">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Kurumsal &amp; Planlı Taşımacılık</span>
             </div>
-            <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-4">
+            <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-4">
               Ofis ve İşyeri Taşıma İçin <br />
-              <span className="text-[#146EF5]">Hızlı Teklif Al</span>
+              <span className="text-[#F95700]">Hızlı Teklif Al</span>
             </h1>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-8">
+            <p className="text-sm sm:text-base text-slate-300 font-medium leading-relaxed mb-8 max-w-2xl">
               Bilişim sistemleriniz, arşiv dosyalarınız ve çalışma masalarınız iş kaybı yaşanmadan hafta sonu veya gece operasyonuyla taşınsın.
             </p>
-            <Link href="/teklif-al?service=ofis-tasima">
-              <Button variant="primary" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>
-                Ofis Taşıma Teklifi Al
-              </Button>
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/teklif-al?service=ofis-tasima">
+                <Button variant="primary" size="lg" className="font-black shadow-lg shadow-orange-900/30" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                  Ofis Taşıma Teklifi Al
+                </Button>
+              </Link>
+              <Link href="/nakliyat-firmalari">
+                <Button variant="outline" size="lg" className="font-bold border-white/20 text-white hover:bg-white/10">
+                  Firmaları İncele →
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <DynamicAdSlot
           slotKey="service_page.featured"
           title="Kurumsal Ofis Taşımacılığı Yapan Firmalar"

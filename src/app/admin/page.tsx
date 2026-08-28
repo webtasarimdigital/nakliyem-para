@@ -33,14 +33,14 @@ export default function AdminDashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#146EF5] bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#C23E00] bg-orange-50 px-2.5 py-0.5 rounded border border-orange-200">
               Yönetim Paneli
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
             Sistem Operasyon Özeti
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
             Doğrulama bekleyen nakliyeciler, açık müşteri talepleri ve dijital lead boru hattı.
           </p>
         </div>
@@ -59,7 +59,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* KPI Cards (Spec Item 166) */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between mb-2">
@@ -68,19 +68,19 @@ export default function AdminDashboardPage() {
               <Clock className="w-4 h-4" />
             </div>
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-slate-900 block">{pendingDocs.length}</span>
+          <span className="text-2xl sm:text-3xl font-black text-[#0A1128] block">{pendingDocs.length}</span>
           <span className="text-[11px] text-amber-600 font-semibold">İnceleme Bekliyor</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-slate-500">Aktif Talepler</span>
-            <div className="p-2 rounded-lg bg-blue-50 text-[#146EF5]">
+            <div className="p-2 rounded-lg bg-orange-50 text-[#F95700]">
               <FileText className="w-4 h-4" />
             </div>
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-slate-900 block">{requests.filter(r => r.status === 'ACTIVE').length}</span>
-          <span className="text-[11px] text-blue-600 font-semibold">Teklif Topluyor</span>
+          <span className="text-2xl sm:text-3xl font-black text-[#0A1128] block">{requests.filter(r => r.status === 'ACTIVE').length}</span>
+          <span className="text-[11px] text-[#F95700] font-semibold">Teklif Topluyor</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
@@ -90,7 +90,7 @@ export default function AdminDashboardPage() {
               <Truck className="w-4 h-4" />
             </div>
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-slate-900 block">{carriers.length}</span>
+          <span className="text-2xl sm:text-3xl font-black text-[#0A1128] block">{carriers.length}</span>
           <span className="text-[11px] text-emerald-600 font-semibold">2 Gold, 2 Pro</span>
         </div>
 

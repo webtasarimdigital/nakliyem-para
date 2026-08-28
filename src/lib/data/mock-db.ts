@@ -755,6 +755,158 @@ export const SEED_AD_CAMPAIGNS: AdCampaign[] = [
   }
 ];
 
+// Seed Reviews
+export const SEED_REVIEWS: Review[] = [
+  {
+    id: 'rev_1',
+    carrierId: 'carr_bogazici',
+    requestId: 'req_26093',
+    customerId: 'user_cust_1',
+    customerName: 'Ahmet Yılmaz',
+    originCity: 'İstanbul',
+    destinationCity: 'Ankara',
+    rating: 5,
+    communicationRating: 5,
+    punctualityRating: 5,
+    serviceQualityRating: 5,
+    priceHonestyRating: 5,
+    comment: 'Gerçekten kusursuz bir taşınma oldu. Ekip tam vaktinde geldi, tüm mobilyalarımızı çift kat patpat naylonla sarıp numaralandırdı. Ankara teslimatında da aynı titizlikle kurdular. Boğaziçi Nakliyat ekibine teşekkür ederim.',
+    reply: 'Ahmet Bey güzel yorumunuz için teşekkür ederiz, yeni evinizde huzurla oturmanız dileğiyle.',
+    repliedAt: '2026-08-27T10:00:00Z',
+    createdAt: '2026-08-26T18:30:00Z'
+  },
+  {
+    id: 'rev_2',
+    carrierId: 'carr_bogazici',
+    requestId: 'req_prev_1',
+    customerId: 'user_cust_2',
+    customerName: 'Zeynep Kaya',
+    originCity: 'İstanbul',
+    destinationCity: 'İzmir',
+    rating: 4.8,
+    communicationRating: 5,
+    punctualityRating: 4.8,
+    serviceQualityRating: 5,
+    priceHonestyRating: 4.8,
+    comment: 'Asansörlü taşıma sayesinde 6. kattaki evimiz 3 saatte boşaltıldı. Hiçbir tabak veya cam eşya kırılmadı. Fiyat teklifinde anlaştığımız rakam dışında tek kuruş ek ücret talep etmediler.',
+    createdAt: '2026-08-20T14:15:00Z'
+  },
+  {
+    id: 'rev_3',
+    carrierId: 'carr_ege_trans',
+    requestId: 'req_prev_2',
+    customerId: 'user_cust_3',
+    customerName: 'Mehmet Özkan',
+    originCity: 'İzmir',
+    destinationCity: 'İstanbul',
+    rating: 4.9,
+    communicationRating: 5,
+    punctualityRating: 5,
+    serviceQualityRating: 4.8,
+    priceHonestyRating: 5,
+    comment: 'Ege Güven ekibi söz verdiği saatte geldi. Marangoz arkadaş gardırobu kusursuz kurdu. Çok memnun kaldık, herkese öneririz.',
+    createdAt: '2026-08-18T11:00:00Z'
+  }
+];
+
+// Seed Conversations
+export const SEED_CONVERSATIONS: Conversation[] = [
+  {
+    id: 'conv_1',
+    participantIds: ['user_cust_1', 'user_carr_1'],
+    participantNames: {
+      'user_cust_1': 'Ahmet Yılmaz (Müşteri)',
+      'user_carr_1': 'Boğaziçi Nakliyat (Firma)'
+    },
+    contextType: 'REQUEST',
+    contextId: 'req_26093',
+    contextTitle: '3+1 Evden Eve (Kadıköy → Çankaya)',
+    lastMessage: 'Merhabalar Ahmet Bey, teklifimizi ilettik. Eşyalarınız için mobil asansör ve çift kat patpat ambalaj dahildir.',
+    lastMessageAt: '2026-08-28T14:30:00Z',
+    unreadCounts: {
+      'user_cust_1': 1,
+      'user_carr_1': 0
+    },
+    createdAt: '2026-08-28T12:00:00Z'
+  },
+  {
+    id: 'conv_2',
+    participantIds: ['user_cust_1', 'user_carr_2'],
+    participantNames: {
+      'user_cust_1': 'Ahmet Yılmaz (Müşteri)',
+      'user_carr_2': 'Ege Güven Lojistik (Firma)'
+    },
+    contextType: 'REQUEST',
+    contextId: 'req_26093',
+    contextTitle: '3+1 Evden Eve (Kadıköy → Çankaya)',
+    lastMessage: 'Taşıma gününü 16 Eylül sabahı olarak revize edebiliriz, müsaitliğimiz var.',
+    lastMessageAt: '2026-08-28T11:15:00Z',
+    unreadCounts: {
+      'user_cust_1': 0,
+      'user_carr_2': 0
+    },
+    createdAt: '2026-08-28T10:00:00Z'
+  }
+];
+
+// Seed Messages
+export const SEED_MESSAGES: ConversationMessage[] = [
+  {
+    id: 'msg_1',
+    conversationId: 'conv_1',
+    senderId: 'user_cust_1',
+    senderName: 'Ahmet Yılmaz',
+    senderRole: 'CUSTOMER',
+    content: 'Merhabalar, 15 Eylül için Kadıköy 3. kattan Çankaya 4. kata 3+1 ev taşıma talebi açmıştım. Binada asansör yok, dış cephe mobil asansörünüz uygun mu?',
+    createdAt: '2026-08-28T12:05:00Z'
+  },
+  {
+    id: 'msg_2',
+    conversationId: 'conv_1',
+    senderId: 'user_carr_1',
+    senderName: 'Boğaziçi Nakliyat',
+    senderRole: 'CARRIER',
+    content: 'Merhaba Ahmet Bey. Evet, 15. kata kadar ulaşabilen kendi araç üstü hidrolik asansörümüz mevcuttur. Çıkış binası sokağı araç yanaşmasına uygunsa doğrudan kurabiliriz.',
+    createdAt: '2026-08-28T12:20:00Z'
+  },
+  {
+    id: 'msg_3',
+    conversationId: 'conv_1',
+    senderId: 'user_cust_1',
+    senderName: 'Ahmet Yılmaz',
+    senderRole: 'CUSTOMER',
+    content: 'Sokak geniş, araç rahatça yanaşabilir. Fiyata gardırop demontaj ve montajı dahil midir?',
+    createdAt: '2026-08-28T12:35:00Z'
+  },
+  {
+    id: 'msg_4',
+    conversationId: 'conv_1',
+    senderId: 'user_carr_1',
+    senderName: 'Boğaziçi Nakliyat',
+    senderRole: 'CARRIER',
+    content: 'Merhabalar Ahmet Bey, teklifimizi ilettik. Eşyalarınız için mobil asansör ve çift kat patpat ambalaj dahildir. Marangoz ustamız tüm söküm ve montajı ücretsiz yapmaktadır.',
+    createdAt: '2026-08-28T14:30:00Z'
+  },
+  {
+    id: 'msg_5',
+    conversationId: 'conv_2',
+    senderId: 'user_carr_2',
+    senderName: 'Ege Güven Lojistik',
+    senderRole: 'CARRIER',
+    content: 'Ahmet Bey merhaba, İzmir merkezli firmamız o tarihte İstanbul-Ankara dönüş rotasındadır. Uygun fiyatlı teklifimizi sunduk.',
+    createdAt: '2026-08-28T10:05:00Z'
+  },
+  {
+    id: 'msg_6',
+    conversationId: 'conv_2',
+    senderId: 'user_carr_2',
+    senderName: 'Ege Güven Lojistik',
+    senderRole: 'CARRIER',
+    content: 'Taşıma gününü 16 Eylül sabahı olarak revize edebiliriz, müsaitliğimiz var.',
+    createdAt: '2026-08-28T11:15:00Z'
+  }
+];
+
 // Seed System Settings
 export const SEED_SETTINGS: SystemSettings = {
   platformName: 'Nakliyem Para',
@@ -1074,6 +1226,114 @@ class MockDatabase {
   updateSettings(updates: Partial<SystemSettings>): void {
     const curr = this.getSettings();
     this.setItem('settings', { ...curr, ...updates });
+  }
+
+  // Reviews
+  getReviews(): Review[] {
+    return this.getItem<Review[]>('reviews', SEED_REVIEWS);
+  }
+
+  getReviewsForCarrier(carrierId: string): Review[] {
+    return this.getReviews().filter(r => r.carrierId === carrierId);
+  }
+
+  addReview(review: Review): void {
+    const list = [review, ...this.getReviews()];
+    this.setItem('reviews', list);
+  }
+
+  // Conversations & Messages
+  getConversations(userId?: string): Conversation[] {
+    const all = this.getItem<Conversation[]>('conversations', SEED_CONVERSATIONS);
+    if (!userId) return all;
+    return all.filter(c => c.participantIds.includes(userId));
+  }
+
+  getConversationById(id: string): Conversation | undefined {
+    return this.getConversations().find(c => c.id === id);
+  }
+
+  getMessages(conversationId: string): ConversationMessage[] {
+    const all = this.getItem<ConversationMessage[]>('messages', SEED_MESSAGES);
+    return all.filter(m => m.conversationId === conversationId).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  }
+
+  sendMessage(conversationId: string, messageData: { senderId: string; senderName: string; senderRole: any; content: string; mediaUrl?: string; isOfferCard?: boolean; offerData?: any }): ConversationMessage {
+    const newMsg: ConversationMessage = {
+      id: `msg_${Date.now()}`,
+      conversationId,
+      senderId: messageData.senderId,
+      senderName: messageData.senderName,
+      senderRole: messageData.senderRole,
+      content: messageData.content,
+      mediaUrl: messageData.mediaUrl,
+      isOfferCard: messageData.isOfferCard,
+      offerData: messageData.offerData,
+      createdAt: new Date().toISOString()
+    };
+
+    const allMsgs = [...this.getItem<ConversationMessage[]>('messages', SEED_MESSAGES), newMsg];
+    this.setItem('messages', allMsgs);
+
+    // Update conversation lastMessage & lastMessageAt
+    const convs = this.getConversations().map(c => {
+      if (c.id === conversationId) {
+        return {
+          ...c,
+          lastMessage: messageData.content,
+          lastMessageAt: newMsg.createdAt
+        };
+      }
+      return c;
+    });
+    this.setItem('conversations', convs);
+
+    return newMsg;
+  }
+
+  createConversation(data: { participantIds: string[]; participantNames: { [id: string]: string }; contextType: 'REQUEST' | 'DEFTER' | 'DIRECT'; contextId: string; contextTitle: string; initialMessage?: string }): Conversation {
+    const newConv: Conversation = {
+      id: `conv_${Date.now()}`,
+      participantIds: data.participantIds,
+      participantNames: data.participantNames,
+      contextType: data.contextType,
+      contextId: data.contextId,
+      contextTitle: data.contextTitle,
+      lastMessage: data.initialMessage || 'Sohbet başlatıldı.',
+      lastMessageAt: new Date().toISOString(),
+      unreadCounts: {},
+      createdAt: new Date().toISOString()
+    };
+
+    const list = [newConv, ...this.getConversations()];
+    this.setItem('conversations', list);
+
+    if (data.initialMessage) {
+      this.sendMessage(newConv.id, {
+        senderId: data.participantIds[0],
+        senderName: data.participantNames[data.participantIds[0]] || 'Kullanıcı',
+        senderRole: 'CUSTOMER',
+        content: data.initialMessage
+      });
+    }
+
+    return newConv;
+  }
+
+  markConversationAsRead(conversationId: string, userId: string): void {
+    const convs = this.getConversations().map(c => {
+      if (c.id === conversationId) {
+        return {
+          ...c,
+          unreadCounts: {
+            ...c.unreadCounts,
+            [userId]: 0
+          }
+        };
+      }
+      return c;
+    });
+    this.setItem('conversations', convs);
   }
 
   // Intent preservation for non-logged-in users
