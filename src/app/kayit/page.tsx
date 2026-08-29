@@ -18,6 +18,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { registerWithFirebase } from '@/lib/firebase/auth';
+import { isFirebaseConfigured } from '@/lib/firebase/config';
 
 const CUSTOMER_FEATURES = [
   { icon: MessageSquare, text: 'Onlarca firmadan teklif, tek panelde' },
@@ -46,6 +48,7 @@ export default function KayitPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Carrier specific
   const [companyName, setCompanyName] = useState('');
@@ -53,17 +56,41 @@ export default function KayitPage() {
   const isCarrier = role === 'nakliyeci';
   const features = isCarrier ? CARRIER_FEATURES : CUSTOMER_FEATURES;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    setErrorMessage('');
+
+    if (isFirebaseConfigured()) {
+      const res = await registerWithFirebase({
+        email,
+        password,
+        phone,
+        role: isCarrier ? 'CARRIER' : 'CUSTOMER',
+        fullName: isCarrier ? undefined : name,
+        companyName: isCarrier ? companyName : undefined,
+      });
+
       setLoading(false);
-      if (isCarrier) {
-        router.push('/app/carrier/onboarding');
+      if (res.error) {
+        setErrorMessage(res.error);
       } else {
-        router.push('/app/customer');
+        if (isCarrier) {
+          router.push('/app/carrier/onboarding');
+        } else {
+          router.push('/app/customer');
+        }
       }
-    }, 1200);
+    } else {
+      setTimeout(() => {
+        setLoading(false);
+        if (isCarrier) {
+          router.push('/app/carrier/onboarding');
+        } else {
+          router.push('/app/customer');
+        }
+      }, 1000);
+    }
   };
 
   const leftContent = {
@@ -186,6 +213,11 @@ export default function KayitPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {errorMessage && (
+              <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold animate-fade-in">
+                {errorMessage}
+              </div>
+            )}
             
             <div>
               <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">

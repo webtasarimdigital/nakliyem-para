@@ -27,13 +27,15 @@ import {
   Star,
   Clock,
   Sparkles,
-  Award
+  Award,
+  Lock,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { IntentAuthModal } from '@/components/ui/IntentAuthModal';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
-import { db } from '@/lib/data/mock-db';
+import { db, SEED_PLANS } from '@/lib/data/mock-db';
 import { MovingRequest, ServiceCategory } from '@/types';
 
 // Category pills styled exactly like the user's reference image
@@ -52,6 +54,17 @@ export default function CarrierJobsPage() {
   const isCarrier = currentUser?.role === 'CARRIER';
   const carrier = db.getCarriers()[0];
   const requests = db.getRequests();
+
+  // Carrier subscription plan & offer checks
+  const carrierPlan = SEED_PLANS.find(p => p.id === carrier?.planId) || SEED_PLANS[0];
+  const myCarrierOffers = db.getOffersForCarrier(carrier?.id || '');
+  const carrierOffersCount = myCarrierOffers.length;
+  const canCreateOffer = !carrierPlan || (carrierPlan.features.offerCreate && (carrierPlan.features.monthlyOfferLimit === 'unlimited' || carrierOffersCount < carrierPlan.features.monthlyOfferLimit));
+  const canViewPhone = carrierPlan?.features.customerPhoneAccess === true;
+
+  // Plan limitation modal state
+  const [planModalOpen, setPlanModalOpen] = useState(false);
+  const [planModalData, setPlanModalData] = useState<{ title: string; subtitle: string; limitBadge?: string } | null>(null);
 
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -103,6 +116,29 @@ export default function CarrierJobsPage() {
     return true;
   });
 
+  // Check auth and plan rights before typing in input
+  const handleInputInteraction = (reqId: string, e: React.MouseEvent | React.FocusEvent) => {
+    if (!currentUser || currentUser.role !== 'CARRIER') {
+      e.preventDefault();
+      (e.target as HTMLElement).blur();
+      setAuthActionPayload({ reqId, type: 'OFFER' });
+      setAuthModalOpen(true);
+      return false;
+    }
+    if (!canCreateOffer) {
+      e.preventDefault();
+      (e.target as HTMLElement).blur();
+      setPlanModalData({
+        title: 'Aylık Teklif Limitiniz Doldu',
+        subtitle: `Mevcut ${carrierPlan?.name || 'Başlangıç'} paketinizdeki aylık ${carrierPlan?.features.monthlyOfferLimit} teklif hakkını doldurdunuz. Sınırsız teklif vermek ve daha fazla iş almak için paketinizi Pro veya Gold'a yükseltin.`,
+        limitBadge: `${carrierOffersCount} / ${carrierPlan?.features.monthlyOfferLimit} Teklif Kullanıldı`
+      });
+      setPlanModalOpen(true);
+      return false;
+    }
+    return true;
+  };
+
   // Next / Prev photo in card carousel
   const handleNextPhoto = (reqId: string, total: number, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -126,6 +162,16 @@ export default function CarrierJobsPage() {
     if (!currentUser || currentUser.role !== 'CARRIER') {
       setAuthActionPayload({ reqId: req.id, type: 'OFFER' });
       setAuthModalOpen(true);
+      return;
+    }
+
+    if (!canCreateOffer) {
+      setPlanModalData({
+        title: 'Aylık Teklif Limitiniz Doldu',
+        subtitle: `Mevcut ${carrierPlan?.name || 'Başlangıç'} paketinizdeki aylık ${carrierPlan?.features.monthlyOfferLimit} teklif hakkını doldurdunuz. Sınırsız teklif vermek ve daha fazla iş almak için paketinizi Pro veya Gold'a yükseltin.`,
+        limitBadge: `${carrierOffersCount} / ${carrierPlan?.features.monthlyOfferLimit} Teklif Kullanıldı`
+      });
+      setPlanModalOpen(true);
       return;
     }
 
@@ -167,6 +213,17 @@ export default function CarrierJobsPage() {
       setAuthModalOpen(true);
       return;
     }
+
+    if (!canViewPhone) {
+      setPlanModalData({
+        title: 'Müşteri Numarasını Görmek İçin Paketinizi Yükseltin',
+        subtitle: 'Müşteri telefon numaralarına doğrudan erişmek, anında aramak ve WhatsApp üzerinden iletişim kurmak Pro ve Gold nakliyeci paketlerine özeldir.',
+        limitBadge: `Mevcut Paketiniz: ${carrierPlan?.name || 'Başlangıç'} (Telefon Erişimi Kapalı)`
+      });
+      setPlanModalOpen(true);
+      return;
+    }
+
     setRevealedPhones(prev => ({ ...prev, [req.id]: true }));
   };
 
@@ -475,34 +532,64 @@ export default function CarrierJobsPage() {
                 {/* 7. Action Bar: Quick Offer Input + Gönder + Numarayı Göster */}
                 <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   
-                  {/* Quick Offer Form */}
-                  <form
-                    onSubmit={(e) => handleQuickOfferSubmit(req, e)}
-                    className="flex-1 flex items-center gap-2 border-2 border-slate-200 focus-within:border-[#F95700] rounded-2xl p-1 bg-white"
-                  >
-                    <input
-                      type="number"
-                      value={quickOfferPrices[req.id] || ''}
-                      onChange={e => setQuickOfferPrices({ ...quickOfferPrices, [req.id]: e.target.value })}
-                      placeholder="Hemen teklifinizi yazın (TL)..."
-                      className="flex-1 px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none"
-                    />
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      size="sm"
-                      className="font-black text-xs px-6 py-2.5 rounded-xl shadow-xs shrink-0"
-                    >
-                      Teklif Ver
-                    </Button>
-                  </form>
+                  {(() => {
+                    const existingOffer = myCarrierOffers.find(o => o.requestId === req.id);
+
+                    if (existingOffer) {
+                      return (
+                        <div className="flex-1 flex items-center justify-between p-2.5 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-2xs">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                            <span className="text-xs font-black text-emerald-950">
+                              Teklifiniz İletildi: <strong className="text-emerald-700">{existingOffer.price.toLocaleString('tr-TR')} TL</strong>
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOfferModalReq(req);
+                              setOfferPrice(existingOffer.price.toString());
+                            }}
+                            className="text-xs font-black text-[#F95700] hover:underline cursor-pointer ml-2 shrink-0"
+                          >
+                            Teklifi Düzenle →
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <form
+                        onSubmit={(e) => handleQuickOfferSubmit(req, e)}
+                        className="flex-1 flex items-center gap-2 border-2 border-slate-200 focus-within:border-[#F95700] rounded-2xl p-1 bg-white transition-all shadow-2xs"
+                      >
+                        <input
+                          type="number"
+                          value={quickOfferPrices[req.id] || ''}
+                          onChange={e => setQuickOfferPrices({ ...quickOfferPrices, [req.id]: e.target.value })}
+                          onFocus={(e) => handleInputInteraction(req.id, e)}
+                          onClick={(e) => handleInputInteraction(req.id, e)}
+                          placeholder="Hemen teklifinizi yazın (TL)..."
+                          className="flex-1 px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                        />
+                        <Button
+                          type="submit"
+                          variant="primary"
+                          size="sm"
+                          className="font-black text-xs px-6 py-2.5 rounded-xl shadow-xs shrink-0 cursor-pointer"
+                        >
+                          Teklif Ver
+                        </Button>
+                      </form>
+                    );
+                  })()}
 
                   {/* Numarayı Göster Button */}
                   <Button
                     type="button"
-                    variant="outline"
+                    variant={isPhoneRevealed ? "navy" : "outline"}
                     size="md"
-                    className="font-black text-xs px-5 py-2.5 rounded-2xl shrink-0"
+                    className="font-black text-xs px-5 py-2.5 rounded-2xl shrink-0 cursor-pointer"
                     leftIcon={<Phone className="w-3.5 h-3.5" />}
                     onClick={() => handleShowPhone(req)}
                   >
@@ -543,6 +630,40 @@ export default function CarrierJobsPage() {
           }
         }}
       />
+
+      {/* ── PLAN LIMITATION / UPGRADE MODAL ── */}
+      <Modal
+        isOpen={planModalOpen}
+        onClose={() => setPlanModalOpen(false)}
+        title={planModalData?.title || 'Paket Yükseltme'}
+      >
+        <div className="space-y-4 text-center py-2">
+          <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+            <Lock className="w-7 h-7" />
+          </div>
+
+          <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed max-w-md mx-auto">
+            {planModalData?.subtitle}
+          </p>
+
+          {planModalData?.limitBadge && (
+            <div className="inline-block px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-black border border-slate-200">
+              {planModalData.limitBadge}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-3">
+            <Button variant="outline" size="md" className="flex-1 font-bold" onClick={() => setPlanModalOpen(false)}>
+              Vazgeç
+            </Button>
+            <Link href="/app/carrier/abonelik" className="flex-1" onClick={() => setPlanModalOpen(false)}>
+              <Button variant="primary" size="md" className="w-full font-black" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                Paketleri İncele
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </Modal>
 
       {/* ── FULL OFFER MODAL ─────────────────────────────────── */}
       <Modal

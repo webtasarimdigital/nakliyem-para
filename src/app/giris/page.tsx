@@ -18,6 +18,9 @@ import {
   MapPin,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { loginWithFirebase } from '@/lib/firebase/auth';
+import { isFirebaseConfigured } from '@/lib/firebase/config';
+import { db } from '@/lib/data/mock-db';
 
 const LEFT_SLIDES = [
   {
@@ -53,21 +56,38 @@ export default function GirisPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [slideIndex, setSlideIndex] = useState(0);
 
   const slide = LEFT_SLIDES[slideIndex];
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    setErrorMessage('');
+
+    if (isFirebaseConfigured()) {
+      const res = await loginWithFirebase(email, password);
       setLoading(false);
-      if (tab === 'musteri') {
-        router.push('/app/customer');
+      if (res.error) {
+        setErrorMessage(res.error);
       } else {
-        router.push('/app/carrier');
+        if (res.user?.role === 'CARRIER' || tab === 'nakliyeci') {
+          router.push('/app/carrier');
+        } else {
+          router.push('/app/customer');
+        }
       }
-    }, 1000);
+    } else {
+      setTimeout(() => {
+        setLoading(false);
+        if (tab === 'musteri') {
+          router.push('/app/customer');
+        } else {
+          router.push('/app/carrier');
+        }
+      }, 800);
+    }
   };
 
   return (
@@ -196,6 +216,12 @@ export default function GirisPage() {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
+            {errorMessage && (
+              <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold animate-fade-in">
+                {errorMessage}
+              </div>
+            )}
+
             <div>
               <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
                 E-posta
