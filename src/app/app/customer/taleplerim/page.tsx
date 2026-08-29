@@ -11,7 +11,8 @@ import {
   CheckCircle2, 
   Clock, 
   XCircle,
-  Truck
+  Truck,
+  Star
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -73,57 +74,87 @@ export default function CustomerRequestsPage() {
       {/* Requests List */}
       {filteredRequests.length > 0 ? (
         <div className="space-y-4">
-          {filteredRequests.map((req) => (
-            <div
-              key={req.id}
-              className="bg-white rounded-2xl border border-slate-200 hover:border-[#146EF5] p-5 sm:p-6 transition-all shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-            >
-              <div className="space-y-3 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
-                    {req.requestCode}
-                  </span>
-                  <Badge variant={req.status === 'ACTIVE' ? 'verified' : req.status === 'ASSIGNED' ? 'success' : 'danger'} size="sm">
-                    {req.status === 'ACTIVE' ? 'Yayında' : req.status === 'ASSIGNED' ? 'Firma Seçildi' : 'Kapatıldı'}
-                  </Badge>
-                  <span className="text-xs text-slate-400">•</span>
-                  <span className="text-xs text-slate-500">{req.homeSize} Ev Eşyası</span>
-                </div>
+          {filteredRequests.map((req) => {
+            const isEligibleForReview = (req.status === 'ASSIGNED' || req.status === 'CLOSED') && !!req.assignedCarrierId;
+            const hasReview = isEligibleForReview ? db.hasReviewForRequest(req.id) : false;
 
-                <div>
-                  <RouteDisplay
-                    originCity={req.originCity}
-                    originDistrict={req.originDistrict}
-                    destinationCity={req.destinationCity}
-                    destinationDistrict={req.destinationDistrict}
-                    size="md"
-                  />
-                </div>
+            return (
+              <div
+                key={req.id}
+                className="bg-white rounded-2xl border border-slate-200 hover:border-[#146EF5] p-5 sm:p-6 transition-all shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              >
+                <div className="space-y-3 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                      {req.requestCode}
+                    </span>
+                    <Badge variant={req.status === 'ACTIVE' ? 'verified' : req.status === 'ASSIGNED' ? 'success' : 'danger'} size="sm">
+                      {req.status === 'ACTIVE' ? 'Yayında' : req.status === 'ASSIGNED' ? 'Firma Seçildi' : 'Kapatıldı'}
+                    </Badge>
 
-                <div className="flex items-center gap-4 text-xs text-slate-500 flex-wrap">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{req.movingDate}</span>
+                    {isEligibleForReview && (
+                      hasReview ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          Değerlendirildi
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#F95700] bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200 animate-pulse">
+                          <Star className="w-3 h-3 fill-current" />
+                          Değerlendirme Bekliyor
+                        </span>
+                      )
+                    )}
+
+                    <span className="text-xs text-slate-400">•</span>
+                    <span className="text-xs text-slate-500">{req.homeSize} Ev Eşyası</span>
                   </div>
-                  <span>•</span>
-                  <span>Çıkış: {req.originFloor}. Kat {req.originHasElevator ? '(Asansörlü)' : '(Merdiven)'}</span>
+
+                  <div>
+                    <RouteDisplay
+                      originCity={req.originCity}
+                      originDistrict={req.originDistrict}
+                      destinationCity={req.destinationCity}
+                      destinationDistrict={req.destinationDistrict}
+                      size="md"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-4 text-xs text-slate-500 flex-wrap">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{req.movingDate}</span>
+                    </div>
+                    <span>•</span>
+                    <span>Çıkış: {req.originFloor}. Kat {req.originHasElevator ? '(Asansörlü)' : '(Merdiven)'}</span>
+                  </div>
+                </div>
+
+                {/* Action and offers button */}
+                <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
+                  <span className="text-xs font-bold text-[#0B3B8F] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100">
+                    {req.offersCount} Teklif Alındı
+                  </span>
+
+                  <div className="flex items-center gap-2">
+                    {isEligibleForReview && !hasReview && (
+                      <Link href={`/app/customer/taleplerim/${req.id}`}>
+                        <Button variant="primary" size="sm" className="bg-[#F95700] hover:bg-[#e04f00] font-black" leftIcon={<Star className="w-3.5 h-3.5 fill-current" />}>
+                          Yorum Yap
+                        </Button>
+                      </Link>
+                    )}
+
+                    <Link href={`/app/customer/taleplerim/${req.id}`}>
+                      <Button variant="outline" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
+                        Talebi İncele
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
-
-              {/* Action and offers button */}
-              <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
-                <span className="text-xs font-bold text-[#0B3B8F] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100">
-                  {req.offersCount} Teklif Alındı
-                </span>
-
-                <Link href={`/app/customer/taleplerim/${req.id}`}>
-                  <Button variant="primary" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
-                    Talebi İncele
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">

@@ -1281,6 +1281,32 @@ class MockDatabase {
     this.setItem('reviews', list);
   }
 
+  hasReviewForRequest(requestId: string): boolean {
+    return this.getReviews().some(r => r.requestId === requestId);
+  }
+
+  getReviewByRequest(requestId: string): Review | undefined {
+    return this.getReviews().find(r => r.requestId === requestId);
+  }
+
+  getReviewableRequestsForCustomer(customerId: string): MovingRequest[] {
+    return this.getRequests().filter(r =>
+      r.customerId === customerId &&
+      (r.status === 'ASSIGNED' || r.status === 'CLOSED') &&
+      !!r.assignedCarrierId
+    );
+  }
+
+  addReviewAndUpdateCarrier(review: Review): void {
+    this.addReview(review);
+    const allReviews = this.getReviewsForCarrier(review.carrierId);
+    const newAvg = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+    this.updateCarrier(review.carrierId, {
+      rating: Math.round(newAvg * 10) / 10,
+      reviewCount: allReviews.length
+    });
+  }
+
   // Conversations & Messages
   getConversations(userId?: string): Conversation[] {
     const all = this.getItem<Conversation[]>('conversations', SEED_CONVERSATIONS);

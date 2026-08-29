@@ -130,22 +130,68 @@ export default function HomePage() {
       {/* ── 1. HERO WITH AUTHENTIC LOGISTICS / TRUCK BACKGROUND ── */}
       <section className="bg-[#0A1128] text-white relative overflow-hidden">
         
-        {/* Authentic Moving & Freight Background Photo with Deep Gradient Overlay */}
+        {/* Background photo overlay */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <img
             src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=1600&auto=format&fit=crop&q=80"
-            alt="Nakliyat ve Kamyon Filosu"
-            className="w-full h-full object-cover opacity-20 mix-blend-luminosity scale-105"
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover opacity-[0.12] mix-blend-luminosity scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0A1128] via-[#0A1128]/90 to-[#0A1128]/70" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0A1128] via-[#0A1128]/90 to-[#0A1128]/65" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0A1128] via-transparent to-transparent" />
         </div>
 
-        {/* Subtle grid dots */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
-          style={{ backgroundImage: 'radial-gradient(circle, #F95700 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        {/* ── Silik SVG Nakliye Araçları & Koliler — hero bg ── */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden select-none" aria-hidden="true">
+          
+          {/* Large truck silhouette — bottom right */}
+          <svg className="absolute -bottom-4 right-0 w-[520px] opacity-[0.06]" viewBox="0 0 640 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="80" width="360" height="180" rx="12" fill="white"/>
+            <rect x="380" y="120" width="180" height="140" rx="8" fill="white"/>
+            <path d="M380 120 L440 60 L560 60 L560 120" fill="white"/>
+            <circle cx="100" cy="276" r="40" fill="white"/>
+            <circle cx="480" cy="276" r="40" fill="white"/>
+            <rect x="8" y="210" width="620" height="14" rx="7" fill="white"/>
+          </svg>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-14 sm:py-20 lg:py-24">
+          {/* Cargo box 1 — upper left large, faint */}
+          <svg className="absolute top-8 -left-8 w-48 opacity-[0.05]" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="60" width="180" height="130" rx="8" fill="white"/>
+            <rect x="10" y="60" width="180" height="24" rx="8" fill="white" opacity="0.7"/>
+            <line x1="100" y1="60" x2="100" y2="190" stroke="#0A1128" strokeWidth="4"/>
+            <line x1="10" y1="90" x2="190" y2="90" stroke="#0A1128" strokeWidth="4"/>
+            {/* Box lid */}
+            <path d="M10 60 L40 20 L160 20 L190 60" fill="white" opacity="0.5"/>
+          </svg>
+
+          {/* Cargo box 2 — upper right medium */}
+          <svg className="absolute top-16 right-12 w-28 opacity-[0.04] hidden lg:block" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="60" width="180" height="130" rx="8" fill="white"/>
+            <rect x="10" y="60" width="180" height="24" rx="8" fill="white" opacity="0.7"/>
+            <line x1="100" y1="60" x2="100" y2="190" stroke="#0A1128" strokeWidth="5"/>
+            <path d="M10 60 L40 20 L160 20 L190 60" fill="white" opacity="0.5"/>
+          </svg>
+
+          {/* Small van / panel truck — mid left */}
+          <svg className="absolute top-1/2 -translate-y-1/2 -left-10 w-56 opacity-[0.04] hidden lg:block" viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="60" width="280" height="120" rx="10" fill="white"/>
+            <path d="M300 60 L340 20 L380 20 L380 60 L380 180 L300 180" fill="white"/>
+            <circle cx="80" cy="188" r="32" fill="white"/>
+            <circle cx="320" cy="188" r="32" fill="white"/>
+          </svg>
+
+          {/* Road line — bottom */}
+          <svg className="absolute bottom-0 left-0 w-full opacity-[0.04]" viewBox="0 0 1440 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="1440" height="8" rx="0" fill="white"/>
+            {/* Dashed center line */}
+            {[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19].map(i => (
+              <rect key={i} x={i * 80} y="20" width="50" height="6" rx="3" fill="white"/>
+            ))}
+          </svg>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 lg:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
 
             {/* Left: Headline & Dual Action Widget (7/12) */}
@@ -309,29 +355,50 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 2. 4 ADIMDA NASIL ÇALIŞIR ─────────────────────────── */}
-      <section className="bg-white border-b border-slate-100 py-16 sm:py-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      {/* ── 2. 4 ADIMDA NASIL ÇALIŞIR — Logistics Visual ───── */}
+      <section className="bg-[#F8FAFC] border-b border-slate-200 py-16 sm:py-20 relative overflow-hidden">
+        
+        {/* Faint background logistics pattern */}
+        <div className="absolute inset-0 z-0 pointer-events-none"
+          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23F95700\' fill-opacity=\'0.03\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+          backgroundSize: '60px 60px' }} />
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
           <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F95700]/10 text-[#F95700] text-xs font-black border border-[#F95700]/20 mb-4">
+              🚛 Nasıl Çalışır?
+            </span>
             <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128] mb-2">4 Adımda Kolayca Taşının</h2>
-            <p className="text-slate-500 font-medium">Talep açmak 2 dakika sürer — aracı komisyonu olmadan doğrudan nakliyeciyle anlaşın.</p>
+            <p className="text-slate-500 font-medium">Talep açmak 2 dakika sürer — komisyon olmadan doğrudan nakliyeciyle anlaşın.</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-0 relative">
-            <div className="hidden sm:block absolute top-8 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-[#F95700] via-[#F95700]/50 to-[#F95700]/20 z-0" />
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             {[
-              { step: '01', title: 'Talep Aç', desc: 'Nereden nereye, oda sayısı ve tarih. 2 dakikada hazır.', color: 'bg-[#F95700]' },
-              { step: '02', title: 'Teklifler Gelsin', desc: 'Bölgenizdeki onaylı nakliyeciler fiyatlarını sunsun.', color: 'bg-[#0A1128]' },
-              { step: '03', title: 'Yan Yana Kıyasla', desc: 'Fiyat, asansör, ambalaj ve sigortayı tek tabloda gör.', color: 'bg-[#0A1128]' },
-              { step: '04', title: 'Firmayı Seç', desc: 'Telefonla veya mesajla görüşüp taşınmanı başlat.', color: 'bg-[#0A1128]' },
+              { step: '01', emoji: '📋', title: 'Talep Aç', desc: 'Nereden nereye, oda sayısı ve tarih. 2 dakikada hazır.', color: 'bg-[#F95700]', cardBg: 'bg-white border-[#F95700]/20' },
+              { step: '02', emoji: '🚛', title: 'Teklifler Gelsin', desc: 'Bölgenizdeki onaylı nakliyeciler fiyatlarını sunsun.', color: 'bg-[#0A1128]', cardBg: 'bg-white border-slate-200' },
+              { step: '03', emoji: '⚖️', title: 'Yan Yana Kıyasla', desc: 'Fiyat, asansör, ambalaj ve sigortayı tek tabloda gör.', color: 'bg-[#0A1128]', cardBg: 'bg-white border-slate-200' },
+              { step: '04', emoji: '📦', title: 'Firmayı Seç', desc: 'Telefonla veya mesajla görüşüp taşınmanı başlat.', color: 'bg-[#0A1128]', cardBg: 'bg-white border-slate-200' },
             ].map((item, i) => (
-              <div key={i} className="relative z-10 flex flex-col items-center text-center px-4 mb-8 sm:mb-0">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl text-white mb-4 shadow-lg ${item.color}`}>
-                  {item.step}
+              <div key={i} className={`relative ${item.cardBg} border-2 rounded-3xl p-6 shadow-xs hover:shadow-md transition-all group`}>
+                {/* Step number badge */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm text-white shadow-md ${item.color}`}>
+                    {item.step}
+                  </div>
+                  <span className="text-3xl">{item.emoji}</span>
                 </div>
-                <h3 className="font-black text-[#0A1128] text-base mb-1">{item.title}</h3>
+
+                <h3 className="font-black text-[#0A1128] text-base mb-1.5">{item.title}</h3>
                 <p className="text-xs sm:text-sm text-slate-500 font-medium leading-snug">{item.desc}</p>
+
+                {/* Connector arrow for desktop */}
+                {i < 3 && (
+                  <div className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 z-10">
+                    <div className="w-6 h-6 rounded-full bg-[#F95700] text-white flex items-center justify-center text-xs font-black shadow-md">
+                      →
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -581,38 +648,99 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 6. POPÜLER ŞEHİRLER & HIZLI TEKLİF ────────────────── */}
-      <section className="py-16 bg-[#F8FAFC]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-8">
-            <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">Şehre Göre Nakliyat Firmaları</h2>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">81 il genelinde onaylı ve puanı yüksek evden eve taşımacılar</p>
+      {/* ── 6. ŞEHİRLERE GÖRE NAKLİYAT — Visual Cards ─── */}
+      <section className="py-16 sm:py-20 bg-[#0A1128] relative overflow-hidden">
+        
+        {/* Background dot texture */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
+          style={{ backgroundImage: 'radial-gradient(circle, #F95700 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
+
+        {/* Background SVG truck silhouette — decorative */}
+        <div className="absolute bottom-0 right-0 opacity-[0.04] pointer-events-none" aria-hidden="true">
+          <svg width="480" height="240" viewBox="0 0 640 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="80" width="360" height="180" rx="12" fill="white"/>
+            <rect x="380" y="120" width="180" height="140" rx="8" fill="white"/>
+            <path d="M380 120 L440 60 L560 60 L560 120" fill="white"/>
+            <circle cx="100" cy="276" r="40" fill="white"/>
+            <circle cx="480" cy="276" r="40" fill="white"/>
+          </svg>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+          
+          {/* Section Header */}
+          <div className="text-center mb-10">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F95700]/20 text-[#F95700] text-xs font-black border border-[#F95700]/30 mb-4">
+              <MapPin className="w-3.5 h-3.5" />
+              Tüm Türkiye&apos;de Hizmet
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">Şehre Göre Nakliyat Firmaları</h2>
+            <p className="text-slate-400 text-sm font-medium">81 il genelinde K3 belgeli, puanı yüksek evden eve nakliyat firmaları</p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-2.5 max-w-4xl mx-auto mb-10">
-            {POPULAR_CITIES.map((city) => (
+          {/* City Cards Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
+            {[
+              { city: 'İstanbul', slug: 'istanbul', count: '340+', accent: 'border-blue-500/30 hover:border-blue-400/60' },
+              { city: 'Ankara', slug: 'ankara', count: '180+', accent: 'border-white/10 hover:border-[#F95700]/60' },
+              { city: 'İzmir', slug: 'izmir', count: '140+', accent: 'border-cyan-500/30 hover:border-cyan-400/60' },
+              { city: 'Bursa', slug: 'bursa', count: '90+', accent: 'border-white/10 hover:border-[#F95700]/60' },
+              { city: 'Antalya', slug: 'antalya', count: '85+', accent: 'border-white/10 hover:border-[#F95700]/60' },
+              { city: 'Adana', slug: 'adana', count: '65+', accent: 'border-white/10 hover:border-[#F95700]/60' },
+              { city: 'Konya', slug: 'konya', count: '70+', accent: 'border-white/10 hover:border-[#F95700]/60' },
+              { city: 'Gaziantep', slug: 'gaziantep', count: '55+', accent: 'border-white/10 hover:border-[#F95700]/60' },
+            ].map((item) => (
               <Link
-                key={city}
-                href={`/nakliyat-firmalari/${encodeURIComponent(city.toLowerCase())}`}
-                className="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:border-[#F95700] hover:text-[#F95700] text-xs font-bold text-slate-700 transition-all shadow-2xs"
+                key={item.city}
+                href={`/nakliyat-firmalari/${encodeURIComponent(item.slug)}`}
+                className={`group relative bg-white/5 hover:bg-white/10 border ${item.accent} rounded-2xl sm:rounded-3xl p-4 sm:p-5 transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-orange-900/20`}
               >
-                📍 {city} Evden Eve Nakliyat
+                {/* Pin icon */}
+                <div className="w-8 h-8 rounded-xl bg-[#F95700]/20 flex items-center justify-center mb-3">
+                  <MapPin className="w-4 h-4 text-[#F95700]" />
+                </div>
+                <h3 className="font-black text-white text-sm sm:text-base leading-tight">
+                  {item.city}
+                </h3>
+                <p className="text-[10px] text-[#F95700] font-black mt-0.5">Nakliyat</p>
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-[10px] sm:text-xs text-slate-400 font-bold">{item.count} Onaylı Firma</span>
+                  <span className="text-[#F95700] text-xs font-black group-hover:translate-x-0.5 transition-transform">→</span>
+                </div>
               </Link>
             ))}
           </div>
 
-          {/* Bottom Callout */}
-          <div className="rounded-3xl bg-gradient-to-r from-orange-50 via-white to-orange-50 border-2 border-[#F95700]/30 p-8 sm:p-12 text-center max-w-4xl mx-auto shadow-md">
-            <h3 className="text-2xl sm:text-3xl font-black text-[#0A1128] mb-2">Hemen Taşınma Teklifi Toplayın</h3>
-            <p className="text-xs sm:text-sm text-slate-600 font-medium mb-6 max-w-lg mx-auto">
-              2 dakikanızı ayırın, bölgenizdeki en iyi nakliyat şirketlerinin fiyatlarını ücretsiz karşılaştırın.
-            </p>
-            <Link href="/teklif-al">
-              <Button variant="primary" size="lg" className="font-black px-10 shadow-lg shadow-orange-900/20" rightIcon={<ArrowRight className="w-5 h-5" />}>
-                Ücretsiz Teklif Al 🚀
-              </Button>
-            </Link>
+          {/* Thin separator */}
+          <div className="border-t border-white/10 my-8" />
+
+          {/* Bottom CTA */}
+          <div className="relative rounded-3xl border border-[#F95700]/30 bg-gradient-to-r from-[#F95700]/10 via-white/5 to-[#F95700]/10 p-8 sm:p-12 text-center overflow-hidden">
+            <div className="absolute inset-0 bg-[#F95700]/5 opacity-50 pointer-events-none" />
+            
+            <div className="relative z-10">
+              <div className="w-14 h-14 rounded-2xl bg-[#F95700]/20 border border-[#F95700]/30 flex items-center justify-center mx-auto mb-4">
+                <Truck className="w-7 h-7 text-[#F95700]" />
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-black text-white mb-2">Hemen Taşınma Teklifi Toplayın</h3>
+              <p className="text-sm text-slate-300 font-medium mb-6 max-w-lg mx-auto">
+                2 dakikanızı ayırın — bölgenizdeki K3 belgeli firmaların fiyatlarını ücretsiz karşılaştırın, sürpriz ek ücret olmadan.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link href="/teklif-al">
+                  <Button variant="primary" size="lg" className="font-black px-10 shadow-lg shadow-orange-900/30 text-base" rightIcon={<ArrowRight className="w-5 h-5" />}>
+                    Ücretsiz Teklif Al
+                  </Button>
+                </Link>
+                <Link href="/nakliyat-firmalari">
+                  <button className="px-6 py-3.5 rounded-2xl border border-white/20 text-white font-black text-sm hover:bg-white/10 transition-all">
+                    Tüm Firmaları Gör →
+                  </button>
+                </Link>
+              </div>
+            </div>
           </div>
+
         </div>
       </section>
     </div>

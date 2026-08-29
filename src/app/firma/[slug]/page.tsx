@@ -335,54 +335,112 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
             {/* TAB: REVIEWS */}
             {activeTab === 'REVIEWS' && (
               <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs animate-fade-in space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+                
+                {/* Header & Overall Summary */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-slate-100">
                   <div>
                     <h2 className="text-xl font-black text-[#0A1128]">Müşteri Değerlendirmeleri</h2>
-                    <p className="text-xs sm:text-sm text-slate-500 font-medium">Sadece platform üzerinden taşınması tamamlanan gerçek müşteriler yorum yapabilir.</p>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                      Bu firmayla taşınması tamamlanan onaylı müşterilerin bağımsız yorumları.
+                    </p>
                   </div>
-                  <div className="text-center sm:text-right">
-                    <div className="text-3xl font-black text-[#F95700] flex items-center justify-center sm:justify-end gap-1">
+
+                  <div className="flex items-center gap-4 bg-slate-50 border border-slate-200 rounded-2xl p-4 shrink-0">
+                    <div className="text-3xl font-black text-[#F95700] flex items-center gap-1">
                       <Star className="w-7 h-7 fill-current text-amber-400" />
                       <span>{carrier.rating.toFixed(1)}</span>
-                      <span className="text-xs text-slate-400 font-normal">/ 5.0</span>
+                    </div>
+                    <div className="text-left border-l border-slate-200 pl-4">
+                      <p className="text-xs font-black text-slate-800">{carrier.reviewCount} Değerlendirme</p>
+                      <p className="text-[10px] text-emerald-600 font-bold">%100 Doğrulanmış Müşteri</p>
                     </div>
                   </div>
                 </div>
 
+                {/* Trust Notice Band */}
+                <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex items-start gap-3 text-xs text-amber-900">
+                  <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <p className="leading-relaxed">
+                    <strong>Güvenlik Garantisi:</strong> Sadece platform üzerinden talep açıp bu nakliye firması ile anlaşan ve taşınması tamamlanan müşteriler puan/yorum verebilir. Hizmet almamış kişilerin yorum yapması teknik olarak engellenmiştir.
+                  </p>
+                </div>
+
                 {/* Review items */}
                 <div className="space-y-4">
-                  {reviews.map((rev) => (
-                    <div key={rev.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-black text-sm text-[#0A1128]">{rev.customerName}</p>
-                          <span className="text-xs text-slate-400 font-medium">
-                            {rev.originCity} → {rev.destinationCity} Taşınması
-                          </span>
+                  {reviews.map((rev) => {
+                    // Mask customer surname for privacy (e.g., "Ahmet Kaya" -> "Ahmet K.")
+                    const nameParts = rev.customerName.trim().split(' ');
+                    const maskedName = nameParts.length > 1 
+                      ? `${nameParts[0]} ${nameParts[nameParts.length - 1][0]}.` 
+                      : rev.customerName;
+
+                    return (
+                      <div key={rev.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 hover:border-slate-300 transition-colors">
+                        <div className="flex items-start justify-between gap-2 flex-wrap">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-black text-sm text-[#0A1128]">{maskedName}</p>
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                Onaylı Taşınma
+                              </span>
+                            </div>
+                            <span className="text-xs text-slate-400 font-medium mt-0.5 block">
+                              📍 {rev.originCity} → {rev.destinationCity} Taşınması
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1 text-amber-500 font-black text-sm bg-white px-2.5 py-1 rounded-xl border border-slate-200">
+                            <Star className="w-4 h-4 fill-current" />
+                            <span>{rev.rating}.0</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 text-amber-500 font-black text-sm">
-                          <Star className="w-4 h-4 fill-current" />
-                          <span>{rev.rating}</span>
-                        </div>
+
+                        {/* Sub ratings mini pills if available */}
+                        {(rev.communicationRating || rev.serviceQualityRating) && (
+                          <div className="flex flex-wrap gap-2 text-[10px] text-slate-600 pt-1">
+                            {rev.communicationRating && (
+                              <span className="px-2 py-0.5 bg-white rounded-md border border-slate-200">
+                                İletişim: <strong className="text-slate-800">{rev.communicationRating}/5</strong>
+                              </span>
+                            )}
+                            {rev.punctualityRating && (
+                              <span className="px-2 py-0.5 bg-white rounded-md border border-slate-200">
+                                Dakiklik: <strong className="text-slate-800">{rev.punctualityRating}/5</strong>
+                              </span>
+                            )}
+                            {rev.serviceQualityRating && (
+                              <span className="px-2 py-0.5 bg-white rounded-md border border-slate-200">
+                                Kalite: <strong className="text-slate-800">{rev.serviceQualityRating}/5</strong>
+                              </span>
+                            )}
+                            {rev.priceHonestyRating && (
+                              <span className="px-2 py-0.5 bg-white rounded-md border border-slate-200">
+                                Fiyat Şeffaflığı: <strong className="text-slate-800">{rev.priceHonestyRating}/5</strong>
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        <p className="text-sm text-slate-700 font-medium leading-relaxed">
+                          &ldquo;{rev.comment}&rdquo;
+                        </p>
+
+                        {rev.reply && (
+                          <div className="mt-3 p-3.5 rounded-xl bg-white border border-slate-200 text-xs">
+                            <strong className="text-[#F95700] block mb-1">{carrier.companyName} Yanıtı:</strong>
+                            <p className="text-slate-600 font-medium leading-relaxed">{rev.reply}</p>
+                          </div>
+                        )}
                       </div>
-
-                      <p className="text-sm text-slate-700 font-medium leading-relaxed">
-                        &ldquo;{rev.comment}&rdquo;
-                      </p>
-
-                      {rev.reply && (
-                        <div className="mt-3 p-3 rounded-xl bg-white border border-slate-200 text-xs">
-                          <strong className="text-[#F95700] block mb-0.5">{carrier.companyName} Yanıtı:</strong>
-                          <p className="text-slate-600 font-medium">{rev.reply}</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
 
                   {reviews.length === 0 && (
-                    <div className="text-center py-8 text-slate-400">
+                    <div className="text-center py-12 text-slate-400 bg-slate-50 rounded-2xl border border-slate-200">
                       <Star className="w-10 h-10 mx-auto mb-2 text-slate-300" />
-                      <p className="font-bold text-sm text-slate-600">Henüz değerlendirme yok</p>
+                      <p className="font-bold text-sm text-slate-700">Henüz müşteri değerlendirmesi bulunmuyor</p>
+                      <p className="text-xs text-slate-400 mt-1">Bu firmayla taşınan ilk müşteri olup deneyiminizi paylaşabilirsiniz.</p>
                     </div>
                   )}
                 </div>

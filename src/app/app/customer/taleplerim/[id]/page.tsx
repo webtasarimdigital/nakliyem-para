@@ -16,12 +16,15 @@ import {
   Phone, 
   Building2, 
   ArrowRight,
-  RotateCcw
+  RotateCcw,
+  Star,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { RouteDisplay } from '@/components/ui/RouteDisplay';
 import { Modal } from '@/components/ui/Modal';
+import { ReviewForm } from '@/components/ui/ReviewForm';
 import { db } from '@/lib/data/mock-db';
 
 export default function CustomerRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -32,6 +35,12 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
 
   const [closeModalOpen, setCloseModalOpen] = useState(false);
   const [closeReason, setCloseReason] = useState('Platformdaki firmayla anlaştım');
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+
+  const currentUser = db.getCurrentUser();
+  const assignedCarrier = req?.assignedCarrierId ? db.getCarriers().find(c => c.id === req.assignedCarrierId) : null;
+  const isEligibleForReview = req && (req.status === 'ASSIGNED' || req.status === 'CLOSED') && !!req.assignedCarrierId;
+  const existingReview = req ? db.getReviewByRequest(req.id) : undefined;
 
   if (!req) {
     return (
@@ -201,6 +210,83 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
                 </div>
               </div>
             )}
+
+            {/* ── YILDIZ & YORUM ALANI (Hizmet Sonrası) ── */}
+            <div className="pt-6 border-t border-slate-200">
+              {isEligibleForReview ? (
+                existingReview ? (
+                  /* Zaten Değerlendirilmiş */
+                  <div className="p-6 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-black">
+                          ✓
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-black text-emerald-950">Değerlendirmeniz Kaydedildi</h4>
+                          <p className="text-xs text-emerald-700 font-medium">
+                            {assignedCarrier?.companyName || 'Nakliye Firması'} için verdiğiniz puan ve yorum yayınlandı.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 bg-white px-3 py-1.5 rounded-xl border border-emerald-200 text-amber-500 font-black text-sm">
+                        <Star className="w-4 h-4 fill-current" />
+                        <span>{existingReview.rating}.0</span>
+                        <span className="text-xs text-slate-400 font-normal">/ 5</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-white border border-emerald-100 text-xs text-slate-700 font-medium leading-relaxed">
+                      &ldquo;{existingReview.comment}&rdquo;
+                    </div>
+
+                    {existingReview.reply && (
+                      <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                        <strong className="text-[#F95700] block mb-0.5">{assignedCarrier?.companyName} Yanıtı:</strong>
+                        <p className="text-slate-600 font-medium">{existingReview.reply}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Hizmet Alınmış Ama Henüz Yorumlanmamış */
+                  <div className="p-6 rounded-2xl bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 border-2 border-[#F95700]/30 shadow-xs space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F95700]/10 text-[#F95700] text-[11px] font-black">
+                          <Star className="w-3.5 h-3.5 fill-current" />
+                          Hizmet Tamamlandı
+                        </div>
+                        <h4 className="text-base font-black text-[#0A1128]">
+                          Taşınma Deneyiminizi Değerlendirin
+                        </h4>
+                        <p className="text-xs text-slate-600 font-medium max-w-lg">
+                          <strong>{assignedCarrier?.companyName || 'Anlaştığınız firma'}</strong> ile taşınmanız tamamlandı. Diğer müşterilere yol göstermek için yıldız ve yorum bırakın.
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setReviewModalOpen(true)}
+                        className="px-5 py-3 rounded-xl bg-[#F95700] hover:bg-[#e04f00] text-white font-black text-xs sm:text-sm transition-all shadow-md shadow-orange-900/20 whitespace-nowrap cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+                      >
+                        <Star className="w-4 h-4 fill-current" />
+                        <span>Yorum &amp; Yıldız Bırak</span>
+                      </button>
+                    </div>
+                  </div>
+                )
+              ) : (
+                /* Henüz Hizmet Alınmamış / Anlaşılmamış */
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3 text-xs text-slate-500">
+                  <div className="w-7 h-7 rounded-lg bg-slate-200 text-slate-600 flex items-center justify-center shrink-0">
+                    <Star className="w-4 h-4" />
+                  </div>
+                  <p>
+                    <strong>Yorum &amp; Puanlama Kuralı:</strong> Sadece bir nakliye firmasıyla anlaşıp taşınması tamamlanan onaylı müşteriler değerlendirme yapabilir.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -238,6 +324,24 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
           </div>
         </div>
       </div>
+
+      {/* Review Form Modal */}
+      {reviewModalOpen && assignedCarrier && (
+        <ReviewForm
+          requestId={req.id}
+          carrierId={assignedCarrier.id}
+          carrierName={assignedCarrier.companyName}
+          customerId={req.customerId || currentUser?.id || 'cust_1'}
+          customerName={req.customerName || 'Müşteri'}
+          originCity={req.originCity}
+          destinationCity={req.destinationCity}
+          onSuccess={() => {
+            setReviewModalOpen(false);
+            router.refresh();
+          }}
+          onClose={() => setReviewModalOpen(false)}
+        />
+      )}
 
       {/* Close Request Modal */}
       <Modal
