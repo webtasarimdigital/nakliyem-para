@@ -266,65 +266,63 @@ function RequestWizardContent() {
         </div>
 
         {/* The Animated Road Track with Rolling Cargo Box & Destination Truck */}
-        <div className="relative pt-6 pb-4">
-          
-          {/* Road / Track Background */}
-          <div className="h-4 bg-slate-100 rounded-full overflow-hidden relative border border-slate-200">
-            {/* Dashed highway center line */}
-            <div className="absolute inset-0 flex items-center justify-between px-2 opacity-30">
-              {Array.from({ length: 16 }).map((_, i) => (
-                <span key={i} className="w-3 h-1 bg-slate-400 rounded-full" />
-              ))}
-            </div>
-
-            {/* Filled Active Progress Track */}
-            <div
-              className="h-full bg-gradient-to-r from-orange-400 via-[#F95700] to-[#E04D00] transition-all duration-500 rounded-full relative"
-              style={{ width: `${Math.max(8, (step / 9) * 100)}%` }}
-            >
-              <div className="absolute inset-0 bg-white/20 animate-pulse rounded-full" />
-            </div>
-          </div>
-
-          {/* Left: Origin House Icon (Eski Ev) */}
-          <div className="absolute -top-1 left-0 flex flex-col items-center">
-            <div className="w-8 h-8 rounded-full bg-[#0A1128] text-white flex items-center justify-center text-xs shadow-md border-2 border-white">
-              🏠
-            </div>
-            <span className="text-[10px] font-black text-slate-400 mt-1">Ev</span>
-          </div>
-
-          {/* Dynamic Rolling Cargo Box (📦) that Glides Along the Road */}
-          <div
-            className="absolute -top-2 transition-all duration-500 pointer-events-none z-20"
-            style={{
-              left: `calc(${Math.min(88, Math.max(6, (step / 9) * 100))}% - 16px)`,
-            }}
-          >
-            <div className="relative flex flex-col items-center">
-              {/* Rolling / Bouncing Box Badge */}
-              <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-lg shadow-lg border-2 border-white animate-bounce">
-                📦
+        <div className="pt-2 pb-1">
+          <div className="flex items-center gap-3">
+            
+            {/* Left: Origin House Icon (Ev) */}
+            <div className="flex flex-col items-center shrink-0">
+              <div className="w-9 h-9 rounded-2xl bg-[#0A1128] text-white flex items-center justify-center text-sm shadow-sm border border-slate-200">
+                🏠
               </div>
-              <span className="text-[9px] font-black bg-[#0A1128] text-white px-1.5 py-0.2 rounded mt-0.5 whitespace-nowrap shadow-xs">
-                {step === 9 ? 'Yüklendi' : 'Kolileniyor'}
+              <span className="text-[10px] font-black text-slate-500 mt-1">Ev</span>
+            </div>
+
+            {/* Middle: Road / Track with moving Cargo Box */}
+            <div className="flex-1 relative py-4">
+              {/* Road Track */}
+              <div className="h-3 bg-slate-100 rounded-full overflow-hidden relative border border-slate-200">
+                {/* Filled Active Progress Track */}
+                <div
+                  className="h-full bg-gradient-to-r from-orange-400 via-[#F95700] to-[#E04D00] transition-all duration-500 rounded-full relative"
+                  style={{ width: `${Math.max(4, (step / 9) * 100)}%` }}
+                >
+                  <div className="absolute inset-0 bg-white/20 animate-pulse rounded-full" />
+                </div>
+              </div>
+
+              {/* Dynamic Rolling Cargo Box (📦) that Glides Along the Road */}
+              <div
+                className="absolute top-0 transition-all duration-500 pointer-events-none z-20"
+                style={{
+                  left: `calc(${Math.min(96, Math.max(0, ((step - 1) / 8) * 100))}% - 14px)`,
+                }}
+              >
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-sm shadow-md border border-white animate-bounce">
+                    📦
+                  </div>
+                  <span className="text-[8px] font-black bg-[#0A1128] text-white px-1.5 py-0.5 rounded mt-0.5 whitespace-nowrap shadow-xs">
+                    {step === 9 ? 'Yüklendi' : 'Kolileniyor'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: The Waiting Logistics Truck (Tır) */}
+            <div className="flex flex-col items-center shrink-0">
+              <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all shadow-sm border ${
+                step === 9 
+                  ? 'bg-[#F95700] border-amber-300 text-white scale-110 ring-2 ring-orange-400/30' 
+                  : 'bg-[#0A1128] border-slate-200 text-white'
+              }`}>
+                <Truck className={`w-4 h-4 ${step === 9 ? 'text-white' : 'text-amber-400'}`} />
+              </div>
+              <span className="text-[10px] font-black text-slate-700 mt-1 flex items-center gap-0.5">
+                <span>Tır</span>
+                {step === 9 && <span className="text-emerald-500 font-bold">✓</span>}
               </span>
             </div>
-          </div>
 
-          {/* Right: The Waiting Logistics Truck (🚛 Nakliye Tırı) */}
-          <div className="absolute -top-3 right-0 flex flex-col items-center z-10">
-            <div className={`p-2 rounded-2xl flex items-center justify-center transition-all shadow-md border-2 ${
-              step === 9 
-                ? 'bg-[#F95700] border-amber-300 text-white scale-110 ring-4 ring-orange-400/30' 
-                : 'bg-[#0A1128] border-white text-white'
-            }`}>
-              <Truck className={`w-5 h-5 ${step === 9 ? 'text-white' : 'text-amber-400'}`} />
-            </div>
-            <span className="text-[10px] font-black text-slate-600 mt-1 flex items-center gap-0.5">
-              <span>Tır</span>
-              {step === 9 && <span className="text-emerald-500 font-bold">✓</span>}
-            </span>
           </div>
         </div>
       </div>

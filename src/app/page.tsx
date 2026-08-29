@@ -130,65 +130,16 @@ export default function HomePage() {
       {/* ── 1. HERO WITH AUTHENTIC LOGISTICS / TRUCK BACKGROUND ── */}
       <section className="bg-[#0A1128] text-white relative overflow-hidden">
         
-        {/* Background photo overlay */}
+        {/* Background photo overlay with rich navy gradients */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <img
             src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=1600&auto=format&fit=crop&q=80"
             alt=""
             aria-hidden="true"
-            className="w-full h-full object-cover opacity-[0.12] mix-blend-luminosity scale-105"
+            className="w-full h-full object-cover opacity-[0.15] mix-blend-luminosity scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0A1128] via-[#0A1128]/90 to-[#0A1128]/65" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0A1128] via-[#0A1128]/95 to-[#0A1128]/75" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0A1128] via-transparent to-transparent" />
-        </div>
-
-        {/* ── Silik SVG Nakliye Araçları & Koliler — hero bg ── */}
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden select-none" aria-hidden="true">
-          
-          {/* Large truck silhouette — bottom right */}
-          <svg className="absolute -bottom-4 right-0 w-[520px] opacity-[0.06]" viewBox="0 0 640 320" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="20" y="80" width="360" height="180" rx="12" fill="white"/>
-            <rect x="380" y="120" width="180" height="140" rx="8" fill="white"/>
-            <path d="M380 120 L440 60 L560 60 L560 120" fill="white"/>
-            <circle cx="100" cy="276" r="40" fill="white"/>
-            <circle cx="480" cy="276" r="40" fill="white"/>
-            <rect x="8" y="210" width="620" height="14" rx="7" fill="white"/>
-          </svg>
-
-          {/* Cargo box 1 — upper left large, faint */}
-          <svg className="absolute top-8 -left-8 w-48 opacity-[0.05]" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="10" y="60" width="180" height="130" rx="8" fill="white"/>
-            <rect x="10" y="60" width="180" height="24" rx="8" fill="white" opacity="0.7"/>
-            <line x1="100" y1="60" x2="100" y2="190" stroke="#0A1128" strokeWidth="4"/>
-            <line x1="10" y1="90" x2="190" y2="90" stroke="#0A1128" strokeWidth="4"/>
-            {/* Box lid */}
-            <path d="M10 60 L40 20 L160 20 L190 60" fill="white" opacity="0.5"/>
-          </svg>
-
-          {/* Cargo box 2 — upper right medium */}
-          <svg className="absolute top-16 right-12 w-28 opacity-[0.04] hidden lg:block" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="10" y="60" width="180" height="130" rx="8" fill="white"/>
-            <rect x="10" y="60" width="180" height="24" rx="8" fill="white" opacity="0.7"/>
-            <line x1="100" y1="60" x2="100" y2="190" stroke="#0A1128" strokeWidth="5"/>
-            <path d="M10 60 L40 20 L160 20 L190 60" fill="white" opacity="0.5"/>
-          </svg>
-
-          {/* Small van / panel truck — mid left */}
-          <svg className="absolute top-1/2 -translate-y-1/2 -left-10 w-56 opacity-[0.04] hidden lg:block" viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="20" y="60" width="280" height="120" rx="10" fill="white"/>
-            <path d="M300 60 L340 20 L380 20 L380 60 L380 180 L300 180" fill="white"/>
-            <circle cx="80" cy="188" r="32" fill="white"/>
-            <circle cx="320" cy="188" r="32" fill="white"/>
-          </svg>
-
-          {/* Road line — bottom */}
-          <svg className="absolute bottom-0 left-0 w-full opacity-[0.04]" viewBox="0 0 1440 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="0" y="0" width="1440" height="8" rx="0" fill="white"/>
-            {/* Dashed center line */}
-            {[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19].map(i => (
-              <rect key={i} x={i * 80} y="20" width="50" height="6" rx="3" fill="white"/>
-            ))}
-          </svg>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 lg:py-24">
@@ -654,17 +605,6 @@ export default function HomePage() {
         {/* Background dot texture */}
         <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
           style={{ backgroundImage: 'radial-gradient(circle, #F95700 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
-
-        {/* Background SVG truck silhouette — decorative */}
-        <div className="absolute bottom-0 right-0 opacity-[0.04] pointer-events-none" aria-hidden="true">
-          <svg width="480" height="240" viewBox="0 0 640 320" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="20" y="80" width="360" height="180" rx="12" fill="white"/>
-            <rect x="380" y="120" width="180" height="140" rx="8" fill="white"/>
-            <path d="M380 120 L440 60 L560 60 L560 120" fill="white"/>
-            <circle cx="100" cy="276" r="40" fill="white"/>
-            <circle cx="480" cy="276" r="40" fill="white"/>
-          </svg>
-        </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
           

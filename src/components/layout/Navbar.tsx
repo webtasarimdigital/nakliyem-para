@@ -88,7 +88,7 @@ export const Navbar: React.FC = () => {
             className={`px-3 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.includes('talepler') || pathname?.includes('isler') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
           >
             <FileText className="w-4 h-4 text-[#F95700] shrink-0" />
-            Talepler &amp; İşler
+            Talepler
           </Link>
 
           <Link
@@ -157,14 +157,14 @@ export const Navbar: React.FC = () => {
                   Giriş Yap <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                 </button>
                 {loginDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-fade-in space-y-1">
-                    <Link href="/giris?role=musteri" onClick={() => setLoginDropdownOpen(false)} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-orange-50 text-slate-800">
-                      <div className="w-8 h-8 rounded-lg bg-orange-100 text-[#C23E00] flex items-center justify-center shrink-0"><User className="w-4 h-4" /></div>
-                      <div><span className="block text-xs font-black">Müşteri Girişi</span><span className="block text-[10px] text-slate-400">Taleplerini yönet</span></div>
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 z-50 animate-fade-in space-y-1">
+                    <Link href="/giris?role=musteri" onClick={() => setLoginDropdownOpen(false)} className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-orange-50 text-slate-800 font-black text-xs transition-colors">
+                      <div className="w-7 h-7 rounded-lg bg-orange-100 text-[#C23E00] flex items-center justify-center shrink-0"><User className="w-3.5 h-3.5" /></div>
+                      <span>Müşteri Girişi</span>
                     </Link>
-                    <Link href="/giris?role=nakliyeci" onClick={() => setLoginDropdownOpen(false)} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 text-slate-800">
-                      <div className="w-8 h-8 rounded-lg bg-[#0A1128] text-white flex items-center justify-center shrink-0"><Truck className="w-4 h-4" /></div>
-                      <div><span className="block text-xs font-black">Nakliyeci Girişi</span><span className="block text-[10px] text-slate-400">İş bul &amp; teklif ver</span></div>
+                    <Link href="/giris?role=nakliyeci" onClick={() => setLoginDropdownOpen(false)} className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-slate-800 font-black text-xs transition-colors">
+                      <div className="w-7 h-7 rounded-lg bg-[#0A1128] text-white flex items-center justify-center shrink-0"><Truck className="w-3.5 h-3.5" /></div>
+                      <span>Nakliyeci Girişi</span>
                     </Link>
                   </div>
                 )}
@@ -178,14 +178,14 @@ export const Navbar: React.FC = () => {
                   Kaydol <ChevronDown className="w-3.5 h-3.5 text-white/70" />
                 </button>
                 {registerDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-fade-in space-y-1">
-                    <Link href="/kayit?role=musteri" onClick={() => setRegisterDropdownOpen(false)} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-orange-50 text-slate-800">
-                      <div className="w-8 h-8 rounded-lg bg-orange-100 text-[#C23E00] flex items-center justify-center shrink-0"><User className="w-4 h-4" /></div>
-                      <div><span className="block text-xs font-black">Müşteri Hesabı</span><span className="block text-[10px] text-slate-400">%100 Ücretsiz teklif al</span></div>
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 z-50 animate-fade-in space-y-1">
+                    <Link href="/kayit?role=musteri" onClick={() => setRegisterDropdownOpen(false)} className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-orange-50 text-slate-800 font-black text-xs transition-colors">
+                      <div className="w-7 h-7 rounded-lg bg-orange-100 text-[#C23E00] flex items-center justify-center shrink-0"><User className="w-3.5 h-3.5" /></div>
+                      <span>Müşteri Hesabı</span>
                     </Link>
-                    <Link href="/kayit?role=nakliyeci" onClick={() => setRegisterDropdownOpen(false)} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 text-slate-800">
-                      <div className="w-8 h-8 rounded-lg bg-[#0A1128] text-white flex items-center justify-center shrink-0"><Truck className="w-4 h-4" /></div>
-                      <div><span className="block text-xs font-black">Nakliyeci Kaydı</span><span className="block text-[10px] text-emerald-600 font-bold">7 Gün Ücretsiz Gold</span></div>
+                    <Link href="/kayit?role=nakliyeci" onClick={() => setRegisterDropdownOpen(false)} className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-slate-800 font-black text-xs transition-colors">
+                      <div className="w-7 h-7 rounded-lg bg-[#0A1128] text-white flex items-center justify-center shrink-0"><Truck className="w-3.5 h-3.5" /></div>
+                      <span>Nakliyeci Kaydı</span>
                     </Link>
                   </div>
                 )}
@@ -226,8 +226,8 @@ export const Navbar: React.FC = () => {
         <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-4 pb-6 space-y-4 animate-fade-in shadow-xl">
           <nav className="space-y-1">
             {[
-              { href: isCarrier ? '/app/carrier/defter' : '/nakliyeci-defteri', label: 'Nakliyeci Defteri', icon: <BookOpen className="w-4 h-4 text-[#F95700]" /> },
-              { href: isCarrier ? '/app/carrier/isler' : '/talepler', label: 'Talepler & İşler', icon: <FileText className="w-4 h-4 text-[#F95700]" /> },
+              { href: isCarrier ? '/app/carrier/defter' : '/nakliyeci-defteri', label: 'Defter', icon: <BookOpen className="w-4 h-4 text-[#F95700]" /> },
+              { href: isCarrier ? '/app/carrier/isler' : '/talepler', label: 'Talepler', icon: <FileText className="w-4 h-4 text-[#F95700]" /> },
               { href: '/teklif-al', label: 'Teklif Al', icon: <Truck className="w-4 h-4 text-white" />, highlight: true },
               { href: '/pazaryeri', label: 'Pazaryeri', icon: <ShoppingBag className="w-4 h-4 text-[#F95700]" /> },
             ].map(link => (

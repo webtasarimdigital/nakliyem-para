@@ -55,27 +55,26 @@ export default function MesafeHesaplamaPage() {
   const totalDirectCost = totalFuelCost + totalStaffCost + totalHighwayTolls;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      
-      {/* ── HERO ─────────────────────────────────────────────── */}
-      <div className="bg-[#0A1128] text-white py-16 sm:py-20 relative overflow-hidden">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F95700]/20 text-[#F95700] text-xs font-black mb-5 border border-[#F95700]/30 shadow-xs">
+    <div className="min-h-screen bg-[#F8FAFC] py-8 sm:py-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        
+        {/* Clean Page Title Header */}
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F95700]/10 text-[#F95700] text-xs font-black mb-3 border border-[#F95700]/20">
             <Calculator className="w-4 h-4" />
             <span>Şehirlerarası Nakliyat Mesafe &amp; Fiyat Hesaplayıcı</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight mb-4 tracking-tight">
-            Mesafe, Süre ve Ortalama Taşıma Fiyatını Hesaplayın
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#0A1128] leading-tight mb-2.5 tracking-tight">
+            Mesafe, Süre ve Ortalama Taşıma Fiyatı
           </h1>
-          <p className="text-slate-300 font-medium text-sm sm:text-base max-w-2xl mx-auto">
+          <p className="text-slate-500 font-medium text-xs sm:text-sm">
             Türkiye&apos;nin 81 ili arasında karayolu mesafesini ve güncel piyasa ortalama evden eve nakliyat fiyat aralığını saniyeler içinde öğrenin.
           </p>
         </div>
-      </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-16">
+        {/* Main Grid: Calculation & Results */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
           
           {/* LEFT: Inputs & Results (7/12) */}
           <div className="lg:col-span-7 space-y-6">
@@ -233,7 +232,7 @@ export default function MesafeHesaplamaPage() {
                   className="w-full font-black text-base py-4 shadow-xl shadow-orange-900/40"
                   rightIcon={<ArrowRight className="w-5 h-5" />}
                 >
-                  Bu Rota İçin Ücretsiz Teklif Al 🚀
+                  Bu Rota İçin Ücretsiz Teklif Al
                 </Button>
               </Link>
             </div>
