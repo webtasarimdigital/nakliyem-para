@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   BookOpen, 
@@ -26,6 +26,7 @@ import {
   ArrowRight,
   CircleDot,
   CheckCircle2,
+  AlertCircle,
   Image as ImageIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -62,7 +63,20 @@ function formatRelativeTime(dateString?: string): string {
 }
 
 export default function NakliyeciDefteriPage() {
-  const currentUser = db.getCurrentUser();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    setCurrentUser(db.getCurrentUser());
+    const handleAuthChange = () => {
+      setCurrentUser(db.getCurrentUser());
+    };
+    window.addEventListener('auth-changed', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+    return () => {
+      window.removeEventListener('auth-changed', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, []);
   const isCarrier = currentUser?.role === 'CARRIER';
   const carrier = db.getCarriers()[0];
 
@@ -99,6 +113,57 @@ export default function NakliyeciDefteriPage() {
       return;
     }
     setIsComposerOpen(true);
+  };
+
+  const [inlinePostContent, setInlinePostContent] = useState('');
+  const [inlinePostCategory, setInlinePostCategory] = useState<DefterPostCategory>('EMPTY_VEHICLE');
+  const [publishSuccess, setPublishSuccess] = useState(false);
+
+  const handleInlinePublish = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inlinePostContent || inlinePostContent.trim().length < 10) {
+      alert('Lütfen en az 10 karakter yazın.');
+      return;
+    }
+
+    const user = db.getCurrentUser();
+    if (!user) {
+      setAuthActionPayload({ id: 'new', type: 'POST' });
+      setAuthModalOpen(true);
+      return;
+    }
+
+    const carrierObj = db.getCarriers()[0];
+    const newPost: DefterPost = {
+      id: `def_${Date.now()}`,
+      carrierId: carrierObj.id,
+      carrier: {
+        ...carrierObj,
+        companyName: user.role === 'CARRIER' ? (user.companyName || carrierObj.companyName) : (user.fullName || 'Bireysel Üye'),
+        phone: user.phone || carrierObj.phone
+      },
+      category: inlinePostCategory,
+      originCity: user.city || 'İstanbul',
+      originDistrict: 'Merkez',
+      destinationCity: 'Tüm Türkiye',
+      destinationDistrict: 'Tümü',
+      date: 'Bugün',
+      vehicleType: 'Kamyonet / Kamyon',
+      capacityPercent: 100,
+      acceptsWaypoints: true,
+      content: inlinePostContent.trim(),
+      allowPhone: true,
+      allowMessage: true,
+      status: 'ACTIVE',
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 3 * 86400000).toISOString()
+    };
+
+    db.addDefterPost(newPost);
+    setPosts([newPost, ...db.getDefterPosts()]);
+    setInlinePostContent('');
+    setPublishSuccess(true);
+    setTimeout(() => setPublishSuccess(false), 4000);
   };
 
   const handleCreatePost = (e: React.FormEvent) => {
@@ -181,69 +246,89 @@ export default function NakliyeciDefteriPage() {
           </div>
         </div>
 
-        {/* ── 2. QUICK ACTION CARDS (Intuitive & Human) ───────────────── */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-xs mb-6">
-          <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-3">
-            Hızlı İlan Oluştur
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Action 1: Boş Araç */}
+        {/* ── 2. IMAGE 4 COMPOSER & CITY QUICK FILTERS ───────────────── */}
+        {/* City Quick Pills (Image 4 exact) */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+          {['Tümü', 'İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Konya', 'Adana', 'Mersin', 'Diyarbakır', 'Kocaeli'].map((cityName) => (
             <button
+              key={cityName}
               type="button"
-              onClick={() => { setPostCategory('EMPTY_VEHICLE'); handleOpenComposer(); }}
-              className="p-3.5 rounded-2xl border-2 border-orange-100 hover:border-[#F95700] bg-orange-50/50 hover:bg-orange-50 text-left transition-all group cursor-pointer"
+              onClick={() => setFilterOrigin(cityName === 'Tümü' ? '' : cityName)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                (cityName === 'Tümü' && !filterOrigin) || filterOrigin === cityName
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
+              }`}
             >
-              <div className="w-8 h-8 rounded-xl bg-[#F95700] text-white flex items-center justify-center mb-2 shadow-xs">
-                <Truck className="w-4 h-4" />
-              </div>
-              <span className="font-black text-sm text-[#0A1128] block group-hover:text-[#F95700] transition-colors">
-                Boş Aracım Var
-              </span>
-              <span className="text-[11px] text-slate-500 font-medium block mt-0.5">
-                Dönüş rotasını doldurmak için ilan ver
-              </span>
+              {cityName}
             </button>
-
-            {/* Action 2: Yük Arıyorum */}
-            <button
-              type="button"
-              onClick={() => { setPostCategory('CARGO_JOB'); handleOpenComposer(); }}
-              className="p-3.5 rounded-2xl border-2 border-blue-100 hover:border-blue-500 bg-blue-50/40 hover:bg-blue-50 text-left transition-all group cursor-pointer"
-            >
-              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center mb-2 shadow-xs">
-                <Package className="w-4 h-4" />
-              </div>
-              <span className="font-black text-sm text-[#0A1128] block group-hover:text-blue-600 transition-colors">
-                Yük Arıyorum
-              </span>
-              <span className="text-[11px] text-slate-500 font-medium block mt-0.5">
-                Aracıma uygun ev veya ofis yükü bul
-              </span>
-            </button>
-
-            {/* Action 3: Mobil Asansör */}
-            <button
-              type="button"
-              onClick={() => { setPostCategory('ELEVATOR'); handleOpenComposer(); }}
-              className="p-3.5 rounded-2xl border-2 border-amber-100 hover:border-amber-500 bg-amber-50/40 hover:bg-amber-50 text-left transition-all group cursor-pointer"
-            >
-              <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center mb-2 shadow-xs">
-                <Building2 className="w-4 h-4" />
-              </div>
-              <span className="font-black text-sm text-[#0A1128] block group-hover:text-amber-600 transition-colors">
-                Mobil Asansör
-              </span>
-              <span className="text-[11px] text-slate-500 font-medium block mt-0.5">
-                Operatörlü asansörünü kiraya ver
-              </span>
-            </button>
-          </div>
+          ))}
         </div>
 
-        {/* ── 3. SINGLE CLEAN CATEGORY FILTER TABS ─────────────────── */}
+        {/* Inline Publishing Card (Image 4 exact) */}
+        <div className="bg-white rounded-3xl border-2 border-slate-200 p-4 sm:p-5 shadow-xs mb-6 space-y-3">
+          {/* Ban Warning Banner */}
+          <div className="p-3 px-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>⚠️ Uyarı: Konu dışı veya yanıltıcı paylaşım yapmak süresiz ban sebebidir.</span>
+          </div>
+
+          {publishSuccess && (
+            <div className="p-3 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2 animate-fade-in">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>İlanınız Defter&apos;e başarıyla eklendi!</span>
+            </div>
+          )}
+
+          <form onSubmit={handleInlinePublish} className="space-y-3">
+            <textarea
+              value={inlinePostContent}
+              onChange={(e) => setInlinePostContent(e.target.value)}
+              rows={3}
+              placeholder="En az 25 karakter yazın..."
+              className="w-full p-4 rounded-2xl border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#FFD200] focus:outline-none resize-none bg-slate-50/50"
+            />
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {[
+                  { id: 'EMPTY_VEHICLE', label: '🚛 Boş Araç' },
+                  { id: 'CARGO_JOB', label: '📦 Yük / İş' },
+                  { id: 'REQUEST', label: '📋 Talep' },
+                ].map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setInlinePostCategory(cat.id as DefterPostCategory)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                      inlinePostCategory === cat.id
+                        ? 'bg-slate-900 text-white'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="submit"
+                className="bg-[#FFD200] hover:bg-[#F5C400] text-black font-black text-xs sm:text-sm px-8 py-2.5 rounded-xl shadow-xs shrink-0 cursor-pointer transition-colors"
+              >
+                Yayınla
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* ── 3. SINGLE CLEAN CATEGORY FILTER TABS (Image 4 exact) ──────── */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-6 no-scrollbar">
-          {CATEGORY_CHIPS.map((tab) => {
+          {[
+            { id: 'ALL', label: 'Tümü', count: 1454, icon: Layers },
+            { id: 'CARGO_JOB', label: 'Yük / İş', count: 329, icon: Package },
+            { id: 'REQUEST', label: 'Talepler', count: 92, icon: BookOpen },
+            { id: 'EMPTY_VEHICLE', label: 'Boş Araç', count: 766, icon: Truck },
+          ].map((tab) => {
             const Icon = tab.icon;
             const isSelected = activeCategory === tab.id;
             return (
@@ -258,11 +343,13 @@ export default function NakliyeciDefteriPage() {
               >
                 <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-[#F95700]'}`} />
                 <span>{tab.label}</span>
+                <span className={`text-[11px] px-2 py-0.5 rounded-full font-black ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                  {tab.count}
+                </span>
               </button>
             );
           })}
         </div>
-
         {/* ── 4. LIVE DEFTER POSTS FEED (Matching Reference Screenshot) ── */}
         <div className="space-y-5">
           {filteredPosts.map((post) => {

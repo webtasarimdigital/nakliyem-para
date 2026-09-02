@@ -86,6 +86,9 @@ function GirisContent() {
       if (res.error) {
         setErrorMessage(res.error);
       } else {
+        if (res.user) {
+          db.setCurrentUser(res.user);
+        }
         if (res.user?.role === 'CARRIER' || tab === 'nakliyeci') {
           router.push('/app/carrier');
         } else {
@@ -93,14 +96,28 @@ function GirisContent() {
         }
       }
     } else {
+      const registeredUser = db.getRegisteredUserByEmail(email) || db.getUserByPhone(email);
+      const userRole = (registeredUser?.role || (tab === 'nakliyeci' ? 'CARRIER' : 'CUSTOMER')) as 'CUSTOMER' | 'CARRIER';
+      const user = {
+        id: registeredUser?.id || (userRole === 'CARRIER' ? 'user_carr_1' : 'user_cust_1'),
+        email: email || (userRole === 'CARRIER' ? 'mahmut@nakliyat.com' : 'omer@gmail.com'),
+        phone: registeredUser?.phone || '0532 555 00 00',
+        role: userRole,
+        fullName: registeredUser?.fullName || (userRole === 'CUSTOMER' ? 'Ömer Faruk' : undefined),
+        companyName: registeredUser?.companyName || (userRole === 'CARRIER' ? 'Mahmut Nakliyat' : undefined),
+        carrierProfileId: userRole === 'CARRIER' ? (registeredUser?.carrierId || 'c1') : undefined,
+        createdAt: registeredUser?.createdAt || new Date().toISOString()
+      };
+      db.setCurrentUser(user);
+
       setTimeout(() => {
         setLoading(false);
-        if (tab === 'musteri') {
-          router.push('/app/customer');
-        } else {
+        if (userRole === 'CARRIER') {
           router.push('/app/carrier');
+        } else {
+          router.push('/app/customer');
         }
-      }, 800);
+      }, 500);
     }
   };
 

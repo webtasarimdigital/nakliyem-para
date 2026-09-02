@@ -2,9 +2,15 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Truck, ShieldCheck, Phone, Mail, MapPin, Sparkles, BookOpen, ShoppingBag } from 'lucide-react';
 
 export const Footer: React.FC = () => {
+  const pathname = usePathname();
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <footer className="bg-[#0A1128] text-white border-t border-slate-800 pt-16 pb-12 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">

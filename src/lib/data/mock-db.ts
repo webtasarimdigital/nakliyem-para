@@ -1097,6 +1097,9 @@ class MockDatabase {
 
   setCurrentUser(user: User | null): void {
     this.setItem('currentUser', user);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('auth-changed', { detail: user }));
+    }
   }
 
   // Switch demo persona easily
@@ -1198,6 +1201,10 @@ class MockDatabase {
 
   getUserByEmail(email: string): RegisteredUserRecord | undefined {
     return this.getRegisteredUsers().find(u => u.email.toLowerCase() === email.toLowerCase());
+  }
+
+  getRegisteredUserByEmail(email: string): RegisteredUserRecord | undefined {
+    return this.getUserByEmail(email);
   }
 
   addRegisteredUser(user: RegisteredUserRecord): void {

@@ -10,8 +10,8 @@ export const MobileCustomerNav: React.FC = () => {
   const pathname = usePathname();
   const currentUser = db.getCurrentUser();
 
-  // Only show if customer or guest
-  if (currentUser && currentUser.role !== 'CUSTOMER') return null;
+  // Only show on customer dashboard pages
+  if (!pathname?.startsWith('/app/customer')) return null;
 
   const items = [
     { label: 'Ana Sayfa', href: '/app/customer', icon: Home, exact: true },

@@ -13,8 +13,8 @@ export const MobileCarrierNav: React.FC = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const currentUser = db.getCurrentUser();
 
-  // Only show if carrier
-  if (!currentUser || currentUser.role !== 'CARRIER') return null;
+  // Only show on carrier dashboard pages
+  if (!pathname?.startsWith('/app/carrier')) return null;
 
   const handleQuickAction = (category: string) => {
     setSheetOpen(false);

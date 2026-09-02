@@ -194,27 +194,37 @@ export default function HomePage() {
               </div>
 
               {/* Trust istatistikleri */}
-              <div className="flex flex-wrap justify-center lg:justify-start gap-5">
+              <div className="flex flex-wrap justify-center lg:justify-start items-center gap-5">
                 {[
                   { value: '10K+', label: 'Mutlu Taşınma' },
                   { value: '500+', label: 'Onaylı Nakliyeci' },
-                  { value: '4.8★', label: 'Ortalama Puan' },
+                  { value: '4.8', label: 'Ortalama Puan', hasStar: true },
                 ].map((stat) => (
                   <div key={stat.label} className="text-center lg:text-left">
-                    <div className="text-xl font-black text-white">{stat.value}</div>
+                    <div className="text-xl font-black text-white flex items-center justify-center lg:justify-start gap-1">
+                      <span>{stat.value}</span>
+                      {stat.hasStar && <Star className="w-4 h-4 fill-amber-400 text-amber-400" />}
+                    </div>
                     <div className="text-xs text-slate-400 font-medium">{stat.label}</div>
                   </div>
                 ))}
                 <div className="hidden lg:block w-px h-10 bg-white/10 self-center" />
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <div className="flex -space-x-2">
-                    {['Murat Y.', 'Zeynep K.', 'Emre Ç.'].map((name, i) => (
-                      <div key={i} className="w-8 h-8 rounded-full border-2 border-[#0A1128] bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-[10px] font-black text-white">
-                        {name.charAt(0)}
-                      </div>
+                    {[
+                      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+                      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
+                      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80'
+                    ].map((imgUrl, i) => (
+                      <img
+                        key={i}
+                        src={imgUrl}
+                        alt="Gerçek Kullanıcı"
+                        className="w-8 h-8 rounded-full border-2 border-[#0A1128] object-cover shadow-sm"
+                      />
                     ))}
                   </div>
-                  <span className="text-xs text-slate-400 font-medium">Bu hafta 47 taşınma</span>
+                  <span className="text-xs text-slate-300 font-semibold">Bu hafta 47 taşınma</span>
                 </div>
               </div>
 

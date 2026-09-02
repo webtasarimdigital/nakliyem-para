@@ -81,6 +81,9 @@ export interface User {
   email: string;
   phone: string;
   role: UserRole;
+  fullName?: string;
+  companyName?: string;
+  city?: string;
   carrierProfileId?: string;
   customerProfileId?: string;
   createdAt: string;

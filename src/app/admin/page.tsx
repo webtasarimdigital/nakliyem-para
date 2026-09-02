@@ -51,9 +51,13 @@ function AdminNavbar({ onLogout }: { onLogout: () => void }) {
 
   const handleLogout = async () => {
     setLoggingOut(true);
-    await fetch('/api/admin/logout', { method: 'POST' });
-    onLogout();
-    setLoggingOut(false);
+    try {
+      localStorage.removeItem('admin_token_active');
+      await fetch('/api/admin/logout', { method: 'POST' });
+    } finally {
+      onLogout();
+      setLoggingOut(false);
+    }
   };
 
   return (
@@ -89,7 +93,7 @@ function AdminNavbar({ onLogout }: { onLogout: () => void }) {
       <button
         onClick={handleLogout}
         disabled={loggingOut}
-        className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-red-400 transition-colors disabled:opacity-50"
+        className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-red-400 transition-colors disabled:opacity-50 cursor-pointer"
       >
         <LogOut className="w-3.5 h-3.5" />
         {loggingOut ? 'Çıkılıyor...' : 'Çıkış'}
@@ -106,12 +110,24 @@ export default function AdminDashboardPage() {
   const [loginLoading, setLoginLoading] = useState(false);
 
   React.useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('admin_token_active') === 'true') {
+      setIsAuthenticated(true);
+    }
     fetch('/api/admin/login')
       .then(res => res.json())
       .then(data => {
-        setIsAuthenticated(!!data.authenticated);
+        if (data.authenticated) {
+          setIsAuthenticated(true);
+          localStorage.setItem('admin_token_active', 'true');
+        } else if (localStorage.getItem('admin_token_active') !== 'true') {
+          setIsAuthenticated(false);
+        }
       })
-      .catch(() => setIsAuthenticated(false));
+      .catch(() => {
+        if (localStorage.getItem('admin_token_active') !== 'true') {
+          setIsAuthenticated(false);
+        }
+      });
   }, []);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
@@ -128,6 +144,7 @@ export default function AdminDashboardPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        localStorage.setItem('admin_token_active', 'true');
         setIsAuthenticated(true);
       } else {
         setLoginError(data.error || 'Kullanıcı adı veya şifre hatalı.');

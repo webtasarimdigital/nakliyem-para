@@ -21,7 +21,8 @@ import {
   Wrench,
   Star,
   ShieldCheck,
-  ArrowUpDown
+  ArrowUpDown,
+  AlertCircle
 } from 'lucide-react';
 import { db } from '@/lib/data/mock-db';
 import { Button } from '@/components/ui/Button';
@@ -236,6 +237,13 @@ export default function PazaryeriPage() {
     return matchesCategory && matchesSearch;
   });
 
+  const sortedListings = [...filteredListings].sort((a, b) => {
+    if (sortBy === 'price_asc') return (a.price || 0) - (b.price || 0);
+    if (sortBy === 'price_desc') return (b.price || 0) - (a.price || 0);
+    if (sortBy === 'views') return (b.viewCount || 0) - (a.viewCount || 0);
+    return 0; // 'newest'
+  });
+
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       {/* Page Header */}
@@ -340,10 +348,16 @@ export default function PazaryeriPage() {
               ))}
             </div>
 
-            {/* Sort & Count Bar */}
-            <div className="flex items-center justify-between mb-5">
+            {/* Ban Warning Banner */}
+            <div className="mb-4 p-3.5 px-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2.5 shadow-2xs">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>⚠️ Uyarı: Konu dışı veya yanıltıcı paylaşım yapmak süresiz ban sebebidir.</span>
+            </div>
+
+            {/* Sort & Count Header */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 flex items-center justify-between">
               <span className="text-sm font-bold text-slate-600">
-                <strong className="text-[#0A1128]">{filteredListings.length}</strong> ilan listeleniyor
+                <strong className="text-[#0A1128]">{sortedListings.length}</strong> ilan listeleniyor
               </span>
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="w-4 h-4 text-slate-400" />
@@ -362,7 +376,7 @@ export default function PazaryeriPage() {
 
             {/* Listings */}
             <div className="space-y-4">
-              {filteredListings.map((listing) => (
+              {sortedListings.map((listing) => (
                 <Link key={listing.id} href={`/pazaryeri/${listing.id}`} className="block group">
                   <div className="bg-white rounded-2xl border-2 border-slate-200 hover:border-[#F95700] hover:shadow-lg transition-all overflow-hidden">
                     <div className="flex flex-col sm:flex-row">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Search,
@@ -56,7 +56,20 @@ export default function CarrierJobsPage() {
   const isCarrier = currentUser?.role === 'CARRIER';
   const carrier = db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) || db.getCarriers()[0];
   const isApproved = carrier?.verificationStatus === 'APPROVED';
-  const requests = db.getRequests();
+  const [requests, setRequests] = useState<MovingRequest[]>(() => db.getRequests());
+
+  useEffect(() => {
+    setRequests(db.getRequests());
+    const handleReload = () => {
+      setRequests(db.getRequests());
+    };
+    window.addEventListener('storage', handleReload);
+    window.addEventListener('request-added', handleReload);
+    return () => {
+      window.removeEventListener('storage', handleReload);
+      window.removeEventListener('request-added', handleReload);
+    };
+  }, []);
 
   // Carrier subscription plan & offer checks
   const carrierPlan = SEED_PLANS.find(p => p.id === carrier?.planId) || SEED_PLANS[0];
@@ -427,9 +440,8 @@ export default function CarrierJobsPage() {
         <div className="space-y-6">
           {filteredRequests.map((req) => {
             const myOffer = db.getOffersForCarrier(carrier.id).find(o => o.requestId === req.id);
-            const photoList = req.photos.length > 0 ? req.photos : [
-              'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&auto=format&fit=crop&q=80',
-              'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80'
+            const photoList = req.photos && req.photos.length > 0 ? req.photos : [
+              '/mock-photos/moving_room_1.jpg'
             ];
             const currentPhotoIdx = activePhotoIndices[req.id] || 0;
             const isPhoneRevealed = revealedPhones[req.id];
@@ -437,135 +449,107 @@ export default function CarrierJobsPage() {
             return (
               <div
                 key={req.id}
-                className="bg-white rounded-3xl border-2 border-slate-200 hover:border-[#F95700]/50 transition-all p-5 sm:p-7 shadow-xs space-y-5"
+                className="bg-white rounded-3xl border border-slate-200 hover:border-[#F95700]/40 transition-all p-5 sm:p-7 shadow-xs space-y-4"
               >
-                {/* 1. Header: User Avatar, Name, Code, Badges */}
-                <div className="flex items-start justify-between gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCustomerModalReq(req);
-                      setCustomerPhoneWarning(false);
-                    }}
-                    className="flex items-center gap-3 text-left group cursor-pointer"
-                  >
-                    <div className="w-12 h-12 rounded-2xl bg-[#0A1128] group-hover:bg-[#F95700] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-2xs transition-colors">
+                {/* 1. Header (Image 3 exact): Avatar EB + Esra B. Bireysel Üye + #26208 Yeni */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomerModalReq(req);
+                        setCustomerPhoneWarning(false);
+                      }}
+                      className="w-12 h-12 rounded-full bg-gradient-to-tr from-rose-400 via-orange-400 to-indigo-400 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm cursor-pointer hover:scale-105 transition-transform"
+                    >
                       {req.customerName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                    </div>
+                    </button>
                     <div>
-                      <h3 className="font-black text-sm sm:text-base text-[#0A1128] group-hover:text-[#F95700] transition-colors flex items-center gap-1.5">
-                        <span>{req.customerName}</span>
-                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 group-hover:bg-orange-100 group-hover:text-[#F95700] px-1.5 py-0.5 rounded transition-colors">
-                          Profili Gör
-                        </span>
-                      </h3>
-                      <p className="text-xs text-slate-400 font-medium">Bireysel Müşteri • {req.originCity}</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomerModalReq(req);
+                          setCustomerPhoneWarning(false);
+                        }}
+                        className="font-black text-base text-[#0A1128] hover:text-[#F95700] transition-colors cursor-pointer text-left block"
+                      >
+                        {req.customerName}
+                      </button>
+                      <p className="text-xs text-slate-500 font-semibold">Bireysel Üye</p>
                     </div>
-                  </button>
+                  </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-xs font-black text-slate-400">{req.requestCode}</span>
-                    <span className="px-2.5 py-1 rounded-full bg-red-600 text-white text-[11px] font-black tracking-wide shadow-2xs">
-                      Şimdi
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-400">{req.requestCode}</span>
+                    <span className="px-3 py-0.5 rounded-full bg-[#FFD200] text-amber-950 text-xs font-black shadow-xs">
+                      Yeni
                     </span>
                   </div>
                 </div>
 
-                {/* 2. Route & Service Category Pill */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800">
-                    <span className="text-[#F95700] font-black">{req.originCity}</span>
-                    <MoveRight className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="text-slate-900 font-black">{req.destinationCity}</span>
+                {/* 2. Route & Service Category (Image 3 exact): Muğla → Antalya  🏠 Evden Eve */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-2 text-lg sm:text-xl font-black text-[#0A1128]">
+                    <span className="text-teal-600 font-black">〰</span>
+                    <span>{req.originCity}</span>
+                    <span className="text-slate-400 font-light">→</span>
+                    <span>{req.destinationCity}</span>
                   </div>
 
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 border border-orange-200 text-xs font-black text-[#C23E00]">
-                    <Home className="w-3.5 h-3.5" />
-                    <span>{req.serviceCategory === 'EVDEN_EVE' ? 'Evden Eve' : req.serviceCategory === 'OFIS_TASIMA' ? 'Ofis Taşıma' : 'Parça Eşya'}</span>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-2xs">
+                    <span>🏠 {req.serviceCategory === 'EVDEN_EVE' ? 'Evden Eve' : req.serviceCategory === 'OFIS_TASIMA' ? 'Ofis Taşıma' : 'Parça Eşya'}</span>
                   </div>
 
                   {myOffer && (
-                    <span className="px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-black">
+                    <span className="px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-black">
                       ✓ Teklifiniz: {myOffer.price.toLocaleString('tr-TR')} TL
                     </span>
                   )}
                 </div>
 
-                {/* 3. Large High-Res Photo Slider (Like Reference Image) */}
-                <div className="relative aspect-[16/9] sm:aspect-[2/1] rounded-2xl overflow-hidden bg-slate-900 group">
-                  <img
-                    src={photoList[currentPhotoIdx]}
-                    alt={`Eşya Görseli - ${req.requestCode}`}
-                    className="w-full h-full object-cover transition-all duration-300"
-                  />
-
-                  {/* Expand to Lightbox Button */}
-                  <button
-                    onClick={() => setLightboxPhoto(photoList[currentPhotoIdx])}
-                    className="absolute bottom-3 right-3 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white transition-colors cursor-pointer"
-                    title="Büyük Görsel"
-                  >
-                    <Maximize2 className="w-4 h-4" />
-                  </button>
-
-                  {/* Carousel Left / Right Controls if multiple photos */}
-                  {photoList.length > 1 && (
-                    <>
-                      <button
-                        onClick={(e) => handlePrevPhoto(req.id, photoList.length, e)}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-colors cursor-pointer"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={(e) => handleNextPhoto(req.id, photoList.length, e)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-colors cursor-pointer"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-
-                      {/* Dots Indicator */}
-                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-xs">
-                        {photoList.map((_, idx) => (
-                          <span
-                            key={idx}
-                            className={`w-2 h-2 rounded-full transition-all ${
-                              idx === currentPhotoIdx ? 'bg-white w-4' : 'bg-white/50'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
+                {/* 3. Detailed Address Line: 📍 Muğla, Fethiye → Antalya, Konyaaltı */}
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800">
+                  <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+                  <span>{req.originCity}, {req.originDistrict} → {req.destinationCity}, {req.destinationDistrict}</span>
                 </div>
 
-                {/* 4. Origin & Destination & Date Details */}
-                <div className="space-y-1.5 text-xs sm:text-sm font-bold text-slate-800">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[#F95700] shrink-0" />
-                    <span>{req.originCity}, {req.originDistrict} → {req.destinationCity}, {req.destinationDistrict}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span>{req.movingDate}&apos;da taşınacak ({req.isDateFlexible ? '±Esnek' : 'Kesin Tarih'})</span>
-                  </div>
+                {/* 4. Moving Date Line: 📅 19 Eylül 2026'da taşınacak */}
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-600 font-medium">
+                  <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                  <span>{req.movingDate}&apos;da taşınacak ({req.isDateFlexible ? '±Esnek' : 'Kesin Tarih'})</span>
                 </div>
 
-                {/* 5. Feature Badges (Home Size, Floor, Packaging) */}
+                {/* 5. Feature Badges Pills (Image 3 exact) */}
                 <div className="flex flex-wrap gap-2 pt-1">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
-                    🛋️ {req.homeSize} Eşya
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 shadow-2xs">
+                    🛋️ {req.homeSize} eşya
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
-                    🏢 Çıkış: {req.originFloor === 0 ? 'Zemin Kat' : `${req.originFloor}. Kat`} · {req.originHasElevator ? 'Asansör Var' : 'Merdiven'}
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 shadow-2xs">
+                    ↗️ Çıkış: {req.originFloor === 0 ? 'Zemin. Kat' : `${req.originFloor}. Kat`} · {req.originHasElevator ? 'Asansör' : 'Merdiven'}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
-                    🏢 Varış: {req.destinationFloor === 0 ? 'Zemin Kat' : `${req.destinationFloor}. Kat`} · {req.destinationHasElevator ? 'Asansör Var' : 'Merdiven'}
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 shadow-2xs">
+                    🛗 Varış: {req.destinationFloor === 0 ? 'Zemin. Kat' : `${req.destinationFloor}. Kat`} · {req.destinationHasElevator ? 'Asansör' : 'Merdiven'}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700">
-                    📦 {req.packagingPreference === 'CARRIER_PACKS' ? 'Firma Paketlesin' : req.packagingPreference === 'CUSTOMER_PACKS' ? 'Kendim Paketleyeceğim' : 'İkisi İçin Teklif'}
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 shadow-2xs">
+                    📦 {req.packagingPreference === 'CARRIER_PACKS' ? 'Firma paketleyecek' : 'Firma veya kendim paketleyeceğim'}
                   </span>
                 </div>
+
+                {/* Photos Thumbnail Preview if photo available */}
+                {photoList.length > 0 && photoList[0] && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <div 
+                      onClick={() => setLightboxPhoto(photoList[0])}
+                      className="relative w-24 h-16 rounded-xl overflow-hidden border border-slate-200 cursor-pointer group shadow-2xs"
+                    >
+                      <img src={photoList[0]} alt="Eşya fotoğrafı" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center transition-colors">
+                        <Maximize2 className="w-3.5 h-3.5 text-white" />
+                      </div>
+                    </div>
+                    <span className="text-[11px] text-slate-500 font-bold">📷 Eşya Fotoğrafı (Büyütmek için tıklayın)</span>
+                  </div>
+                )}
 
                 {/* 6. Notes if present */}
                 {req.notes && (
@@ -574,15 +558,14 @@ export default function CarrierJobsPage() {
                   </p>
                 )}
 
-                {/* 7. Action Bar: Quick Offer Input + Gönder + Numarayı Göster */}
-                <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                  
+                {/* 7. Action Bar: Quick Offer Input + Yellow Gönder + Numarayı Göster (Image 3 exact) */}
+                <div className="pt-3 border-t border-slate-100 space-y-3">
                   {(() => {
                     const existingOffer = myCarrierOffers.find(o => o.requestId === req.id);
 
                     if (existingOffer) {
                       return (
-                        <div className="flex-1 flex items-center justify-between p-2.5 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-2xs">
+                        <div className="flex items-center justify-between p-3 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-2xs">
                           <div className="flex items-center gap-2">
                             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                             <span className="text-xs font-black text-emerald-950">
@@ -606,7 +589,7 @@ export default function CarrierJobsPage() {
                     return (
                       <form
                         onSubmit={(e) => handleQuickOfferSubmit(req, e)}
-                        className="flex-1 flex items-center gap-2 border-2 border-slate-200 focus-within:border-[#F95700] rounded-2xl p-1 bg-white transition-all shadow-2xs"
+                        className="flex items-center gap-2"
                       >
                         <input
                           type="number"
@@ -615,31 +598,29 @@ export default function CarrierJobsPage() {
                           onFocus={(e) => handleInputInteraction(req.id, e)}
                           onClick={(e) => handleInputInteraction(req.id, e)}
                           placeholder="Hemen teklifinizi yazın (TL)..."
-                          className="flex-1 px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                          className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 border border-slate-200 rounded-xl focus:border-[#FFD200] focus:outline-none bg-white shadow-2xs"
                         />
-                        <Button
+                        <button
                           type="submit"
-                          variant="primary"
-                          size="sm"
-                          className="font-black text-xs px-6 py-2.5 rounded-xl shadow-xs shrink-0 cursor-pointer"
+                          className="bg-[#FFD200] hover:bg-[#F5C400] text-black font-black text-xs sm:text-sm px-6 sm:px-8 py-2.5 rounded-xl shadow-xs shrink-0 cursor-pointer transition-colors"
                         >
-                          Teklif Ver
-                        </Button>
+                          Gönder
+                        </button>
                       </form>
                     );
                   })()}
 
                   {/* Numarayı Göster Button */}
-                  <Button
-                    type="button"
-                    variant={isPhoneRevealed ? "navy" : "outline"}
-                    size="md"
-                    className="font-black text-xs px-5 py-2.5 rounded-2xl shrink-0 cursor-pointer"
-                    leftIcon={<Phone className="w-3.5 h-3.5" />}
-                    onClick={() => handleShowPhone(req)}
-                  >
-                    {isPhoneRevealed ? req.customerPhone : 'Numarayı Göster'}
-                  </Button>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => handleShowPhone(req)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      <Phone className="w-3.5 h-3.5 text-slate-600" />
+                      <span>{isPhoneRevealed ? req.customerPhone : 'Numarayı Göster'}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             );

@@ -13,7 +13,12 @@ import {
   FileText, 
   ShoppingBag, 
   LogOut,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck,
+  MessageSquare,
+  Package,
+  Settings,
+  Briefcase
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { db } from '@/lib/data/mock-db';
@@ -21,12 +26,31 @@ import { db } from '@/lib/data/mock-db';
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loginDropdownOpen, setLoginDropdownOpen] = useState(false);
   const [registerDropdownOpen, setRegisterDropdownOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
-  const currentUser = db.getCurrentUser();
+  // Dynamic reactive current user state
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    // Read on client mount and pathname change
+    setCurrentUser(db.getCurrentUser());
+
+    const handleAuthChange = () => {
+      setCurrentUser(db.getCurrentUser());
+    };
+
+    window.addEventListener('auth-changed', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+    return () => {
+      window.removeEventListener('auth-changed', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, [pathname]);
+
   const loginDropdownRef = useRef<HTMLDivElement>(null);
   const registerDropdownRef = useRef<HTMLDivElement>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
@@ -41,8 +65,14 @@ export const Navbar: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Admin routes have their own dedicated admin header; hide public navbar
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   const handleLogout = () => {
     db.setCurrentUser(null);
+    setCurrentUser(null);
     setUserDropdownOpen(false);
     setMobileMenuOpen(false);
     router.push('/');
@@ -51,6 +81,13 @@ export const Navbar: React.FC = () => {
 
   const isCarrier = currentUser?.role === 'CARRIER';
   const isCustomer = currentUser?.role === 'CUSTOMER';
+
+  // Display name helper
+  const displayName = isCarrier 
+    ? (currentUser?.companyName || 'Mahmut Nakliyat')
+    : (currentUser?.fullName || currentUser?.name || currentUser?.email?.split('@')[0] || 'Ömer Faruk');
+
+  const avatarInitial = (displayName || 'U').charAt(0).toUpperCase();
 
   return (
     <header className="sticky top-0 z-50 bg-white/97 backdrop-blur-md border-b border-slate-200 shadow-xs">
@@ -91,11 +128,12 @@ export const Navbar: React.FC = () => {
             Talepler
           </Link>
 
+          {/* Clean 'Teklif Al' without orange background per user request */}
           <Link
             href="/teklif-al"
-            className={`px-3 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.startsWith('/teklif-al') ? 'bg-[#E04D00] text-white shadow-md' : 'bg-[#F95700] text-white hover:bg-[#E04D00] shadow-md shadow-orange-900/20'}`}
+            className={`px-3 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.startsWith('/teklif-al') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
           >
-            <Truck className="w-4 h-4 shrink-0" />
+            <Truck className="w-4 h-4 text-[#F95700] shrink-0" />
             Teklif Al
           </Link>
 
@@ -108,41 +146,88 @@ export const Navbar: React.FC = () => {
           </Link>
         </nav>
 
-        {/* Right: Auth */}
+        {/* Right: Auth Profile or Login/Register */}
         <div className="flex items-center justify-end gap-2">
           {currentUser ? (
             <div className="relative" ref={userDropdownRef}>
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer text-sm font-bold text-slate-800"
+                className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer text-sm font-bold text-slate-800 shadow-xs"
               >
-                <div className="w-7 h-7 rounded-lg bg-[#0A1128] text-white flex items-center justify-center text-xs font-black">
-                  {isCarrier ? 'N' : isCustomer ? 'M' : 'A'}
+                <div className={`w-8 h-8 rounded-xl ${isCarrier ? 'bg-[#0A1128] text-white' : 'bg-gradient-to-br from-[#F95700] to-[#E04D00] text-white'} flex items-center justify-center text-xs font-black shadow-sm`}>
+                  {avatarInitial}
                 </div>
-                <span className="font-black text-[#0A1128]">
-                  {isCarrier ? 'Nakliyeci' : isCustomer ? 'Müşteri' : 'Admin'}
-                </span>
-                <ChevronDown className="w-4 h-4 text-slate-500" />
+                <div className="text-left flex flex-col">
+                  <span className="font-black text-xs text-[#0A1128] leading-tight max-w-[120px] truncate">
+                    {displayName}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-500 leading-none">
+                    {isCarrier ? 'Nakliye Firması' : isCustomer ? 'Bireysel Müşteri' : 'Yönetici'}
+                  </span>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {userDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-fade-in">
-                  <div className="px-4 py-2 border-b border-slate-100">
-                    <p className="text-xs font-black text-slate-800 truncate">{currentUser.email}</p>
+                <div className="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-fade-in">
+                  <div className="px-4 py-2.5 border-b border-slate-100">
+                    <p className="text-xs font-black text-slate-900 truncate">{displayName}</p>
+                    <p className="text-[11px] font-medium text-slate-500 truncate">{currentUser.email || currentUser.phone}</p>
                   </div>
-                  {isCustomer && (<>
-                    <Link href="/app/customer" className="block px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">Taşınma Merkezim</Link>
-                    <Link href="/app/customer/teklifler" className="block px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">Gelen Teklifler</Link>
-                    <Link href="/app/customer/mesajlar" className="block px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">Mesajlarım</Link>
-                  </>)}
-                  {isCarrier && (<>
-                    <Link href="/app/carrier" className="block px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">Operasyon Merkezi</Link>
-                    <Link href="/app/carrier/isler" className="block px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">Açık İşler &amp; Teklif Ver</Link>
-                    <Link href="/app/carrier/profil" className="block px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">Firma Profilini Düzenle</Link>
-                  </>)}
+
+                  {isCustomer && (
+                    <div className="py-1">
+                      <Link href="/app/customer/taleplerim" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                        <FileText className="w-3.5 h-3.5 text-[#F95700]" />
+                        Taşınma Taleplerim
+                      </Link>
+                      <Link href="/app/customer/teklifler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                        <Truck className="w-3.5 h-3.5 text-[#F95700]" />
+                        Gelen Teklifler
+                      </Link>
+                      <Link href="/app/customer/mesajlar" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                        <MessageSquare className="w-3.5 h-3.5 text-[#F95700]" />
+                        Mesajlarım
+                      </Link>
+                      <Link href="/app/customer/profil" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                        <Settings className="w-3.5 h-3.5 text-slate-400" />
+                        Profilim &amp; Ayarlar
+                      </Link>
+                    </div>
+                  )}
+
+                  {isCarrier && (
+                    <div className="py-1">
+                      <Link href="/app/carrier/isler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                        <Briefcase className="w-3.5 h-3.5 text-[#F95700]" />
+                        Açık İşler &amp; Teklif Ver
+                      </Link>
+                      <Link href="/app/carrier/defter" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                        <BookOpen className="w-3.5 h-3.5 text-[#F95700]" />
+                        Nakliyeci Defteri
+                      </Link>
+                      <Link href="/app/carrier/mesajlar" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                        <MessageSquare className="w-3.5 h-3.5 text-[#F95700]" />
+                        Mesajlarım
+                      </Link>
+                      <Link href="/app/carrier/profil" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                        <User className="w-3.5 h-3.5 text-[#F95700]" />
+                        Kamu Vitrin Profilim
+                      </Link>
+                      <Link href="/app/carrier/abonelik" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                        <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                        Abonelik &amp; Paketim
+                      </Link>
+                    </div>
+                  )}
+
                   <div className="border-t border-slate-100 my-1" />
-                  <button onClick={handleLogout} className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 text-left">
-                    <LogOut className="w-3.5 h-3.5" />Çıkış Yap
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 text-left transition-colors cursor-pointer"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    Çıkış Yap
                   </button>
                 </div>
               )}
@@ -170,12 +255,13 @@ export const Navbar: React.FC = () => {
                 )}
               </div>
 
+              {/* Kaydol with Orange background per user request */}
               <div className="relative" ref={registerDropdownRef}>
                 <button
                   onClick={() => { setRegisterDropdownOpen(!registerDropdownOpen); setLoginDropdownOpen(false); }}
-                  className="flex items-center gap-1 px-4 py-2 rounded-xl bg-[#0A1128] hover:bg-[#132247] text-white text-sm font-black transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white text-sm font-black transition-all shadow-md shadow-orange-900/20 cursor-pointer"
                 >
-                  Kaydol <ChevronDown className="w-3.5 h-3.5 text-white/70" />
+                  Kaydol <ChevronDown className="w-3.5 h-3.5 text-white/80" />
                 </button>
                 {registerDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 z-50 animate-fade-in space-y-1">
@@ -207,10 +293,22 @@ export const Navbar: React.FC = () => {
         </Link>
 
         <div className="flex items-center gap-2">
-          {/* Mobile: show Teklif Al as small pill */}
-          <Link href="/teklif-al" className="px-3 py-1.5 rounded-xl bg-[#F95700] text-white text-xs font-black shadow-sm">
-            Teklif Al
-          </Link>
+          {currentUser ? (
+            <Link
+              href={isCarrier ? '/app/carrier/profil' : '/app/customer/profil'}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-black text-slate-800"
+            >
+              <div className={`w-5 h-5 rounded-full ${isCarrier ? 'bg-[#0A1128]' : 'bg-[#F95700]'} text-white flex items-center justify-center text-[10px]`}>
+                {avatarInitial}
+              </div>
+              <span className="max-w-[70px] truncate">{displayName}</span>
+            </Link>
+          ) : (
+            <Link href="/kayit" className="px-3 py-1.5 rounded-xl bg-[#F95700] text-white text-xs font-black shadow-sm">
+              Kaydol
+            </Link>
+          )}
+
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors"
@@ -224,18 +322,35 @@ export const Navbar: React.FC = () => {
       {/* ── MOBILE MENU PANEL ── */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-4 pb-6 space-y-4 animate-fade-in shadow-xl">
+          {currentUser && (
+            <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className={`w-8 h-8 rounded-xl ${isCarrier ? 'bg-[#0A1128]' : 'bg-[#F95700]'} text-white flex items-center justify-center font-black text-sm`}>
+                  {avatarInitial}
+                </div>
+                <div>
+                  <div className="font-black text-xs text-[#0A1128]">{displayName}</div>
+                  <div className="text-[10px] text-slate-500 font-semibold">{currentUser.email || currentUser.phone}</div>
+                </div>
+              </div>
+              <button onClick={handleLogout} className="text-xs font-bold text-red-600 hover:underline">
+                Çıkış
+              </button>
+            </div>
+          )}
+
           <nav className="space-y-1">
             {[
               { href: isCarrier ? '/app/carrier/defter' : '/nakliyeci-defteri', label: 'Defter', icon: <BookOpen className="w-4 h-4 text-[#F95700]" /> },
-              { href: isCarrier ? '/app/carrier/isler' : '/talepler', label: 'Talepler', icon: <FileText className="w-4 h-4 text-[#F95700]" /> },
-              { href: '/teklif-al', label: 'Teklif Al', icon: <Truck className="w-4 h-4 text-white" />, highlight: true },
+              { href: isCarrier ? '/app/carrier/isler' : isCustomer ? '/app/customer/taleplerim' : '/talepler', label: 'Talepler', icon: <FileText className="w-4 h-4 text-[#F95700]" /> },
+              { href: '/teklif-al', label: 'Teklif Al', icon: <Truck className="w-4 h-4 text-[#F95700]" /> },
               { href: '/pazaryeri', label: 'Pazaryeri', icon: <ShoppingBag className="w-4 h-4 text-[#F95700]" /> },
             ].map(link => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl text-sm font-black transition-all ${link.highlight ? 'bg-[#F95700] text-white' : 'text-slate-800 hover:bg-slate-100'}`}
+                className="flex items-center gap-2.5 px-4 py-3 rounded-2xl text-sm font-black transition-all text-slate-800 hover:bg-slate-100"
               >
                 {link.icon}
                 {link.label}
@@ -243,14 +358,26 @@ export const Navbar: React.FC = () => {
             ))}
           </nav>
 
-          <div className="border-t border-slate-100 pt-4 grid grid-cols-2 gap-2">
-            <Link href="/giris" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="outline" size="md" className="w-full font-black text-sm">Giriş Yap</Button>
-            </Link>
-            <Link href="/kayit" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="primary" size="md" className="w-full font-black text-sm">Kaydol</Button>
-            </Link>
-          </div>
+          {!currentUser ? (
+            <div className="border-t border-slate-100 pt-4 grid grid-cols-2 gap-2">
+              <Link href="/giris" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="outline" size="md" className="w-full font-black text-sm">Giriş Yap</Button>
+              </Link>
+              <Link href="/kayit" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="primary" size="md" className="w-full font-black text-sm">Kaydol</Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="border-t border-slate-100 pt-4">
+              <button
+                onClick={handleLogout}
+                className="w-full py-2.5 px-4 rounded-xl bg-red-50 text-red-600 font-bold text-xs flex items-center justify-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Oturumu Kapat
+              </button>
+            </div>
+          )}
         </div>
       )}
     </header>

@@ -64,6 +64,19 @@ export default function IlanVerPage() {
 
   const [validationError, setValidationError] = useState('');
 
+  React.useEffect(() => {
+    const u = db.getCurrentUser();
+    if (u) {
+      const defaultName = u.fullName || (u as any).name || (u.role === 'CARRIER' ? 'Mahmut Nakliyat' : 'Ömer Faruk');
+      const defaultPhone = u.phone || '0532 555 00 00';
+      setForm(prev => ({
+        ...prev,
+        sellerName: prev.sellerName || defaultName,
+        sellerPhone: prev.sellerPhone || defaultPhone
+      }));
+    }
+  }, []);
+
   const nextStep = () => {
     setValidationError('');
 
@@ -221,6 +234,12 @@ export default function IlanVerPage() {
           <p className="text-slate-500 text-sm font-medium mt-1">
             Aracınızı veya ekipmanınızı hızla satışa çıkarın.
           </p>
+        </div>
+
+        {/* Ban Warning Banner */}
+        <div className="mb-6 p-3.5 px-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2.5 shadow-2xs">
+          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+          <span>⚠️ Uyarı: Konu dışı veya yanıltıcı ilan vermek süresiz ban sebebidir.</span>
         </div>
 
         {/* Progress Steps */}

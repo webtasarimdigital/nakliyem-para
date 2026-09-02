@@ -1,14 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Smartphone, X, Apple, Play } from 'lucide-react';
 import { db } from '@/lib/data/mock-db';
 
 export const GlobalAppBand: React.FC = () => {
+  const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(true);
   const settings = db.getSettings();
 
-  if (!settings.mobileAppBandActive || !isVisible) {
+  if (pathname?.startsWith('/admin') || !settings.mobileAppBandActive || !isVisible) {
     return null;
   }
 

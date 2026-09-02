@@ -145,12 +145,15 @@ function RequestWizardContent() {
       compiledNotes = compiledNotes ? `${compiledNotes}\n\nEşya Listesi: ${roomSummary}${customSummary}` : `Eşya Listesi: ${roomSummary}${customSummary}`;
     }
 
+    const customerDisplayName = user?.fullName || (user as any)?.name || (user?.email ? user.email.split('@')[0] : 'Ömer Faruk');
+    const customerPhoneNum = user?.phone || '0538 412 90 75';
+
     const newRequest: MovingRequest = {
       id: `req_${Date.now()}`,
       requestCode: `#${Math.floor(10000 + Math.random() * 90000)}`,
       customerId: user.id || 'cust_demo',
-      customerName: 'Ahmet Yılmaz',
-      customerPhone: user.phone || '0532 111 22 33',
+      customerName: customerDisplayName,
+      customerPhone: customerPhoneNum,
       allowPhoneCall,
       serviceCategory,
       originCity,
@@ -173,15 +176,19 @@ function RequestWizardContent() {
       destinationTruckAccess,
       packagingPreference,
       extraServices,
-      photos,
+      photos: photos && photos.length > 0 ? photos : ['/mock-photos/moving_room_1.jpg'],
       notes: compiledNotes,
       status: 'ACTIVE',
-      offersCount: 3,
+      offersCount: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
     db.addRequest(newRequest);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('request-added', { detail: newRequest }));
+    }
     setIsSubmitted(true);
   };
 
