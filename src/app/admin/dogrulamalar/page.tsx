@@ -150,10 +150,22 @@ export default function AdminVerificationConsolePage() {
                     <Badge variant={doc.status === 'APPROVED' ? 'verified' : doc.status === 'REJECTED' ? 'danger' : 'pending'} size="sm" />
                   </div>
 
-                  {/* Document preview mockup */}
-                  <div className="aspect-3/1 bg-white rounded-lg border border-slate-200 p-4 flex items-center justify-center text-xs text-slate-500 font-medium">
-                    📄 Belge Önizleme: {doc.fileName} (Görüntülendi)
-                  </div>
+                  {/* Document preview */}
+                  {doc.fileUrl && doc.fileUrl.startsWith('data:image') ? (
+                    <div className="bg-slate-100 rounded-xl p-2 border border-slate-200 flex justify-center">
+                      <img src={doc.fileUrl} alt={doc.title} className="max-h-72 object-contain rounded-lg shadow-sm" />
+                    </div>
+                  ) : doc.fileUrl && doc.fileUrl.startsWith('data:application/pdf') ? (
+                    <div className="bg-red-50 text-red-700 p-4 rounded-xl border border-red-200 text-center font-bold text-xs flex items-center justify-center gap-2">
+                      <FileText className="w-5 h-5" />
+                      <span>PDF Belgesi: {doc.fileName}</span>
+                      <a href={doc.fileUrl} download={doc.fileName} className="text-blue-600 underline ml-2">İndir & İncele</a>
+                    </div>
+                  ) : (
+                    <div className="aspect-3/1 bg-white rounded-lg border border-slate-200 p-4 flex items-center justify-center text-xs text-slate-500 font-medium">
+                      📄 Belge: {doc.fileName} (Görüntülendi)
+                    </div>
+                  )}
 
                   {/* Individual Document Actions */}
                   <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 text-xs">

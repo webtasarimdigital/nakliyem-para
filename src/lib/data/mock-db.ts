@@ -1605,6 +1605,16 @@ class MockDatabase {
   setIntendedAction(data: { action: string; payload?: any; returnUrl?: string } | null): void {
     this.setItem('intendedAction', data);
   }
+
+  // Marketplace Listings
+  getMarketplaceListings(): any[] {
+    return this.getItem<any[]>('marketplace_listings', []);
+  }
+
+  addMarketplaceListing(listing: any): void {
+    const list = [listing, ...this.getMarketplaceListings()];
+    this.setItem('marketplace_listings', list);
+  }
 }
 
 export const db = new MockDatabase();

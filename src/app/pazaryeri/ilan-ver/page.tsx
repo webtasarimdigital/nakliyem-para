@@ -16,6 +16,7 @@ import {
   ImagePlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { db } from '@/lib/data/mock-db';
 
 type Step = 'CATEGORY' | 'DETAILS' | 'PHOTOS' | 'CONTACT' | 'PREVIEW';
 
@@ -36,6 +37,7 @@ export default function IlanVerPage() {
   const [step, setStep] = useState<Step>('CATEGORY');
   const [form, setForm] = useState({
     category: '',
+    title: '',
     condition: 'IKINCI_EL',
     brand: '',
     model: '',
@@ -60,17 +62,77 @@ export default function IlanVerPage() {
   const stepIndex = steps.indexOf(step);
   const isVehicle = ['KAMYON', 'KAMYONET', 'CEKICI', 'DORSE'].includes(form.category);
 
+  const [validationError, setValidationError] = useState('');
+
   const nextStep = () => {
+    setValidationError('');
+
+    if (step === 'CATEGORY') {
+      if (!form.category) {
+        setValidationError('Lütfen bir kategori seçiniz.');
+        return;
+      }
+    } else if (step === 'DETAILS') {
+      if (isVehicle) {
+        if (!form.brand) {
+          setValidationError('Lütfen araç markasını seçiniz.');
+          return;
+        }
+        if (!form.model || form.model.trim().length === 0) {
+          setValidationError('Lütfen model / seri bilgisini giriniz.');
+          return;
+        }
+        if (!form.year) {
+          setValidationError('Lütfen model yılını giriniz.');
+          return;
+        }
+      } else {
+        if (!form.title || form.title.trim().length === 0) {
+          setValidationError('Lütfen ilan başlığını giriniz.');
+          return;
+        }
+      }
+
+      if (!form.price || Number(form.price) <= 0) {
+        setValidationError('Lütfen geçerli bir satış fiyatı giriniz.');
+        return;
+      }
+      if (!form.city) {
+        setValidationError('Lütfen bulunduğunuz şehri seçiniz.');
+        return;
+      }
+      if (!form.district || form.district.trim().length === 0) {
+        setValidationError('Lütfen ilçe bilgisini giriniz.');
+        return;
+      }
+    } else if (step === 'CONTACT') {
+      if (!form.sellerName || form.sellerName.trim().length < 3) {
+        setValidationError('Lütfen adınızı ve soyadınızı eksiksiz giriniz.');
+        return;
+      }
+      const cleanPhone = form.sellerPhone.replace(/[^0-9]/g, '');
+      if (!cleanPhone || cleanPhone.length < 10) {
+        setValidationError('Lütfen en az 10 haneli geçerli bir telefon numarası giriniz.');
+        return;
+      }
+      if (!form.description || form.description.trim().length < 10) {
+        setValidationError('Lütfen en az 10 karakterlik bir ilan açıklaması giriniz.');
+        return;
+      }
+    }
+
     const next = steps[stepIndex + 1];
     if (next) setStep(next);
   };
 
   const prevStep = () => {
+    setValidationError('');
     const prev = steps[stepIndex - 1];
     if (prev) setStep(prev);
   };
 
   const update = (key: string, value: string | boolean) => {
+    setValidationError('');
     setForm(f => ({ ...f, [key]: value }));
   };
 
@@ -79,10 +141,40 @@ export default function IlanVerPage() {
 
   const handleSubmit = () => {
     setIsSubmitting(true);
+
+    const generatedTitle = form.title || `${form.brand || ''} ${form.model || form.category}`.trim();
+    const newListing = {
+      id: `listing_${Date.now()}`,
+      category: form.category,
+      title: generatedTitle,
+      price: Number(form.price),
+      priceLabel: `${Number(form.price).toLocaleString('tr-TR')} TL`,
+      isNegotiable: form.isNegotiable,
+      condition: form.condition,
+      year: Number(form.year) || 2022,
+      km: Number(form.km) || 0,
+      transmission: form.transmission,
+      fuel: form.fuel,
+      brand: form.brand,
+      model: form.model,
+      city: form.city,
+      district: form.district,
+      sellerName: form.sellerName,
+      sellerJoinYear: '2026',
+      sellerPhone: form.sellerPhone,
+      isVerified: true,
+      photos: form.photos.length > 0 ? form.photos : ['https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=800'],
+      description: form.description,
+      createdAt: 'Bugün',
+      viewCount: 1
+    };
+
+    db.addMarketplaceListing(newListing);
+
     setTimeout(() => {
       setIsSubmitting(false);
       setSubmitted(true);
-    }, 1500);
+    }, 600);
   };
 
   if (submitted) {
@@ -493,8 +585,16 @@ export default function IlanVerPage() {
             </div>
           )}
 
-          {/* Navigation */}
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-100">
+          {/* Validation Error Alert */}
+          {validationError && (
+            <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-2 mb-6">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+              <span>{validationError}</span>
+            </div>
+          )}
+
+          {/* Navigation Buttons */}
+          <div className="flex items-center justify-between pt-6 border-t border-slate-200">
             <Button
               variant="outline"
               size="md"

@@ -78,14 +78,20 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
       {/* Back button & top title */}
       <div className="mb-6 flex items-center justify-between">
         <Link
-          href="/app/customer/taleplerim"
+          href={currentUser?.role === 'CARRIER' ? "/app/carrier/isler" : "/app/customer/taleplerim"}
           className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900"
         >
-          <ArrowLeft className="w-4 h-4" /> Taleplerime Dön
+          <ArrowLeft className="w-4 h-4" /> {currentUser?.role === 'CARRIER' ? 'Açık İşlere Dön' : 'Taleplerime Dön'}
         </Link>
 
         <div className="flex items-center gap-2">
-          {req.status === 'ACTIVE' ? (
+          {currentUser?.role === 'CARRIER' ? (
+            <Link href={`/app/carrier/isler/${req.id}`}>
+              <Button variant="primary" size="sm" className="font-black">
+                Bu İşe Teklif Ver
+              </Button>
+            </Link>
+          ) : req.status === 'ACTIVE' ? (
             <Button
               variant="outline"
               size="sm"

@@ -30,7 +30,8 @@ import {
   Award,
   Lock,
   AlertTriangle,
-  AlertCircle
+  AlertCircle,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -100,6 +101,10 @@ export default function CarrierJobsPage() {
   const [deliveryDuration, setDeliveryDuration] = useState('Aynı Gün');
   const [offerNotes, setOfferNotes] = useState('');
   const [offerSubmitted, setOfferSubmitted] = useState(false);
+
+  // Customer Profile Modal State
+  const [customerModalReq, setCustomerModalReq] = useState<MovingRequest | null>(null);
+  const [customerPhoneWarning, setCustomerPhoneWarning] = useState(false);
 
   // Filter requests
   const filteredRequests = requests.filter(req => {
@@ -436,17 +441,27 @@ export default function CarrierJobsPage() {
               >
                 {/* 1. Header: User Avatar, Name, Code, Badges */}
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-[#5B7BA8] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomerModalReq(req);
+                      setCustomerPhoneWarning(false);
+                    }}
+                    className="flex items-center gap-3 text-left group cursor-pointer"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-[#0A1128] group-hover:bg-[#F95700] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-2xs transition-colors">
                       {req.customerName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      <h3 className="font-black text-sm sm:text-base text-[#0A1128]">
-                        {req.customerName}
+                      <h3 className="font-black text-sm sm:text-base text-[#0A1128] group-hover:text-[#F95700] transition-colors flex items-center gap-1.5">
+                        <span>{req.customerName}</span>
+                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 group-hover:bg-orange-100 group-hover:text-[#F95700] px-1.5 py-0.5 rounded transition-colors">
+                          Profili Gör
+                        </span>
                       </h3>
-                      <p className="text-xs text-slate-400 font-medium">Bireysel Müşteri</p>
+                      <p className="text-xs text-slate-400 font-medium">Bireysel Müşteri • {req.originCity}</p>
                     </div>
-                  </div>
+                  </button>
 
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="text-xs font-black text-slate-400">{req.requestCode}</span>
@@ -793,6 +808,117 @@ export default function CarrierJobsPage() {
           </div>
         </div>
       )}
+      {/* ── MÜŞTERİ PROFİLİ MODALI (Paket Korumalı Telefon & Mesaj) ── */}
+      {customerModalReq && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="text-base font-black text-[#0A1128]">Müşteri Profili</h3>
+              <button
+                onClick={() => { setCustomerModalReq(null); setCustomerPhoneWarning(false); }}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3.5">
+              <div className="w-14 h-14 rounded-2xl bg-[#0A1128] text-white font-black text-lg flex items-center justify-center shadow-md">
+                {customerModalReq.customerName[0]}
+              </div>
+              <div>
+                <h4 className="font-black text-base text-slate-900">{customerModalReq.customerName}</h4>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md mt-0.5">
+                  ✓ Doğrulanmış Cep Telefonu
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span className="text-slate-400 block text-[10px] font-bold uppercase">Konum</span>
+                <span className="font-black text-slate-800">{customerModalReq.originCity} / {customerModalReq.originDistrict}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span className="text-slate-400 block text-[10px] font-bold uppercase">Taşınma Sayısı</span>
+                <span className="font-black text-slate-800">2 Başarılı Taşıma</span>
+              </div>
+            </div>
+
+            {/* Telefon Alanı: Paket Kontrolü */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-600">İletişim Numarası</span>
+                {canViewPhone ? (
+                  <span className="text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                    Paketiniz Yetkili
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
+                    🔒 Başlangıç Paketi Koruması
+                  </span>
+                )}
+              </div>
+
+              {canViewPhone ? (
+                <div className="flex items-center justify-between pt-1">
+                  <span className="font-black text-base text-slate-900 tracking-wider">
+                    {customerModalReq.customerPhone}
+                  </span>
+                  <a href={`tel:${customerModalReq.customerPhone}`}>
+                    <button className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer">
+                      <Phone className="w-3.5 h-3.5" />
+                      <span>Hemen Ara</span>
+                    </button>
+                  </a>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between pt-1">
+                  <span className="font-black text-sm text-slate-400 tracking-wider">
+                    {customerModalReq.customerPhone.slice(0, 4)} *** ** {customerModalReq.customerPhone.slice(-2)}
+                  </span>
+                  <button
+                    onClick={() => setCustomerPhoneWarning(true)}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs inline-flex items-center gap-1 shadow-sm cursor-pointer"
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Numarayı Gör</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Düşük Paket Uyarısı */}
+            {customerPhoneWarning && (
+              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2 animate-fade-in">
+                <div className="flex items-center gap-2 font-black text-amber-950">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Numara Başlangıç Paketinde Gizlidir</span>
+                </div>
+                <p className="leading-relaxed">
+                  Müşteriyle platform içi güvenli mesajlaşma üzerinden hemen ücretsiz yazışabilirsiniz. Numarayı doğrudan görmek için Pro veya Gold pakete geçebilirsiniz.
+                </p>
+                <Link href="/app/carrier/abonelik">
+                  <button className="w-full mt-1 py-2 px-3 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs transition-colors cursor-pointer">
+                    Paketleri İncele &amp; Yükselt →
+                  </button>
+                </Link>
+              </div>
+            )}
+
+            {/* Mesaj Gönder Butonu */}
+            <div className="pt-2">
+              <Link href={`/app/carrier/mesajlar?recipient=${customerModalReq.customerId}&reqId=${customerModalReq.id}`}>
+                <button className="w-full py-3 px-4 rounded-xl bg-[#0A1128] hover:bg-[#132247] text-white font-black text-xs inline-flex items-center justify-center gap-2 shadow-md cursor-pointer transition-colors">
+                  <MessageSquare className="w-4 h-4 text-[#F95700]" />
+                  <span>Müşteriye Güvenli Mesaj Gönder</span>
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

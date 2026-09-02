@@ -83,50 +83,68 @@ export default function CustomerRequestsPage() {
                 key={req.id}
                 className="bg-white rounded-2xl border border-slate-200 hover:border-[#146EF5] p-5 sm:p-6 transition-all shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
-                <div className="space-y-3 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
-                      {req.requestCode}
-                    </span>
-                    <Badge variant={req.status === 'ACTIVE' ? 'verified' : req.status === 'ASSIGNED' ? 'success' : 'danger'} size="sm">
-                      {req.status === 'ACTIVE' ? 'Yayında' : req.status === 'ASSIGNED' ? 'Firma Seçildi' : 'Kapatıldı'}
-                    </Badge>
-
-                    {isEligibleForReview && (
-                      hasReview ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          Değerlendirildi
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#F95700] bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200 animate-pulse">
-                          <Star className="w-3 h-3 fill-current" />
-                          Değerlendirme Bekliyor
-                        </span>
-                      )
-                    )}
-
-                    <span className="text-xs text-slate-400">•</span>
-                    <span className="text-xs text-slate-500">{req.homeSize} Ev Eşyası</span>
-                  </div>
-
-                  <div>
-                    <RouteDisplay
-                      originCity={req.originCity}
-                      originDistrict={req.originDistrict}
-                      destinationCity={req.destinationCity}
-                      destinationDistrict={req.destinationDistrict}
-                      size="md"
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-1">
+                  <div className="w-full sm:w-28 h-24 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative shrink-0">
+                    <img
+                      src={req.photos && req.photos.length > 0 ? req.photos[0] : '/mock-photos/moving_room_1.jpg'}
+                      alt="Taşıma Eşyası"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/mock-photos/moving_room_1.jpg';
+                      }}
                     />
+                    {req.photos && req.photos.length > 0 && (
+                      <span className="absolute bottom-1 right-1 bg-black/70 text-white text-[9px] font-black px-1.5 py-0.5 rounded">
+                        📷 {req.photos.length}
+                      </span>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-slate-500 flex-wrap">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{req.movingDate}</span>
+                  <div className="space-y-2.5 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                        {req.requestCode}
+                      </span>
+                      <Badge variant={req.status === 'ACTIVE' ? 'verified' : req.status === 'ASSIGNED' ? 'success' : 'danger'} size="sm">
+                        {req.status === 'ACTIVE' ? 'Yayında' : req.status === 'ASSIGNED' ? 'Firma Seçildi' : 'Kapatıldı'}
+                      </Badge>
+
+                      {isEligibleForReview && (
+                        hasReview ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            Değerlendirildi
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#F95700] bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200 animate-pulse">
+                            <Star className="w-3 h-3 fill-current" />
+                            Değerlendirme Bekliyor
+                          </span>
+                        )
+                      )}
+
+                      <span className="text-xs text-slate-400">•</span>
+                      <span className="text-xs text-slate-500">{req.homeSize} Ev Eşyası</span>
                     </div>
-                    <span>•</span>
-                    <span>Çıkış: {req.originFloor}. Kat {req.originHasElevator ? '(Asansörlü)' : '(Merdiven)'}</span>
+
+                    <div>
+                      <RouteDisplay
+                        originCity={req.originCity}
+                        originDistrict={req.originDistrict}
+                        destinationCity={req.destinationCity}
+                        destinationDistrict={req.destinationDistrict}
+                        size="md"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-4 text-xs text-slate-500 flex-wrap">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{req.movingDate}</span>
+                      </div>
+                      <span>•</span>
+                      <span>Çıkış: {req.originFloor}. Kat {req.originHasElevator ? '(Asansörlü)' : '(Merdiven)'}</span>
+                    </div>
                   </div>
                 </div>
 

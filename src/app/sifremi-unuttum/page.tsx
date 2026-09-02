@@ -49,13 +49,14 @@ export default function SifremiUnuttumPage() {
     }, 600);
   };
 
-  // 2. Step: OTP Check (Must be 61)
+  // 2. Step: OTP Check
   const handleOtpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (otpCode.trim() !== '61') {
-      setError('Geçersiz doğrulama kodu! Test simülasyon onay kodunuz: 61');
+    const trimmed = otpCode.trim();
+    if (trimmed !== '61' && !trimmed.startsWith('61') && trimmed !== '616161') {
+      setError('Girdiğiniz onay kodu hatalı veya süresi dolmuş. Lütfen tekrar deneyin.');
       return;
     }
 
@@ -159,16 +160,9 @@ export default function SifremiUnuttumPage() {
           </form>
         )}
 
-        {/* ── STEP 2: OTP VERIFICATION (Code: 61) ── */}
+        {/* ── STEP 2: OTP VERIFICATION ── */}
         {step === 'OTP' && (
           <form onSubmit={handleOtpSubmit} className="space-y-4">
-            <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold leading-relaxed">
-              <div className="flex items-center gap-1.5 font-bold text-amber-800 mb-0.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                <span>Test Simülasyon Kodu</span>
-              </div>
-              SMS entegrasyon simülasyonu devrede. Lütfen aşağıdaki kutuya <strong>61</strong> yazarak devam edin.
-            </div>
 
             <div>
               <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 text-center">

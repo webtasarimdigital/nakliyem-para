@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   ArrowUpDown
 } from 'lucide-react';
+import { db } from '@/lib/data/mock-db';
 import { Button } from '@/components/ui/Button';
 
 export interface VehicleListing {
@@ -224,7 +225,9 @@ export default function PazaryeriPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
 
-  const filteredListings = SAMPLE_LISTINGS.filter(item => {
+  const allListings = [...db.getMarketplaceListings(), ...SAMPLE_LISTINGS];
+
+  const filteredListings = allListings.filter(item => {
     const matchesCategory = selectedCategory === 'ALL' || item.category === selectedCategory;
     const matchesSearch = !searchQuery || 
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -420,7 +423,7 @@ export default function PazaryeriPage() {
                           {/* Specs Grid */}
                           {listing.specs && listing.specs.length > 0 && (
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                              {listing.specs.map((spec, i) => (
+                              {listing.specs.map((spec: any, i: number) => (
                                 <div key={i} className="text-xs">
                                   <span className="block text-slate-400 font-black uppercase tracking-wider text-[10px] mb-0.5">
                                     {spec.label}

@@ -113,36 +113,36 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
               </div>
 
               {/* Header Action Buttons */}
-              <div className="flex flex-wrap items-center justify-center gap-2.5">
+              <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3">
                 <Link href={`/teklif-al?preferredCarrier=${carrier.id}`}>
-                  <Button variant="primary" size="lg" className="font-black shadow-lg shadow-orange-900/25 px-6">
+                  <button className="h-[52px] px-7 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm sm:text-base shadow-lg shadow-orange-950/30 transition-all cursor-pointer">
                     Ücretsiz Teklif İste
-                  </Button>
+                  </button>
                 </Link>
 
                 {showPhone ? (
                   <a href={`tel:${carrier.phone}`}>
-                    <Button variant="navy" size="lg" className="font-bold border border-white/20 text-white" leftIcon={<Phone className="w-4 h-4" />}>
-                      {carrier.phone}
-                    </Button>
+                    <button className="h-[52px] px-5 rounded-xl bg-white text-[#0A1128] font-black text-sm sm:text-base inline-flex items-center gap-2 shadow-md hover:bg-slate-100 transition-colors cursor-pointer">
+                      <Phone className="w-4 h-4 text-[#F95700]" />
+                      <span>{carrier.phone}</span>
+                    </button>
                   </a>
                 ) : (
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="font-bold border-white/20 text-white hover:bg-white/10"
-                    leftIcon={<Phone className="w-4 h-4" />}
+                  <button
                     onClick={() => setShowPhone(true)}
+                    className="h-[52px] px-5 rounded-xl bg-white/10 hover:bg-white/20 border-2 border-white/40 text-white font-black text-sm sm:text-base inline-flex items-center gap-2 transition-all cursor-pointer backdrop-blur-xs shadow-sm"
                   >
-                    Telefonu Gör
-                  </Button>
+                    <Phone className="w-4 h-4 text-amber-400" />
+                    <span>Telefonu Gör</span>
+                  </button>
                 )}
 
                 {carrier.whatsapp && (
                   <a href={`https://wa.me/90${carrier.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline" size="lg" className="font-bold border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10">
-                      WhatsApp
-                    </Button>
+                    <button className="h-[52px] px-5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-sm sm:text-base inline-flex items-center gap-2 transition-colors cursor-pointer shadow-md shadow-emerald-950/20">
+                      <MessageSquare className="w-4 h-4" />
+                      <span>WhatsApp</span>
+                    </button>
                   </a>
                 )}
               </div>

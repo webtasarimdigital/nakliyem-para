@@ -5,6 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { MobileCustomerNav } from '@/components/layout/MobileCustomerNav';
 import { MobileCarrierNav } from '@/components/layout/MobileCarrierNav';
+import { TestPersonaSwitcher } from '@/components/ui/TestPersonaSwitcher';
 
 export const metadata: Metadata = {
   title: 'Evden Eve Nakliyat Teklifi Al | Nakliyem Para',
@@ -28,6 +29,7 @@ export default function RootLayout({
         <Footer />
         <MobileCustomerNav />
         <MobileCarrierNav />
+        <TestPersonaSwitcher />
       </body>
     </html>
   );
