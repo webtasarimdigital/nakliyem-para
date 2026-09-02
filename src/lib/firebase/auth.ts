@@ -24,7 +24,7 @@ export interface RegisterParams {
  * Register a new user with Firebase Auth and create their Firestore user profile
  */
 export async function registerWithFirebase(params: RegisterParams): Promise<{ user: User | null; error: string | null }> {
-  if (!isFirebaseConfigured()) {
+  if (!isFirebaseConfigured() || !auth || !db) {
     return { user: null, error: 'Firebase yapılandırması bulunamadı. Lütfen .env.local dosyanızı kontrol edin.' };
   }
 
@@ -95,7 +95,7 @@ export async function registerWithFirebase(params: RegisterParams): Promise<{ us
  * Sign in with email and password
  */
 export async function loginWithFirebase(email: string, password: string): Promise<{ user: User | null; error: string | null }> {
-  if (!isFirebaseConfigured()) {
+  if (!isFirebaseConfigured() || !auth) {
     return { user: null, error: 'Firebase yapılandırması bulunamadı.' };
   }
 
@@ -133,7 +133,7 @@ export async function loginWithFirebase(email: string, password: string): Promis
  * Sign out
  */
 export async function logoutFirebase(): Promise<void> {
-  if (isFirebaseConfigured()) {
+  if (isFirebaseConfigured() && auth) {
     await signOut(auth);
   }
 }

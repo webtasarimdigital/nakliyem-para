@@ -12,18 +12,41 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
 };
 
-// Check if Firebase environment variables are configured
+// Check if Firebase environment variables are configured with valid credentials
 export const isFirebaseConfigured = (): boolean => {
+  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
   return !!(
-    process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
-    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    apiKey &&
+    apiKey.length > 20 &&
+    !apiKey.includes('placeholder') &&
+    projectId
   );
 };
 
-// Initialize Firebase (Singleton pattern to prevent re-initialization on HMR)
-const app: FirebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const auth: Auth = getAuth(app);
-const db: Firestore = getFirestore(app);
-const storage: FirebaseStorage = getStorage(app);
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
+let storage: FirebaseStorage | null = null;
 
-export { app, auth, db, storage };
+if (isFirebaseConfigured()) {
+  try {
+    app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    storage = getStorage(app);
+  } catch (err) {
+    console.warn('Firebase initialization skipped or failed:', err);
+  }
+}
+
+const safeAuth = auth as unknown as Auth;
+const safeDb = db as unknown as Firestore;
+const safeStorage = storage as unknown as FirebaseStorage;
+
+export { 
+  app, 
+  safeAuth as auth, 
+  safeDb as db, 
+  safeStorage as storage 
+};

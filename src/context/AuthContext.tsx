@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isFirebaseActive = isFirebaseConfigured();
 
   useEffect(() => {
-    if (!isFirebaseActive) {
+    if (!isFirebaseActive || !auth || !db) {
       // Fallback to local mock user if Firebase is not configured
       const mockUser = mockDb.getCurrentUser();
       setUser(mockUser);
