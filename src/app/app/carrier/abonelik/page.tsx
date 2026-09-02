@@ -21,6 +21,7 @@ import { SubscriptionPlan } from '@/types';
 export default function CarrierSubscriptionPage() {
   const carrier = db.getCarriers()[0];
   const plans = db.getPlans();
+  const [sub, setSub] = useState(db.getCarrierSubscription(carrier.id));
   const currentPlan = plans.find(p => p.id === carrier.planId) || plans[2]; // Gold
 
   const [selectedPlanForTrial, setSelectedPlanForTrial] = useState<SubscriptionPlan | null>(null);
@@ -30,6 +31,23 @@ export default function CarrierSubscriptionPage() {
   const [isActivating, setIsActivating] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
+  // Kalan gün hesabı
+  const periodEndDate = new Date(sub.currentPeriodEnd);
+  const now = new Date();
+  const diffTime = periodEndDate.getTime() - now.getTime();
+  const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+  const handleCancelSubscription = () => {
+    const updated = db.cancelCarrierSubscription(carrier.id);
+    setSub(updated);
+    setCancelModalOpen(false);
+  };
+
+  const handleRenewSubscription = () => {
+    const updated = db.renewCarrierSubscription(carrier.id);
+    setSub(updated);
+  };
+
   const handleStartTrial = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPlanForTrial) return;
@@ -37,10 +55,14 @@ export default function CarrierSubscriptionPage() {
     setIsActivating(true);
     setTimeout(() => {
       db.updateCarrier(carrier.id, { planId: selectedPlanForTrial.id });
+      const updated = db.renewCarrierSubscription(carrier.id);
+      setSub(updated);
       setIsActivating(false);
       setSelectedPlanForTrial(null);
     }, 800);
   };
+
+  const isCanceled = sub.status === 'CANCELED' || sub.cancelAtPeriodEnd;
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
@@ -61,33 +83,66 @@ export default function CarrierSubscriptionPage() {
         </div>
       </div>
 
-      {/* ACTIVE SUBSCRIPTION BANNER (Spec Item 106) */}
-      <div className="bg-white rounded-2xl border-2 border-amber-300 shadow-md shadow-amber-900/5 p-6 sm:p-8 mb-10">
+      {/* ACTIVE / CANCELED SUBSCRIPTION BANNER */}
+      <div className={`bg-white rounded-2xl border-2 p-6 sm:p-8 mb-10 shadow-sm ${
+        isCanceled ? 'border-red-300 bg-red-50/20' : 'border-amber-300'
+      }`}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge variant="gold" size="md" />
-              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                Aktif Abonelik
+              {isCanceled ? (
+                <span className="text-xs font-black text-red-700 bg-red-100 px-2.5 py-0.5 rounded-full">
+                  İptal Talebi Alındı
+                </span>
+              ) : (
+                <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                  Aktif Abonelik
+                </span>
+              )}
+              <span className="text-xs font-bold text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-full">
+                {daysRemaining} Gün Kaldı
               </span>
             </div>
+
             <h2 className="text-xl sm:text-2xl font-black text-slate-900">
               {currentPlan.name} Üyelik Paketi
             </h2>
+
             <p className="text-xs sm:text-sm text-slate-600">
-              Sonraki Yenileme Tarihi: <strong className="text-slate-900">25 Eylül</strong> • Fiyat: <strong className="text-slate-900">{currentPlan.priceMonthly} TL / Ay</strong>
+              {isCanceled ? (
+                <>
+                  Aboneliğiniz iptal edildi. Dönem sonuna (<strong className="text-slate-900">{periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>) kadar tüm haklarınız geçerlidir. Otomatik yenilenmeyecektir.
+                </>
+              ) : (
+                <>
+                  Sonraki Yenileme Tarihi: <strong className="text-slate-900">{periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong> • Aylık Ücret: <strong className="text-slate-900">{currentPlan.priceMonthly.toLocaleString('tr-TR')} TL / Ay</strong>
+                </>
+              )}
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCancelModalOpen(true)}
-              className="text-xs text-red-600 border-red-200 hover:bg-red-50 w-full sm:w-auto"
-            >
-              Aboneliği İptal Et
-            </Button>
+            {isCanceled ? (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleRenewSubscription}
+                className="text-xs font-bold w-full sm:w-auto"
+              >
+                Aboneliği Yeniden Başlat
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCancelModalOpen(true)}
+                className="text-xs text-red-600 border-red-200 hover:bg-red-50 w-full sm:w-auto font-bold"
+              >
+                Aboneliği İptal Et
+              </Button>
+            )}
           </div>
         </div>
 
@@ -286,8 +341,8 @@ export default function CarrierSubscriptionPage() {
             <Button variant="outline" size="sm" onClick={() => setCancelModalOpen(false)}>
               Vazgeç
             </Button>
-            <Button variant="danger" size="sm" onClick={() => setCancelModalOpen(false)}>
-              İptal Et
+            <Button variant="danger" size="sm" onClick={handleCancelSubscription}>
+              Aboneliği İptal Et
             </Button>
           </div>
         </div>

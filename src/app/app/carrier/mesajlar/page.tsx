@@ -14,7 +14,9 @@ import {
   MapPin,
   Calendar,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  AlertCircle,
+  Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -29,6 +31,10 @@ const QUICK_TEMPLATES = [
 ];
 
 export default function CarrierMessagesPage() {
+  const currentUser = db.getCurrentUser();
+  const carrier = db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) || db.getCarriers()[0];
+  const isApproved = carrier.verificationStatus === 'APPROVED';
+
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<string>('');
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
@@ -60,11 +66,12 @@ export default function CarrierMessagesPage() {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isApproved) return;
     if (!inputMessage.trim() || !activeConvId) return;
 
     const newMsg = db.sendMessage(activeConvId, {
       senderId: 'user_carr_1',
-      senderName: 'Boğaziçi Nakliyat',
+      senderName: carrier.companyName,
       senderRole: 'CARRIER',
       content: inputMessage.trim()
     });
@@ -75,6 +82,7 @@ export default function CarrierMessagesPage() {
   };
 
   const handleQuickTemplate = (text: string) => {
+    if (!isApproved) return;
     setInputMessage(text);
   };
 
@@ -96,6 +104,24 @@ export default function CarrierMessagesPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Unverified Warning Banner (Spec requirement) */}
+      {!isApproved && (
+        <div className="mb-6 p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-900 flex items-start gap-3 shadow-xs">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h4 className="font-black text-sm text-amber-900">
+              ⚠️ Onaysız Profil — Henüz firmamız tarafından doğrulanmış profil değilsiniz
+            </h4>
+            <p className="text-xs text-amber-800 font-medium leading-relaxed">
+              Yüklediğiniz kimlik ve vergi levhası belgeleriniz inceleme aşamasındadır. <strong>12 saat içinde onay & red durumunuz verilecektir.</strong> Güvenlik sebebiyle evrak onayınız tamamlanana kadar müşterilere doğrudan mesaj gönderemezsiniz.
+            </p>
+            <Link href="/app/carrier/profil" className="inline-block pt-1 text-xs font-black text-[#F95700] hover:underline">
+              Belgelerimi Görüntüle & Yeni Evrak Yükle →
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Main Chat Layout */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden h-[calc(100vh-14rem)] min-h-[560px] flex">
@@ -234,26 +260,40 @@ export default function CarrierMessagesPage() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Message Input */}
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 bg-white flex items-center gap-2">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={e => setInputMessage(e.target.value)}
-                placeholder="Müşteriye teklif notu veya yanıt yazın..."
-                className="flex-1 px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-[#F95700] focus:outline-none text-sm font-medium text-slate-900 bg-slate-50/50"
-              />
-              <Button
-                type="submit"
-                variant="primary"
-                size="md"
-                className="font-black px-6 shadow-md shadow-orange-900/15"
-                rightIcon={<Send className="w-4 h-4" />}
-                disabled={!inputMessage.trim()}
-              >
-                Gönder
-              </Button>
-            </form>
+            {/* Message Input or Locked Notice */}
+            {!isApproved ? (
+              <div className="p-4 border-t border-slate-200 bg-amber-50/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 text-amber-900 font-bold">
+                  <Lock className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Profiliniz henüz onaylanmadı. 12 saat içinde kimlik &amp; vergi levhası incelemeniz tamamlandığında mesajlaşma açılacaktır.</span>
+                </div>
+                <Link href="/app/carrier/profil">
+                  <button type="button" className="px-3.5 py-1.5 rounded-xl bg-amber-200 hover:bg-amber-300 text-amber-900 font-black text-xs shrink-0 cursor-pointer transition-colors">
+                    Evraklarımı Gör
+                  </button>
+                </Link>
+              </div>
+            ) : (
+              <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 bg-white flex items-center gap-2">
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={e => setInputMessage(e.target.value)}
+                  placeholder="Müşteriye teklif notu veya yanıt yazın..."
+                  className="flex-1 px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-[#F95700] focus:outline-none text-sm font-medium text-slate-900 bg-slate-50/50"
+                />
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  className="font-black px-6 shadow-md shadow-orange-900/15 cursor-pointer"
+                  rightIcon={<Send className="w-4 h-4" />}
+                  disabled={!inputMessage.trim()}
+                >
+                  Gönder
+                </Button>
+              </form>
+            )}
           </div>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">

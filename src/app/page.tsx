@@ -26,12 +26,33 @@ import {
   ChevronUp,
   HelpCircle,
   Sparkles,
-  ShieldAlert,
-  Users
+  Users,
+  FileText,
+  SlidersHorizontal,
+  CheckCircle2,
+  Calendar,
+  Boxes,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { db } from '@/lib/data/mock-db';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
+
+// Helper: Canlı göreceli zaman formatı
+function formatRelativeTime(dateString?: string): string {
+  if (!dateString) return 'Az önce';
+  try {
+    const diffMs = Date.now() - new Date(dateString).getTime();
+    if (isNaN(diffMs)) return 'Az önce';
+    const diffMin = Math.max(1, Math.floor(diffMs / 60000));
+    if (diffMin < 60) return `${diffMin} dk önce`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `${diffHours} saat önce`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} gün önce`;
+  } catch {
+    return 'Az önce';
+  }
+}
 
 // Demo teklif karşılaştırma verisi
 const DEMO_OFFERS = [
@@ -114,254 +135,505 @@ export default function HomePage() {
   const [heroOriginCity, setHeroOriginCity] = useState('İstanbul');
   const [heroDestCity, setHeroDestCity] = useState('Ankara');
 
-  const categoryLabels: Record<string, string> = {
-    EMPTY_VEHICLE: 'Boş Araç',
-    CARGO_JOB: 'Yük Arıyorum',
-    RETURN_TRIP: 'Boş Dönüş',
-    PARTIAL_LOAD: 'Parsiyel',
-    ELEVATOR: 'Asansör',
-    STAFF: 'Personel',
-    EQUIPMENT: 'Ekipman',
-  };
+  const allActiveRequests = db.getRequests().filter(r => r.status === 'ACTIVE');
+  const [requestCategoryFilter, setRequestCategoryFilter] = useState<'ALL' | 'EVDEN_EVE' | 'OFIS_TASIMA' | 'PARCA_ESYA'>('ALL');
+
+  const filteredLiveRequests = allActiveRequests.filter(r => {
+    if (requestCategoryFilter === 'ALL') return true;
+    return r.serviceCategory === requestCategoryFilter;
+  });
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
 
-      {/* ── 1. HERO WITH AUTHENTIC LOGISTICS / TRUCK BACKGROUND ── */}
-      <section className="bg-[#0A1128] text-white relative overflow-hidden">
-        
-        {/* Background photo overlay with rich navy gradients */}
+      {/* ── 1. HERO — Rich split layout ── */}
+      <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0A1128 0%, #0f1a3e 50%, #1a2a5e 100%)' }}>
+
+        {/* Dekoratif arka plan katmanları */}
         <div className="absolute inset-0 z-0 pointer-events-none">
+          {/* Hafif doku görseli */}
           <img
-            src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=1600&auto=format&fit=crop&q=80"
+            src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=1600&auto=format&fit=crop&q=60"
             alt=""
             aria-hidden="true"
-            className="w-full h-full object-cover opacity-[0.15] mix-blend-luminosity scale-105"
+            className="w-full h-full object-cover opacity-[0.08]"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0A1128] via-[#0A1128]/95 to-[#0A1128]/75" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0A1128] via-transparent to-transparent" />
+          {/* Gradient üst katman */}
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(10,17,40,0.98) 0%, rgba(10,17,40,0.85) 50%, rgba(26,42,94,0.75) 100%)' }} />
+          {/* Turuncu glow — sol alt */}
+          <div className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #F95700 0%, transparent 70%)' }} />
+          {/* Mavi glow — sağ üst */}
+          <div className="absolute -top-20 right-0 w-80 h-80 rounded-full opacity-15" style={{ background: 'radial-gradient(circle, #146EF5 0%, transparent 70%)' }} />
+          {/* Grid pattern */}
+          <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 lg:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-14 sm:py-18 lg:py-24">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
 
-            {/* Left: Headline & Dual Action Widget (7/12) */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              
-              <h1 className="text-3xl sm:text-5xl lg:text-[3.5rem] font-black leading-[1.08] tracking-tight text-white">
-                Taşınmanızı Planlayın,<br />
-                <span className="text-[#F95700]">Teklifleri Tek Yerde</span><br />
-                Karşılaştırın.
-              </h1>
+            {/* ── SOL: Başlık + açıklama + arama widgeti ── */}
+            <div className="lg:col-span-7 space-y-7 text-center lg:text-left">
 
-              {/* ── DUAL ROUTE SEARCH WIDGET (Hero Quick Action) ── */}
-              <div className="bg-white/95 backdrop-blur-md rounded-3xl p-4 sm:p-5 shadow-2xl border-2 border-white/20 max-w-xl mx-auto lg:mx-0">
-                
-                {/* Top: Nereden / Nereye Select Inputs */}
-                <div className="grid grid-cols-2 bg-white rounded-2xl border-2 border-slate-200 divide-x-2 divide-slate-200 overflow-hidden shadow-2xs mb-3.5 text-left">
-                  {/* Nereden */}
-                  <div className="relative p-2.5 sm:p-3 flex items-center gap-2">
-                    <CircleDot className="w-4 h-4 text-[#F95700] shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider">Nereden</label>
-                      <select
-                        value={heroOriginCity}
-                        onChange={e => setHeroOriginCity(e.target.value)}
-                        className="w-full bg-transparent text-xs sm:text-sm font-black text-slate-900 focus:outline-none cursor-pointer truncate"
-                      >
-                        {TURKEY_CITIES.map(c => (
-                          <option key={c.id} value={c.name}>{c.name}</option>
-                        ))}
-                      </select>
-                    </div>
+              {/* Üst badge */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black border border-[#F95700]/30 bg-[#F95700]/10 text-[#F95700]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#F95700] animate-pulse" />
+                81 İlde Aktif · 10.000+ Taşınma Tamamlandı
+              </div>
+
+              {/* H1 */}
+              <div className="space-y-2">
+                <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black leading-[1.06] tracking-tight text-white">
+                  Taşınmanızı Planlayın,{' '}
+                  <span className="text-[#F95700]">Teklifleri Tek Yerde</span>{' '}
+                  Karşılaştırın.
+                </h1>
+                <p className="text-base sm:text-lg text-slate-300 font-medium leading-relaxed max-w-xl mx-auto lg:mx-0 pt-2">
+                  Talep açın, dakikalar içinde onlarca onaylı nakliyeci firmasından fiyat teklifi alın.
+                  Paketleme, sigorta, asansör — hepsini yan yana karşılaştırın. <strong className="text-white font-bold">Komisyon yok, aracı yok.</strong>
+                </p>
+              </div>
+
+              {/* Trust istatistikleri */}
+              <div className="flex flex-wrap justify-center lg:justify-start gap-5">
+                {[
+                  { value: '10K+', label: 'Mutlu Taşınma' },
+                  { value: '500+', label: 'Onaylı Nakliyeci' },
+                  { value: '4.8★', label: 'Ortalama Puan' },
+                ].map((stat) => (
+                  <div key={stat.label} className="text-center lg:text-left">
+                    <div className="text-xl font-black text-white">{stat.value}</div>
+                    <div className="text-xs text-slate-400 font-medium">{stat.label}</div>
                   </div>
+                ))}
+                <div className="hidden lg:block w-px h-10 bg-white/10 self-center" />
+                <div className="flex items-center gap-1.5">
+                  <div className="flex -space-x-2">
+                    {['Murat Y.', 'Zeynep K.', 'Emre Ç.'].map((name, i) => (
+                      <div key={i} className="w-8 h-8 rounded-full border-2 border-[#0A1128] bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-[10px] font-black text-white">
+                        {name.charAt(0)}
+                      </div>
+                    ))}
+                  </div>
+                  <span className="text-xs text-slate-400 font-medium">Bu hafta 47 taşınma</span>
+                </div>
+              </div>
 
-                  {/* Nereye */}
-                  <div className="relative p-2.5 sm:p-3 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[#F95700] shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider">Nereye</label>
-                      <select
-                        value={heroDestCity}
-                        onChange={e => setHeroDestCity(e.target.value)}
-                        className="w-full bg-transparent text-xs sm:text-sm font-black text-slate-900 focus:outline-none cursor-pointer truncate"
-                      >
-                        {TURKEY_CITIES.map(c => (
-                          <option key={c.id} value={c.name}>{c.name}</option>
-                        ))}
-                      </select>
-                    </div>
+              {/* Arama widgeti */}
+              <div className="bg-white rounded-2xl p-4 shadow-2xl max-w-xl mx-auto lg:mx-0 border border-white/10">
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2.5 text-left">Hızlı Teklif Al</p>
+                <div className="flex gap-2 items-center mb-3">
+                  <div className="flex-1 relative">
+                    <CircleDot className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#F95700]" />
+                    <select
+                      value={heroOriginCity}
+                      onChange={e => setHeroOriginCity(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-2 py-2.5 text-xs font-bold text-slate-900 focus:border-[#F95700] focus:outline-none cursor-pointer"
+                    >
+                      {TURKEY_CITIES.map(c => (
+                        <option key={c.id} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                    <MoveRight className="w-3.5 h-3.5 text-slate-400" />
+                  </div>
+                  <div className="flex-1 relative">
+                    <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#F95700]" />
+                    <select
+                      value={heroDestCity}
+                      onChange={e => setHeroDestCity(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-2 py-2.5 text-xs font-bold text-slate-900 focus:border-[#F95700] focus:outline-none cursor-pointer"
+                    >
+                      {TURKEY_CITIES.map(c => (
+                        <option key={c.id} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
-
-                {/* Bottom: Teklif Al (Orange) + veya + Dönüş Aracı Bul (Dark Navy) */}
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <Link
-                    href={`/teklif-al?originCity=${encodeURIComponent(heroOriginCity)}&destCity=${encodeURIComponent(heroDestCity)}`}
-                    className="flex-1"
-                  >
-                    <button className="w-full bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs sm:text-sm py-3.5 px-4 rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                      <span>Teklif Al</span>
-                      <ArrowRight className="w-4 h-4" />
+                <div className="flex gap-2">
+                  <Link href={`/teklif-al?originCity=${encodeURIComponent(heroOriginCity)}&destCity=${encodeURIComponent(heroDestCity)}`} className="flex-1">
+                    <button className="w-full bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm py-3 px-4 rounded-xl shadow-lg shadow-orange-900/25 transition-all flex items-center justify-center gap-1.5">
+                      Teklif Al <ArrowRight className="w-4 h-4" />
                     </button>
                   </Link>
-
-                  <span className="text-xs font-bold text-slate-400 shrink-0">veya</span>
-
-                  <Link
-                    href={`/nakliyeci-defteri?originCity=${encodeURIComponent(heroOriginCity)}&destCity=${encodeURIComponent(heroDestCity)}`}
-                    className="flex-1"
-                  >
-                    <button className="w-full bg-[#0A1128] hover:bg-[#132247] text-white font-black text-xs sm:text-sm py-3.5 px-4 rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-                      <span>Dönüş Aracı Bul</span>
-                      <ArrowRight className="w-4 h-4" />
+                  <Link href={`/nakliyeci-defteri?originCity=${encodeURIComponent(heroOriginCity)}&destCity=${encodeURIComponent(heroDestCity)}`} className="flex-1">
+                    <button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-1.5">
+                      Dönüş Aracı Bul <ArrowRight className="w-4 h-4" />
                     </button>
                   </Link>
                 </div>
               </div>
+
+              {/* Alt güvence */}
+              <div className="flex flex-wrap justify-center lg:justify-start gap-4 text-xs text-slate-400 font-medium">
+                {[
+                  { icon: ShieldCheck, text: 'K3 Belgeli Nakliyeciler' },
+                  { icon: Check, text: 'Ücretsiz Teklif Al' },
+                  { icon: Truck, text: 'Sigortalı Taşıma' },
+                ].map(({ icon: Icon, text }) => (
+                  <div key={text} className="flex items-center gap-1.5">
+                    <Icon className="w-3.5 h-3.5 text-[#F95700]" />
+                    {text}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Right: Teklif Karşılaştırma Preview (5/12) - Elevated & Prominent */}
+            {/* ── SAĞ: Demo teklif kartı ── */}
             <div className="lg:col-span-5 w-full">
-              <div className="bg-gradient-to-b from-[#132247] to-[#0A1128] border-2 border-white/20 rounded-3xl p-5 sm:p-6 shadow-2xl backdrop-blur-xl relative">
-                
-                {/* DEMO badge */}
-                <div className="absolute -top-3.5 left-6 px-3 py-1 rounded-full bg-[#F95700] text-[11px] font-black text-white uppercase tracking-wider shadow-md flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Örnek Teklif Karşılaştırma
-                </div>
 
-                <div className="flex items-center justify-between mb-4 pt-1">
-                  <div>
-                    <div className="flex items-center gap-2 text-xs text-slate-300 font-bold mb-0.5">
+              {/* Üst floating badge */}
+              <div className="flex justify-center lg:justify-end mb-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Canlı Teklif Sistemi
+                </div>
+              </div>
+
+              {/* Ana demo kartı */}
+              <div className="relative">
+                {/* Glow efekti */}
+                <div className="absolute inset-0 rounded-3xl blur-xl opacity-20" style={{ background: 'linear-gradient(135deg, #F95700, #146EF5)' }} />
+
+                <div className="relative bg-white/[0.07] backdrop-blur-xl border border-white/15 rounded-3xl p-5 sm:p-6 shadow-2xl">
+                  {/* DEMO etiketi */}
+                  <div className="absolute -top-3 left-5 px-3 py-1 rounded-full bg-[#F95700] text-[11px] font-black text-white flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Örnek Teklif Karşılaştırma
+                  </div>
+
+                  {/* Rota başlığı */}
+                  <div className="pt-1 mb-4">
+                    <div className="flex items-center gap-2 text-xs text-slate-400 font-bold mb-1">
                       <CircleDot className="w-3.5 h-3.5 text-[#F95700]" />
-                      <span>İstanbul, Kadıköy</span>
-                      <MoveRight className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Ankara, Çankaya</span>
+                      İstanbul, Kadıköy
+                      <MoveRight className="w-3.5 h-3.5 text-slate-500" />
+                      Ankara, Çankaya
                     </div>
                     <p className="text-sm font-black text-white">3+1 Ev Taşıma · 15 Eylül 2026 · 3 Teklif</p>
                   </div>
-                </div>
 
-                {/* Comparison rows */}
-                <div className="space-y-2.5">
-                  {DEMO_OFFERS.map((o, i) => (
-                    <div
-                      key={i}
-                      className={`rounded-2xl p-3.5 sm:p-4 transition-all ${
-                        i === 0
-                          ? 'bg-[#F95700]/15 border-2 border-[#F95700]/50 shadow-sm'
-                          : 'bg-white/5 border border-white/10'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black ${
-                            i === 0 ? 'bg-[#F95700] text-white' : 'bg-white/15 text-slate-200'
-                          }`}>
-                            {o.rank}
+                  {/* Teklif satırları */}
+                  <div className="space-y-2.5">
+                    {DEMO_OFFERS.map((o, i) => (
+                      <div
+                        key={i}
+                        className={`rounded-2xl p-3.5 transition-all ${
+                          i === 0
+                            ? 'bg-[#F95700]/15 border-2 border-[#F95700]/40'
+                            : 'bg-white/5 border border-white/10'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black ${i === 0 ? 'bg-[#F95700] text-white' : 'bg-white/15 text-slate-300'}`}>
+                              {o.rank}
+                            </div>
+                            <span className="font-black text-sm text-white">{o.firma}</span>
+                            {o.onayliBadge && <ShieldCheck className="w-4 h-4 text-emerald-400" />}
+                            <span className="flex items-center gap-0.5 text-xs text-amber-400 font-black">
+                              <Star className="w-3.5 h-3.5 fill-current" />{o.puan}
+                            </span>
                           </div>
-                          <span className="font-black text-sm text-white">{o.firma}</span>
-                          {o.onayliBadge && <ShieldCheck className="w-4 h-4 text-emerald-400" />}
-                          <span className="flex items-center gap-0.5 text-xs text-amber-400 font-black">
-                            <Star className="w-3.5 h-3.5 fill-current" />
-                            {o.puan}
+                          <span className={`text-base font-black ${i === 0 ? 'text-[#F95700]' : 'text-white'}`}>
+                            {o.fiyat.toLocaleString('tr-TR')} TL
                           </span>
                         </div>
-                        <span className={`text-base font-black ${i === 0 ? 'text-[#F95700]' : 'text-white'}`}>
-                          {o.fiyat.toLocaleString('tr-TR')} TL
-                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[
+                            { label: 'Paketleme', v: o.paketleme },
+                            { label: 'Sigorta', v: o.sigorta },
+                            { label: 'Asansör', v: o.asansor },
+                            { label: 'KDV Dahil', v: o.kdvDahil },
+                          ].map(item => (
+                            <span key={item.label} className={`text-[10px] font-black px-2 py-0.5 rounded-md ${item.v ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-slate-500 line-through'}`}>
+                              {item.v ? '✓' : '✕'} {item.label}
+                            </span>
+                          ))}
+                        </div>
                       </div>
+                    ))}
+                  </div>
 
-                      <div className="flex flex-wrap gap-1.5">
-                        {[
-                          { key: 'paketleme', label: 'Paketleme', v: o.paketleme },
-                          { key: 'sigorta', label: 'Sigorta', v: o.sigorta },
-                          { key: 'asansor', label: 'Asansör', v: o.asansor },
-                          { key: 'kdv', label: 'KDV Dahil', v: o.kdvDahil },
-                        ].map(item => (
-                          <span
-                            key={item.key}
-                            className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
-                              item.v ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-slate-400 line-through'
-                            }`}
-                          >
-                            {item.v ? '✓' : '✕'} {item.label}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                  <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+                    <span className="text-slate-400 font-medium">Tüm kriterler şeffaf ve net</span>
+                    <Link href="/teklif-al" className="text-[#F95700] font-black hover:underline flex items-center gap-1">
+                      Teklif Toplamaya Başla →
+                    </Link>
+                  </div>
                 </div>
+              </div>
 
-                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-slate-300 font-medium">
-                  <span>Tüm kriterler şeffaf ve net</span>
-                  <Link href="/teklif-al" className="text-[#F95700] font-black hover:underline flex items-center gap-1">
-                    Teklif Toplamaya Başla →
-                  </Link>
+              {/* Alt floating istatistik kutuları */}
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="bg-white/[0.06] border border-white/10 rounded-2xl p-3.5 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Clock className="w-4 h-4 text-[#F95700]" />
+                    <span className="text-xs text-slate-400 font-bold">Ort. Yanıt Süresi</span>
+                  </div>
+                  <span className="text-xl font-black text-white">8 dk</span>
+                  <p className="text-[10px] text-slate-500 font-medium">İlk teklif gelene kadar</p>
+                </div>
+                <div className="bg-white/[0.06] border border-white/10 rounded-2xl p-3.5 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <TrendingUp className="w-4 h-4 text-emerald-400" />
+                    <span className="text-xs text-slate-400 font-bold">Fiyat Tasarrufu</span>
+                  </div>
+                  <span className="text-xl font-black text-white">%23</span>
+                  <p className="text-[10px] text-slate-500 font-medium">Tek firmaya göre ortalama</p>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </section>
 
-      {/* ── 2. 4 ADIMDA NASIL ÇALIŞIR — Logistics Visual ───── */}
+      {/* ── 2. 4 ADIMDA KOLAYCA TAŞININ (Kurumsal & Modern Akış) ───── */}
       <section className="bg-[#F8FAFC] border-b border-slate-200 py-16 sm:py-20 relative overflow-hidden">
         
-        {/* Faint background logistics pattern */}
-        <div className="absolute inset-0 z-0 pointer-events-none"
-          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23F95700\' fill-opacity=\'0.03\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-          backgroundSize: '60px 60px' }} />
-
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
           <div className="text-center mb-12">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F95700]/10 text-[#F95700] text-xs font-black border border-[#F95700]/20 mb-4">
-              🚛 Nasıl Çalışır?
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F95700]/10 text-[#F95700] text-xs font-black border border-[#F95700]/20 mb-3">
+              <Sparkles className="w-3.5 h-3.5" />
+              Şeffaf ve Basit Süreç
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128] mb-2">4 Adımda Kolayca Taşının</h2>
-            <p className="text-slate-500 font-medium">Talep açmak 2 dakika sürer — komisyon olmadan doğrudan nakliyeciyle anlaşın.</p>
+            <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
+              4 Adımda Kolayca Taşının
+            </h2>
+            <p className="text-slate-500 text-sm font-medium mt-1 max-w-xl mx-auto">
+              Talep oluşturmak sadece 2 dakika sürer. Komisyon ve aracı olmadan doğrudan onaylı nakliyecilerle anlaşırsınız.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             {[
-              { step: '01', emoji: '📋', title: 'Talep Aç', desc: 'Nereden nereye, oda sayısı ve tarih. 2 dakikada hazır.', color: 'bg-[#F95700]', cardBg: 'bg-white border-[#F95700]/20' },
-              { step: '02', emoji: '🚛', title: 'Teklifler Gelsin', desc: 'Bölgenizdeki onaylı nakliyeciler fiyatlarını sunsun.', color: 'bg-[#0A1128]', cardBg: 'bg-white border-slate-200' },
-              { step: '03', emoji: '⚖️', title: 'Yan Yana Kıyasla', desc: 'Fiyat, asansör, ambalaj ve sigortayı tek tabloda gör.', color: 'bg-[#0A1128]', cardBg: 'bg-white border-slate-200' },
-              { step: '04', emoji: '📦', title: 'Firmayı Seç', desc: 'Telefonla veya mesajla görüşüp taşınmanı başlat.', color: 'bg-[#0A1128]', cardBg: 'bg-white border-slate-200' },
-            ].map((item, i) => (
-              <div key={i} className={`relative ${item.cardBg} border-2 rounded-3xl p-6 shadow-xs hover:shadow-md transition-all group`}>
-                {/* Step number badge */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm text-white shadow-md ${item.color}`}>
-                    {item.step}
-                  </div>
-                  <span className="text-3xl">{item.emoji}</span>
-                </div>
-
-                <h3 className="font-black text-[#0A1128] text-base mb-1.5">{item.title}</h3>
-                <p className="text-xs sm:text-sm text-slate-500 font-medium leading-snug">{item.desc}</p>
-
-                {/* Connector arrow for desktop */}
-                {i < 3 && (
-                  <div className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 z-10">
-                    <div className="w-6 h-6 rounded-full bg-[#F95700] text-white flex items-center justify-center text-xs font-black shadow-md">
-                      →
+              {
+                step: '01',
+                icon: FileText,
+                title: 'Talep Aç',
+                desc: 'Nereden nereye, oda sayısı ve tercih ettiğiniz taşınma tarihini 2 dakikada belirtin.',
+                accent: 'text-[#F95700] bg-orange-50 border-orange-200',
+              },
+              {
+                step: '02',
+                icon: Sparkles,
+                title: 'Teklifler Gelsin',
+                desc: 'Güzergahınızdaki onaylı nakliyat firmaları paketleme ve asansör dahil fiyatlarını sunsun.',
+                accent: 'text-blue-600 bg-blue-50 border-blue-200',
+              },
+              {
+                step: '03',
+                icon: SlidersHorizontal,
+                title: 'Yan Yana Kıyasla',
+                desc: 'Fiyat, marangoz montajı, paketleme ve sigorta kapsamını tek ekranda şeffafça karşılaştırın.',
+                accent: 'text-purple-600 bg-purple-50 border-purple-200',
+              },
+              {
+                step: '04',
+                icon: CheckCircle2,
+                title: 'Güvenle Taşın',
+                desc: 'Doğrudan firma yetkilisiyle telefonla veya mesajla görüşün, sürpriz maliyetsiz taşının.',
+                accent: 'text-emerald-600 bg-emerald-50 border-emerald-200',
+              },
+            ].map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={i}
+                  className="relative bg-white border border-slate-200/90 rounded-3xl p-6 shadow-xs hover:shadow-md hover:border-slate-300 transition-all group"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-black tracking-wider text-slate-400">
+                      ADIM {item.step}
+                    </span>
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border shadow-xs ${item.accent}`}>
+                      <Icon className="w-5 h-5" />
                     </div>
                   </div>
-                )}
-              </div>
-            ))}
+
+                  <h3 className="font-black text-[#0A1128] text-base mb-1.5 group-hover:text-[#F95700] transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
+                    {item.desc}
+                  </p>
+
+                  {/* Desktop connector line */}
+                  {i < 3 && (
+                    <div className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 z-10">
+                      <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center text-xs font-black">
+                        →
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div className="text-center mt-10">
             <Link href="/teklif-al">
-              <Button variant="primary" size="lg" className="font-black px-10 shadow-lg shadow-orange-900/15"
-                rightIcon={<ArrowRight className="w-5 h-5" />}>
+              <Button
+                variant="primary"
+                size="lg"
+                className="font-black px-10 shadow-lg shadow-orange-900/15 cursor-pointer"
+                rightIcon={<ArrowRight className="w-5 h-5" />}
+              >
                 Hemen Ücretsiz Teklif Al
               </Button>
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* ── 2.5. ÖNE ÇIKAN CANLI TAŞINMA TALEPLERİ (Emlivo Tarzı İlan Akışı) ───── */}
+      <section className="py-16 sm:py-20 bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          
+          {/* Section Header */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 text-[#F95700] border border-orange-200 text-xs font-bold mb-2">
+                <span className="w-2 h-2 rounded-full bg-[#F95700] animate-pulse" />
+                <span>Canlı Pazar • Yeni Açılan İşler</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
+                Öne Çıkan Güncel Taşınma Talepleri
+              </h2>
+              <p className="text-slate-500 text-sm font-medium mt-1">
+                Türkiye genelinde müşterilerimizin açtığı güncel taşınma işleri. Teklif toplayan onaylı ilanlar.
+              </p>
+            </div>
+
+            <Link href="/talepler" className="shrink-0">
+              <Button variant="outline" size="sm" className="font-bold text-xs" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                Tüm Talepleri Gör ({allActiveRequests.length})
+              </Button>
+            </Link>
+          </div>
+
+          {/* Category Filter Chips */}
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-8 no-scrollbar">
+            {[
+              { id: 'ALL', label: 'Tüm İlanlar' },
+              { id: 'EVDEN_EVE', label: 'Evden Eve Nakliyat' },
+              { id: 'OFIS_TASIMA', label: 'Ofis & Kurumsal' },
+              { id: 'PARCA_ESYA', label: 'Parça Eşya' },
+            ].map((tab) => {
+              const isSelected = requestCategoryFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setRequestCategoryFilter(tab.id as any)}
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+                    isSelected
+                      ? 'bg-[#0A1128] text-white shadow-md'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {filteredLiveRequests.slice(0, 4).map((req) => {
+              const photo = req.photos?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80';
+              const serviceLabel = req.serviceCategory === 'EVDEN_EVE' ? 'Evden Eve' : req.serviceCategory === 'OFIS_TASIMA' ? 'Ofis Taşıma' : 'Parça Eşya';
+
+              return (
+                <div
+                  key={req.id}
+                  className="bg-white rounded-3xl border border-slate-200 hover:border-slate-300 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col group"
+                >
+                  {/* Photo with Overlay Badges */}
+                  <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+                    <img
+                      src={photo}
+                      alt={req.requestCode}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                    {/* Category & Date Badge */}
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                      <span className="px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-xs text-[#0A1128] text-[11px] font-black shadow-xs">
+                        {req.homeSize || serviceLabel}
+                      </span>
+                    </div>
+
+                    <div className="absolute top-3 right-3">
+                      <span className="px-2 py-0.5 rounded-lg bg-emerald-500 text-white text-[10px] font-black shadow-xs">
+                        {formatRelativeTime(req.createdAt)}
+                      </span>
+                    </div>
+
+                    {/* Bottom overlay inside image: Moving date */}
+                    <div className="absolute bottom-2.5 left-3 right-3 text-white flex items-center justify-between text-xs font-bold">
+                      <span className="flex items-center gap-1 opacity-90 text-[11px]">
+                        <Calendar className="w-3.5 h-3.5 text-orange-400" />
+                        {req.movingDate}
+                      </span>
+                      <span className="text-[11px] text-amber-300 font-black">
+                        {req.offersCount} Teklif Geldi
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Card Content */}
+                  <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3">
+                    {/* Route */}
+                    <div>
+                      <div className="flex items-center gap-2 text-xs font-black text-[#0A1128]">
+                        <span className="truncate">{req.originCity} ({req.originDistrict})</span>
+                        <MoveRight className="w-3.5 h-3.5 text-[#F95700] shrink-0" />
+                        <span className="truncate">{req.destinationCity} ({req.destinationDistrict})</span>
+                      </div>
+                      <p className="text-xs text-slate-500 font-medium line-clamp-2 mt-1.5 leading-snug">
+                        {req.notes}
+                      </p>
+                    </div>
+
+                    {/* Feature Badges */}
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {req.originRequiresMobileElevator && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/60">
+                          Asansörlü
+                        </span>
+                      )}
+                      {req.packagingPreference !== 'CUSTOMER_PACKS' && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/60">
+                          Paketlemeli
+                        </span>
+                      )}
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                        Sigortalı
+                      </span>
+                    </div>
+
+                    {/* Bottom CTA */}
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold block">Talep Kodu</span>
+                        <span className="text-xs font-black text-slate-800">{req.requestCode}</span>
+                      </div>
+
+                      <Link href="/talepler">
+                        <button className="px-3.5 py-1.5 rounded-xl bg-orange-50 hover:bg-[#F95700] text-[#F95700] hover:text-white font-black text-xs transition-all flex items-center gap-1 cursor-pointer">
+                          <span>Teklif Ver</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
         </div>
       </section>
 
@@ -551,11 +823,13 @@ export default function HomePage() {
                   </Link>
                 </div>
 
-                {defterPosts.slice(0, 2).map((post) => (
+                {defterPosts.slice(0, 3).map((post) => (
                   <div key={post.id} className="p-3 rounded-2xl bg-white/5 border border-white/5 hover:border-[#F95700]/40 transition-all space-y-1">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-black text-[#F95700]">{post.originCity} → {post.destinationCity}</span>
-                      <span className="text-[10px] text-slate-400">{post.date}</span>
+                      <span className="text-[10px] font-bold text-orange-200 bg-white/10 px-2 py-0.5 rounded-md">
+                        {formatRelativeTime(post.createdAt)}
+                      </span>
                     </div>
                     <p className="text-xs text-slate-300 line-clamp-1 font-medium">{post.content}</p>
                   </div>

@@ -406,6 +406,51 @@ export const SEED_DOCUMENTS: CarrierDocument[] = [
   }
 ];
 
+// Registered Users (for phone verification and password reset)
+export interface RegisteredUserRecord {
+  id: string;
+  email: string;
+  phone: string;
+  password?: string;
+  role: 'CUSTOMER' | 'CARRIER' | 'ADMIN';
+  fullName?: string;
+  companyName?: string;
+  carrierId?: string;
+  createdAt: string;
+}
+
+export const SEED_REGISTERED_USERS: RegisteredUserRecord[] = [
+  {
+    id: 'user_cust_1',
+    email: 'ahmet@example.com',
+    phone: '0535 234 56 78',
+    password: 'Password123!',
+    role: 'CUSTOMER',
+    fullName: 'Ahmet Yılmaz',
+    createdAt: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: 'user_carr_1',
+    email: 'info@bogazicinakliyat.com',
+    phone: '0532 890 12 34',
+    password: 'Password123!',
+    role: 'CARRIER',
+    companyName: 'Boğaziçi Profesyonel Nakliyat',
+    carrierId: 'carr_bogazici',
+    createdAt: '2024-01-10T10:00:00Z'
+  },
+  {
+    id: 'user_carr_pending',
+    email: 'info@marmaralider.com',
+    phone: '0533 123 45 67',
+    password: 'Password123!',
+    role: 'CARRIER',
+    companyName: 'Marmara Lider Nakliyat',
+    carrierId: 'carr_yeni_onay_bekleyen',
+    createdAt: '2024-02-18T10:00:00Z'
+  }
+];
+
 // Seed Requests
 export const SEED_REQUESTS: MovingRequest[] = [
   {
@@ -617,10 +662,98 @@ export const SEED_OFFERS: Offer[] = [
   }
 ];
 
-// Seed Defter Posts
+// Seed Defter Posts — Canlı ve Güncel İlanlar
 export const SEED_DEFTER_POSTS: DefterPost[] = [
   {
     id: 'def_1',
+    carrierId: 'carr_bogazici',
+    carrier: SEED_CARRIERS[0],
+    category: 'EMPTY_VEHICLE',
+    originCity: 'İstanbul',
+    originDistrict: 'Kadıköy',
+    destinationCity: 'Ankara',
+    destinationDistrict: 'Çankaya',
+    date: 'Yarın Sabah',
+    vehicleType: '10 Teker Kapalı Kasa',
+    capacityPercent: 75,
+    acceptsWaypoints: true,
+    title: 'İstanbul ➔ Ankara Kapalı Kasa Boş Dönüş Aracı',
+    content: 'Yarın sabah Kadıköy boşaltması sonrası Ankara\'ya boş dönüşümüz var. Aracımızın %75\'i boştur. Yol üzeri Kocaeli, Sakarya, Düzce, Bolu teslimatları yapılır. Çift kat balonlu ambalaj hazır.',
+    allowPhone: true,
+    allowMessage: true,
+    status: 'ACTIVE',
+    isSponsored: true,
+    createdAt: new Date(Date.now() - 3 * 60 * 1000).toISOString(), // 3 dk önce
+    expiresAt: '2026-09-05T23:59:59Z'
+  },
+  {
+    id: 'def_2',
+    carrierId: 'carr_ege_trans',
+    carrier: SEED_CARRIERS[1],
+    category: 'PARTIAL_LOAD',
+    originCity: 'İzmir',
+    originDistrict: 'Bornova',
+    destinationCity: 'Bursa',
+    destinationDistrict: 'Nilüfer',
+    date: 'Bugün Öğleden Sonra',
+    vehicleType: 'Kırkayak Büyük Kamyon',
+    capacityPercent: 40,
+    acceptsWaypoints: true,
+    title: 'İzmir ➔ Manisa ➔ Balıkesir ➔ Bursa Parsiyel Yük',
+    content: 'İzmir çıkışlı aracımızda 25 m³ temiz eşya alanımız vardır. Parça mobilya, beyaz eşya veya öğrenci/bekar eşyası alınır. Fiyat makul tutulacaktır.',
+    allowPhone: true,
+    allowMessage: true,
+    status: 'ACTIVE',
+    isSponsored: true,
+    createdAt: new Date(Date.now() - 14 * 60 * 1000).toISOString(), // 14 dk önce
+    expiresAt: '2026-09-05T23:59:59Z'
+  },
+  {
+    id: 'def_3',
+    carrierId: 'carr_akdeniz_birlik',
+    carrier: SEED_CARRIERS[3],
+    category: 'CARGO_JOB',
+    originCity: 'Antalya',
+    originDistrict: 'Muratpaşa',
+    destinationCity: 'Konya',
+    destinationDistrict: 'Merkez',
+    date: 'Hemen Müsait',
+    vehicleType: 'Kamyonet (Panelvan)',
+    capacityPercent: 100,
+    acceptsWaypoints: false,
+    title: 'Antalya Çıkışlı Konya & Ankara Yönüne İş Arıyorum',
+    content: 'Aracımız Antalya Muratpaşa\'da hazır beklemektedir. 1+1 veya 2+1 ev eşyası, ofis malzemesi alınır. Şoför + 2 deneyimli taşıma personeli mevcuttur.',
+    allowPhone: true,
+    allowMessage: true,
+    status: 'ACTIVE',
+    isSponsored: false,
+    createdAt: new Date(Date.now() - 28 * 60 * 1000).toISOString(), // 28 dk önce
+    expiresAt: '2026-09-05T23:59:59Z'
+  },
+  {
+    id: 'def_4',
+    carrierId: 'carr_baskent_ekspres',
+    carrier: SEED_CARRIERS[2],
+    category: 'ELEVATOR',
+    originCity: 'Ankara',
+    originDistrict: 'Çankaya',
+    destinationCity: 'Ankara',
+    destinationDistrict: 'Tüm İlçeler',
+    date: 'Bugün & Yarın',
+    vehicleType: '18. Kat Araç Üstü Hidrolik Asansör',
+    capacityPercent: 0,
+    acceptsWaypoints: false,
+    title: 'Ankara İçi Kiralık Mobil Asansör (Operatörlü)',
+    content: 'Ankara\'da çalışan nakliyeci meslektaşlarımızın dikkatine: 18. kata kadar ulaşan mobil asansörümüz operatörü ile saatlik veya günlük kiraya verilir. Hızlı kurulum, dar sokaklara uygun.',
+    allowPhone: true,
+    allowMessage: true,
+    status: 'ACTIVE',
+    isSponsored: true,
+    createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(), // 45 dk önce
+    expiresAt: '2026-09-06T23:59:59Z'
+  },
+  {
+    id: 'def_5',
     carrierId: 'carr_karadeniz_yildiz',
     carrier: SEED_CARRIERS[4],
     category: 'EMPTY_VEHICLE',
@@ -628,50 +761,8 @@ export const SEED_DEFTER_POSTS: DefterPost[] = [
     originDistrict: 'Ortahisar',
     destinationCity: 'İstanbul',
     destinationDistrict: 'Tümü',
-    date: '2026-08-28',
+    date: '2 Gün Sonra',
     vehicleType: '10 Teker Kamyon (Kapalı Kasa)',
-    capacityPercent: 70,
-    acceptsWaypoints: true,
-    title: 'Trabzon\'dan İstanbul\'a Boş Araç Dönüşü',
-    content: 'Yarın Trabzon\'dan İstanbul\'a hareket edeceğim. 10 teker kapalı kasa aracımın %70\'i boştur. Güzergâh üzerindeki Samsun, Çorum, Ankara, Bolu, Düzce ve Kocaeli noktalarından parça eşya veya komple yük alınır.',
-    allowPhone: true,
-    allowMessage: true,
-    status: 'ACTIVE',
-    isSponsored: false,
-    createdAt: '2026-08-26T09:00:00Z',
-    expiresAt: '2026-08-29T23:59:59Z'
-  },
-  {
-    id: 'def_2',
-    carrierId: 'carr_bogazici',
-    carrier: SEED_CARRIERS[0],
-    category: 'ELEVATOR',
-    originCity: 'İstanbul',
-    originDistrict: 'Kadıköy',
-    destinationCity: 'İstanbul',
-    destinationDistrict: 'Anadolu Yakası',
-    date: 'Bugün & Yarın',
-    vehicleType: '15. Kat Hidrolik Mobil Asansör',
-    title: 'Kadıköy & Ataşehir Bölgesi Kiralık Mobil Asansör',
-    content: 'Anadolu yakasında çalışan meslektaşlarımızın dikkatine: 15. kata kadar çıkan araç üstü asansörümüz operatörü ile birlikte saatlik/günlük kiraya verilir. Operatör fiyata dahildir.',
-    allowPhone: true,
-    allowMessage: true,
-    status: 'ACTIVE',
-    isSponsored: true, // Gold carrier auto-featured
-    createdAt: '2026-08-26T10:30:00Z',
-    expiresAt: '2026-08-30T23:59:59Z'
-  },
-  {
-    id: 'def_3',
-    carrierId: 'carr_ege_trans',
-    carrier: SEED_CARRIERS[1],
-    category: 'PARTIAL_LOAD',
-    originCity: 'İzmir',
-    destinationCity: 'Antalya',
-    date: '2026-08-30',
-    vehicleType: 'Kırkayak Kamyon',
-    capacityPercent: 40,
-    acceptsWaypoints: true,
     title: 'İzmir - Aydın - Muğla - Antalya Parça Yük Alanı',
     content: 'Pazar günü İzmir çıkışlı Antalya seferimizde yaklaşık 15 m³ boş alanımız bulunmaktadır. Mobilya, beyaz eşya veya parça ev eşyası alınır.',
     allowPhone: true,
@@ -1076,6 +1167,15 @@ class MockDatabase {
     return this.getItem<CarrierDocument[]>('documents', SEED_DOCUMENTS);
   }
 
+  getDocumentsForCarrier(carrierId: string): CarrierDocument[] {
+    return this.getDocuments().filter(d => d.carrierId === carrierId);
+  }
+
+  addDocument(doc: CarrierDocument): void {
+    const list = [doc, ...this.getDocuments().filter(d => d.id !== doc.id)];
+    this.setItem('documents', list);
+  }
+
   updateDocumentStatus(docId: string, status: CarrierDocument['status'], notes?: string): void {
     const list = this.getDocuments().map(d => d.id === docId ? { 
       ...d, 
@@ -1084,6 +1184,102 @@ class MockDatabase {
       reviewedAt: new Date().toISOString() 
     } : d);
     this.setItem('documents', list);
+  }
+
+  // Registered Users (for phone verification and password reset)
+  getRegisteredUsers(): RegisteredUserRecord[] {
+    return this.getItem<RegisteredUserRecord[]>('registeredUsers', SEED_REGISTERED_USERS);
+  }
+
+  getUserByPhone(phone: string): RegisteredUserRecord | undefined {
+    const clean = phone.replace(/\D/g, '');
+    return this.getRegisteredUsers().find(u => u.phone.replace(/\D/g, '') === clean);
+  }
+
+  getUserByEmail(email: string): RegisteredUserRecord | undefined {
+    return this.getRegisteredUsers().find(u => u.email.toLowerCase() === email.toLowerCase());
+  }
+
+  addRegisteredUser(user: RegisteredUserRecord): void {
+    const list = [...this.getRegisteredUsers().filter(u => u.id !== user.id), user];
+    this.setItem('registeredUsers', list);
+  }
+
+  updateUserPassword(phoneOrEmail: string, newPass: string): boolean {
+    const cleanPhone = phoneOrEmail.replace(/\D/g, '');
+    const cleanEmail = phoneOrEmail.trim().toLowerCase();
+    const users = this.getRegisteredUsers();
+    const user = users.find(u => 
+      (cleanPhone.length >= 10 && u.phone.replace(/\D/g, '') === cleanPhone) ||
+      u.email.toLowerCase() === cleanEmail
+    );
+    if (!user) return false;
+    const updated = users.map(u => u.id === user.id ? { ...u, password: newPass } : u);
+    this.setItem('registeredUsers', updated);
+    return true;
+  }
+
+  // Carrier Subscriptions (Days remaining, cancel subscription)
+  getCarrierSubscription(carrierId: string): CarrierSubscription {
+    const subs = this.getItem<Record<string, CarrierSubscription>>('carrierSubscriptions', {});
+    if (subs[carrierId]) return subs[carrierId];
+
+    const carrier = this.getCarrierById(carrierId);
+    const planId = carrier?.planId || 'plan_gold';
+    const now = new Date();
+    // Varsayılan: 24 gün kaldı
+    const periodEnd = new Date(now.getTime() + 24 * 24 * 60 * 60 * 1000);
+
+    const defaultSub: CarrierSubscription = {
+      id: `sub_${carrierId}`,
+      carrierId,
+      planId,
+      status: 'ACTIVE',
+      currentPeriodStart: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+      currentPeriodEnd: periodEnd.toISOString(),
+      cancelAtPeriodEnd: false,
+      lastPaymentDate: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+      lastPaymentAmount: planId === 'plan_gold' ? 4850 : planId === 'plan_pro' ? 2450 : 1250,
+      cardLastFour: '4242',
+      cardBrand: 'Mastercard',
+      autoRenew: true,
+      createdAt: new Date(now.getTime() - 36 * 24 * 60 * 60 * 1000).toISOString(),
+    };
+    subs[carrierId] = defaultSub;
+    this.setItem('carrierSubscriptions', subs);
+    return defaultSub;
+  }
+
+  cancelCarrierSubscription(carrierId: string): CarrierSubscription {
+    const sub = this.getCarrierSubscription(carrierId);
+    const updated: CarrierSubscription = {
+      ...sub,
+      status: 'CANCELED',
+      cancelAtPeriodEnd: true,
+      autoRenew: false,
+    };
+    const subs = this.getItem<Record<string, CarrierSubscription>>('carrierSubscriptions', {});
+    subs[carrierId] = updated;
+    this.setItem('carrierSubscriptions', subs);
+    return updated;
+  }
+
+  renewCarrierSubscription(carrierId: string): CarrierSubscription {
+    const sub = this.getCarrierSubscription(carrierId);
+    const now = new Date();
+    const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const updated: CarrierSubscription = {
+      ...sub,
+      status: 'ACTIVE',
+      cancelAtPeriodEnd: false,
+      autoRenew: true,
+      currentPeriodStart: now.toISOString(),
+      currentPeriodEnd: periodEnd.toISOString(),
+    };
+    const subs = this.getItem<Record<string, CarrierSubscription>>('carrierSubscriptions', {});
+    subs[carrierId] = updated;
+    this.setItem('carrierSubscriptions', subs);
+    return updated;
   }
 
   // Requests

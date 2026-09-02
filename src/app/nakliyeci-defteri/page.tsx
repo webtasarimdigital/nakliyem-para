@@ -44,6 +44,23 @@ const CATEGORY_CHIPS = [
   { id: 'ELEVATOR', label: 'Mobil Asansör', icon: Building2 }
 ];
 
+// Helper: Canlı göreceli zaman formatı (3 dk önce, 15 dk önce vb.)
+function formatRelativeTime(dateString?: string): string {
+  if (!dateString) return 'Az önce';
+  try {
+    const diffMs = Date.now() - new Date(dateString).getTime();
+    if (isNaN(diffMs)) return 'Az önce';
+    const diffMin = Math.max(1, Math.floor(diffMs / 60000));
+    if (diffMin < 60) return `${diffMin} dk önce`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `${diffHours} saat önce`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} gün önce`;
+  } catch {
+    return 'Az önce';
+  }
+}
+
 export default function NakliyeciDefteriPage() {
   const currentUser = db.getCurrentUser();
   const isCarrier = currentUser?.role === 'CARRIER';
@@ -135,81 +152,97 @@ export default function NakliyeciDefteriPage() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <div className="max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
 
-        {/* ── 1. HEADER (Title & Subtitle, No dark hero) ──────── */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
-              Nakliyeci Defteri
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-              Canlı boş araç, dönüş rotaları ve nakliyeciler arası iş paylaşım ağı
-            </p>
+        {/* ── 1. HEADER (Human & Professional Community Look) ──────── */}
+        <div className="mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold mb-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Canlı Nakliye Borsası • 81 İl Aktif İlanlar</span>
           </div>
 
-          <Button
-            variant="primary"
-            size="md"
-            className="font-black text-xs sm:text-sm px-4 sm:px-5 py-2.5 rounded-2xl shadow-md shadow-orange-900/15 shrink-0"
-            leftIcon={<Plus className="w-4 h-4 stroke-[3]" />}
-            onClick={handleOpenComposer}
-          >
-            İlan Paylaş
-          </Button>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
+                Nakliyeci Defteri
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                Boş araç, dönüş yükü ve kiralık mobil asansör paylaşım ağı. Doğrudan telefonla iletişim.
+              </p>
+            </div>
+
+            <Button
+              variant="primary"
+              size="md"
+              className="font-black text-xs sm:text-sm px-5 py-2.5 rounded-2xl shadow-md shadow-orange-900/15 shrink-0 self-start sm:self-auto cursor-pointer"
+              leftIcon={<Plus className="w-4 h-4 stroke-[3]" />}
+              onClick={handleOpenComposer}
+            >
+              + Yeni İlan Bırak
+            </Button>
+          </div>
         </div>
 
-        {/* ── 2. INLINE SOCIAL POST COMPOSER BOX ───────────────── */}
-        <div className="bg-white rounded-3xl border-2 border-slate-200 p-4 sm:p-5 shadow-xs mb-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#0A1128] text-white flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
-              {currentUser?.email ? currentUser.email.charAt(0).toUpperCase() : 'N'}
-            </div>
+        {/* ── 2. QUICK ACTION CARDS (Intuitive & Human) ───────────────── */}
+        <div className="bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-xs mb-6">
+          <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-3">
+            Hızlı İlan Oluştur
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Action 1: Boş Araç */}
             <button
               type="button"
-              onClick={handleOpenComposer}
-              className="flex-1 text-left px-4 py-3 rounded-2xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200 text-xs sm:text-sm font-medium text-slate-400 transition-colors cursor-pointer"
-            >
-              Bugün boş aracınız, dönüş yükünüz veya kiralık asansörünüz var mı? Hemen paylaşın...
-            </button>
-          </div>
-
-          {/* Quick Action Category Badges */}
-          <div className="flex items-center gap-2 pt-2 border-t border-slate-100 overflow-x-auto no-scrollbar">
-            <button
               onClick={() => { setPostCategory('EMPTY_VEHICLE'); handleOpenComposer(); }}
-              className="px-3 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100/80 text-[#C23E00] text-xs font-black flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+              className="p-3.5 rounded-2xl border-2 border-orange-100 hover:border-[#F95700] bg-orange-50/50 hover:bg-orange-50 text-left transition-all group cursor-pointer"
             >
-              <Truck className="w-3.5 h-3.5 text-[#F95700]" />
-              <span>Boş Araç Paylaş</span>
+              <div className="w-8 h-8 rounded-xl bg-[#F95700] text-white flex items-center justify-center mb-2 shadow-xs">
+                <Truck className="w-4 h-4" />
+              </div>
+              <span className="font-black text-sm text-[#0A1128] block group-hover:text-[#F95700] transition-colors">
+                Boş Aracım Var
+              </span>
+              <span className="text-[11px] text-slate-500 font-medium block mt-0.5">
+                Dönüş rotasını doldurmak için ilan ver
+              </span>
             </button>
 
+            {/* Action 2: Yük Arıyorum */}
             <button
-              onClick={() => { setPostCategory('RETURN_TRIP'); handleOpenComposer(); }}
-              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-black flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+              type="button"
+              onClick={() => { setPostCategory('CARGO_JOB'); handleOpenComposer(); }}
+              className="p-3.5 rounded-2xl border-2 border-blue-100 hover:border-blue-500 bg-blue-50/40 hover:bg-blue-50 text-left transition-all group cursor-pointer"
             >
-              <MoveRight className="w-3.5 h-3.5 text-[#F95700]" />
-              <span>Dönüş Rotası</span>
+              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center mb-2 shadow-xs">
+                <Package className="w-4 h-4" />
+              </div>
+              <span className="font-black text-sm text-[#0A1128] block group-hover:text-blue-600 transition-colors">
+                Yük Arıyorum
+              </span>
+              <span className="text-[11px] text-slate-500 font-medium block mt-0.5">
+                Aracıma uygun ev veya ofis yükü bul
+              </span>
             </button>
 
+            {/* Action 3: Mobil Asansör */}
             <button
+              type="button"
               onClick={() => { setPostCategory('ELEVATOR'); handleOpenComposer(); }}
-              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-black flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+              className="p-3.5 rounded-2xl border-2 border-amber-100 hover:border-amber-500 bg-amber-50/40 hover:bg-amber-50 text-left transition-all group cursor-pointer"
             >
-              <Building2 className="w-3.5 h-3.5 text-amber-500" />
-              <span>Mobil Asansör</span>
-            </button>
-
-            <button
-              onClick={() => { setPostCategory('PARTIAL_LOAD'); handleOpenComposer(); }}
-              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-black flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
-            >
-              <Boxes className="w-3.5 h-3.5 text-amber-500" />
-              <span>Parsiyel Yük</span>
+              <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center mb-2 shadow-xs">
+                <Building2 className="w-4 h-4" />
+              </div>
+              <span className="font-black text-sm text-[#0A1128] block group-hover:text-amber-600 transition-colors">
+                Mobil Asansör
+              </span>
+              <span className="text-[11px] text-slate-500 font-medium block mt-0.5">
+                Operatörlü asansörünü kiraya ver
+              </span>
             </button>
           </div>
         </div>
 
-        {/* ── 3. CATEGORY PILLS FILTER BAR ────────────────────── */}
-        <div className="flex gap-2.5 overflow-x-auto pb-3 mb-6 no-scrollbar">
+        {/* ── 3. SINGLE CLEAN CATEGORY FILTER TABS ─────────────────── */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-6 no-scrollbar">
           {CATEGORY_CHIPS.map((tab) => {
             const Icon = tab.icon;
             const isSelected = activeCategory === tab.id;
@@ -223,7 +256,7 @@ export default function NakliyeciDefteriPage() {
                     : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50/80 shadow-2xs'
                 }`}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-[#F95700]'}`} />
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-[#F95700]'}`} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -256,7 +289,7 @@ export default function NakliyeciDefteriPage() {
                         </Link>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold mt-0.5">
-                        <span className="text-slate-600">Gümüş Üye</span>
+                        <span className="text-slate-600">Onaylı Firma</span>
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 fill-emerald-50" />
                         {post.carrier.city && (
                           <>
@@ -264,6 +297,8 @@ export default function NakliyeciDefteriPage() {
                             <span>{post.carrier.city}</span>
                           </>
                         )}
+                        <span className="text-slate-300">•</span>
+                        <span className="text-slate-400 font-semibold">{formatRelativeTime(post.createdAt)}</span>
                       </div>
                     </div>
                   </div>

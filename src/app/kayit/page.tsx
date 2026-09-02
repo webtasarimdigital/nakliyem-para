@@ -7,38 +7,29 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
-  Check,
   ShieldCheck,
   Truck,
   Star,
   MessageSquare,
-  Bell,
   MapPin,
+  CheckCircle2,
+  Lock,
+  Mail,
+  User,
+  Phone,
+  Building2,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
+  AlertCircle,
 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { registerWithFirebase } from '@/lib/firebase/auth';
 import { isFirebaseConfigured } from '@/lib/firebase/config';
-
-const CUSTOMER_FEATURES = [
-  { icon: MessageSquare, text: 'Onlarca firmadan teklif, tek panelde' },
-  { icon: Star, text: 'Sigorta, asansör, paketleme — yan yana karşılaştır' },
-  { icon: ShieldCheck, text: 'Onaylı ve puanlı nakliyeciler' },
-  { icon: Bell, text: 'Taşıma gününe kadar adım adım takip' },
-];
-
-const CARRIER_FEATURES = [
-  { icon: MapPin, text: 'Rotanıza eşleşen yeni iş bildirimleri' },
-  { icon: Truck, text: 'Boş dönüş rotanızı doldurun' },
-  { icon: MessageSquare, text: 'Meslektaşlarınızla Defter üzerinden bağlantı' },
-  { icon: Bell, text: 'Takvim, müsaitlik ve operasyon merkezi' },
-];
+import { db } from '@/lib/data/mock-db';
 
 export default function KayitPage() {
   const router = useRouter();
   const [role, setRole] = useState<'musteri' | 'nakliyeci'>('musteri');
-  const [step, setStep] = useState<'role' | 'form'>('role');
 
   // Form fields
   const [name, setName] = useState('');
@@ -50,19 +41,146 @@ export default function KayitPage() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  // OTP Simulation (Code 61) & Duplicate Check
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [phoneAlreadyRegistered, setPhoneAlreadyRegistered] = useState(false);
+
   // Carrier specific
   const [companyName, setCompanyName] = useState('');
+  const [slideIndex, setSlideIndex] = useState(0);
 
   const isCarrier = role === 'nakliyeci';
-  const features = isCarrier ? CARRIER_FEATURES : CUSTOMER_FEATURES;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const slides = [
+    {
+      badge: isCarrier ? 'Nakliyeci Ağı' : 'Müşteri Memnuniyeti',
+      title: isCarrier
+        ? 'Rotanıza uygun işleri bulun, boş dönüşleri doldurun.'
+        : 'Doğru fiyatı veriyle ve tekliflerle belirleyin.',
+      desc: isCarrier
+        ? '7 gün ücretsiz deneyin, 81 ilden gelen doğrulanmış ev ve ofis taşıma taleplerine anında teklif verin.'
+        : 'Ücretsiz talep açın, bölgenizdeki puanlı nakliyecilerden komisyonsuz doğrudan teklif toplayın.',
+      features: isCarrier
+        ? ['7 Gün Ücretsiz Gold Deneme', 'Boş Dönüş ve Parsiyel İlanları', 'Meslektaş Ağı: Nakliyeci Defteri']
+        : ['%100 Ücretsiz Talep Açma', 'Onaylı & Puanlı Nakliyeciler', 'Sigortalı ve Asansörlü Seçenekler'],
+    },
+    {
+      badge: 'Yüksek Güvenlik',
+      title: 'K3 Belgeli ve onaylı firmalar tek çatı altında.',
+      desc: 'Tüm taşımacılar resmi evrak ve yetki belgesi onayından geçer. KVKK uyumlu güvenli iletişim.',
+      features: ['Sözleşmeli ve Sigortalı', 'Şeffaf Fiyatlandırma', 'Canlı Destek & Takip'],
+    },
+  ];
+
+  const currentSlide = slides[slideIndex];
+
+  // Adım 1: Form Gönderildiğinde Numara Kontrolü & SMS Modalını Aç
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setErrorMessage('');
+    setPhoneAlreadyRegistered(false);
 
+    // Telefon daha önce kayıtlı mı kontrolü
+    const existing = db.getUserByPhone(phone);
+    if (existing) {
+      setPhoneAlreadyRegistered(true);
+      setErrorMessage('Bu telefon numarasına ait bir üyelik zaten bulunmaktadır.');
+      return;
+    }
+
+    // Telefon yeni ise SMS onay modalını aç
+    setOtpModalOpen(true);
+  };
+
+  // Adım 2: SMS Kodunu Doğrula (Kod: 61) ve Üyeliği Tamamla
+  const handleVerifyOtpAndRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setOtpError('');
+
+    if (otpCode.trim() !== '61') {
+      setOtpError('Doğrulama kodu hatalı! Test simülasyon kodunuz: 61');
+      return;
+    }
+
+    setLoading(true);
+
+    // Mock-DB'ye kullanıcıyı ekle
+    const newUserId = `user_${Date.now()}`;
+    const newCarrierId = isCarrier ? `carr_${Date.now()}` : undefined;
+
+    db.addRegisteredUser({
+      id: newUserId,
+      email,
+      phone,
+      password,
+      role: isCarrier ? 'CARRIER' : 'CUSTOMER',
+      fullName: isCarrier ? undefined : name,
+      companyName: isCarrier ? companyName : undefined,
+      carrierId: newCarrierId,
+      createdAt: new Date().toISOString(),
+    });
+
+    // Eğer nakliyeci ise onay bekleyen yeni firma profili oluştur
+    if (isCarrier) {
+      db.addCarrier({
+        id: newCarrierId!,
+        userId: newUserId,
+        companyName: companyName || name,
+        slug: (companyName || name).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        authorizedPersonName: name.split(' ')[0] || name,
+        authorizedPersonSurname: name.split(' ').slice(1).join(' ') || '',
+        phone,
+        email,
+        shortBio: 'Yeni kayıt olan nakliyat firması. Belgeler inceleniyor.',
+        city: 'İstanbul',
+        district: 'Kadıköy',
+        services: ['evden-eve', 'ofis-tasima'],
+        serviceAreas: ['TÜM_TÜRKİYE'],
+        verificationStatus: 'PENDING', // Admin onayı bekleyecek
+        verificationBadges: {
+          identityVerified: false,
+          taxVerified: false,
+          transportPermitVerified: false,
+          elevatorVerified: false,
+        },
+        planId: 'plan_starter',
+        rating: 5.0,
+        reviewCount: 0,
+        completedJobsCount: 0,
+        responseRatePercent: 100,
+        joinedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      });
+
+      // Varsayılan mock evrakları ekle (Kimlik ve Vergi Levhası)
+      db.addDocument({
+        id: `doc_id_${Date.now()}`,
+        carrierId: newCarrierId!,
+        type: 'IDENTITY',
+        title: 'Yetkili Kimlik Belgesi',
+        fileName: 'kimlik_on_yuz.jpg',
+        fileUrl: '/mock-files/kimlik.jpg',
+        status: 'PENDING',
+        uploadedAt: new Date().toISOString(),
+      });
+
+      db.addDocument({
+        id: `doc_tax_${Date.now()}`,
+        carrierId: newCarrierId!,
+        type: 'TAX_CERTIFICATE',
+        title: 'Vergi Levhası Belgesi',
+        fileName: 'vergi_levhasi.pdf',
+        fileUrl: '/mock-files/vergi_levhasi.pdf',
+        status: 'PENDING',
+        uploadedAt: new Date().toISOString(),
+      });
+    }
+
+    // Firebase Auth Entegrasyonu (varsa)
     if (isFirebaseConfigured()) {
-      const res = await registerWithFirebase({
+      await registerWithFirebase({
         email,
         password,
         phone,
@@ -70,283 +188,481 @@ export default function KayitPage() {
         fullName: isCarrier ? undefined : name,
         companyName: isCarrier ? companyName : undefined,
       });
+    }
 
-      setLoading(false);
-      if (res.error) {
-        setErrorMessage(res.error);
-      } else {
-        if (isCarrier) {
-          router.push('/app/carrier/onboarding');
-        } else {
-          router.push('/app/customer');
-        }
-      }
+    // Persona ve oturumu ayarla
+    db.setCurrentUser({
+      id: newUserId,
+      email,
+      phone,
+      role: isCarrier ? 'CARRIER' : 'CUSTOMER',
+      carrierProfileId: newCarrierId,
+      createdAt: new Date().toISOString(),
+    });
+
+    setLoading(false);
+    setOtpModalOpen(false);
+
+    if (isCarrier) {
+      router.push('/app/carrier');
     } else {
-      setTimeout(() => {
-        setLoading(false);
-        if (isCarrier) {
-          router.push('/app/carrier/onboarding');
-        } else {
-          router.push('/app/customer');
-        }
-      }, 1000);
+      router.push('/app/customer');
     }
   };
 
-  const leftContent = {
-    tag: isCarrier ? 'NAKLİYECİ' : 'MÜŞTERİ',
-    title: isCarrier
-      ? 'Rotanıza uygun işleri bulun, teklifinizi hemen verin.'
-      : 'Taşınmanızı planlayın, en iyi teklifi seçin.',
-    subtitle: isCarrier
-      ? 'Operasyon merkeziniz, takvim ve boş dönüş optimizasyonu tek platformda.'
-      : 'Talep açın, teklifleri yan yana karşılaştırın, güvenle taşıyın.',
-    trust: isCarrier
-      ? ['7 gün ücretsiz dene', 'İstediğin an iptal', '81 ilde kullanıcı']
-      : ['Ücretsiz talep aç', 'Kredi kartı gerekmez', 'Güvenli ödeme'],
-  };
-
   return (
-    <div className="min-h-screen flex">
-      {/* LEFT PANEL */}
-      <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] bg-[#0A1128] flex-col justify-between p-10 xl:p-14 relative overflow-hidden">
+    <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center p-3 sm:p-6 lg:p-10">
+      {/* Outer Card Container */}
+      <div className="w-full max-w-5xl bg-white rounded-3xl sm:rounded-4xl shadow-xl shadow-slate-200/60 overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-slate-200/80">
         
-        {/* Subtle grid pattern */}
-        <div className="absolute inset-0 pointer-events-none opacity-5">
-          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="grid2" width="48" height="48" patternUnits="userSpaceOnUse">
-                <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#F95700" strokeWidth="0.5"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid2)" />
-          </svg>
-        </div>
-
-        {/* Top: Logo */}
-        <div className="relative z-10">
-          <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#F95700] flex items-center justify-center">
-              <Truck className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-white font-black text-xl tracking-tight">
-              nakliyem<span className="text-[#F95700]">.para</span>
-            </span>
-          </Link>
-        </div>
-
-        {/* Middle: Dynamic content */}
-        <div className="relative z-10 space-y-8">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F95700]/20 border border-[#F95700]/30 text-[#F95700] text-xs font-black mb-4">
-              {leftContent.tag}
-            </div>
-            <h2 className="text-3xl xl:text-4xl font-black text-white leading-tight mb-3">
-              {leftContent.title}
-            </h2>
-            <p className="text-slate-400 font-medium leading-relaxed text-base">
-              {leftContent.subtitle}
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            {features.map((f, i) => {
-              const Icon = f.icon;
-              return (
-                <div key={i} className="flex items-center gap-3 p-3.5 rounded-xl bg-white/5 border border-white/8 hover:bg-white/8 transition-colors">
-                  <div className="w-8 h-8 rounded-lg bg-[#F95700]/15 flex items-center justify-center shrink-0">
-                    <Icon className="w-4 h-4 text-[#F95700]" />
-                  </div>
-                  <span className="text-sm font-medium text-slate-300">{f.text}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="flex flex-wrap gap-4">
-            {leftContent.trust.map((t, i) => (
-              <div key={i} className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                <Check className="w-3.5 h-3.5 text-[#F95700]" />
-                <span>{t}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Bottom */}
-        <div className="relative z-10 text-xs text-slate-600 font-medium">
-          Türkiye&apos;nin nakliyat platformu
-        </div>
-      </div>
-
-      {/* RIGHT PANEL */}
-      <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 bg-[#F8FAFC] overflow-y-auto">
-        <div className="w-full max-w-sm">
+        {/* LEFT PANEL — Emlivo Style Soft & Light Visual Panel */}
+        <div className="lg:col-span-6 bg-gradient-to-br from-[#F4FDF7] via-[#F8FAFC] to-[#F1F5F9] p-6 sm:p-10 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-slate-100">
           
-          {/* Mobile Logo */}
-          <div className="flex items-center justify-center gap-2 mb-8 lg:hidden">
-            <div className="w-8 h-8 rounded-xl bg-[#F95700] flex items-center justify-center">
-              <Truck className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-black text-lg text-[#0A1128]">nakliyem<span className="text-[#F95700]">.para</span></span>
-          </div>
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#0A1128 1px, transparent 1px)', backgroundSize: '18px 18px' }} />
 
-          <h1 className="text-2xl font-black text-[#0A1128] mb-1">Hesap Oluştur</h1>
-          <p className="text-sm text-slate-500 font-medium mb-6">
-            Ücretsiz başla — dakikalar içinde hazır ol.
-          </p>
-
-          {/* Role Tabs */}
-          <div className="flex gap-1 bg-slate-200 rounded-xl p-1 mb-6">
-            <button
-              onClick={() => setRole('musteri')}
-              className={`flex-1 py-2 rounded-lg text-sm font-black transition-all ${role === 'musteri' ? 'bg-white text-[#0A1128] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              Müşteri
-            </button>
-            <button
-              onClick={() => setRole('nakliyeci')}
-              className={`flex-1 py-2 rounded-lg text-sm font-black transition-all ${role === 'nakliyeci' ? 'bg-white text-[#0A1128] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              Nakliyeci
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {errorMessage && (
-              <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold animate-fade-in">
-                {errorMessage}
+          {/* Top: Logo */}
+          <div className="relative z-10 flex items-center justify-between">
+            <Link href="/" className="inline-flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-[#F95700] flex items-center justify-center shadow-md shadow-orange-900/20">
+                <Truck className="w-5 h-5 text-white" />
               </div>
-            )}
-            
-            <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
-                Ad Soyad
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Mehmet Yılmaz"
-                required
-                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+              <span className="font-black text-xl text-[#0A1128] tracking-tight">
+                nakliyem<span className="text-[#F95700]">.para</span>
+              </span>
+            </Link>
+
+            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-2.5 py-1 rounded-full flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Hızlı Kayıt
+            </span>
+          </div>
+
+          {/* Center: Interactive Orbital Graphic (Emlivo visual mockup) */}
+          <div className="relative z-10 my-8 sm:my-10">
+            <div className="relative w-64 h-64 sm:w-72 sm:h-72 mx-auto flex items-center justify-center">
+              
+              {/* Orbital Ring */}
+              <div className="absolute inset-4 rounded-full border-2 border-dashed border-emerald-200/80 animate-[spin_55s_linear_infinite]" />
+
+              {/* Center Photo */}
+              <div className="relative z-10 w-36 h-36 sm:w-40 sm:h-40 rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-white">
+                <img
+                  src={
+                    isCarrier
+                      ? 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=500&auto=format&fit=crop&q=80'
+                      : 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=500&auto=format&fit=crop&q=80'
+                  }
+                  alt="Nakliye ve Taşınma"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                <div className="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur-xs rounded-xl px-2 py-1 text-center shadow-xs">
+                  <span className="text-[10px] font-black text-slate-800 block leading-tight">
+                    {isCarrier ? '81 İl Nakliye Ağı' : 'En İyi Fiyat Garantisi'}
+                  </span>
+                  <span className="text-[9px] font-bold text-emerald-600">✓ Onaylı Sistem</span>
+                </div>
+              </div>
+
+              {/* Orbital Badge 1 */}
+              <div className="absolute top-2 left-8 bg-white rounded-2xl p-2.5 shadow-lg border border-slate-100 flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                </div>
+                <span>Güvenli</span>
+              </div>
+
+              {/* Orbital Badge 2 */}
+              <div className="absolute bottom-3 right-6 bg-white rounded-2xl p-2.5 shadow-lg border border-slate-100 flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                <div className="w-6 h-6 rounded-lg bg-orange-50 text-[#F95700] flex items-center justify-center">
+                  <Star className="w-3.5 h-3.5" />
+                </div>
+                <span>Şeffaf Teklif</span>
+              </div>
+
+              {/* Orbital Badge 3 */}
+              <div className="absolute top-6 right-4 bg-white rounded-2xl p-2 shadow-lg border border-slate-100 text-blue-600">
+                <MessageSquare className="w-4 h-4" />
+              </div>
+
+              {/* Orbital Badge 4 */}
+              <div className="absolute bottom-6 left-4 bg-white rounded-2xl p-2 shadow-lg border border-slate-100 text-[#F95700]">
+                <Truck className="w-4 h-4" />
+              </div>
+            </div>
+
+            {/* Slider Content */}
+            <div className="text-center sm:text-left mt-4">
+              <span className="text-[11px] font-black text-emerald-700 uppercase tracking-wider bg-emerald-100/70 px-2.5 py-0.5 rounded-full inline-block mb-2">
+                {currentSlide.badge}
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128] leading-snug">
+                {currentSlide.title}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1.5 leading-relaxed">
+                {currentSlide.desc}
+              </p>
+            </div>
+
+            {/* Feature Pills */}
+            <div className="flex flex-wrap gap-2 mt-4 justify-center sm:justify-start">
+              {currentSlide.features.map((feat, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-1.5 bg-white border border-slate-200/80 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-700 shadow-2xs"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>{feat}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Slide Indicators */}
+          <div className="relative z-10 flex items-center justify-between pt-4 border-t border-slate-200/60">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSlideIndex(0)}
+                className={`h-2 rounded-full transition-all cursor-pointer ${slideIndex === 0 ? 'w-6 bg-[#F95700]' : 'w-2 bg-slate-300'}`}
+              />
+              <button
+                type="button"
+                onClick={() => setSlideIndex(1)}
+                className={`h-2 rounded-full transition-all cursor-pointer ${slideIndex === 1 ? 'w-6 bg-[#F95700]' : 'w-2 bg-slate-300'}`}
               />
             </div>
 
-            {isCarrier && (
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setSlideIndex(s => (s === 0 ? 1 : 0))}
+                className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setSlideIndex(s => (s === 1 ? 0 : 1))}
+                className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT PANEL — Fresh White Clean Registration Form */}
+        <div className="lg:col-span-6 bg-white p-6 sm:p-10 lg:p-12 flex flex-col justify-center">
+          <div className="max-w-md w-full mx-auto">
+            
+            {/* Header */}
+            <div className="mb-6 text-center sm:text-left">
+              <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">Kayıt Ol</h1>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                {isCarrier ? 'Nakliyeci profilinizi oluşturun, iş teklifleri verin.' : 'Ücretsiz başlayın — dakikalar içinde teklif toplayın.'}
+              </p>
+            </div>
+
+            {/* Quick Google Sign In */}
+            <button
+              type="button"
+              onClick={() => {
+                setName('Örnek Kullanıcı');
+                setEmail('ornek@gmail.com');
+                setPhone('0532 000 00 00');
+                setPassword('Password123!');
+                setAgree(true);
+              }}
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border-2 border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold transition-all shadow-2xs cursor-pointer mb-5"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+              </svg>
+              <span>Google ile Kayıt Ol</span>
+            </button>
+
+            {/* Divider */}
+            <div className="relative flex items-center justify-center mb-5">
+              <div className="border-t border-slate-200 w-full" />
+              <span className="bg-white px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                veya e-posta ile
+              </span>
+            </div>
+
+            {/* Role Tabs */}
+            <div className="flex p-1 bg-slate-100 rounded-xl mb-5">
+              <button
+                type="button"
+                onClick={() => setRole('musteri')}
+                className={`flex-1 py-2 text-xs font-black rounded-lg transition-all cursor-pointer ${
+                  !isCarrier
+                    ? 'bg-white text-[#0A1128] shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Evimi Taşıtacağım
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole('nakliyeci')}
+                className={`flex-1 py-2 text-xs font-black rounded-lg transition-all cursor-pointer ${
+                  isCarrier
+                    ? 'bg-white text-[#0A1128] shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Nakliyeciyim
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              {errorMessage && (
+                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold animate-fade-in space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                    <span>{errorMessage}</span>
+                  </div>
+                  {phoneAlreadyRegistered && (
+                    <div className="pt-2 border-t border-red-200/80 flex items-center justify-between">
+                      <span className="text-slate-600 font-medium">Şifrenizi hatırlamıyor musunuz?</span>
+                      <Link href={`/sifremi-unuttum`}>
+                        <button
+                          type="button"
+                          className="bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer shadow-xs"
+                        >
+                          Şifremi Sıfırla
+                        </button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Name / Company */}
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
-                  Firma Adı
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">
+                  {isCarrier ? 'Firma Yetkilisi / Ad Soyad' : 'Ad Soyad'}
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    placeholder="Ahmet Yılmaz"
+                    required
+                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Company Name if Carrier */}
+              {isCarrier && (
+                <div>
+                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">
+                    Firma Adı (Ticari Ünvan)
+                  </label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={companyName}
+                      onChange={e => setCompanyName(e.target.value)}
+                      placeholder="Boğaziçi Profesyonel Nakliyat"
+                      required
+                      className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Phone */}
+              <div>
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">
+                  Telefon Numarası
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    placeholder="05XX XXX XX XX"
+                    required
+                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">
+                  E-posta Adresi
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="ornek@mail.com"
+                    required
+                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">
+                  Şifre
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="En az 6 karakter"
+                    required
+                    minLength={6}
+                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-11 py-2.5 sm:py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Agreement */}
+              <label className="flex items-start gap-2.5 cursor-pointer pt-1">
+                <input
+                  type="checkbox"
+                  checked={agree}
+                  onChange={e => setAgree(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-[#F95700] shrink-0 cursor-pointer"
+                  required
+                />
+                <span className="text-[11px] sm:text-xs text-slate-500 font-medium leading-relaxed">
+                  <Link href="/kullanim-kosullari" target="_blank" className="text-[#F95700] font-bold hover:underline">
+                    Kullanım Koşulları
+                  </Link>
+                  {' '}ve{' '}
+                  <Link href="/kvkk" target="_blank" className="text-[#F95700] font-bold hover:underline">
+                    KVKK Aydınlatma Metni
+                  </Link>
+                  &apos;ni okudum, kabul ediyorum.
+                </span>
+              </label>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={loading || !agree}
+                className="w-full bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm py-3.5 px-4 rounded-xl shadow-lg shadow-orange-900/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <span>{loading ? 'Hesap oluşturuluyor...' : 'Hesap Oluştur'}</span>
+                {!loading && <ArrowRight className="w-4 h-4" />}
+              </button>
+            </form>
+
+            {/* Bottom Links */}
+            <div className="mt-5 text-center space-y-2.5">
+              <p className="text-xs text-slate-500 font-medium">
+                Zaten bir hesabınız var mı?{' '}
+                <Link href="/giris" className="text-[#F95700] font-black hover:underline">
+                  Giriş Yap
+                </Link>
+              </p>
+
+              <div>
+                <Link href="/" className="text-[11px] font-bold text-slate-400 hover:text-slate-600 transition-colors">
+                  ← Ana sayfaya dön
+                </Link>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── SMS DOĞRULAMA MODALI (Kod: 61 Simülasyonu) ── */}
+      {otpModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 space-y-4">
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 text-[#F95700] flex items-center justify-center mx-auto mb-3 shadow-xs">
+                <Phone className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-black text-[#0A1128]">SMS Doğrulama Kodu</h3>
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                <strong className="text-slate-900">{phone}</strong> numaralı telefonunuza SMS onay kodu gönderildi.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold leading-relaxed">
+              <div className="flex items-center gap-1.5 font-bold text-amber-800 mb-0.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <span>Test Simülasyon Onay Kodu</span>
+              </div>
+              SMS entegrasyon simülasyonu devrede. Lütfen aşağıdaki kutuya <strong>61</strong> yazarak üyeliğinizi onaylayın.
+            </div>
+
+            {otpError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                <span>{otpError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleVerifyOtpAndRegister} className="space-y-4">
+              <div>
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 text-center">
+                  Doğrulama Kodu
                 </label>
                 <input
                   type="text"
-                  value={companyName}
-                  onChange={e => setCompanyName(e.target.value)}
-                  placeholder="Yılmaz Nakliyat"
+                  value={otpCode}
+                  onChange={e => setOtpCode(e.target.value)}
+                  placeholder="61"
                   required
-                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                  autoFocus
+                  className="w-full text-center text-2xl font-black tracking-widest border-2 border-slate-200 rounded-xl py-3 text-slate-900 placeholder:text-slate-300 focus:border-[#F95700] focus:outline-none transition-colors"
                 />
               </div>
-            )}
 
-            <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
-                Telefon
-              </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                placeholder="05XX XXX XX XX"
-                required
-                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
-                E-posta
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="ornek@mail.com"
-                required
-                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
-                Şifre
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="En az 8 karakter"
-                  required
-                  minLength={8}
-                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 pr-11 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
-                />
+              <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  onClick={() => setOtpModalOpen(false)}
+                  className="flex-1 border-2 border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs py-3 rounded-xl transition-colors cursor-pointer"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <span>{loading ? 'Onaylanıyor...' : 'Onayla ve Kayıt Ol'}</span>
+                  {!loading && <ArrowRight className="w-4 h-4" />}
                 </button>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium mt-1">En az 8 karakter</p>
-            </div>
-
-            {/* Agreement */}
-            <label className="flex items-start gap-2.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={agree}
-                onChange={e => setAgree(e.target.checked)}
-                className="mt-0.5 w-4 h-4 accent-[#F95700] shrink-0"
-                required
-              />
-              <span className="text-xs text-slate-500 font-medium leading-relaxed">
-                <Link href="/kullanim-kosullari" target="_blank" rel="noopener noreferrer" className="text-[#F95700] font-bold hover:underline">Kullanım Koşulları</Link>
-                {' '}ve{' '}
-                <Link href="/kvkk" target="_blank" rel="noopener noreferrer" className="text-[#F95700] font-bold hover:underline">KVKK Aydınlatma Metni</Link>
-                &apos;ni okudum, kabul ediyorum.
-              </span>
-            </label>
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="w-full font-black shadow-lg shadow-orange-900/15"
-              disabled={loading || !agree}
-              rightIcon={loading ? undefined : <ArrowRight className="w-4 h-4" />}
-            >
-              {loading ? 'Hesap oluşturuluyor...' : 'Hesap Oluştur'}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-slate-500 font-medium">
-              Zaten hesabınız var mı?{' '}
-              <Link href="/giris" className="text-[#F95700] font-black hover:underline">
-                Giriş Yap
-              </Link>
-            </p>
-          </div>
-
-          <div className="mt-6 text-center">
-            <Link href="/" className="text-xs text-slate-400 hover:text-slate-600 font-medium transition-colors">
-              ← Ana sayfaya dön
-            </Link>
+            </form>
           </div>
         </div>
-      </div>
+      )}
+
     </div>
   );
 }

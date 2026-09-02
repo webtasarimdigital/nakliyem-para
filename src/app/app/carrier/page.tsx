@@ -66,11 +66,14 @@ function calcMatchScore(request: { originCity: string; destinationCity: string; 
 }
 
 export default function CarrierDashboard() {
-  const carrier = db.getCarriers()[0];
+  const currentUser = db.getCurrentUser();
+  const carrier = db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) || db.getCarriers()[0];
   const requests = db.getRequests().filter(r => r.status === 'ACTIVE');
   const myOffers = db.getOffersForCarrier(carrier.id);
   const defterPosts = db.getDefterPosts().filter(p => p.carrierId === carrier.id);
   const alarms = db.getAlarmsForCarrier(carrier.id);
+
+  const isApproved = carrier.verificationStatus === 'APPROVED';
 
   const [availabilityDays, setAvailabilityDays] = useState<Record<string, 'MUSAIT' | 'DOLU'>>({
     '2026-09-12': 'MUSAIT',
@@ -100,7 +103,13 @@ export default function CarrierDashboard() {
             <div className="flex items-center gap-2">
               <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">{carrier.companyName}</h1>
               {carrier.planId === 'plan_gold' && <Badge variant="gold" size="sm" />}
-              <Badge variant="verified" size="sm" />
+              {isApproved ? (
+                <Badge variant="verified" size="sm" />
+              ) : (
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-black border border-amber-200">
+                  ⏳ Onay Bekliyor
+                </span>
+              )}
             </div>
             <p className="text-sm text-slate-500 font-medium mt-0.5">
               Bugün bölgenizde <strong className="text-[#F95700]">{matchedRequests.length} yeni eşleşen iş</strong> var
@@ -120,6 +129,24 @@ export default function CarrierDashboard() {
             </Link>
           </div>
         </div>
+
+        {/* ── ONSIZ PROFİL UYARI BANNERI ──────────────────────── */}
+        {!isApproved && (
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-900 flex items-start gap-3 shadow-xs">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h3 className="font-black text-sm text-amber-900">
+                ⚠️ Onaysız Profil — Henüz firmamız tarafından doğrulanmış profil değilsiniz
+              </h3>
+              <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                Yüklediğiniz kimlik ve vergi levhası evraklarınız inceleme aşamasındadır. <strong>12 saat içinde onay & red durumunuz verilecektir.</strong> Bu sürede gelen iş taleplerini ve rotaları inceleyebilirsiniz; ancak teklif verme ve müşterilerle mesajlaşma haklarınız onay verildikten sonra aktif olacaktır.
+              </p>
+              <Link href="/app/carrier/profil" className="inline-block pt-1 text-xs font-black text-[#F95700] hover:underline">
+                Belgelerimi Görüntüle / Yeni Evrak Yükle →
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* ── PLAN UYARI (ücretsiz plan) ─────────────────────── */}
         {isPlanLimited && (

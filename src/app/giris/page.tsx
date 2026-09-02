@@ -4,50 +4,23 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  ChevronLeft,
-  ChevronRight,
   Eye,
   EyeOff,
   ArrowRight,
-  Check,
   ShieldCheck,
   Truck,
   Star,
   MessageSquare,
-  Bell,
   MapPin,
+  CheckCircle2,
+  Lock,
+  Mail,
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { loginWithFirebase } from '@/lib/firebase/auth';
 import { isFirebaseConfigured } from '@/lib/firebase/config';
-import { db } from '@/lib/data/mock-db';
-
-const LEFT_SLIDES = [
-  {
-    tag: 'MÜŞTERİ',
-    title: 'Onlarca nakliyeciden teklif alın, en iyisini seçin.',
-    subtitle: 'Talep açın, teklifleri yan yana karşılaştırın, güvenli taşıyın.',
-    features: [
-      { icon: MessageSquare, text: 'Onlarca firmadan teklif, tek panelde' },
-      { icon: Star, text: 'Sigorta, asansör, paketleme — yan yana karşılaştır' },
-      { icon: ShieldCheck, text: 'Onaylı ve puanlı nakliyeciler' },
-      { icon: Bell, text: 'Taşıma gününe kadar adım adım takip' },
-    ],
-    trust: ['Ücretsiz talep aç', 'Kredi kartı gerekmez', 'Güvenli ödeme'],
-  },
-  {
-    tag: 'NAKLİYECİ',
-    title: 'Rotanıza uygun işleri bulun, teklifinizi hemen verin.',
-    subtitle: 'Operasyon merkeziniz, takvim ve boş dönüş optimizasyonu tek platformda.',
-    features: [
-      { icon: MapPin, text: 'Rotanıza eşleşen yeni iş bildirimleri' },
-      { icon: Truck, text: 'Boş dönüş rotanızı doldurun' },
-      { icon: MessageSquare, text: 'Meslektaşlarınızla Defter üzerinden bağlantı' },
-      { icon: Bell, text: 'Takvim, müsaitlik ve operasyon merkezi' },
-    ],
-    trust: ['7 gün ücretsiz dene', 'İstediğin an iptal', '81 ilde kullanıcı'],
-  },
-];
 
 export default function GirisPage() {
   const router = useRouter();
@@ -59,7 +32,32 @@ export default function GirisPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [slideIndex, setSlideIndex] = useState(0);
 
-  const slide = LEFT_SLIDES[slideIndex];
+  const isCarrier = tab === 'nakliyeci';
+
+  const slides = [
+    {
+      badge: 'Şeffaf & Güvenli',
+      title: 'Doğru fiyatı teklifleri kıyaslayarak belirleyin.',
+      desc: 'Bölgenizdeki yetki belgeli nakliyat firmalarından dakikalar içinde fiyat alın, sürpriz maliyetleri unutun.',
+      features: [
+        'Onaylı ve Puanlı Nakliyeciler',
+        'Komisyonsuz Doğrudan Anlaşma',
+        'Sigortalı ve Asansörlü Taşıma',
+      ],
+    },
+    {
+      badge: 'Nakliyeciler İçin',
+      title: 'Rotanızdaki yeni işleri ve dönüş yüklerini anında yakalayın.',
+      desc: '81 ilden açılan ev ve ofis taşıma taleplerine anında teklif verin, boş dönüşlerinizi kâra dönüştürün.',
+      features: [
+        'Anlık Güzergah ve İş Alarmları',
+        'Meslektaş Ağı: Nakliyeci Defteri',
+        'Doğrulanmış Kurumsal Profil',
+      ],
+    },
+  ];
+
+  const currentSlide = slides[slideIndex];
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,220 +89,292 @@ export default function GirisPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* LEFT PANEL */}
-      <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] bg-[#0A1128] flex-col justify-between p-10 xl:p-14 relative overflow-hidden">
+    <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center p-3 sm:p-6 lg:p-10">
+      {/* Outer Card Container */}
+      <div className="w-full max-w-5xl bg-white rounded-3xl sm:rounded-4xl shadow-xl shadow-slate-200/60 overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-slate-200/80">
         
-        {/* Subtle rota pattern */}
-        <div className="absolute inset-0 pointer-events-none opacity-5">
-          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
-                <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#F95700" strokeWidth="0.5"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-          </svg>
-        </div>
-
-        {/* Top: Logo */}
-        <div className="relative z-10">
-          <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#F95700] flex items-center justify-center">
-              <Truck className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-white font-black text-xl tracking-tight">nakliyem<span className="text-[#F95700]">.para</span></span>
-          </Link>
-        </div>
-
-        {/* Middle: Slide Content */}
-        <div className="relative z-10 space-y-8">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F95700]/20 border border-[#F95700]/30 text-[#F95700] text-xs font-black mb-4">
-              {slide.tag}
-            </div>
-            <h2 className="text-3xl xl:text-4xl font-black text-white leading-tight mb-3">
-              {slide.title}
-            </h2>
-            <p className="text-slate-400 font-medium leading-relaxed text-base">
-              {slide.subtitle}
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            {slide.features.map((f, i) => {
-              const Icon = f.icon;
-              return (
-                <div key={i} className="flex items-center gap-3 p-3.5 rounded-xl bg-white/5 border border-white/8 hover:bg-white/8 transition-colors">
-                  <div className="w-8 h-8 rounded-lg bg-[#F95700]/15 flex items-center justify-center shrink-0">
-                    <Icon className="w-4 h-4 text-[#F95700]" />
-                  </div>
-                  <span className="text-sm font-medium text-slate-300">{f.text}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="flex flex-wrap gap-4">
-            {slide.trust.map((t, i) => (
-              <div key={i} className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                <Check className="w-3.5 h-3.5 text-[#F95700]" />
-                <span>{t}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Bottom: Slide Nav */}
-        <div className="relative z-10 flex items-center gap-3">
-          <button
-            onClick={() => setSlideIndex(0)}
-            className={`w-2 h-2 rounded-full transition-all ${slideIndex === 0 ? 'bg-[#F95700] w-6' : 'bg-white/30'}`}
-          />
-          <button
-            onClick={() => setSlideIndex(1)}
-            className={`w-2 h-2 rounded-full transition-all ${slideIndex === 1 ? 'bg-[#F95700] w-6' : 'bg-white/30'}`}
-          />
-          <div className="ml-auto flex items-center gap-2">
-            <button
-              onClick={() => setSlideIndex(prev => Math.max(0, prev - 1))}
-              className="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:border-white/40 transition-all"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setSlideIndex(prev => Math.min(LEFT_SLIDES.length - 1, prev + 1))}
-              className="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:border-white/40 transition-all"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* RIGHT PANEL */}
-      <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 bg-[#F8FAFC]">
-        <div className="w-full max-w-sm">
+        {/* LEFT PANEL — Emlivo-inspired Soft & Elegant Visual Panel */}
+        <div className="lg:col-span-6 bg-gradient-to-br from-[#F4FDF7] via-[#F8FAFC] to-[#F1F5F9] p-6 sm:p-10 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-slate-100">
           
-          {/* Mobile Logo */}
-          <div className="flex items-center justify-center gap-2 mb-8 lg:hidden">
-            <div className="w-8 h-8 rounded-xl bg-[#F95700] flex items-center justify-center">
-              <Truck className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-black text-lg text-[#0A1128]">nakliyem<span className="text-[#F95700]">.para</span></span>
-          </div>
+          {/* Subtle geometric pattern */}
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#0A1128 1px, transparent 1px)', backgroundSize: '18px 18px' }} />
 
-          <h1 className="text-2xl font-black text-[#0A1128] mb-1">Giriş Yap</h1>
-          <p className="text-sm text-slate-500 font-medium mb-6">
-            Hesabınıza erişin — dakikalar içinde devam edin.
-          </p>
-
-          {/* Role Tabs */}
-          <div className="flex gap-1 bg-slate-200 rounded-xl p-1 mb-6">
-            <button
-              onClick={() => setTab('musteri')}
-              className={`flex-1 py-2 rounded-lg text-sm font-black transition-all ${tab === 'musteri' ? 'bg-white text-[#0A1128] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              Müşteri
-            </button>
-            <button
-              onClick={() => setTab('nakliyeci')}
-              className={`flex-1 py-2 rounded-lg text-sm font-black transition-all ${tab === 'nakliyeci' ? 'bg-white text-[#0A1128] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              Nakliyeci
-            </button>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            {errorMessage && (
-              <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold animate-fade-in">
-                {errorMessage}
+          {/* Top: Logo */}
+          <div className="relative z-10 flex items-center justify-between">
+            <Link href="/" className="inline-flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-[#F95700] flex items-center justify-center shadow-md shadow-orange-900/20">
+                <Truck className="w-5 h-5 text-white" />
               </div>
-            )}
+              <span className="font-black text-xl text-[#0A1128] tracking-tight">
+                nakliyem<span className="text-[#F95700]">.para</span>
+              </span>
+            </Link>
 
-            <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
-                E-posta
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="ornek@mail.com"
-                required
-                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-2.5 py-1 rounded-full flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Güvenli Giriş
+            </span>
+          </div>
+
+          {/* Center: Interactive Graphic Mockup (Emlivo style orbital network) */}
+          <div className="relative z-10 my-8 sm:my-10">
+            <div className="relative w-64 h-64 sm:w-72 sm:h-72 mx-auto flex items-center justify-center">
+              
+              {/* Outer Orbit Line */}
+              <div className="absolute inset-4 rounded-full border-2 border-dashed border-emerald-200/80 animate-[spin_60s_linear_infinite]" />
+
+              {/* Center Image Card with verified check */}
+              <div className="relative z-10 w-36 h-36 sm:w-40 sm:h-40 rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-white">
+                <img
+                  src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=500&auto=format&fit=crop&q=80"
+                  alt="Taşınma"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                <div className="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur-xs rounded-xl px-2 py-1 text-center shadow-xs">
+                  <span className="text-[10px] font-black text-slate-800 block leading-tight">İstanbul → Ankara</span>
+                  <span className="text-[9px] font-bold text-[#F95700]">3 Teklif Hazır</span>
+                </div>
+              </div>
+
+              {/* Orbiting Badge 1: Location */}
+              <div className="absolute top-2 left-8 bg-white rounded-2xl p-2.5 shadow-lg border border-slate-100 flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                <div className="w-6 h-6 rounded-lg bg-orange-50 text-[#F95700] flex items-center justify-center">
+                  <MapPin className="w-3.5 h-3.5" />
+                </div>
+                <span>Kadıköy</span>
+              </div>
+
+              {/* Orbiting Badge 2: Verified Shield */}
+              <div className="absolute bottom-3 right-6 bg-white rounded-2xl p-2.5 shadow-lg border border-slate-100 flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                </div>
+                <span>K3 Belgeli</span>
+              </div>
+
+              {/* Orbiting Badge 3: Rating */}
+              <div className="absolute top-6 right-4 bg-white rounded-2xl p-2 shadow-lg border border-slate-100 flex items-center gap-1 text-xs font-black text-amber-500">
+                <Star className="w-4 h-4 fill-amber-400" />
+                <span className="text-slate-800 text-[11px]">4.9 Puan</span>
+              </div>
+
+              {/* Orbiting Badge 4: Chat */}
+              <div className="absolute bottom-6 left-4 bg-white rounded-2xl p-2 shadow-lg border border-slate-100 text-blue-600">
+                <MessageSquare className="w-4 h-4" />
+              </div>
+            </div>
+
+            {/* Slider Content */}
+            <div className="text-center sm:text-left mt-4">
+              <span className="text-[11px] font-black text-emerald-700 uppercase tracking-wider bg-emerald-100/70 px-2.5 py-0.5 rounded-full inline-block mb-2">
+                {currentSlide.badge}
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128] leading-snug">
+                {currentSlide.title}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1.5 leading-relaxed">
+                {currentSlide.desc}
+              </p>
+            </div>
+
+            {/* Feature Pills */}
+            <div className="flex flex-wrap gap-2 mt-4 justify-center sm:justify-start">
+              {currentSlide.features.map((feat, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-1.5 bg-white border border-slate-200/80 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-700 shadow-2xs"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>{feat}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Slide Indicators */}
+          <div className="relative z-10 flex items-center justify-between pt-4 border-t border-slate-200/60">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSlideIndex(0)}
+                className={`h-2 rounded-full transition-all cursor-pointer ${slideIndex === 0 ? 'w-6 bg-[#F95700]' : 'w-2 bg-slate-300'}`}
+              />
+              <button
+                type="button"
+                onClick={() => setSlideIndex(1)}
+                className={`h-2 rounded-full transition-all cursor-pointer ${slideIndex === 1 ? 'w-6 bg-[#F95700]' : 'w-2 bg-slate-300'}`}
               />
             </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-black text-slate-700 uppercase tracking-wider">
-                  Şifre
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setSlideIndex(s => (s === 0 ? 1 : 0))}
+                className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setSlideIndex(s => (s === 1 ? 0 : 1))}
+                className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT PANEL — Fresh White Clean Form */}
+        <div className="lg:col-span-6 bg-white p-6 sm:p-10 lg:p-12 flex flex-col justify-center">
+          
+          <div className="max-w-md w-full mx-auto">
+            
+            {/* Header */}
+            <div className="mb-6 text-center sm:text-left">
+              <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">Giriş Yap</h1>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                Hesabınıza erişin, teklifleri ve operasyonunuzu yönetin.
+              </p>
+            </div>
+
+            {/* Quick Google Sign In */}
+            <button
+              type="button"
+              onClick={() => {
+                setEmail('demo@musteri.com');
+                setPassword('123456');
+              }}
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border-2 border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-bold transition-all shadow-2xs cursor-pointer mb-5"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+              </svg>
+              <span>Google ile Giriş Yap</span>
+            </button>
+
+            {/* Divider */}
+            <div className="relative flex items-center justify-center mb-5">
+              <div className="border-t border-slate-200 w-full" />
+              <span className="bg-white px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                veya e-posta ile
+              </span>
+            </div>
+
+            {/* Role Tabs */}
+            <div className="flex p-1 bg-slate-100 rounded-xl mb-5">
+              <button
+                type="button"
+                onClick={() => setTab('musteri')}
+                className={`flex-1 py-2 text-xs font-black rounded-lg transition-all cursor-pointer ${
+                  tab === 'musteri'
+                    ? 'bg-white text-[#0A1128] shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Evimi Taşıtacağım
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab('nakliyeci')}
+                className={`flex-1 py-2 text-xs font-black rounded-lg transition-all cursor-pointer ${
+                  tab === 'nakliyeci'
+                    ? 'bg-white text-[#0A1128] shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Nakliyeciyim
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleLogin} className="space-y-4">
+              {errorMessage && (
+                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold animate-fade-in flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                  {errorMessage}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                  E-posta Adresi
                 </label>
-                <Link href="/sifremi-unuttum" className="text-xs font-bold text-[#F95700] hover:underline">
-                  Şifremi Unuttum
-                </Link>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="ornek@mail.com"
+                    required
+                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                  />
+                </div>
               </div>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 pr-11 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                    Şifre
+                  </label>
+                  <Link href="/sifremi-unuttum" className="text-xs font-bold text-[#F95700] hover:underline">
+                    Şifremi Unuttum
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-11 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm py-3.5 px-4 rounded-xl shadow-lg shadow-orange-900/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+              >
+                <span>{loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}</span>
+                {!loading && <ArrowRight className="w-4 h-4" />}
+              </button>
+            </form>
+
+            {/* Bottom Links */}
+            <div className="mt-6 text-center space-y-3">
+              <p className="text-xs text-slate-500 font-medium">
+                Henüz hesabınız yok mu?{' '}
+                <Link href="/kayit" className="text-[#F95700] font-black hover:underline">
+                  Ücretsiz Kayıt Ol
+                </Link>
+              </p>
+
+              <div className="pt-2">
+                <Link href="/" className="text-[11px] font-bold text-slate-400 hover:text-slate-600 transition-colors">
+                  ← Ana sayfaya dön
+                </Link>
               </div>
             </div>
 
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="w-full font-black mt-2 shadow-lg shadow-orange-900/15"
-              disabled={loading}
-              rightIcon={loading ? undefined : <ArrowRight className="w-4 h-4" />}
-            >
-              {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-slate-500 font-medium">
-              Hesabınız yok mu?{' '}
-              <Link href="/kayit" className="text-[#F95700] font-black hover:underline">
-                Ücretsiz Kayıt Ol
-              </Link>
-            </p>
-          </div>
-
-          <div className="mt-8 flex items-center gap-2">
-            <div className="flex-1 h-px bg-slate-200" />
-            <span className="text-xs text-slate-400 font-medium">Güvenli & Şifreli</span>
-            <div className="flex-1 h-px bg-slate-200" />
-          </div>
-
-          <p className="mt-4 text-center text-[11px] text-slate-400 leading-relaxed">
-            Giriş yaparak{' '}
-            <Link href="/kullanim-kosullari" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">Kullanım Koşulları</Link>
-            {' '}ve{' '}
-            <Link href="/kvkk" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">KVKK Aydınlatma Metni</Link>
-            &apos;ni kabul etmiş olursunuz.
-          </p>
-
-          <div className="mt-6 text-center">
-            <Link href="/" className="text-xs text-slate-400 hover:text-slate-600 font-medium transition-colors">
-              ← Ana sayfaya dön
-            </Link>
           </div>
         </div>
+
       </div>
     </div>
   );

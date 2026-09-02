@@ -29,7 +29,8 @@ import {
   Sparkles,
   Award,
   Lock,
-  AlertTriangle
+  AlertTriangle,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -52,7 +53,8 @@ const HOME_SIZE_FILTERS = ['Tümü', '1+1', '2+1', '3+1', '4+1+'];
 export default function CarrierJobsPage() {
   const currentUser = db.getCurrentUser();
   const isCarrier = currentUser?.role === 'CARRIER';
-  const carrier = db.getCarriers()[0];
+  const carrier = db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) || db.getCarriers()[0];
+  const isApproved = carrier?.verificationStatus === 'APPROVED';
   const requests = db.getRequests();
 
   // Carrier subscription plan & offer checks
@@ -162,6 +164,16 @@ export default function CarrierJobsPage() {
     if (!currentUser || currentUser.role !== 'CARRIER') {
       setAuthActionPayload({ reqId: req.id, type: 'OFFER' });
       setAuthModalOpen(true);
+      return;
+    }
+
+    if (!isApproved) {
+      setPlanModalData({
+        title: '⚠️ Onaysız Profil — Teklif Verme Kilitli',
+        subtitle: 'Henüz firmamız tarafından doğrulanmış profil değilsiniz. Yüklediğiniz kimlik ve vergi levhası belgeleriniz inceleme aşamasındadır (12 saat içinde sonuçlandırılır). Onay verildikten sonra teklif verebilirsiniz.',
+        limitBadge: '12 Saat İçinde Sonuçlandırılır'
+      });
+      setPlanModalOpen(true);
       return;
     }
 
@@ -281,6 +293,24 @@ export default function CarrierJobsPage() {
             </button>
           </div>
         </div>
+
+        {/* Unverified Warning Banner (Spec requirement) */}
+        {isCarrier && !isApproved && (
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-900 flex items-start gap-3 shadow-xs">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h4 className="font-black text-sm text-amber-900">
+                ⚠️ Onaysız Profil — Henüz firmamız tarafından doğrulanmış profil değilsiniz
+              </h4>
+              <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                Yüklediğiniz kimlik ve vergi levhası evraklarınız inceleme aşamasındadır. <strong>12 saat içinde onay &amp; red durumunuz verilecektir.</strong> Talepleri inceleyebilirsiniz; ancak teklif verme ve iletişim haklarınız onay verildikten sonra açılacaktır.
+              </p>
+              <Link href="/app/carrier/profil" className="inline-block pt-1 text-xs font-black text-[#F95700] hover:underline">
+                Belgelerimi Görüntüle / Yeni Evrak Yükle →
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Expandable Search Input */}
         {isSearchOpen && (

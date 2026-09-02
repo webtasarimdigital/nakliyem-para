@@ -59,7 +59,17 @@ export default function AdminVerificationConsolePage() {
 
     setCarriers(db.getCarriers());
     setDocuments(db.getDocuments());
-    setSuccessNotice(`${selectedCarrier.companyName} başarıyla onaylandı ve 7 günlük ücretsiz denemesi aktifleştirildi.`);
+    setSuccessNotice(`${selectedCarrier.companyName} başarıyla onaylandı ve doğrulanmış rozeti aktifleştirildi.`);
+    setTimeout(() => setSuccessNotice(null), 4000);
+  };
+
+  const handleOverallReject = () => {
+    db.updateCarrier(selectedCarrier.id, {
+      verificationStatus: 'REJECTED'
+    });
+
+    setCarriers(db.getCarriers());
+    setSuccessNotice(`${selectedCarrier.companyName} başvurusu reddedildi.`);
     setTimeout(() => setSuccessNotice(null), 4000);
   };
 
@@ -195,12 +205,20 @@ export default function AdminVerificationConsolePage() {
           <Button
             variant="primary"
             size="lg"
-            className="w-full font-bold"
+            className="w-full font-bold cursor-pointer"
             onClick={handleOverallApprove}
             leftIcon={<ShieldCheck className="w-4 h-4" />}
           >
             Firmayı Onayla & Yayınla
           </Button>
+
+          <button
+            type="button"
+            onClick={handleOverallReject}
+            className="w-full py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold transition-colors cursor-pointer"
+          >
+            Başvuruyu Reddet
+          </button>
         </div>
       </div>
     </div>
