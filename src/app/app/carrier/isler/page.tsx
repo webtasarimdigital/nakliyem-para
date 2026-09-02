@@ -598,11 +598,11 @@ export default function CarrierJobsPage() {
                           onFocus={(e) => handleInputInteraction(req.id, e)}
                           onClick={(e) => handleInputInteraction(req.id, e)}
                           placeholder="Hemen teklifinizi yazın (TL)..."
-                          className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 border border-slate-200 rounded-xl focus:border-[#FFD200] focus:outline-none bg-white shadow-2xs"
+                          className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 border border-slate-200 rounded-xl focus:border-[#F95700] focus:outline-none bg-white shadow-2xs"
                         />
                         <button
                           type="submit"
-                          className="bg-[#FFD200] hover:bg-[#F5C400] text-black font-black text-xs sm:text-sm px-6 sm:px-8 py-2.5 rounded-xl shadow-xs shrink-0 cursor-pointer transition-colors"
+                          className="bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs sm:text-sm px-6 sm:px-8 py-2.5 rounded-xl shadow-md shadow-orange-950/20 shrink-0 cursor-pointer transition-all"
                         >
                           Gönder
                         </button>
@@ -860,7 +860,7 @@ export default function CarrierJobsPage() {
                   </span>
                   <button
                     onClick={() => setCustomerPhoneWarning(true)}
-                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs inline-flex items-center gap-1 shadow-sm cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs inline-flex items-center gap-1 shadow-sm cursor-pointer transition-colors"
                   >
                     <Lock className="w-3.5 h-3.5" />
                     <span>Numarayı Gör</span>
