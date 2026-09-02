@@ -177,6 +177,38 @@ export const SEED_DIGITAL_SERVICES: DigitalService[] = [
 // Seed Carriers
 export const SEED_CARRIERS: CarrierProfile[] = [
   {
+    id: 'carr_saycanlar',
+    userId: 'user_carr_saycanlar',
+    companyName: 'SAYCANLAR NAKLİYAT',
+    slug: 'saycanlar-nakliyat',
+    authorizedPersonName: 'Murat',
+    authorizedPersonSurname: 'Saycan',
+    phone: '0532 999 88 77',
+    whatsapp: '0532 999 88 77',
+    email: 'info@saycanlarnakliyat.com',
+    logoUrl: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=150&auto=format&fit=crop&q=80',
+    coverImageUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&auto=format&fit=crop&q=80',
+    shortBio: '2011 yılından bu yana profesyonel evden eve ve ofis taşımacılığı, sigortalı nakliyat ve asansörlü taşımacılık hizmetleri.',
+    city: 'İstanbul',
+    district: 'Esenler',
+    services: ['evden-eve', 'ofis-tasima', 'sehirler-arasi', 'mobil-asansor', 'depolama'],
+    serviceAreas: ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya'],
+    verificationStatus: 'APPROVED',
+    verificationBadges: {
+      identityVerified: true,
+      taxVerified: true,
+      transportPermitVerified: true,
+      elevatorVerified: true
+    },
+    planId: 'plan_gold',
+    rating: 4.9,
+    reviewCount: 58,
+    completedJobsCount: 240,
+    responseRatePercent: 99,
+    joinedAt: '2011-02-10T10:00:00Z',
+    createdAt: '2011-02-10T10:00:00Z'
+  },
+  {
     id: 'carr_bogazici',
     userId: 'user_carr_1',
     companyName: 'Boğaziçi Profesyonel Nakliyat',
@@ -607,6 +639,24 @@ export const SEED_REQUESTS: MovingRequest[] = [
 // Seed Offers for Request #26093
 export const SEED_OFFERS: Offer[] = [
   {
+    id: 'off_saycanlar',
+    requestId: 'req_26093',
+    carrierId: 'carr_saycanlar',
+    carrier: SEED_CARRIERS[0],
+    price: 25000,
+    isVatIncluded: true,
+    isPackagingIncluded: true,
+    isMobileElevatorIncluded: true,
+    isAssemblyIncluded: true,
+    isInsuranceIncluded: true,
+    estimatedDeliveryDuration: 'Aynı Gün',
+    validUntil: '2026-09-15',
+    notes: '25.000 TL teklif gönderdim. Özel patpat ambalajlama ve montaj dahil.',
+    status: 'PENDING',
+    createdAt: '2026-08-26T20:54:00Z',
+    updatedAt: '2026-08-26T20:54:00Z'
+  },
+  {
     id: 'off_1',
     requestId: 'req_26093',
     carrierId: 'carr_bogazici',
@@ -942,6 +992,24 @@ export const SEED_REVIEWS: Review[] = [
 // Seed Conversations
 export const SEED_CONVERSATIONS: Conversation[] = [
   {
+    id: 'conv_saycanlar',
+    participantIds: ['user_cust_1', 'user_carr_saycanlar'],
+    participantNames: {
+      'user_cust_1': 'Hakan Yavaş (Müşteri)',
+      'user_carr_saycanlar': 'SAYCANLAR NAKLİYAT'
+    },
+    contextType: 'REQUEST',
+    contextId: 'req_26093',
+    contextTitle: '#26093 · Esenler, İstanbul → Bakırköy, İstanbul',
+    lastMessage: '25.000 TL teklif gönderdim',
+    lastMessageAt: '2026-08-26T20:54:00Z',
+    unreadCounts: {
+      'user_cust_1': 1,
+      'user_carr_saycanlar': 0
+    },
+    createdAt: '2026-08-26T20:54:00Z'
+  },
+  {
     id: 'conv_1',
     participantIds: ['user_cust_1', 'user_carr_1'],
     participantNames: {
@@ -981,6 +1049,39 @@ export const SEED_CONVERSATIONS: Conversation[] = [
 
 // Seed Messages
 export const SEED_MESSAGES: ConversationMessage[] = [
+  {
+    id: 'msg_saycanlar_1',
+    conversationId: 'conv_saycanlar',
+    senderId: 'user_carr_saycanlar',
+    senderName: 'SAYCANLAR NAKLİYAT',
+    senderRole: 'CARRIER',
+    content: '#26093 · Esenler, İstanbul → Bakırköy, İstanbul\n· Evden Eve Nakliyat · 25.000 TL teklif',
+    isOfferCard: true,
+    offerData: {
+      price: 25000,
+      requestId: 'req_26093'
+    },
+    createdAt: '2026-08-26T20:54:00Z'
+  },
+  {
+    id: 'msg_saycanlar_2',
+    conversationId: 'conv_saycanlar',
+    senderId: 'user_carr_saycanlar',
+    senderName: 'SAYCANLAR NAKLİYAT',
+    senderRole: 'CARRIER',
+    content: '25.000 TL teklif gönderdim',
+    createdAt: '2026-08-26T20:54:30Z'
+  },
+  {
+    id: 'msg_saycanlar_3',
+    conversationId: 'conv_saycanlar',
+    senderId: 'user_carr_saycanlar',
+    senderName: 'SAYCANLAR NAKLİYAT',
+    senderRole: 'CARRIER',
+    content: '',
+    mediaUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&auto=format&fit=crop&q=80',
+    createdAt: '2026-08-26T20:55:00Z'
+  },
   {
     id: 'msg_1',
     conversationId: 'conv_1',
@@ -1330,6 +1431,71 @@ class MockDatabase {
     if (req) {
       this.updateRequest(req.id, { offersCount: req.offersCount + 1 });
     }
+
+    // Auto-create chat & message to customer (Image media_1788383028254)
+    const customerId = req?.customerId || 'user_cust_1';
+    const carrier = this.getCarriers().find(c => c.id === offer.carrierId) || offer.carrier;
+    const carrierUserId = carrier?.userId || `user_${offer.carrierId}`;
+    const carrierName = carrier?.companyName || 'Nakliye Firması';
+
+    const conversations = this.getConversations();
+    let conv = conversations.find(c => 
+      c.contextId === offer.requestId && 
+      c.participantIds.includes(carrierUserId)
+    );
+
+    const now = new Date().toISOString();
+    const timeStr = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+    if (!conv) {
+      conv = {
+        id: `conv_${Date.now()}`,
+        participantIds: [customerId, carrierUserId],
+        participantNames: {
+          [customerId]: req?.customerName || 'Müşteri',
+          [carrierUserId]: carrierName
+        },
+        contextType: 'REQUEST',
+        contextId: offer.requestId,
+        contextTitle: `${req?.requestCode || ''} · ${req?.originDistrict || req?.originCity || ''} → ${req?.destinationDistrict || req?.destinationCity || ''}`,
+        lastMessage: `${offer.price.toLocaleString('tr-TR')} TL teklif gönderdim`,
+        lastMessageAt: now,
+        unreadCounts: {
+          [customerId]: 1,
+          [carrierUserId]: 0
+        },
+        createdAt: now
+      };
+      this.setItem('conversations', [conv, ...conversations]);
+    }
+
+    const offerCardMsg: ConversationMessage = {
+      id: `msg_${Date.now()}_1`,
+      conversationId: conv.id,
+      senderId: carrierUserId,
+      senderName: carrierName,
+      senderRole: 'CARRIER',
+      content: `${req?.requestCode || ''} · ${req?.originDistrict || ''}, ${req?.originCity || ''} → ${req?.destinationDistrict || ''}, ${req?.destinationCity || ''}\n· Evden Eve Nakliyat · ${offer.price.toLocaleString('tr-TR')} TL teklif`,
+      isOfferCard: true,
+      offerData: {
+        price: offer.price,
+        requestId: offer.requestId,
+        id: offer.id
+      },
+      createdAt: now
+    };
+
+    const textMsg: ConversationMessage = {
+      id: `msg_${Date.now()}_2`,
+      conversationId: conv.id,
+      senderId: carrierUserId,
+      senderName: carrierName,
+      senderRole: 'CARRIER',
+      content: `${offer.price.toLocaleString('tr-TR')} TL teklif gönderdim`,
+      createdAt: new Date(Date.now() + 1000).toISOString()
+    };
+
+    this.setItem('messages', [...this.getAllMessages(), offerCardMsg, textMsg]);
   }
 
   updateOffer(id: string, updates: Partial<Offer>): void {
@@ -1521,8 +1687,12 @@ class MockDatabase {
     return this.getConversations().find(c => c.id === id);
   }
 
+  getAllMessages(): ConversationMessage[] {
+    return this.getItem<ConversationMessage[]>('messages', SEED_MESSAGES);
+  }
+
   getMessages(conversationId: string): ConversationMessage[] {
-    const all = this.getItem<ConversationMessage[]>('messages', SEED_MESSAGES);
+    const all = this.getAllMessages();
     return all.filter(m => m.conversationId === conversationId).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }
 

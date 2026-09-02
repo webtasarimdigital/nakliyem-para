@@ -259,77 +259,99 @@ export default function NakliyeciDefteriPage() {
           ))}
         </div>
 
-        {/* Inline Publishing Card (Image 4 exact) */}
-        <div className="bg-white rounded-3xl border-2 border-slate-200 p-4 sm:p-5 shadow-xs mb-6 space-y-3">
-          {/* Ban Warning Banner */}
-          <div className="p-3 px-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-            <span>⚠️ Uyarı: Konu dışı veya yanıltıcı paylaşım yapmak süresiz ban sebebidir.</span>
-          </div>
-
-          {publishSuccess && (
-            <div className="p-3 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2 animate-fade-in">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>İlanınız Defter&apos;e başarıyla eklendi!</span>
+        {/* Customer View in Defter: Informative Alert (Customer doesn't publish in borsa) */}
+        {currentUser?.role === 'CUSTOMER' ? (
+          <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-orange-50 text-[#F95700] flex items-center justify-center shrink-0 shadow-2xs">
+                <BookOpen className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-black text-sm text-[#0A1128]">Nakliyeci Defteri Canlı Borsası</h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5 max-w-xl leading-relaxed">
+                  Burası nakliyecilerin dönüş yükü ve boş araç paylaştığı iş borsasıdır. Evinizi veya ofisinizi taşıtmak için hemen ücretsiz teklif toplayabilirsiniz.
+                </p>
+              </div>
             </div>
-          )}
+            <Link href="/teklif-al" className="shrink-0">
+              <Button variant="primary" size="md" className="font-black text-xs px-5 py-2.5 rounded-xl shadow-md shadow-orange-900/15">
+                Teklif Al →
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          /* Inline Publishing Card (Image 4 exact) */
+          <div className="bg-white rounded-3xl border-2 border-slate-200 p-4 sm:p-5 shadow-xs mb-6 space-y-3">
+            {/* Ban Warning Banner */}
+            <div className="p-3 px-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>⚠️ Uyarı: Konu dışı veya yanıltıcı paylaşım yapmak süresiz ban sebebidir.</span>
+            </div>
 
-          <form onSubmit={handleInlinePublish} className="space-y-3">
-            <textarea
-              value={inlinePostContent}
-              onChange={(e) => {
-                setInlinePostContent(e.target.value);
-                if (inlineError) setInlineError('');
-              }}
-              rows={3}
-              placeholder="En az 10 kelime veya 25 karakter yazın..."
-              className="w-full p-4 rounded-2xl border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none resize-none bg-slate-50/50"
-            />
-
-            {/* Inline Word Count Error Banner (right above buttons) */}
-            {inlineError && (
-              <div className="p-2.5 px-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center justify-between gap-2 animate-fade-in">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-                  <span>{inlineError}</span>
-                </div>
-                <span className="text-[11px] font-black text-red-600 shrink-0 bg-red-100 px-2 py-0.5 rounded-md">
-                  {inlinePostContent.trim().split(/\s+/).filter(Boolean).length} / 10 kelime
-                </span>
+            {publishSuccess && (
+              <div className="p-3 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2 animate-fade-in">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>İlanınız Defter&apos;e başarıyla eklendi!</span>
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {[
-                  { id: 'EMPTY_VEHICLE', label: '🚛 Boş Araç' },
-                  { id: 'CARGO_JOB', label: '📦 Yük / İş' },
-                  { id: 'REQUEST', label: '📋 Talep' },
-                ].map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setInlinePostCategory(cat.id as DefterPostCategory)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                      inlinePostCategory === cat.id
-                        ? 'bg-slate-900 text-white'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
+            <form onSubmit={handleInlinePublish} className="space-y-3">
+              <textarea
+                value={inlinePostContent}
+                onChange={(e) => {
+                  setInlinePostContent(e.target.value);
+                  if (inlineError) setInlineError('');
+                }}
+                rows={3}
+                placeholder="En az 10 kelime veya 25 karakter yazın..."
+                className="w-full p-4 rounded-2xl border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none resize-none bg-slate-50/50"
+              />
 
-              <button
-                type="submit"
-                className="bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs sm:text-sm px-8 py-2.5 rounded-xl shadow-md shadow-orange-950/20 shrink-0 cursor-pointer transition-all"
-              >
-                Yayınla
-              </button>
-            </div>
-          </form>
-        </div>
+              {/* Inline Word Count Error Banner (right above buttons) */}
+              {inlineError && (
+                <div className="p-2.5 px-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center justify-between gap-2 animate-fade-in">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                    <span>{inlineError}</span>
+                  </div>
+                  <span className="text-[11px] font-black text-red-600 shrink-0 bg-red-100 px-2 py-0.5 rounded-md">
+                    {inlinePostContent.trim().split(/\s+/).filter(Boolean).length} / 10 kelime
+                  </span>
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {[
+                    { id: 'EMPTY_VEHICLE', label: '🚛 Boş Araç' },
+                    { id: 'CARGO_JOB', label: '📦 Yük / İş' },
+                    { id: 'REQUEST', label: '📋 Talep' },
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setInlinePostCategory(cat.id as DefterPostCategory)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                        inlinePostCategory === cat.id
+                          ? 'bg-slate-900 text-white'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="submit"
+                  className="bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs sm:text-sm px-8 py-2.5 rounded-xl shadow-md shadow-orange-950/20 shrink-0 cursor-pointer transition-all"
+                >
+                  Yayınla
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* ── 3. SINGLE CLEAN CATEGORY FILTER TABS (Image 4 exact) ──────── */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-6 no-scrollbar">

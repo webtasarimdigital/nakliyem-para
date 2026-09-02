@@ -18,11 +18,13 @@ import {
   Clock,
   Info,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { db } from '@/lib/data/mock-db';
+import { CustomerSidebar } from '@/components/layout/CustomerSidebar';
 import { Conversation, ConversationMessage, Offer } from '@/types';
 
 function CustomerMessagesContent() {
@@ -100,9 +102,17 @@ function CustomerMessagesContent() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      
-      {/* Header */}
+    <div className="min-h-screen bg-[#F8FAFC] py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          
+          <div className="lg:col-span-3">
+            <CustomerSidebar activeTab="messages" />
+          </div>
+
+          <main className="lg:col-span-9 space-y-6">
+            
+            {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">Mesajlar &amp; Sohbet</h1>
@@ -239,8 +249,99 @@ function CustomerMessagesContent() {
                 <span className="text-slate-400">Uçtan uca güvenli sohbet</span>
               </div>
 
+              {/* Profile Summary Card inside chat (Image media_1788383028254 exact) */}
+              <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs text-center space-y-3 max-w-md mx-auto my-2">
+                <div className="relative mx-auto w-16 h-16 rounded-full p-1 bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-600 shadow-md">
+                  <div className="w-full h-full rounded-full bg-[#0A1128] text-white flex items-center justify-center font-black text-base">
+                    {activeCarrier.companyName.slice(0, 2).toUpperCase()}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-black text-base text-slate-900 leading-tight">
+                    {activeCarrier.companyName}
+                  </h3>
+                  <p className="text-[11px] text-slate-400 font-bold mt-0.5">
+                    Şubat 2011 katıldı
+                  </p>
+                  <div className="inline-flex items-center gap-1 mt-1 text-xs font-black text-amber-600 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60">
+                    <CheckCircle2 className="w-3.5 h-3.5 fill-amber-500 text-white" />
+                    <span>Altın Üye</span>
+                  </div>
+                </div>
+
+                {/* 3 Stats Columns */}
+                <div className="grid grid-cols-3 divide-x divide-slate-100 py-2 border-y border-slate-100">
+                  <div>
+                    <span className="font-black text-base text-slate-900 block">{activeCarrier.reviewCount || 58}</span>
+                    <span className="text-[10px] font-bold text-slate-400">Paylaşım</span>
+                  </div>
+                  <div>
+                    <span className="font-black text-base text-slate-900 block">2</span>
+                    <span className="text-[10px] font-bold text-slate-400">Yük/İş</span>
+                  </div>
+                  <div>
+                    <span className="font-black text-base text-slate-900 block">Yeni</span>
+                    <span className="text-[10px] font-bold text-slate-400">Yorum</span>
+                  </div>
+                </div>
+
+                <div>
+                  <Link
+                    href={`/firma/${activeCarrier.slug}`}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-2xs"
+                  >
+                    <span>Firma Sayfasını Göster</span>
+                    <ChevronRight className="w-3 h-3 text-slate-400" />
+                  </Link>
+                </div>
+              </div>
+
               {messages.map((msg) => {
                 const isMe = msg.senderRole === 'CUSTOMER';
+
+                if (msg.isOfferCard) {
+                  return (
+                    <div key={msg.id} className="flex justify-start my-2">
+                      <div className="bg-orange-50/90 border-l-4 border-[#F95700] rounded-2xl rounded-tl-sm p-4 max-w-[85%] sm:max-w-[75%] shadow-xs space-y-1.5">
+                        <div className="flex items-center gap-1.5 text-xs font-black text-[#F95700]">
+                          <FileText className="w-4 h-4" />
+                          <span>Taşınma Talebi</span>
+                        </div>
+                        <p className="text-xs sm:text-sm font-bold text-slate-800 leading-relaxed whitespace-pre-line">
+                          {msg.content}
+                        </p>
+                        <div className="text-right">
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                if (msg.mediaUrl) {
+                  return (
+                    <div key={msg.id} className="flex justify-start my-2">
+                      <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-sm p-2 max-w-[70%] shadow-xs space-y-1">
+                        <div className="rounded-xl overflow-hidden bg-slate-100">
+                          <img
+                            src={msg.mediaUrl}
+                            alt="Kartvizit veya Eşya Görseli"
+                            className="w-full h-44 object-cover"
+                          />
+                        </div>
+                        <div className="text-right px-1">
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <div
                     key={msg.id}
@@ -312,6 +413,9 @@ function CustomerMessagesContent() {
             <p className="text-xs text-slate-400">Teklif veren nakliyeciler ile mesajlaşmak için soldan bir firma seçin.</p>
           </div>
         )}
+      </div>
+          </main>
+        </div>
       </div>
     </div>
   );

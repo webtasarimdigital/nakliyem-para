@@ -125,7 +125,7 @@ export const Navbar: React.FC = () => {
             className={`px-3 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.includes('talepler') || pathname?.includes('isler') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
           >
             <FileText className="w-4 h-4 text-[#F95700] shrink-0" />
-            Talepler
+            {isCustomer ? 'Taleplerim' : 'Talepler'}
           </Link>
 
           {/* Clean 'Teklif Al' without orange background per user request */}
@@ -137,13 +137,15 @@ export const Navbar: React.FC = () => {
             Teklif Al
           </Link>
 
-          <Link
-            href="/pazaryeri"
-            className={`px-3 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.startsWith('/pazaryeri') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
-          >
-            <ShoppingBag className="w-4 h-4 text-[#F95700] shrink-0" />
-            Pazaryeri
-          </Link>
+          {!isCustomer && (
+            <Link
+              href="/pazaryeri"
+              className={`px-3 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.startsWith('/pazaryeri') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
+            >
+              <ShoppingBag className="w-4 h-4 text-[#F95700] shrink-0" />
+              Pazaryeri
+            </Link>
+          )}
         </nav>
 
         {/* Right: Auth Profile or Login/Register */}
@@ -342,9 +344,9 @@ export const Navbar: React.FC = () => {
           <nav className="space-y-1">
             {[
               { href: isCarrier ? '/app/carrier/defter' : '/nakliyeci-defteri', label: 'Defter', icon: <BookOpen className="w-4 h-4 text-[#F95700]" /> },
-              { href: isCarrier ? '/app/carrier/isler' : isCustomer ? '/app/customer/taleplerim' : '/talepler', label: 'Talepler', icon: <FileText className="w-4 h-4 text-[#F95700]" /> },
+              { href: isCarrier ? '/app/carrier/isler' : isCustomer ? '/app/customer/taleplerim' : '/talepler', label: isCustomer ? 'Taleplerim' : 'Talepler', icon: <FileText className="w-4 h-4 text-[#F95700]" /> },
               { href: '/teklif-al', label: 'Teklif Al', icon: <Truck className="w-4 h-4 text-[#F95700]" /> },
-              { href: '/pazaryeri', label: 'Pazaryeri', icon: <ShoppingBag className="w-4 h-4 text-[#F95700]" /> },
+              ...(!isCustomer ? [{ href: '/pazaryeri', label: 'Pazaryeri', icon: <ShoppingBag className="w-4 h-4 text-[#F95700]" /> }] : []),
             ].map(link => (
               <Link
                 key={link.href}

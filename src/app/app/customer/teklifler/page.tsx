@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { RouteDisplay } from '@/components/ui/RouteDisplay';
 import { db } from '@/lib/data/mock-db';
+import { CustomerSidebar } from '@/components/layout/CustomerSidebar';
+import { LiveOfferChatModal } from '@/components/ui/LiveOfferChatModal';
 import { Offer } from '@/types';
 
 const CRITERIA = [
@@ -49,6 +51,13 @@ export default function CustomerOffersPage() {
   const [successOffer, setSuccessOffer] = useState<Offer | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'LIST' | 'TABLE'>('LIST');
+  const [liveChatOpen, setLiveChatOpen] = useState(false);
+  const [chatData, setChatData] = useState({
+    carrierName: 'SAYCANLAR NAKLİYAT',
+    carrierSlug: 'saycanlar-nakliyat',
+    requestId: activeReq?.requestCode || '#26093',
+    price: 25000
+  });
 
   const sorted = [...offers].sort((a, b) => {
     if (sortBy === 'price') return a.price - b.price;
@@ -92,8 +101,13 @@ export default function CustomerOffersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div className="min-h-screen bg-[#F8FAFC] py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          <div className="lg:col-span-3">
+            <CustomerSidebar activeTab="offers" />
+          </div>
+          <div className="lg:col-span-9 space-y-6">
 
         {/* Header */}
         <div className="mb-6">
@@ -285,11 +299,22 @@ export default function CustomerOffersPage() {
                               Numarayı Gör
                             </Button>
                           )}
-                          <Link href="/app/customer/mesajlar">
-                            <Button variant="outline" size="md" className="font-bold" leftIcon={<MessageSquare className="w-4 h-4" />}>
-                              Mesaj
-                            </Button>
-                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setChatData({
+                                carrierName: offer.carrier.companyName,
+                                carrierSlug: offer.carrier.slug,
+                                requestId: activeReq?.requestCode || '#26093',
+                                price: offer.price
+                              });
+                              setLiveChatOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                          >
+                            <MessageSquare className="w-4 h-4 text-[#F95700]" />
+                            <span>Mesajlaş</span>
+                          </button>
                         </>
                       ) : (
                         <div className="flex items-center gap-2">
@@ -438,6 +463,19 @@ export default function CustomerOffersPage() {
           </div>
         )}
       </Modal>
+
+      {/* Live Offer Chat Modal (Image media_1788383028254 exact) */}
+      <LiveOfferChatModal
+        isOpen={liveChatOpen}
+        onClose={() => setLiveChatOpen(false)}
+        carrierName={chatData.carrierName}
+        carrierSlug={chatData.carrierSlug}
+        requestId={chatData.requestId}
+        offerPrice={chatData.price}
+      />
+
+        </div>
+      </div>
     </div>
   );
 }
