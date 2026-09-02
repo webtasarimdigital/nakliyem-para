@@ -212,24 +212,24 @@ function GirisContent() {
           {/* Middle: Visual Interactive Card */}
           <div className="relative z-10 my-8">
             
-            <div className="p-4 sm:p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-xl space-y-3">
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-lg space-y-3">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-300">Örnek Canlı Teklif</span>
-                <span className="text-[11px] font-black text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-md">
+                <span className="font-bold text-slate-600">Örnek Canlı Teklif</span>
+                <span className="text-[11px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
                   En Uygun
                 </span>
               </div>
 
               <div className="flex items-center justify-between pt-1">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-[#F95700] flex items-center justify-center font-black text-xs">
+                  <div className="w-8 h-8 rounded-xl bg-orange-100 text-[#F95700] flex items-center justify-center font-black text-xs">
                     🚚
                   </div>
                   <div>
-                    <h4 className="text-xs font-black text-white">Boğaziçi Nakliyat</h4>
-                    <div className="flex items-center text-amber-400 text-[10px] gap-0.5">
+                    <h4 className="text-xs font-black text-[#0A1128]">Boğaziçi Nakliyat</h4>
+                    <div className="flex items-center text-amber-500 text-[10px] gap-0.5">
                       <Star className="w-3 h-3 fill-current" />
-                      <span className="font-bold">4.9</span>
+                      <span className="font-bold text-slate-800">4.9</span>
                       <span className="text-slate-400">(128)</span>
                     </div>
                   </div>
@@ -240,22 +240,22 @@ function GirisContent() {
                 </div>
               </div>
 
-              <div className="text-[11px] text-slate-300 flex items-center justify-between pt-2 border-t border-white/10">
+              <div className="text-[11px] text-slate-600 flex items-center justify-between pt-2 border-t border-slate-100">
                 <span>Kadıköy → Çankaya (3+1)</span>
-                <span className="text-slate-400">Sigorta & Asansör Dahil</span>
+                <span className="text-slate-400 font-medium">Sigorta & Asansör Dahil</span>
               </div>
             </div>
 
             {/* Slider Content */}
             <div className="mt-6 space-y-2">
-              <div className="inline-flex items-center gap-1.5 text-xs font-black text-[#F95700] bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
+              <div className="inline-flex items-center gap-1.5 text-xs font-black text-[#F95700] bg-orange-100/70 px-3 py-1 rounded-full border border-orange-200">
                 <Sparkles className="w-3 h-3" />
                 <span>{currentSlide.badge}</span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-white leading-tight">
+              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128] leading-tight">
                 {currentSlide.title}
               </h2>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
                 {currentSlide.desc}
               </p>
             </div>
@@ -265,9 +265,9 @@ function GirisContent() {
               {currentSlide.features.map((feat, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-[10px] font-semibold text-slate-200"
+                  className="flex items-center gap-1.5 bg-white border border-slate-200/80 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-700 shadow-2xs"
                 >
-                  <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   <span>{feat}</span>
                 </div>
               ))}
@@ -275,17 +275,17 @@ function GirisContent() {
           </div>
 
           {/* Slide Indicators */}
-          <div className="relative z-10 flex items-center justify-between pt-6 border-t border-white/10">
+          <div className="relative z-10 flex items-center justify-between pt-6 border-t border-slate-200/80">
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setSlideIndex(0)}
-                className={`h-1.5 rounded-full transition-all cursor-pointer ${slideIndex === 0 ? 'w-8 bg-[#F95700]' : 'w-4 bg-white/20'}`}
+                className={`h-1.5 rounded-full transition-all cursor-pointer ${slideIndex === 0 ? 'w-8 bg-[#F95700]' : 'w-4 bg-slate-300'}`}
               ></button>
               <button
                 type="button"
                 onClick={() => setSlideIndex(1)}
-                className={`h-1.5 rounded-full transition-all cursor-pointer ${slideIndex === 1 ? 'w-8 bg-[#F95700]' : 'w-4 bg-white/20'}`}
+                className={`h-1.5 rounded-full transition-all cursor-pointer ${slideIndex === 1 ? 'w-8 bg-[#F95700]' : 'w-4 bg-slate-300'}`}
               ></button>
             </div>
           </div>
