@@ -117,12 +117,16 @@ export default function NakliyeciDefteriPage() {
 
   const [inlinePostContent, setInlinePostContent] = useState('');
   const [inlinePostCategory, setInlinePostCategory] = useState<DefterPostCategory>('EMPTY_VEHICLE');
+  const [inlineError, setInlineError] = useState('');
   const [publishSuccess, setPublishSuccess] = useState(false);
 
   const handleInlinePublish = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inlinePostContent || inlinePostContent.trim().length < 10) {
-      alert('Lütfen en az 10 karakter yazın.');
+    setInlineError('');
+
+    const words = inlinePostContent.trim().split(/\s+/).filter(Boolean);
+    if (words.length < 10) {
+      setInlineError('Lütfen ilanınız hakkında en az 10 kelime detaylı bilgi yazınız.');
       return;
     }
 
@@ -233,16 +237,6 @@ export default function NakliyeciDefteriPage() {
                 Boş araç, dönüş yükü ve kiralık mobil asansör paylaşım ağı. Doğrudan telefonla iletişim.
               </p>
             </div>
-
-            <Button
-              variant="primary"
-              size="md"
-              className="font-black text-xs sm:text-sm px-5 py-2.5 rounded-2xl shadow-md shadow-orange-900/15 shrink-0 self-start sm:self-auto cursor-pointer"
-              leftIcon={<Plus className="w-4 h-4 stroke-[3]" />}
-              onClick={handleOpenComposer}
-            >
-              + Yeni İlan Bırak
-            </Button>
           </div>
         </div>
 
@@ -283,11 +277,27 @@ export default function NakliyeciDefteriPage() {
           <form onSubmit={handleInlinePublish} className="space-y-3">
             <textarea
               value={inlinePostContent}
-              onChange={(e) => setInlinePostContent(e.target.value)}
+              onChange={(e) => {
+                setInlinePostContent(e.target.value);
+                if (inlineError) setInlineError('');
+              }}
               rows={3}
-              placeholder="En az 25 karakter yazın..."
-              className="w-full p-4 rounded-2xl border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#FFD200] focus:outline-none resize-none bg-slate-50/50"
+              placeholder="En az 10 kelime veya 25 karakter yazın..."
+              className="w-full p-4 rounded-2xl border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none resize-none bg-slate-50/50"
             />
+
+            {/* Inline Word Count Error Banner (right above buttons) */}
+            {inlineError && (
+              <div className="p-2.5 px-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center justify-between gap-2 animate-fade-in">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                  <span>{inlineError}</span>
+                </div>
+                <span className="text-[11px] font-black text-red-600 shrink-0 bg-red-100 px-2 py-0.5 rounded-md">
+                  {inlinePostContent.trim().split(/\s+/).filter(Boolean).length} / 10 kelime
+                </span>
+              </div>
+            )}
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -313,7 +323,7 @@ export default function NakliyeciDefteriPage() {
 
               <button
                 type="submit"
-                className="bg-[#FFD200] hover:bg-[#F5C400] text-black font-black text-xs sm:text-sm px-8 py-2.5 rounded-xl shadow-xs shrink-0 cursor-pointer transition-colors"
+                className="bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs sm:text-sm px-8 py-2.5 rounded-xl shadow-md shadow-orange-950/20 shrink-0 cursor-pointer transition-all"
               >
                 Yayınla
               </button>

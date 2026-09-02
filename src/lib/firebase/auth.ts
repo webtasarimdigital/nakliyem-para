@@ -3,6 +3,8 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
   User as FirebaseUser 
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
@@ -135,5 +137,56 @@ export async function loginWithFirebase(email: string, password: string): Promis
 export async function logoutFirebase(): Promise<void> {
   if (isFirebaseConfigured() && auth) {
     await signOut(auth);
+  }
+}
+
+/**
+ * Sign in with Google Popup via Firebase
+ */
+export async function loginWithGoogleFirebase(targetRole: UserRole = 'CUSTOMER'): Promise<{ user: User | null; error: string | null }> {
+  if (!isFirebaseConfigured() || !auth || !db) {
+    return { user: null, error: 'Firebase yapılandırması eksik.' };
+  }
+
+  try {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    const result = await signInWithPopup(auth, provider);
+    const fbUser = result.user;
+
+    const userDocRef = doc(db, 'users', fbUser.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    let userProfile: User;
+    if (userDoc.exists()) {
+      userProfile = userDoc.data() as User;
+    } else {
+      userProfile = {
+        id: fbUser.uid,
+        email: fbUser.email || '',
+        phone: fbUser.phoneNumber || '',
+        role: targetRole,
+        fullName: fbUser.displayName || 'Google Kullanıcısı',
+        createdAt: new Date().toISOString(),
+      };
+      await setDoc(userDocRef, {
+        ...userProfile,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
+
+    return { user: userProfile, error: null };
+  } catch (err: any) {
+    if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+      return { user: null, error: null };
+    }
+    if (err.code === 'auth/popup-blocked') {
+      return { user: null, error: 'Tarayıcınız Google açılır penceresini (popup) engelledi. Lütfen izin verin.' };
+    }
+    if (err.code === 'auth/operation-not-allowed') {
+      return { user: null, error: 'Firebase konsolunda Google Giriş Sağlayıcısı henüz etkinleştirilmemiş.' };
+    }
+    return { user: null, error: err.message || 'Google ile giriş başarısız oldu.' };
   }
 }

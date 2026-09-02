@@ -128,17 +128,8 @@ export default function SifremiUnuttumPage() {
           {/* Subtle Grid / Pattern */}
           <div className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
 
-          {/* Top: Logo */}
-          <div className="relative z-10 flex items-center justify-between">
-            <Link href="/" className="inline-flex items-center gap-2.5 group">
-              <div className="w-10 h-10 rounded-2xl bg-[#F95700] flex items-center justify-center shadow-lg shadow-orange-950/40 group-hover:scale-105 transition-all">
-                <Truck className="w-5 h-5 text-white stroke-[2.5]" />
-              </div>
-              <span className="font-black text-xl tracking-tight text-white">
-                NAKLİYEM<span className="text-[#F95700]">PARA</span>
-              </span>
-            </Link>
-
+          {/* Top Badge */}
+          <div className="relative z-10 flex items-center justify-end">
             <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-white/10 text-white/90 border border-white/10">
               Güvenli Hesap Kurtarma
             </span>
