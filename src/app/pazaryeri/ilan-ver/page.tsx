@@ -63,9 +63,11 @@ export default function IlanVerPage() {
   const isVehicle = ['KAMYON', 'KAMYONET', 'CEKICI', 'DORSE'].includes(form.category);
 
   const [validationError, setValidationError] = useState('');
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   React.useEffect(() => {
     const u = db.getCurrentUser();
+    setCurrentUser(u);
     if (u) {
       const defaultName = u.fullName || (u as any).name || (u.role === 'CARRIER' ? 'Mahmut Nakliyat' : 'Ömer Faruk');
       const defaultPhone = u.phone || '0532 555 00 00';
@@ -236,11 +238,13 @@ export default function IlanVerPage() {
           </p>
         </div>
 
-        {/* Ban Warning Banner */}
-        <div className="mb-6 p-3.5 px-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2.5 shadow-2xs">
-          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-          <span>⚠️ Uyarı: Konu dışı veya yanıltıcı ilan vermek süresiz ban sebebidir.</span>
-        </div>
+        {/* Ban Warning Banner (Only visible when logged in) */}
+        {currentUser && (
+          <div className="mb-6 p-3.5 px-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2.5 shadow-2xs">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>⚠️ Uyarı: Konu dışı veya yanıltıcı ilan vermek süresiz ban sebebidir.</span>
+          </div>
+        )}
 
         {/* Progress Steps */}
         <div className="flex items-center mb-8 bg-white rounded-2xl border border-slate-200 p-3 shadow-xs">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Plus, 
@@ -222,6 +222,19 @@ const CATEGORIES = [
 ];
 
 export default function PazaryeriPage() {
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    setCurrentUser(db.getCurrentUser());
+    const handleAuth = () => setCurrentUser(db.getCurrentUser());
+    window.addEventListener('auth-changed', handleAuth);
+    window.addEventListener('storage', handleAuth);
+    return () => {
+      window.removeEventListener('auth-changed', handleAuth);
+      window.removeEventListener('storage', handleAuth);
+    };
+  }, []);
+
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
@@ -348,11 +361,13 @@ export default function PazaryeriPage() {
               ))}
             </div>
 
-            {/* Ban Warning Banner */}
-            <div className="mb-4 p-3.5 px-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2.5 shadow-2xs">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>⚠️ Uyarı: Konu dışı veya yanıltıcı paylaşım yapmak süresiz ban sebebidir.</span>
-            </div>
+            {/* Ban Warning Banner (Only visible to logged-in members) */}
+            {currentUser && (
+              <div className="mb-4 p-3.5 px-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2.5 shadow-2xs">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>⚠️ Uyarı: Konu dışı veya yanıltıcı paylaşım yapmak süresiz ban sebebidir.</span>
+              </div>
+            )}
 
             {/* Sort & Count Header */}
             <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 flex items-center justify-between">

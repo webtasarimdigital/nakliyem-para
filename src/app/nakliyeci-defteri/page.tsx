@@ -259,60 +259,8 @@ export default function NakliyeciDefteriPage() {
           ))}
         </div>
 
-        {/* Role-based Defter Top Panel */}
-        {currentUser?.role === 'CUSTOMER' ? (
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-orange-50 text-[#F95700] flex items-center justify-center shrink-0 shadow-2xs">
-                <BookOpen className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-black text-sm text-[#0A1128]">Nakliyeci Defteri Canlı Borsası</h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5 max-w-xl leading-relaxed">
-                  Burası nakliyecilerin dönüş yükü ve boş araç paylaştığı iş borsasıdır. Evinizi veya ofisinizi taşıtmak için hemen ücretsiz teklif toplayabilirsiniz.
-                </p>
-              </div>
-            </div>
-            <Link href="/teklif-al" className="shrink-0">
-              <Button variant="primary" size="md" className="font-black text-xs px-5 py-2.5 rounded-xl shadow-md shadow-orange-900/15">
-                Teklif Al →
-              </Button>
-            </Link>
-          </div>
-        ) : !currentUser ? (
-          /* Guest / Logged out view: Cannot publish without logging in as Carrier */
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-[#0A1128] text-[#F95700] flex items-center justify-center shrink-0 shadow-xs">
-                <Truck className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-black text-sm text-[#0A1128]">Nakliyeci Defteri Paylaşım Ağı</h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
-                    Nakliyecilere Özel
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 font-medium mt-1 max-w-xl leading-relaxed">
-                  Boş araç, dönüş yükü ve mobil asansör ilanı paylaşabilmek için nakliyeci hesabınızla giriş yapmanız gerekmektedir.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Link href="/giris?role=nakliyeci">
-                <Button variant="primary" size="md" className="font-black text-xs px-5 py-2.5 rounded-xl">
-                  Nakliyeci Girişi Yap →
-                </Button>
-              </Link>
-              <Link href="/kayit?role=nakliyeci">
-                <Button variant="outline" size="md" className="font-bold text-xs px-4 py-2.5 rounded-xl">
-                  Üye Ol
-                </Button>
-              </Link>
-            </div>
-          </div>
-        ) : (
-          /* Inline Publishing Card (ONLY FOR LOGGED-IN CARRIER) */
+        {/* Inline Publishing Card (ONLY FOR LOGGED-IN CARRIER) */}
+        {currentUser?.role === 'CARRIER' && (
           <div className="bg-white rounded-3xl border-2 border-slate-200 p-4 sm:p-5 shadow-xs mb-6 space-y-3">
             {/* Ban Warning Banner */}
             <div className="p-3 px-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2">

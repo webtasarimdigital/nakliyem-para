@@ -68,8 +68,10 @@ const DEMO_OFFERS = [
     asansor: true,
     demontaj: true,
     montaj: true,
-    teslimat: 'Aynı Gün',
+    teslimat: 'Aynı Gün Teslim',
+    arac: '10 Teker Kapalı Kasa',
     onayliBadge: true,
+    badgeText: 'En Çok Tercih Edilen'
   },
   {
     rank: 2,
@@ -83,23 +85,44 @@ const DEMO_OFFERS = [
     asansor: false,
     demontaj: true,
     montaj: false,
-    teslimat: '24 Saat',
+    teslimat: '24 Saat İçinde',
+    arac: 'Kapalı Kasa Kamyon',
     onayliBadge: true,
+    badgeText: 'Hızlı Teslimat'
   },
   {
     rank: 3,
     firma: 'Güven Taşımacılık',
+    puan: 4.5,
+    yorumSayisi: 68,
+    fiyat: 19500,
+    kdvDahil: false,
+    paketleme: false,
+    sigorta: true,
+    asansor: true,
+    demontaj: false,
+    montaj: false,
+    teslimat: '2 Gün İçinde',
+    arac: 'Özel Evden Eve Aracı',
+    onayliBadge: true,
+    badgeText: 'Ekonomik Fiyat'
+  },
+  {
+    rank: 4,
+    firma: 'Marmara Lojistik',
     puan: 4.4,
     yorumSayisi: 52,
-    fiyat: 18750,
+    fiyat: 17850,
     kdvDahil: false,
     paketleme: false,
     sigorta: false,
     asansor: false,
     demontaj: false,
     montaj: false,
-    teslimat: '2 Gün',
+    teslimat: '3 Gün İçinde',
+    arac: 'Standart Nakliye',
     onayliBadge: false,
+    badgeText: 'Temel Taşıma'
   },
 ];
 
@@ -168,8 +191,8 @@ export default function HomePage() {
           <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-14 sm:py-18 lg:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 lg:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-stretch">
 
             {/* ── SOL: Başlık + açıklama + arama widgeti ── */}
             <div className="lg:col-span-7 space-y-7 text-center lg:text-left">
@@ -289,23 +312,26 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* ── SAĞ: Demo teklif kartı ── */}
-            <div className="lg:col-span-5 w-full">
+            {/* ── SAĞ: Demo teklif kartı (Sol tarafla hizalı ve uzatılmış) ── */}
+            <div className="lg:col-span-5 w-full flex flex-col justify-between h-full space-y-3">
 
               {/* Üst floating badge */}
-              <div className="flex justify-center lg:justify-end mb-3">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black">
+              <div className="flex justify-center lg:justify-between items-center px-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   Canlı Teklif Sistemi
                 </div>
+                <span className="hidden sm:inline text-xs text-slate-400 font-medium">
+                  Anlık 4 Onaylı Teklif
+                </span>
               </div>
 
               {/* Ana demo kartı */}
-              <div className="relative">
+              <div className="relative flex-1 flex flex-col">
                 {/* Glow efekti */}
                 <div className="absolute inset-0 rounded-3xl blur-xl opacity-20" style={{ background: 'linear-gradient(135deg, #F95700, #146EF5)' }} />
 
-                <div className="relative bg-white/[0.08] backdrop-blur-2xl border border-white/20 rounded-3xl p-6 sm:p-7 shadow-2xl">
+                <div className="relative bg-white/[0.08] backdrop-blur-2xl border border-white/20 rounded-3xl p-5 sm:p-6 shadow-2xl flex-1 flex flex-col justify-between">
                   {/* DEMO etiketi */}
                   <div className="absolute -top-3.5 left-6 px-3.5 py-1 rounded-full bg-[#F95700] text-xs font-bold text-white flex items-center gap-1.5 shadow-md shadow-orange-950/30">
                     <Sparkles className="w-3.5 h-3.5" />
@@ -313,44 +339,53 @@ export default function HomePage() {
                   </div>
 
                   {/* Rota başlığı */}
-                  <div className="pt-2 mb-4">
+                  <div className="pt-2 mb-3">
                     <div className="flex items-center gap-2 text-xs text-slate-300 font-semibold mb-1">
                       <CircleDot className="w-3.5 h-3.5 text-[#F95700]" />
                       <span>İstanbul, Kadıköy</span>
                       <MoveRight className="w-3.5 h-3.5 text-slate-400" />
                       <span>Ankara, Çankaya</span>
                     </div>
-                    <p className="text-base font-extrabold text-white tracking-tight">
-                      3+1 Ev Eşyası Taşıma · 15 Eylül · 3 Onaylı Teklif
+                    <p className="text-sm sm:text-base font-extrabold text-white tracking-tight">
+                      3+1 Ev Eşyası Taşıma · 15 Eylül · 4 Teklif Geldi
                     </p>
                   </div>
 
                   {/* Teklif satırları */}
-                  <div className="space-y-3">
+                  <div className="space-y-2.5 flex-1">
                     {DEMO_OFFERS.map((o, i) => (
                       <div
                         key={i}
-                        className={`rounded-2xl p-4 transition-all ${
+                        className={`rounded-2xl p-3 sm:p-3.5 transition-all ${
                           i === 0
                             ? 'bg-[#F95700]/15 border-2 border-[#F95700]/50 shadow-sm'
                             : 'bg-white/5 border border-white/10 hover:bg-white/[0.08]'
                         }`}
                       >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2.5">
-                            <div className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black ${i === 0 ? 'bg-[#F95700] text-white shadow-xs' : 'bg-white/15 text-slate-300'}`}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${i === 0 ? 'bg-[#F95700] text-white shadow-xs' : 'bg-white/15 text-slate-300'}`}>
                               {o.rank}
                             </div>
-                            <span className="font-bold text-sm sm:text-base text-white">{o.firma}</span>
-                            {o.onayliBadge && <ShieldCheck className="w-4 h-4 text-emerald-400" />}
-                            <span className="flex items-center gap-0.5 text-xs text-amber-400 font-bold">
-                              <Star className="w-3.5 h-3.5 fill-current" />{o.puan}
+                            <span className="font-bold text-xs sm:text-sm text-white truncate">{o.firma}</span>
+                            {o.onayliBadge && <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
+                            <span className="flex items-center gap-0.5 text-xs text-amber-400 font-bold shrink-0">
+                              <Star className="w-3 h-3 fill-current" />{o.puan}
                             </span>
                           </div>
-                          <span className={`text-base sm:text-lg font-black tracking-tight ${i === 0 ? 'text-[#F95700]' : 'text-white'}`}>
+                          <span className={`text-sm sm:text-base font-black tracking-tight shrink-0 ${i === 0 ? 'text-[#F95700]' : 'text-white'}`}>
                             {o.fiyat.toLocaleString('tr-TR')} TL
                           </span>
                         </div>
+
+                        {/* Alt bilgi: Teslimat & Araç */}
+                        <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium mb-2">
+                          <span>{o.teslimat}</span>
+                          <span>•</span>
+                          <span>{o.arac}</span>
+                        </div>
+
+                        {/* Özellik Rozetleri (Yeşil ve yeşil olmayanlar kristal netliğinde okunur) */}
                         <div className="flex flex-wrap gap-1.5">
                           {[
                             { label: 'Paketleme', v: o.paketleme },
@@ -358,8 +393,18 @@ export default function HomePage() {
                             { label: 'Asansör', v: o.asansor },
                             { label: 'KDV Dahil', v: o.kdvDahil },
                           ].map(item => (
-                            <span key={item.label} className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-lg ${item.v ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-white/5 text-slate-500 line-through'}`}>
-                              {item.v ? '✓' : '✕'} {item.label}
+                            <span 
+                              key={item.label} 
+                              className={`text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-md flex items-center gap-1 transition-colors ${
+                                item.v 
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold' 
+                                  : 'bg-white/10 text-slate-200 border border-white/15 font-semibold'
+                              }`}
+                            >
+                              <span className={item.v ? 'text-emerald-400 font-black' : 'text-slate-400 font-black'}>
+                                {item.v ? '✓' : '✕'}
+                              </span>
+                              <span>{item.label}</span>
                             </span>
                           ))}
                         </div>
@@ -367,17 +412,17 @@ export default function HomePage() {
                     ))}
                   </div>
 
-                  <div className="mt-4 pt-3.5 border-t border-white/10 flex items-center justify-between text-xs">
-                    <span className="text-slate-300 font-medium">Tüm kriterler şeffaf ve bağlayıcı</span>
-                    <Link href="/teklif-al" className="text-[#F95700] font-black hover:underline flex items-center gap-1">
+                  <div className="mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+                    <span className="text-slate-300 font-medium text-[11px]">Tüm kriterler şeffaf ve bağlayıcı</span>
+                    <Link href="/teklif-al" className="text-[#F95700] font-black hover:underline flex items-center gap-1 text-xs">
                       Teklif Toplamaya Başla →
                     </Link>
                   </div>
                 </div>
               </div>
 
-              {/* Alt kompakt istatistik çubuğu (Küçültüldü) */}
-              <div className="mt-2.5 flex items-center justify-between gap-3 px-4 py-2 rounded-2xl bg-white/[0.05] border border-white/10 backdrop-blur-md">
+              {/* Alt kompakt istatistik çubuğu (Sol tarafın taban çizgisiyle hizalı) */}
+              <div className="flex items-center justify-between gap-3 px-4 py-2 rounded-2xl bg-white/[0.05] border border-white/10 backdrop-blur-md">
                 <div className="flex items-center gap-2">
                   <Clock className="w-3.5 h-3.5 text-[#F95700]" />
                   <span className="text-[11px] text-slate-400 font-medium">Ort. Yanıt:</span>
@@ -388,6 +433,11 @@ export default function HomePage() {
                   <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
                   <span className="text-[11px] text-slate-400 font-medium">Fiyat Tasarrufu:</span>
                   <span className="text-xs font-black text-emerald-400">%23</span>
+                </div>
+                <div className="w-px h-3.5 bg-white/10 hidden sm:block" />
+                <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-300 font-medium">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>K3 Onaylı</span>
                 </div>
               </div>
             </div>
