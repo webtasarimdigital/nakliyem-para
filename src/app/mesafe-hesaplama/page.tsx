@@ -87,7 +87,7 @@ export default function MesafeHesaplamaPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Çıkış Şehri (Nereden?)</label>
+                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Çıkış Şehri (Nereden?)</label>
                   <select
                     value={originCity}
                     onChange={e => setOriginCity(e.target.value)}
@@ -98,7 +98,7 @@ export default function MesafeHesaplamaPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Varış Şehri (Nereye?)</label>
+                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Varış Şehri (Nereye?)</label>
                   <select
                     value={destCity}
                     onChange={e => setDestCity(e.target.value)}
@@ -110,7 +110,7 @@ export default function MesafeHesaplamaPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">Ev / Eşya Hacmi</label>
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Ev / Eşya Hacmi</label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {Object.keys(HOME_SIZE_RATES).map(size => (
                     <button
@@ -163,18 +163,18 @@ export default function MesafeHesaplamaPage() {
                 <div className="mt-4 pt-4 border-t border-slate-100 space-y-3 text-xs animate-fade-in">
                   <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
                     <span className="text-slate-600 font-medium">Tahmini Yakıt ({Math.round(totalFuelLiters)} Litre Motorin):</span>
-                    <span className="font-black text-slate-900">{totalFuelCost.toLocaleString('tr-TR')} TL</span>
+                    <span className="font-black text-[#0A1128]">{totalFuelCost.toLocaleString('tr-TR')} TL</span>
                   </div>
                   <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
                     <span className="text-slate-600 font-medium">Personel &amp; Yükleme/İndirme (3 Kişi):</span>
-                    <span className="font-black text-slate-900">{totalStaffCost.toLocaleString('tr-TR')} TL</span>
+                    <span className="font-black text-[#0A1128]">{totalStaffCost.toLocaleString('tr-TR')} TL</span>
                   </div>
                   <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
                     <span className="text-slate-600 font-medium">Otoyol &amp; Köprü Geçiş Tahmini:</span>
-                    <span className="font-black text-slate-900">{totalHighwayTolls.toLocaleString('tr-TR')} TL</span>
+                    <span className="font-black text-[#0A1128]">{totalHighwayTolls.toLocaleString('tr-TR')} TL</span>
                   </div>
                   <div className="flex items-center justify-between pt-2">
-                    <span className="font-black text-slate-800 text-sm">Toplam Direkt Sefer Maliyeti:</span>
+                    <span className="font-black text-[#0A1128] text-sm">Toplam Direkt Sefer Maliyeti:</span>
                     <span className="font-black text-[#F95700] text-base">{totalDirectCost.toLocaleString('tr-TR')} TL</span>
                   </div>
                 </div>

@@ -24,7 +24,7 @@ export default function CarrierVerificationPendingPage() {
         <Clock className="w-9 h-9" />
       </div>
 
-      <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-3">
+      <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] mb-3">
         Firmanızı İnceliyoruz 🕒
       </h1>
 

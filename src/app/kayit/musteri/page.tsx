@@ -69,7 +69,7 @@ export default function CustomerRegisterPage() {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="Ahmet"
-                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-slate-900"
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#0A1128]"
               />
             </div>
             <div>
@@ -80,7 +80,7 @@ export default function CustomerRegisterPage() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="Yılmaz"
-                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-slate-900"
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#0A1128]"
               />
             </div>
           </div>
@@ -93,7 +93,7 @@ export default function CustomerRegisterPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="0532 000 00 00"
-              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-slate-900"
+              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#0A1128]"
             />
           </div>
 
@@ -105,7 +105,7 @@ export default function CustomerRegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="ahmet@example.com"
-              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-slate-900"
+              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#0A1128]"
             />
           </div>
 
@@ -117,7 +117,7 @@ export default function CustomerRegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-slate-900"
+              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#0A1128]"
             />
           </div>
 

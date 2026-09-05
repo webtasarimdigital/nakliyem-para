@@ -18,7 +18,7 @@ export default function NakliyatRehberiPage() {
           <span className="text-xs font-bold text-[#146EF5] uppercase tracking-wider block mb-1">
             Rehber & Tavsiyeler
           </span>
-          <h1 className="text-2xl sm:text-4xl font-black text-slate-900 leading-tight">
+          <h1 className="text-2xl sm:text-4xl font-black text-[#0A1128] leading-tight">
             Adım Adım Taşınma Rehberi
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-2">

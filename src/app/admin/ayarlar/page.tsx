@@ -30,10 +30,10 @@ export default function AdminSettingsPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 mb-1">
+          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#0A1128] mb-1">
             <ArrowLeft className="w-4 h-4" /> Admin Paneline Dön
           </Link>
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-2xl font-black text-[#0A1128]">
             Sistem Ayarları & Özellik Bayrakları (Feature Flags)
           </h1>
         </div>
@@ -48,7 +48,7 @@ export default function AdminSettingsPage() {
       <form onSubmit={handleSave} className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-8 text-xs sm:text-sm">
         {/* Global Settings (Spec Item 173) */}
         <div>
-          <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4">
+          <h2 className="text-base font-bold text-[#0A1128] border-b border-slate-100 pb-3 mb-4">
             Genel Platform Bilgileri
           </h2>
 
@@ -97,7 +97,7 @@ export default function AdminSettingsPage() {
 
         {/* Global Mobile App Top Band (Spec Item 5) */}
         <div>
-          <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4">
+          <h2 className="text-base font-bold text-[#0A1128] border-b border-slate-100 pb-3 mb-4">
             Global Mobil Uygulama Üst Bandı
           </h2>
 
@@ -158,7 +158,7 @@ export default function AdminSettingsPage() {
 
         {/* Feature Flags (Spec Item 172) */}
         <div>
-          <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4">
+          <h2 className="text-base font-bold text-[#0A1128] border-b border-slate-100 pb-3 mb-4">
             Modül Özellik Bayrakları (Feature Flags)
           </h2>
 

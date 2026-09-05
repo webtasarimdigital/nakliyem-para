@@ -69,8 +69,8 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
           href="/app/customer"
           className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all ${
             isCurrent('home', '/app/customer')
-              ? 'bg-slate-100 text-slate-900 shadow-2xs font-extrabold'
-              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              ? 'bg-slate-100 text-[#0A1128] shadow-2xs font-extrabold'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-[#0A1128]'
           }`}
         >
           <div className="flex items-center gap-3">
@@ -84,8 +84,8 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
           href="/app/customer/taleplerim"
           className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all ${
             isCurrent('requests', '/app/customer/taleplerim')
-              ? 'bg-slate-100 text-slate-900 shadow-2xs font-extrabold'
-              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              ? 'bg-slate-100 text-[#0A1128] shadow-2xs font-extrabold'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-[#0A1128]'
           }`}
         >
           <div className="flex items-center gap-3">
@@ -102,8 +102,8 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
           href="/app/customer/teklifler"
           className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all ${
             isCurrent('offers', '/app/customer/teklifler')
-              ? 'bg-slate-100 text-slate-900 shadow-2xs font-extrabold'
-              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              ? 'bg-slate-100 text-[#0A1128] shadow-2xs font-extrabold'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-[#0A1128]'
           }`}
         >
           <div className="flex items-center gap-3">
@@ -133,8 +133,8 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
           href="/app/customer/mesajlar"
           className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all ${
             isCurrent('messages', '/app/customer/mesajlar')
-              ? 'bg-slate-100 text-slate-900 shadow-2xs font-extrabold'
-              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              ? 'bg-slate-100 text-[#0A1128] shadow-2xs font-extrabold'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-[#0A1128]'
           }`}
         >
           <div className="flex items-center gap-3">
@@ -152,7 +152,7 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
         {/* Firma Sorgula */}
         <Link
           href="/nakliyat-firmalari"
-          className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+          className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black text-slate-600 hover:bg-slate-50 hover:text-[#0A1128] transition-all"
         >
           <div className="flex items-center gap-3">
             <ShieldCheck className="w-4 h-4 text-slate-500" />
@@ -163,7 +163,7 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
         {/* Mesafe Hesaplama */}
         <Link
           href="/mesafe-hesaplama"
-          className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+          className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black text-slate-600 hover:bg-slate-50 hover:text-[#0A1128] transition-all"
         >
           <div className="flex items-center gap-3">
             <Navigation className="w-4 h-4 text-slate-500" />
@@ -179,7 +179,7 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
           href="https://wa.me/905320000000"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+          className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black text-slate-600 hover:bg-slate-50 hover:text-[#0A1128] transition-all"
         >
           <div className="flex items-center gap-3">
             <Headphones className="w-4 h-4 text-amber-500" />
@@ -190,7 +190,7 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
         {/* Yardım Merkezi */}
         <Link
           href="/nakliyat-rehberi"
-          className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all"
+          className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black text-slate-600 hover:bg-slate-50 hover:text-[#0A1128] transition-all"
         >
           <div className="flex items-center gap-3">
             <HelpCircle className="w-4 h-4 text-slate-500" />
@@ -203,8 +203,8 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
           href="/app/customer/profil"
           className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all ${
             isCurrent('settings', '/app/customer/profil')
-              ? 'bg-slate-100 text-slate-900 shadow-2xs font-extrabold'
-              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              ? 'bg-slate-100 text-[#0A1128] shadow-2xs font-extrabold'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-[#0A1128]'
           }`}
         >
           <div className="flex items-center gap-3">

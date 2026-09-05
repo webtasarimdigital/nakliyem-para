@@ -44,10 +44,10 @@ export default function AdminPlansBuilderPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 mb-1">
+          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#0A1128] mb-1">
             <ArrowLeft className="w-4 h-4" /> Admin Paneline Dön
           </Link>
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-2xl font-black text-[#0A1128]">
             Abonelik Paketleri & Dinamik Yetki Yapılandırıcı
           </h1>
         </div>
@@ -74,8 +74,8 @@ export default function AdminPlansBuilderPage() {
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="font-bold text-slate-900 text-sm">{p.name}</span>
-                <span className="text-xs font-black text-slate-900">{p.priceMonthly} TL/ay</span>
+                <span className="font-bold text-[#0A1128] text-sm">{p.name}</span>
+                <span className="text-xs font-black text-[#0A1128]">{p.priceMonthly} TL/ay</span>
               </div>
               <p className="text-xs text-slate-500 line-clamp-1">{p.tagline}</p>
             </div>
@@ -87,7 +87,7 @@ export default function AdminPlansBuilderPage() {
           <form onSubmit={handleSavePlan} className="space-y-6 text-xs sm:text-sm">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
-                <h2 className="text-lg font-black text-slate-900">{selectedPlan.name} Paketi Düzenle</h2>
+                <h2 className="text-lg font-black text-[#0A1128]">{selectedPlan.name} Paketi Düzenle</h2>
                 <span className="text-xs text-slate-400">ID: {selectedPlan.id}</span>
               </div>
               <Button type="submit" variant="primary" size="md" leftIcon={<Save className="w-4 h-4" />}>
@@ -130,7 +130,7 @@ export default function AdminPlansBuilderPage() {
 
             {/* Feature Entitlements Checklist */}
             <div className="space-y-3 pt-4 border-t border-slate-100">
-              <h3 className="font-bold text-slate-900 text-sm">Feature & Entitlement Yetkileri</h3>
+              <h3 className="font-bold text-[#0A1128] text-sm">Feature & Entitlement Yetkileri</h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <label className="p-3 rounded-xl border border-slate-200 flex items-center justify-between cursor-pointer hover:bg-slate-50">

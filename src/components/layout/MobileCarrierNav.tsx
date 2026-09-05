@@ -29,7 +29,7 @@ export const MobileCarrierNav: React.FC = () => {
           <Link
             href="/app/carrier/isler"
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 ${
-              pathname?.startsWith('/app/carrier/isler') ? 'text-[#146EF5] font-bold' : 'text-slate-500'
+              pathname?.startsWith('/app/carrier/isler') ? 'text-[#F95700] font-bold' : 'text-slate-500'
             }`}
           >
             <Briefcase className="w-5 h-5" />
@@ -40,7 +40,7 @@ export const MobileCarrierNav: React.FC = () => {
           <Link
             href="/app/carrier/defter"
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 ${
-              pathname?.startsWith('/app/carrier/defter') ? 'text-[#146EF5] font-bold' : 'text-slate-500'
+              pathname?.startsWith('/app/carrier/defter') ? 'text-[#F95700] font-bold' : 'text-slate-500'
             }`}
           >
             <BookOpen className="w-5 h-5" />
@@ -51,7 +51,7 @@ export const MobileCarrierNav: React.FC = () => {
           <div className="flex-1 flex items-center justify-center">
             <button
               onClick={() => setSheetOpen(true)}
-              className="w-12 h-12 rounded-full bg-[#146EF5] text-white flex items-center justify-center shadow-lg -mt-5 hover:scale-105 active:scale-95 transition-all border-4 border-white"
+              className="w-12 h-12 rounded-full bg-[#F95700] text-white flex items-center justify-center shadow-lg -mt-5 hover:scale-105 active:scale-95 transition-all border-4 border-white"
               aria-label="Paylaşım Yap"
             >
               <Plus className="w-6 h-6 stroke-[3]" />
@@ -62,7 +62,7 @@ export const MobileCarrierNav: React.FC = () => {
           <Link
             href="/app/carrier/mesajlar"
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 ${
-              pathname?.startsWith('/app/carrier/mesajlar') ? 'text-[#146EF5] font-bold' : 'text-slate-500'
+              pathname?.startsWith('/app/carrier/mesajlar') ? 'text-[#F95700] font-bold' : 'text-slate-500'
             }`}
           >
             <MessageSquare className="w-5 h-5" />

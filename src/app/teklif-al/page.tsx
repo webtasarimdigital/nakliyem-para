@@ -324,7 +324,7 @@ function RequestWizardContent() {
               }`}>
                 <Truck className={`w-4 h-4 ${step === 9 ? 'text-white' : 'text-amber-400'}`} />
               </div>
-              <span className="text-[10px] font-black text-slate-700 mt-1 flex items-center gap-0.5">
+              <span className="text-[10px] font-black text-[#0A1128] mt-1 flex items-center gap-0.5">
                 <span>Tır</span>
                 {step === 9 && <span className="text-emerald-500 font-bold">✓</span>}
               </span>
@@ -335,16 +335,16 @@ function RequestWizardContent() {
       </div>
 
       {/* Main Step Container */}
-      <div className="bg-white rounded-3xl shadow-sm border-2 border-slate-200 p-8 sm:p-12 animate-fade-in">
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-9 animate-fade-in">
         
         {/* STEP 1: SERVICE TYPE */}
         {step === 1 && (
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-bold text-[#0A1128] tracking-tight">
                 Ne tür bir nakliyat hizmeti arıyorsunuz?
               </h2>
-              <p className="text-sm sm:text-base text-slate-500 font-medium mt-1.5">
+              <p className="text-xs sm:text-sm text-slate-500 font-normal mt-1">
                 İhtiyacınıza en uygun taşıma tipini seçin.
               </p>
             </div>
@@ -398,7 +398,7 @@ function RequestWizardContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Origin */}
               <div className="p-4 rounded-2xl border-2 border-slate-200 space-y-3 bg-slate-50/50">
-                <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-xs font-black text-[#0A1128] uppercase tracking-wider">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#F95700]" />
                   Çıkış Adresi (Nereden)
                 </div>
@@ -430,7 +430,7 @@ function RequestWizardContent() {
 
               {/* Destination */}
               <div className="p-4 rounded-2xl border-2 border-slate-200 space-y-3 bg-slate-50/50">
-                <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-xs font-black text-[#0A1128] uppercase tracking-wider">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
                   Varış Adresi (Nereye)
                 </div>
@@ -512,7 +512,7 @@ function RequestWizardContent() {
                 <div className="mt-4 p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-5 animate-fade-in">
                   {Object.entries(ROOM_ITEMS).map(([room, items]) => (
                     <div key={room} className="space-y-2">
-                      <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider">{room}</h4>
+                      <h4 className="text-xs font-black text-[#0A1128] uppercase tracking-wider">{room}</h4>
                       <div className="flex flex-wrap gap-2">
                         {items.map((item) => {
                           const isSelected = selectedRoomItems[room]?.includes(item);
@@ -538,7 +538,7 @@ function RequestWizardContent() {
 
                   {/* Custom Items Add */}
                   <div className="pt-3 border-t border-slate-200 space-y-2">
-                    <label className="text-xs font-black text-slate-700 uppercase tracking-wider block">Özel / Listede Olmayan Eşya Ekle</label>
+                    <label className="text-xs font-black text-[#0A1128] uppercase tracking-wider block">Özel / Listede Olmayan Eşya Ekle</label>
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -588,7 +588,7 @@ function RequestWizardContent() {
 
             <div className="p-5 rounded-2xl border-2 border-slate-200 bg-slate-50/50 space-y-4">
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">
                   Hedef Taşınma Tarihi
                 </label>
                 <input
@@ -652,7 +652,7 @@ function RequestWizardContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Çıkış Binası */}
               <div className="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/50 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-xs font-black text-[#0A1128] uppercase tracking-wider">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#F95700]" />
                   Çıkış Binası
                 </div>
@@ -695,7 +695,7 @@ function RequestWizardContent() {
 
               {/* Varış Binası */}
               <div className="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/50 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-black text-slate-700 uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-xs font-black text-[#0A1128] uppercase tracking-wider">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
                   Varış Binası
                 </div>
@@ -776,7 +776,7 @@ function RequestWizardContent() {
             />
 
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">Ek Hizmetler</label>
+              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Ek Hizmetler</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 {[
                   { id: 'disassembly_assembly', label: 'Mobilya Sökme & Montaj (Marangoz)' },
@@ -845,7 +845,7 @@ function RequestWizardContent() {
             />
 
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
                 Nakliyecilere Ek Açıklama Notu
               </label>
               <textarea
@@ -935,7 +935,7 @@ function RequestWizardContent() {
               <div className="p-4 flex items-center justify-between">
                 <div>
                   <span className="text-slate-400 font-black uppercase text-[10px] block mb-1">Eşya &amp; Tarih</span>
-                  <span className="font-bold text-slate-800 text-sm">{homeSize} • {movingDate} ({isDateFlexible ? `±${flexibleDays} gün esnek` : 'Kesin Tarih'})</span>
+                  <span className="font-bold text-[#0A1128] text-sm">{homeSize} • {movingDate} ({isDateFlexible ? `±${flexibleDays} gün esnek` : 'Kesin Tarih'})</span>
                 </div>
                 <button onClick={() => setStep(3)} className="text-[#F95700] font-black hover:underline">Düzenle</button>
               </div>

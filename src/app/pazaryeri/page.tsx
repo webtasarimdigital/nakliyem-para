@@ -283,7 +283,7 @@ export default function PazaryeriPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Araç markası, model, şehir ara..."
-              className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-2 border-slate-200 focus:border-[#F95700] focus:ring-0 text-sm sm:text-base font-medium bg-white text-slate-900 shadow-xs"
+              className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-2 border-slate-200 focus:border-[#F95700] focus:ring-0 text-sm sm:text-base font-medium bg-white text-[#0A1128] shadow-xs"
             />
           </div>
         </div>
@@ -395,7 +395,7 @@ export default function PazaryeriPage() {
                           </div>
                         )}
                         {listing.photos.length > 1 && (
-                          <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-black/60 text-white text-xs font-bold">
+                          <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-[#0A1128]/60 text-white text-xs font-bold">
                             {listing.photos.length} fotoğraf
                           </div>
                         )}
@@ -442,7 +442,7 @@ export default function PazaryeriPage() {
                                   <span className="block text-slate-400 font-black uppercase tracking-wider text-[10px] mb-0.5">
                                     {spec.label}
                                   </span>
-                                  <span className="font-bold text-slate-900">{spec.value}</span>
+                                  <span className="font-bold text-[#0A1128]">{spec.value}</span>
                                 </div>
                               ))}
                             </div>
@@ -484,7 +484,7 @@ export default function PazaryeriPage() {
             {filteredListings.length === 0 && (
               <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
                 <Search className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="font-bold text-slate-700 text-lg mb-1">Sonuç bulunamadı</h3>
+                <h3 className="font-bold text-[#0A1128] text-lg mb-1">Sonuç bulunamadı</h3>
                 <p className="text-sm text-slate-500">Farklı bir kategori veya arama terimi deneyin.</p>
               </div>
             )}

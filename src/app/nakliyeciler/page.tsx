@@ -66,7 +66,7 @@ export default function NakliyecilerLandingPage() {
       <section className="py-16 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-14">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#0A1128] mb-3">
               Nakliyeciler Neden Nakliyem Para Kullanıyor?
             </h2>
             <p className="text-xs sm:text-sm text-slate-500">
@@ -79,7 +79,7 @@ export default function NakliyecilerLandingPage() {
               <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#146EF5] flex items-center justify-center font-bold mb-4">
                 <Truck className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 mb-2">Günlük Taşıma İşleri</h3>
+              <h3 className="text-base font-bold text-[#0A1128] mb-2">Günlük Taşıma İşleri</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Bölgenizde açılan ev ve ofis taşıma taleplerini filtreleyin, hızlıca fiyat teklifi iletin.
               </p>
@@ -89,7 +89,7 @@ export default function NakliyecilerLandingPage() {
               <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold mb-4">
                 <BookOpen className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 mb-2">Nakliyeci Defteri</h3>
+              <h3 className="text-base font-bold text-[#0A1128] mb-2">Nakliyeci Defteri</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Boş araç ve parça yüklerinizi meslektaşlarla paylaşarak gidiş-dönüş dolu çalışın.
               </p>
@@ -99,7 +99,7 @@ export default function NakliyecilerLandingPage() {
               <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold mb-4">
                 <Bell className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 mb-2">Rota Alarmları</h3>
+              <h3 className="text-base font-bold text-[#0A1128] mb-2">Rota Alarmları</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Sürekli çalıştığınız hatlara alarm kurun, yeni talep açıldığı an telefonunuza bildirim gelsin.
               </p>
@@ -109,7 +109,7 @@ export default function NakliyecilerLandingPage() {
               <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold mb-4">
                 <Globe className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 mb-2">Dijital Reklam Desteği</h3>
+              <h3 className="text-base font-bold text-[#0A1128] mb-2">Dijital Reklam Desteği</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Google Ads, web sitesi ve harita optimizasyonu ile platform dışında da düzenli müşteri edinin.
               </p>
@@ -121,7 +121,7 @@ export default function NakliyecilerLandingPage() {
       {/* Final Trial CTA */}
       <section className="py-16 bg-[#EAF3FF] text-center">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-3">
+          <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128] mb-3">
             7 Gün Boyunca Tamamen Ücretsiz Deneyin
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 mb-8 max-w-xl mx-auto">

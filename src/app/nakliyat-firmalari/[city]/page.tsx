@@ -35,12 +35,12 @@ export default function CityDirectoryPage({ params }: { params: Promise<{ city: 
         <ChevronRight className="w-3.5 h-3.5" />
         <Link href="/nakliyat-firmalari" className="hover:text-slate-800">Nakliyat Firmaları</Link>
         <ChevronRight className="w-3.5 h-3.5" />
-        <span className="text-slate-900 font-bold">{cityObj.name}</span>
+        <span className="text-[#0A1128] font-bold">{cityObj.name}</span>
       </nav>
 
       {/* Hero */}
       <div className="max-w-3xl mb-8">
-        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3">
+        <h1 className="text-3xl sm:text-4xl font-black text-[#0A1128] mb-3">
           {cityObj.name} Nakliyat Firmaları
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -50,7 +50,7 @@ export default function CityDirectoryPage({ params }: { params: Promise<{ city: 
 
       {/* Districts Quick Links (Spec Item 143) */}
       <div className="mb-10 p-5 rounded-2xl bg-white border border-slate-200 shadow-xs">
-        <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
+        <h2 className="text-xs font-bold text-[#0A1128] uppercase tracking-wider mb-3">
           {cityObj.name} İlçeleri ({cityObj.districts.length} İlçe)
         </h2>
         <div className="flex flex-wrap gap-2">
@@ -76,7 +76,7 @@ export default function CityDirectoryPage({ params }: { params: Promise<{ city: 
 
       {/* City Carriers Grid */}
       <div className="mt-10">
-        <h2 className="text-xl font-bold text-slate-900 mb-6">
+        <h2 className="text-xl font-bold text-[#0A1128] mb-6">
           {cityObj.name} Bölgesine Hizmet Veren Firmalar ({carriersInCity.length})
         </h2>
 
@@ -97,7 +97,7 @@ export default function CityDirectoryPage({ params }: { params: Promise<{ city: 
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <Link href={`/firma/${c.slug}`} className="font-bold text-base text-slate-900 group-hover:text-[#146EF5] truncate block">
+                    <Link href={`/firma/${c.slug}`} className="font-bold text-base text-[#0A1128] group-hover:text-[#146EF5] truncate block">
                       {c.companyName}
                     </Link>
 

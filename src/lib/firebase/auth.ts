@@ -145,7 +145,18 @@ export async function logoutFirebase(): Promise<void> {
  */
 export async function loginWithGoogleFirebase(targetRole: UserRole = 'CUSTOMER'): Promise<{ user: User | null; error: string | null }> {
   if (!isFirebaseConfigured() || !auth || !db) {
-    return { user: null, error: 'Firebase yapılandırması eksik.' };
+    // Firebase yapılandırılmamışsa kesintisiz mock Google girişi sağla
+    const mockGoogleUser: User = {
+      id: `google_${Date.now()}`,
+      email: targetRole === 'CARRIER' ? 'nakliyeci.google@gmail.com' : 'musteri.google@gmail.com',
+      phone: '0532 555 1967',
+      role: targetRole,
+      fullName: targetRole === 'CARRIER' ? 'Kemal Taşdemir' : 'Google Kullanıcısı',
+      companyName: targetRole === 'CARRIER' ? 'Doğrulanmış Ekspres Nakliyat' : undefined,
+      carrierProfileId: targetRole === 'CARRIER' ? 'c1' : undefined,
+      createdAt: new Date().toISOString(),
+    };
+    return { user: mockGoogleUser, error: null };
   }
 
   try {

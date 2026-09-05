@@ -309,7 +309,7 @@ export default function CarrierDashboard() {
                     <div key={offer.id} className="flex items-center justify-between p-3 rounded-xl bg-amber-50 border border-amber-200">
                       <div>
                         <p className="text-xs font-black text-amber-800">{offer.requestId}</p>
-                        <p className="font-bold text-slate-900 text-sm">{offer.price.toLocaleString('tr-TR')} TL</p>
+                        <p className="font-bold text-[#0A1128] text-sm">{offer.price.toLocaleString('tr-TR')} TL</p>
                       </div>
                       <span className="text-xs font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded-lg">
                         Yanıt Bekleniyor
@@ -343,7 +343,7 @@ export default function CarrierDashboard() {
                   return (
                     <div key={i} className="flex items-center justify-between">
                       <div>
-                        <span className="text-xs font-black text-slate-700">{d.date}</span>
+                        <span className="text-xs font-black text-[#0A1128]">{d.date}</span>
                         <span className="text-[10px] text-slate-400 ml-1">{d.day}</span>
                       </div>
                       <div className="flex gap-1.5">

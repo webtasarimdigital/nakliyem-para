@@ -62,7 +62,7 @@ export default function AdminLoginPage() {
             )}
 
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
                 Kullanıcı Adı
               </label>
               <input
@@ -72,12 +72,12 @@ export default function AdminLoginPage() {
                 placeholder="admin"
                 required
                 autoComplete="username"
-                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
                 Şifre
               </label>
               <div className="relative">
@@ -88,7 +88,7 @@ export default function AdminLoginPage() {
                   placeholder="••••••••"
                   required
                   autoComplete="current-password"
-                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 pr-11 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 pr-11 text-sm font-medium text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                 />
                 <button
                   type="button"

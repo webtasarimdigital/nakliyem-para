@@ -29,10 +29,10 @@ export default function AdminContentManagerPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 mb-1">
+          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#0A1128] mb-1">
             <ArrowLeft className="w-4 h-4" /> Admin Paneline Dön
           </Link>
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-2xl font-black text-[#0A1128]">
             İçerik & Ana Sayfa Yönetimi
           </h1>
         </div>
@@ -45,7 +45,7 @@ export default function AdminContentManagerPage() {
       )}
 
       <form onSubmit={handleSave} className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6 text-xs sm:text-sm">
-        <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">
+        <h2 className="text-base font-bold text-[#0A1128] border-b border-slate-100 pb-3">
           Mobil Uygulama İndirme Bandı Metinleri
         </h2>
 

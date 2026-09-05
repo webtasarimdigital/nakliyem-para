@@ -106,7 +106,7 @@ export default function CarrierOnboardingPage() {
         <span className="text-xs font-bold text-[#146EF5] uppercase tracking-wider block mb-1">
           Nakliyeci Firma Onboarding
         </span>
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+        <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
           Firmanızı Kaydedin & Büyütün
         </h1>
 
@@ -134,7 +134,7 @@ export default function CarrierOnboardingPage() {
         {/* STEP 1: ACCOUNT */}
         {step === 1 && (
           <div className="space-y-4 text-xs sm:text-sm">
-            <h2 className="text-lg font-bold text-slate-900">1. İletişim & Giriş Bilgileri</h2>
+            <h2 className="text-lg font-bold text-[#0A1128]">1. İletişim & Giriş Bilgileri</h2>
             <div>
               <label className="block font-bold text-slate-700 mb-1">Firma Telefon Numarası (Giriş için)</label>
               <input
@@ -159,7 +159,7 @@ export default function CarrierOnboardingPage() {
         {/* STEP 2: COMPANY */}
         {step === 2 && (
           <div className="space-y-4 text-xs sm:text-sm">
-            <h2 className="text-lg font-bold text-slate-900">2. Firma ve Yetkili Bilgileri</h2>
+            <h2 className="text-lg font-bold text-[#0A1128]">2. Firma ve Yetkili Bilgileri</h2>
             <div>
               <label className="block font-bold text-slate-700 mb-1">Firma Ticari Unvanı / Marka Adı</label>
               <input
@@ -204,7 +204,7 @@ export default function CarrierOnboardingPage() {
         {/* STEP 3: IDENTITY (PRIVATE) */}
         {step === 3 && (
           <div className="space-y-4 text-xs sm:text-sm">
-            <h2 className="text-lg font-bold text-slate-900">3. Yetkili Kimlik Doğrulama</h2>
+            <h2 className="text-lg font-bold text-[#0A1128]">3. Yetkili Kimlik Doğrulama</h2>
             <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-100 text-xs text-slate-600">
               🔒 Bu bilgiler asla müşterilere veya arama motorlarına açık olarak gösterilmez; yalnızca firma doğrulaması için kullanılır.
             </div>
@@ -233,7 +233,7 @@ export default function CarrierOnboardingPage() {
         {/* STEP 4: SERVICES & ELEVATOR */}
         {step === 4 && (
           <div className="space-y-4 text-xs sm:text-sm">
-            <h2 className="text-lg font-bold text-slate-900">4. Sunduğunuz Nakliyat Hizmetleri</h2>
+            <h2 className="text-lg font-bold text-[#0A1128]">4. Sunduğunuz Nakliyat Hizmetleri</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
               {[
                 { id: 'evden-eve', label: 'Evden Eve Nakliyat' },
@@ -259,7 +259,7 @@ export default function CarrierOnboardingPage() {
 
             {/* Mobile Elevator Spec (Spec Item 12) */}
             <div className="p-4 rounded-xl border-2 border-blue-200 bg-[#EAF3FF]/40 space-y-3 mt-4">
-              <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-900">
+              <label className="flex items-center gap-2 cursor-pointer font-bold text-[#0A1128]">
                 <input
                   type="checkbox"
                   checked={hasMobileElevator}
@@ -287,7 +287,7 @@ export default function CarrierOnboardingPage() {
         {/* STEP 5: SERVICE AREAS */}
         {step === 5 && (
           <div className="space-y-4 text-xs sm:text-sm">
-            <h2 className="text-lg font-bold text-slate-900">5. Hizmet Verdiğiniz Şehirler</h2>
+            <h2 className="text-lg font-bold text-[#0A1128]">5. Hizmet Verdiğiniz Şehirler</h2>
             <p className="text-xs text-slate-500">
               Bu illerde açılan müşteri talepleri otomatik olarak panelinize düşer.
             </p>
@@ -315,7 +315,7 @@ export default function CarrierOnboardingPage() {
         {step === 6 && (
           <div className="space-y-6 text-xs sm:text-sm">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">6. Doğrulama Belgeleri Yükleme</h2>
+              <h2 className="text-lg font-bold text-[#0A1128]">6. Doğrulama Belgeleri Yükleme</h2>
               <p className="text-xs text-slate-500 mt-1">
                 Zorunlu belgeleriniz yönetici ekibimizce onaylandıktan sonra 7 günlük ücretsiz denemeniz başlar.
               </p>

@@ -273,7 +273,7 @@ export default function PaketlerPage() {
                       )}
                       <span className={`text-xs sm:text-sm font-medium ${typeof val === 'boolean' && !val ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
                         {typeof val === 'boolean' ? row.label : `${row.label}: `}
-                        {typeof val !== 'boolean' && <strong className={plan.isFeatured ? 'text-[#F95700]' : 'text-slate-900'}>{val}</strong>}
+                        {typeof val !== 'boolean' && <strong className={plan.isFeatured ? 'text-[#F95700]' : 'text-[#0A1128]'}>{val}</strong>}
                       </span>
                     </div>
                   );

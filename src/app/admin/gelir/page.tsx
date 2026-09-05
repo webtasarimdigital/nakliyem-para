@@ -159,7 +159,7 @@ export default function GelirPage() {
           <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="font-bold text-slate-900">Aylık Gelir Trendi</h2>
+                <h2 className="font-bold text-[#0A1128]">Aylık Gelir Trendi</h2>
                 <p className="text-xs text-slate-400 font-medium mt-0.5">Son 6 ay • Abonelik gelirleri</p>
               </div>
             </div>
@@ -202,7 +202,7 @@ export default function GelirPage() {
 
           {/* Paket Dağılımı */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
-            <h2 className="font-bold text-slate-900 mb-5">Pakete Göre Dağılım</h2>
+            <h2 className="font-bold text-[#0A1128] mb-5">Pakete Göre Dağılım</h2>
 
             <div className="space-y-4">
               {[
@@ -258,7 +258,7 @@ export default function GelirPage() {
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
             <div className="flex items-center gap-2 mb-5">
               <XCircle className="w-5 h-5 text-red-500" />
-              <h2 className="font-bold text-slate-900">Bu Ay İptal Edenler</h2>
+              <h2 className="font-bold text-[#0A1128]">Bu Ay İptal Edenler</h2>
               <span className="text-xs font-black bg-red-100 text-red-700 px-2 py-0.5 rounded-full ml-auto">
                 {MOCK_CHURNS.length} firma
               </span>
@@ -268,7 +268,7 @@ export default function GelirPage() {
               {MOCK_CHURNS.map((churn, i) => (
                 <div key={i} className="p-3.5 rounded-xl bg-red-50 border border-red-100">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-slate-900 text-sm">{churn.name}</span>
+                    <span className="font-bold text-[#0A1128] text-sm">{churn.name}</span>
                     <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${PLAN_COLORS[churn.plan]?.badge || 'bg-slate-100 text-slate-600'}`}>
                       {PLAN_LABELS[churn.plan]}
                     </span>
@@ -293,7 +293,7 @@ export default function GelirPage() {
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
             <div className="flex items-center gap-2 mb-5">
               <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-              <h2 className="font-bold text-slate-900">Son Yeni Üyeler</h2>
+              <h2 className="font-bold text-[#0A1128]">Son Yeni Üyeler</h2>
               <span className="text-xs font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full ml-auto">
                 +{MOCK_NEW.length} bu ay
               </span>
@@ -307,7 +307,7 @@ export default function GelirPage() {
                       <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-black text-emerald-700">
                         {member.name.charAt(0)}
                       </div>
-                      <span className="font-bold text-slate-900 text-sm">{member.name}</span>
+                      <span className="font-bold text-[#0A1128] text-sm">{member.name}</span>
                     </div>
                     <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${PLAN_COLORS[member.plan]?.badge || 'bg-slate-100 text-slate-600'}`}>
                       {PLAN_LABELS[member.plan]}

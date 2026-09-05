@@ -377,7 +377,7 @@ export default function CarrierTakvimPage() {
               {/* Day's Scheduled Items */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-slate-700">Bu Günün Operasyonları ({selectedDateEvents.length})</span>
+                  <span className="text-xs font-black text-[#0A1128]">Bu Günün Operasyonları ({selectedDateEvents.length})</span>
                   <button
                     onClick={() => {
                       setNewDate(selectedDate);
@@ -468,45 +468,45 @@ export default function CarrierTakvimPage() {
       >
         <form onSubmit={handleAddEvent} className="space-y-4">
           <div>
-            <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">İş / Operasyon Başlığı *</label>
+            <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">İş / Operasyon Başlığı *</label>
             <input
               type="text"
               value={newTitle}
               onChange={e => setNewTitle(e.target.value)}
               placeholder="Örn: 2+1 Ev Taşıma, Asansör Kiralama, Özel Nakliye"
               required
-              className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900 focus:border-[#F95700] focus:outline-none"
+              className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Tarih</label>
+              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Tarih</label>
               <input
                 type="date"
                 value={newDate}
                 onChange={e => setNewDate(e.target.value)}
-                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-900 focus:border-[#F95700] focus:outline-none"
+                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Saat</label>
+              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Saat</label>
               <input
                 type="time"
                 value={newTime}
                 onChange={e => setNewTime(e.target.value)}
-                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-900 focus:border-[#F95700] focus:outline-none"
+                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">İş Tipi</label>
+              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">İş Tipi</label>
               <select
                 value={newType}
                 onChange={e => setNewType(e.target.value as any)}
-                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-900 focus:border-[#F95700] focus:outline-none bg-white"
+                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none bg-white"
               >
                 <option value="WON_JOB">Kazanılan İş</option>
                 <option value="EMPTY_RETURN">Boş Dönüş Rotası</option>
@@ -515,48 +515,48 @@ export default function CarrierTakvimPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Anlaşılan Fiyat (TL)</label>
+              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Anlaşılan Fiyat (TL)</label>
               <input
                 type="number"
                 value={newPrice}
                 onChange={e => setNewPrice(e.target.value)}
                 placeholder="20000"
-                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-900 focus:border-[#F95700] focus:outline-none"
+                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Nereden</label>
+              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Nereden</label>
               <input
                 type="text"
                 value={newOrigin}
                 onChange={e => setNewOrigin(e.target.value)}
                 placeholder="İstanbul, Kadıköy"
-                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-900 focus:border-[#F95700] focus:outline-none"
+                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Nereye</label>
+              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Nereye</label>
               <input
                 type="text"
                 value={newDest}
                 onChange={e => setNewDest(e.target.value)}
                 placeholder="Ankara, Çankaya"
-                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-900 focus:border-[#F95700] focus:outline-none"
+                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Operasyon Notları</label>
+            <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Operasyon Notları</label>
             <textarea
               value={newNotes}
               onChange={e => setNewNotes(e.target.value)}
               rows={2}
               placeholder="Araç plakası, personel sayısı, özel ambalaj notları..."
-              className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900 focus:border-[#F95700] focus:outline-none resize-none"
+              className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none resize-none"
             />
           </div>
 

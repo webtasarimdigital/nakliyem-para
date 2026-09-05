@@ -39,10 +39,10 @@ export default function AdminDigitalLeadsCrmPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 mb-1">
+          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#0A1128] mb-1">
             <ArrowLeft className="w-4 h-4" /> Admin Paneline Dön
           </Link>
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-2xl font-black text-[#0A1128]">
             Dijital Hizmetler CRM & Lead Boru Hattı
           </h1>
         </div>
@@ -55,7 +55,7 @@ export default function AdminDigitalLeadsCrmPage() {
           return (
             <div key={stage.id} className="bg-slate-100/70 rounded-2xl p-4 min-w-[240px] flex flex-col">
               <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
-                <span className="text-xs font-black text-slate-800">{stage.label}</span>
+                <span className="text-xs font-black text-[#0A1128]">{stage.label}</span>
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-white text-slate-600 shadow-2xs">
                   {stageLeads.length}
                 </span>
@@ -67,7 +67,7 @@ export default function AdminDigitalLeadsCrmPage() {
                     key={lead.id}
                     className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs space-y-2 text-xs"
                   >
-                    <div className="font-bold text-slate-900">{lead.companyName}</div>
+                    <div className="font-bold text-[#0A1128]">{lead.companyName}</div>
                     <div className="text-slate-500 text-[11px]">{lead.serviceTitle}</div>
                     <div className="text-slate-600 font-semibold">{lead.phone} • {lead.city}</div>
 

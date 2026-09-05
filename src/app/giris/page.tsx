@@ -132,6 +132,9 @@ function GirisContent() {
     }
     if (res.user) {
       db.setCurrentUser(res.user);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth-changed'));
+      }
       if (res.user.role === 'CARRIER' || isCarrier) {
         router.push('/app/carrier');
       } else {
@@ -141,12 +144,12 @@ function GirisContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center p-3 sm:p-6 lg:p-10">
+    <div className="min-h-[calc(100vh-4.5rem)] bg-[#F8FAFC] flex items-center justify-center py-6 sm:py-10 px-4 sm:px-6">
       {/* Outer Card Container */}
-      <div className="w-full max-w-5xl bg-white rounded-3xl sm:rounded-4xl shadow-xl shadow-slate-200/60 overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-slate-200/80">
+      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl shadow-slate-200/70 overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-slate-200/80 items-stretch">
         
         {/* LEFT PANEL — Emlivo-inspired Soft & Elegant Visual Panel */}
-        <div className="lg:col-span-6 bg-gradient-to-br from-[#F4FDF7] via-[#F8FAFC] to-[#F1F5F9] p-6 sm:p-10 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-slate-100">
+        <div className="lg:col-span-6 bg-gradient-to-br from-[#F4FDF7] via-[#F8FAFC] to-[#F1F5F9] p-6 sm:p-8 lg:p-10 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-slate-200/70 h-full">
           
           {/* Subtle geometric pattern */}
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#0A1128 1px, transparent 1px)', backgroundSize: '18px 18px' }} />
@@ -175,7 +178,7 @@ function GirisContent() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                 <div className="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur-xs rounded-xl px-2 py-1 text-center shadow-xs">
-                  <span className="text-[10px] font-black text-slate-800 block leading-tight">İstanbul → Ankara</span>
+                  <span className="text-[10px] font-black text-[#0A1128] block leading-tight">İstanbul → Ankara</span>
                   <span className="text-[9px] font-bold text-[#F95700]">3 Teklif Hazır</span>
                 </div>
               </div>
@@ -363,7 +366,7 @@ function GirisContent() {
               )}
 
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
                   E-posta Adresi
                 </label>
                 <div className="relative">
@@ -374,14 +377,14 @@ function GirisContent() {
                     onChange={e => setEmail(e.target.value)}
                     placeholder="ornek@mail.com"
                     required
-                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm font-medium text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                   />
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                  <label className="text-xs font-black text-[#0A1128] uppercase tracking-wider">
                     Şifre
                   </label>
                   <Link href="/sifremi-unuttum" className="text-xs font-bold text-[#F95700] hover:underline">
@@ -396,7 +399,7 @@ function GirisContent() {
                     onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-11 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-11 py-3 text-sm font-medium text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                   />
                   <button
                     type="button"

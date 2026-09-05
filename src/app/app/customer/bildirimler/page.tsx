@@ -51,7 +51,7 @@ export default function CustomerNotificationsPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
             Bildirim Merkezi
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -77,7 +77,7 @@ export default function CustomerNotificationsPage() {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <h3 className={`text-sm ${n.isUnread ? 'font-bold text-slate-900' : 'font-semibold text-slate-700'}`}>
+                  <h3 className={`text-sm ${n.isUnread ? 'font-bold text-[#0A1128]' : 'font-semibold text-[#0A1128]'}`}>
                     {n.title}
                   </h3>
                   <span className="text-[11px] text-slate-400 shrink-0">{n.time}</span>

@@ -121,6 +121,9 @@ function KayitContent() {
     }
     if (res.user) {
       db.setCurrentUser(res.user);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth-changed'));
+      }
       if (res.user.role === 'CARRIER' || isCarrier) {
         router.push('/app/carrier');
       } else {
@@ -248,16 +251,16 @@ function KayitContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center p-3 sm:p-6 lg:p-10">
+    <div className="min-h-[calc(100vh-4.5rem)] bg-[#F8FAFC] flex items-center justify-center py-6 sm:py-10 px-4 sm:px-6">
       {/* Outer Card Container */}
-      <div className="w-full max-w-5xl bg-white rounded-3xl sm:rounded-4xl shadow-xl shadow-slate-200/60 overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-slate-200/80">
+      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl shadow-slate-200/70 overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-slate-200/80 items-stretch">
         
         {/* LEFT PANEL — Emlivo Style Soft & Light Visual Panel */}
-        <div className="lg:col-span-6 bg-gradient-to-br from-[#F4FDF7] via-[#F8FAFC] to-[#F1F5F9] p-6 sm:p-10 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-slate-100">
+        <div className="lg:col-span-6 bg-gradient-to-br from-[#F4FDF7] via-[#F8FAFC] to-[#F1F5F9] p-6 sm:p-8 lg:p-10 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-slate-200/70 h-full">
           
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#0A1128 1px, transparent 1px)', backgroundSize: '18px 18px' }} />
 
-          {/* Top Badge (Duplicate logo removed) */}
+          {/* Top Badge */}
           <div className="relative z-10 flex items-center justify-end">
             <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-2.5 py-1 rounded-full flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -265,9 +268,9 @@ function KayitContent() {
             </span>
           </div>
 
-          {/* Center: Interactive Orbital Graphic (Emlivo visual mockup) */}
-          <div className="relative z-10 my-8 sm:my-10">
-            <div className="relative w-64 h-64 sm:w-72 sm:h-72 mx-auto flex items-center justify-center">
+          {/* Center: Interactive Orbital Graphic */}
+          <div className="relative z-10 my-4 sm:my-6">
+            <div className="relative w-56 h-56 sm:w-64 sm:h-64 mx-auto flex items-center justify-center">
               
               {/* Orbital Ring */}
               <div className="absolute inset-4 rounded-full border-2 border-dashed border-emerald-200/80 animate-[spin_55s_linear_infinite]" />
@@ -285,7 +288,7 @@ function KayitContent() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                 <div className="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur-xs rounded-xl px-2 py-1 text-center shadow-xs">
-                  <span className="text-[10px] font-black text-slate-800 block leading-tight">
+                  <span className="text-[10px] font-black text-[#0A1128] block leading-tight">
                     {isCarrier ? '81 İl Nakliye Ağı' : 'En İyi Fiyat Garantisi'}
                   </span>
                   <span className="text-[9px] font-bold text-emerald-600">✓ Onaylı Sistem</span>
@@ -365,14 +368,14 @@ function KayitContent() {
               <button
                 type="button"
                 onClick={() => setSlideIndex(s => (s === 0 ? 1 : 0))}
-                className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-[#0A1128] transition-colors cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 type="button"
                 onClick={() => setSlideIndex(s => (s === 1 ? 0 : 1))}
-                className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:text-[#0A1128] transition-colors cursor-pointer"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -467,7 +470,7 @@ function KayitContent() {
 
               {/* Name / Company */}
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1">
                   {isCarrier ? 'Firma Yetkilisi / Ad Soyad' : 'Ad Soyad'}
                 </label>
                 <div className="relative">
@@ -478,7 +481,7 @@ function KayitContent() {
                     onChange={e => setName(e.target.value)}
                     placeholder="Ahmet Yılmaz"
                     required
-                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -486,7 +489,7 @@ function KayitContent() {
               {/* Company Name if Carrier */}
               {isCarrier && (
                 <div>
-                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">
+                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1">
                     Firma Adı (Ticari Ünvan)
                   </label>
                   <div className="relative">
@@ -497,7 +500,7 @@ function KayitContent() {
                       onChange={e => setCompanyName(e.target.value)}
                       placeholder="Boğaziçi Profesyonel Nakliyat"
                       required
-                      className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                      className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
@@ -505,7 +508,7 @@ function KayitContent() {
 
               {/* Phone */}
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1">
                   Telefon Numarası
                 </label>
                 <div className="relative">
@@ -516,14 +519,14 @@ function KayitContent() {
                     onChange={e => setPhone(e.target.value)}
                     placeholder="05XX XXX XX XX"
                     required
-                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                   />
                 </div>
               </div>
 
               {/* Email */}
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1">
                   E-posta Adresi
                 </label>
                 <div className="relative">
@@ -534,14 +537,14 @@ function KayitContent() {
                     onChange={e => setEmail(e.target.value)}
                     placeholder="ornek@mail.com"
                     required
-                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                   />
                 </div>
               </div>
 
               {/* Password */}
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1">
                   Şifre
                 </label>
                 <div className="relative">
@@ -553,7 +556,7 @@ function KayitContent() {
                     placeholder="En az 6 karakter"
                     required
                     minLength={6}
-                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-11 py-2.5 sm:py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-11 py-2.5 sm:py-3 text-sm font-medium text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                   />
                   <button
                     type="button"
@@ -620,7 +623,7 @@ function KayitContent() {
 
       {/* ── SMS DOĞRULAMA MODALI ── */}
       {otpModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#0A1128]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 space-y-4">
             <div className="text-center">
               <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 text-[#F95700] flex items-center justify-center mx-auto mb-3 shadow-xs">
@@ -628,7 +631,7 @@ function KayitContent() {
               </div>
               <h3 className="text-xl font-black text-[#0A1128]">SMS Doğrulama Kodu</h3>
               <p className="text-xs text-slate-500 font-medium mt-1">
-                Güvenliğiniz için <strong className="text-slate-900">{phone}</strong> numaralı telefonunuza 6 haneli SMS onay kodu gönderildi. Lütfen kodu giriniz.
+                Güvenliğiniz için <strong className="text-[#0A1128]">{phone}</strong> numaralı telefonunuza 6 haneli SMS onay kodu gönderildi. Lütfen kodu giriniz.
               </p>
             </div>
 
@@ -641,7 +644,7 @@ function KayitContent() {
 
             <form onSubmit={handleVerifyOtpAndRegister} className="space-y-4">
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5 text-center">
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5 text-center">
                   6 Haneli Onay Kodu
                 </label>
                 <input
@@ -652,7 +655,7 @@ function KayitContent() {
                   required
                   maxLength={6}
                   autoFocus
-                  className="w-full text-center text-2xl font-black tracking-widest border-2 border-slate-200 rounded-xl py-3 text-slate-900 placeholder:text-slate-300 focus:border-[#F95700] focus:outline-none transition-colors"
+                  className="w-full text-center text-2xl font-black tracking-widest border-2 border-slate-200 rounded-xl py-3 text-[#0A1128] placeholder:text-slate-300 focus:border-[#F95700] focus:outline-none transition-colors"
                 />
               </div>
 

@@ -252,7 +252,7 @@ export default function UyelerPage() {
                       <tr key={carrier.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-5 py-4">
                           <div>
-                            <span className="font-bold text-slate-900 block">{carrier.companyName}</span>
+                            <span className="font-bold text-[#0A1128] block">{carrier.companyName}</span>
                             <span className="text-xs text-slate-400">{carrier.email}</span>
                           </div>
                         </td>
@@ -293,7 +293,7 @@ export default function UyelerPage() {
                             </Link>
                           ) : (
                             <Link href={`/firma/${carrier.slug}`} target="_blank">
-                              <span className="inline-block text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
+                              <span className="inline-block text-xs font-bold text-slate-500 hover:text-[#0A1128] transition-colors">
                                 Profili Gör →
                               </span>
                             </Link>
@@ -323,12 +323,12 @@ export default function UyelerPage() {
                           <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-black text-slate-600 shrink-0">
                             {cust.name.charAt(0).toUpperCase()}
                           </div>
-                          <span className="font-bold text-slate-900">{cust.name}</span>
+                          <span className="font-bold text-[#0A1128]">{cust.name}</span>
                         </div>
                       </td>
                       <td className="px-5 py-4 text-slate-500 font-medium">{cust.phone}</td>
                       <td className="px-5 py-4">
-                        <span className="font-black text-slate-900">{cust.requestCount}</span>
+                        <span className="font-black text-[#0A1128]">{cust.requestCount}</span>
                         <span className="text-slate-400 text-xs ml-1">talep</span>
                       </td>
                       <td className="px-5 py-4 text-slate-600 text-xs font-medium">

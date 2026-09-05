@@ -36,7 +36,7 @@ export default function CarrierOffersTrackerPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
             Verdiğim Teklifler
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -121,7 +121,7 @@ export default function CarrierOffersTrackerPage() {
                 <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
                   <div className="text-left sm:text-right">
                     <span className="text-xs text-slate-400 block">Teklifiniz</span>
-                    <span className="text-xl sm:text-2xl font-black text-slate-900">
+                    <span className="text-xl sm:text-2xl font-black text-[#0A1128]">
                       {off.price.toLocaleString('tr-TR')} TL
                     </span>
                   </div>
@@ -148,7 +148,7 @@ export default function CarrierOffersTrackerPage() {
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
           <CheckSquare className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-sm font-bold text-slate-700">Bu sekmede kayıtlı teklifiniz bulunmuyor</h3>
+          <h3 className="text-sm font-bold text-[#0A1128]">Bu sekmede kayıtlı teklifiniz bulunmuyor</h3>
           <p className="text-xs text-slate-500 mt-1 mb-4">Açık işlere teklif vererek yeni taşımalar kazanabilirsiniz.</p>
           <Link href="/app/carrier/isler">
             <Button variant="primary" size="sm">Açık İşleri Gör</Button>

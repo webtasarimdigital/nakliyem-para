@@ -86,7 +86,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
       <div className="mb-6 flex items-center justify-between">
         <Link
           href="/app/carrier/isler"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#0A1128]"
         >
           <ArrowLeft className="w-4 h-4" /> Açık İşlere Dön
         </Link>
@@ -120,7 +120,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
 
           {/* Job Specifications */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6">
-            <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">
+            <h2 className="text-base font-bold text-[#0A1128] border-b border-slate-100 pb-3">
               İş Detayları & Özellikler
             </h2>
 
@@ -146,7 +146,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
             {/* Building conditions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
-                <span className="font-bold text-slate-900 block flex items-center gap-1.5">
+                <span className="font-bold text-[#0A1128] block flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#146EF5]" /> Çıkış Binası
                 </span>
                 <p className="text-slate-700 font-medium">{req.originFloor}. Kat</p>
@@ -155,7 +155,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
               </div>
 
               <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
-                <span className="font-bold text-slate-900 block flex items-center gap-1.5">
+                <span className="font-bold text-[#0A1128] block flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-600" /> Varış Binası
                 </span>
                 <p className="text-slate-700 font-medium">{req.destinationFloor}. Kat</p>
@@ -167,7 +167,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
             {/* Notes */}
             {req.notes && (
               <div>
-                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Müşteri Notu</h3>
+                <h3 className="text-xs font-bold text-[#0A1128] uppercase tracking-wider mb-2">Müşteri Notu</h3>
                 <p className="p-4 rounded-xl bg-blue-50/40 border border-blue-100 text-xs text-slate-700 leading-relaxed">
                   {req.notes}
                 </p>
@@ -181,7 +181,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
                   <Phone className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-900 block">Müşteri İletişim Numarası</span>
+                  <span className="text-xs font-bold text-[#0A1128] block">Müşteri İletişim Numarası</span>
                   <span className="text-[11px] text-slate-500">Müşteri telefonla aranmaya izin verdi.</span>
                 </div>
               </div>
@@ -200,7 +200,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
             {/* Photos */}
             {req.photos.length > 0 && (
               <div>
-                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Eşya Fotoğrafları ({req.photos.length})</h3>
+                <h3 className="text-xs font-bold text-[#0A1128] uppercase tracking-wider mb-2">Eşya Fotoğrafları ({req.photos.length})</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {req.photos.map((url, idx) => (
                     <div key={idx} className="aspect-video rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
@@ -217,7 +217,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
         <div>
           <div className="bg-white rounded-2xl border-2 border-blue-200 p-6 shadow-lg shadow-blue-900/5 sticky top-24 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-bold text-[#0A1128] flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#146EF5]" /> Teklif Ver
               </h3>
               <span className="text-xs text-slate-400">30 saniyede hazırla</span>
@@ -233,7 +233,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="Örn: 24500"
-                    className="w-full px-3.5 py-3 rounded-xl border border-slate-300 font-black text-lg text-slate-900 focus:ring-2 focus:ring-[#146EF5]"
+                    className="w-full px-3.5 py-3 rounded-xl border border-slate-300 font-black text-lg text-[#0A1128] focus:ring-2 focus:ring-[#146EF5]"
                   />
                   <span className="absolute right-3.5 top-3.5 font-bold text-slate-400">TL</span>
                 </div>
@@ -343,7 +343,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
           </div>
 
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-            <span className="text-2xl font-black text-slate-900 block">{Number(price).toLocaleString('tr-TR')} TL</span>
+            <span className="text-2xl font-black text-[#0A1128] block">{Number(price).toLocaleString('tr-TR')} TL</span>
             <span className="text-xs text-slate-500">
               {isPackagingIncluded ? 'Paketleme Dahil' : 'Paketlemesiz'} • {deliveryDuration}
             </span>

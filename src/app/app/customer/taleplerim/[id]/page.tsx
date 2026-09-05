@@ -79,7 +79,7 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
       <div className="mb-6 flex items-center justify-between">
         <Link
           href={currentUser?.role === 'CARRIER' ? "/app/carrier/isler" : "/app/customer/taleplerim"}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#0A1128]"
         >
           <ArrowLeft className="w-4 h-4" /> {currentUser?.role === 'CARRIER' ? 'Açık İşlere Dön' : 'Taleplerime Dön'}
         </Link>
@@ -121,7 +121,7 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
             <div className="flex items-center justify-between gap-3 mb-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-black text-slate-900 bg-slate-100 px-2.5 py-1 rounded-md">
+                <span className="text-sm font-black text-[#0A1128] bg-slate-100 px-2.5 py-1 rounded-md">
                   Talep {req.requestCode}
                 </span>
                 <Badge variant={req.status === 'ACTIVE' ? 'verified' : req.status === 'ASSIGNED' ? 'success' : 'danger'}>
@@ -146,7 +146,7 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
 
           {/* Details Overview */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6">
-            <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">
+            <h2 className="text-base font-bold text-[#0A1128] border-b border-slate-100 pb-3">
               Taşıma Detayları
             </h2>
 
@@ -180,7 +180,7 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
 
             {/* Packaging & Extras */}
             <div>
-              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Paketleme & Ek Hizmetler</h3>
+              <h3 className="text-xs font-bold text-[#0A1128] uppercase tracking-wider mb-2">Paketleme & Ek Hizmetler</h3>
               <div className="flex flex-wrap gap-2 text-xs">
                 <span className="px-3 py-1.5 rounded-lg bg-blue-50 text-[#0B3B8F] font-semibold border border-blue-100">
                   {req.packagingPreference === 'CARRIER_PACKS' ? 'Firma Paketlesin' : req.packagingPreference === 'BOTH_OFFERS' ? 'İkisi İçin de Teklif' : 'Kendim Paketlerim'}
@@ -196,7 +196,7 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
             {/* Notes */}
             {req.notes && (
               <div>
-                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Müşteri Açıklaması</h3>
+                <h3 className="text-xs font-bold text-[#0A1128] uppercase tracking-wider mb-2">Müşteri Açıklaması</h3>
                 <p className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed">
                   {req.notes}
                 </p>
@@ -206,7 +206,7 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
             {/* Photos */}
             {req.photos && req.photos.length > 0 && (
               <div>
-                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Eşya Fotoğrafları ({req.photos.length})</h3>
+                <h3 className="text-xs font-bold text-[#0A1128] uppercase tracking-wider mb-2">Eşya Fotoğrafları ({req.photos.length})</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {req.photos.map((url, idx) => (
                     <div key={idx} className="aspect-video rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
@@ -299,7 +299,7 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
         {/* Right Sidebar: Offers Card (Spec Item 57) */}
         <div className="space-y-6">
           <div className="bg-white rounded-2xl border-2 border-blue-200 p-6 shadow-md shadow-blue-900/5 sticky top-24">
-            <h3 className="text-base font-bold text-slate-900 mb-1">
+            <h3 className="text-base font-bold text-[#0A1128] mb-1">
               Gelen Teklifler
             </h3>
             <p className="text-xs text-slate-500 mb-6">

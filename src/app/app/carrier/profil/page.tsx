@@ -259,7 +259,7 @@ export default function CarrierProfileEditorPage() {
           <div className="space-y-3">
             <div>
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Slogan / Kısa Biyografi</span>
-              <p className="text-sm font-bold text-slate-800 mt-0.5">{carrier.shortBio}</p>
+              <p className="text-sm font-bold text-[#0A1128] mt-0.5">{carrier.shortBio}</p>
             </div>
             <div>
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Firma Tanıtım Metni</span>
@@ -296,7 +296,7 @@ export default function CarrierProfileEditorPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sabit / Mobil Tel</span>
-              <p className="text-xs font-black text-slate-800 mt-1">{carrier.phone}</p>
+              <p className="text-xs font-black text-[#0A1128] mt-1">{carrier.phone}</p>
             </div>
             <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-100">
               <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">WhatsApp Hattı</span>
@@ -304,7 +304,7 @@ export default function CarrierProfileEditorPage() {
             </div>
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Merkez Şehir / İlçe</span>
-              <p className="text-xs font-black text-slate-800 mt-1">{carrier.city} / {carrier.district}</p>
+              <p className="text-xs font-black text-[#0A1128] mt-1">{carrier.city} / {carrier.district}</p>
             </div>
           </div>
         </div>
@@ -386,7 +386,7 @@ export default function CarrierProfileEditorPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#F95700] transition-colors bg-slate-50/50 flex flex-col justify-between space-y-3">
               <div>
-                <span className="text-xs font-black text-slate-800 block">1. Yetkili Kimlik Belgesi</span>
+                <span className="text-xs font-black text-[#0A1128] block">1. Yetkili Kimlik Belgesi</span>
                 <span className="text-[11px] text-slate-500 font-medium">Nüfus cüzdanı ön yüz veya ehliyet fotoğrafı (JPG, PNG)</span>
               </div>
               <button
@@ -401,7 +401,7 @@ export default function CarrierProfileEditorPage() {
 
             <div className="p-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#F95700] transition-colors bg-slate-50/50 flex flex-col justify-between space-y-3">
               <div>
-                <span className="text-xs font-black text-slate-800 block">2. Güncel Vergi Levhası</span>
+                <span className="text-xs font-black text-[#0A1128] block">2. Güncel Vergi Levhası</span>
                 <span className="text-[11px] text-slate-500 font-medium">Gelir İdaresi Başkanlığı onaylı vergi levhası (PDF, JPG)</span>
               </div>
               <button
@@ -464,7 +464,7 @@ export default function CarrierProfileEditorPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-black text-slate-900">{currentPlan.name}</span>
+                <span className="text-sm font-black text-[#0A1128]">{currentPlan.name}</span>
                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
                   sub.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
                 }`}>
@@ -510,7 +510,7 @@ export default function CarrierProfileEditorPage() {
 
       {/* ── MODAL 1: Biyografi & Firma Bilgisi Düzenleme ── */}
       {editBioOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#0A1128]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-black text-[#0A1128]">Kurumsal Bilgileri Düzenle</h3>
@@ -521,34 +521,34 @@ export default function CarrierProfileEditorPage() {
 
             <form onSubmit={handleSaveBio} className="space-y-4">
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Firma Ünvanı</label>
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1">Firma Ünvanı</label>
                 <input
                   type="text"
                   value={tempCompanyName}
                   onChange={e => setTempCompanyName(e.target.value)}
                   required
-                  className="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:border-[#F95700] focus:outline-none"
+                  className="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Slogan / Kısa Biyografi</label>
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1">Slogan / Kısa Biyografi</label>
                 <input
                   type="text"
                   value={tempShortBio}
                   onChange={e => setTempShortBio(e.target.value)}
                   required
-                  className="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:border-[#F95700] focus:outline-none"
+                  className="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Detaylı Tanıtım Açıklaması</label>
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1">Detaylı Tanıtım Açıklaması</label>
                 <textarea
                   rows={4}
                   value={tempDescription}
                   onChange={e => setTempDescription(e.target.value)}
-                  className="w-full border border-slate-300 rounded-xl p-3 text-xs font-medium text-slate-900 focus:border-[#F95700] focus:outline-none"
+                  className="w-full border border-slate-300 rounded-xl p-3 text-xs font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none"
                 />
               </div>
 
@@ -574,7 +574,7 @@ export default function CarrierProfileEditorPage() {
 
       {/* ── MODAL 2: İletişim & Konum Düzenleme ── */}
       {editContactOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#0A1128]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-black text-[#0A1128]">İletişim &amp; Konum Bilgileri</h3>
@@ -585,33 +585,33 @@ export default function CarrierProfileEditorPage() {
 
             <form onSubmit={handleSaveContact} className="space-y-4">
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Telefon Numarası</label>
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1">Telefon Numarası</label>
                 <input
                   type="tel"
                   value={tempPhone}
                   onChange={e => setTempPhone(e.target.value)}
                   required
-                  className="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:border-[#F95700] focus:outline-none"
+                  className="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">WhatsApp Numarası</label>
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1">WhatsApp Numarası</label>
                 <input
                   type="tel"
                   value={tempWhatsapp}
                   onChange={e => setTempWhatsapp(e.target.value)}
-                  className="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:border-[#F95700] focus:outline-none"
+                  className="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">Şehir</label>
+                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1">Şehir</label>
                   <select
                     value={tempCity}
                     onChange={e => setTempCity(e.target.value)}
-                    className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-900 focus:border-[#F95700] focus:outline-none"
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-xs font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
                   >
                     {TURKEY_CITIES.map(c => (
                       <option key={c.id} value={c.name}>{c.name}</option>
@@ -619,13 +619,13 @@ export default function CarrierProfileEditorPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1">İlçe</label>
+                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1">İlçe</label>
                   <input
                     type="text"
                     value={tempDistrict}
                     onChange={e => setTempDistrict(e.target.value)}
                     required
-                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:border-[#F95700] focus:outline-none"
+                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
                   />
                 </div>
               </div>
@@ -652,7 +652,7 @@ export default function CarrierProfileEditorPage() {
 
       {/* ── MODAL 3: Hizmetler & Asansör Düzenleme ── */}
       {editServicesOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#0A1128]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-black text-[#0A1128]">Hizmetler &amp; Donanım</h3>
@@ -663,7 +663,7 @@ export default function CarrierProfileEditorPage() {
 
             <form onSubmit={handleSaveServices} className="space-y-4">
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">Verilen Hizmetler</label>
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Verilen Hizmetler</label>
                 <div className="space-y-2">
                   {ALL_SERVICES.map(srv => {
                     const isChecked = tempServices.includes(srv.id);
@@ -696,7 +696,7 @@ export default function CarrierProfileEditorPage() {
                     onChange={e => setTempHasElevator(e.target.checked)}
                     className="w-4 h-4 text-[#F95700] rounded focus:ring-0"
                   />
-                  <span className="text-xs font-black text-slate-800">Firmamıza ait Araç Üstü Mobil Asansör var</span>
+                  <span className="text-xs font-black text-[#0A1128]">Firmamıza ait Araç Üstü Mobil Asansör var</span>
                 </label>
 
                 {tempHasElevator && (
@@ -708,7 +708,7 @@ export default function CarrierProfileEditorPage() {
                       max={30}
                       value={tempMaxFloor}
                       onChange={e => setTempMaxFloor(Number(e.target.value))}
-                      className="w-28 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:border-[#F95700] focus:outline-none"
+                      className="w-28 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
                     />
                   </div>
                 )}

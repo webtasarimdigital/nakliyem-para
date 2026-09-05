@@ -339,7 +339,7 @@ export default function CarrierJobsPage() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Şehir, ilçe, müşteri adı veya talep kodu ara (#26134)..."
-                className="w-full pl-11 pr-10 py-3 rounded-2xl border-2 border-slate-300 text-sm font-bold text-slate-900 bg-white focus:border-[#F95700] focus:outline-none shadow-sm"
+                className="w-full pl-11 pr-10 py-3 rounded-2xl border-2 border-slate-300 text-sm font-bold text-[#0A1128] bg-white focus:border-[#F95700] focus:outline-none shadow-sm"
                 autoFocus
               />
               <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -543,7 +543,7 @@ export default function CarrierJobsPage() {
                       className="relative w-24 h-16 rounded-xl overflow-hidden border border-slate-200 cursor-pointer group shadow-2xs"
                     >
                       <img src={photoList[0]} alt="Eşya fotoğrafı" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex items-center justify-center transition-colors">
+                      <div className="absolute inset-0 bg-[#0A1128]/20 group-hover:bg-[#0A1128]/40 flex items-center justify-center transition-colors">
                         <Maximize2 className="w-3.5 h-3.5 text-white" />
                       </div>
                     </div>
@@ -598,7 +598,7 @@ export default function CarrierJobsPage() {
                           onFocus={(e) => handleInputInteraction(req.id, e)}
                           onClick={(e) => handleInputInteraction(req.id, e)}
                           placeholder="Hemen teklifinizi yazın (TL)..."
-                          className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 border border-slate-200 rounded-xl focus:border-[#F95700] focus:outline-none bg-white shadow-2xs"
+                          className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-bold text-[#0A1128] placeholder:text-slate-400 border border-slate-200 rounded-xl focus:border-[#F95700] focus:outline-none bg-white shadow-2xs"
                         />
                         <button
                           type="submit"
@@ -629,7 +629,7 @@ export default function CarrierJobsPage() {
           {filteredRequests.length === 0 && (
             <div className="bg-white rounded-3xl border-2 border-dashed border-slate-200 p-16 text-center">
               <Truck className="w-14 h-14 text-slate-300 mx-auto mb-3" />
-              <h3 className="font-black text-slate-700 text-lg mb-1">Kriterlere uygun talep bulunamadı</h3>
+              <h3 className="font-black text-[#0A1128] text-lg mb-1">Kriterlere uygun talep bulunamadı</h3>
               <p className="text-xs text-slate-400 mb-4">Filtreleri sıfırlayarak tüm açık taşıma taleplerini görebilirsiniz.</p>
               <Button variant="outline" size="sm" onClick={resetFilters} className="font-bold">
                 Filtreleri Sıfırla
@@ -711,7 +711,7 @@ export default function CarrierJobsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Teklif Fiyatı (TL) *</label>
+              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Teklif Fiyatı (TL) *</label>
               <input
                 type="number"
                 value={offerPrice}
@@ -776,7 +776,7 @@ export default function CarrierJobsPage() {
       {lightboxPhoto && (
         <div
           onClick={() => setLightboxPhoto(null)}
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 cursor-zoom-out"
+          className="fixed inset-0 bg-[#0A1128]/90 z-50 flex items-center justify-center p-4 cursor-zoom-out"
         >
           <div className="relative max-w-4xl max-h-[90vh]">
             <img src={lightboxPhoto} alt="Büyük Görsel" className="w-full h-full object-contain rounded-2xl" />
@@ -791,7 +791,7 @@ export default function CarrierJobsPage() {
       )}
       {/* ── MÜŞTERİ PROFİLİ MODALI (Paket Korumalı Telefon & Mesaj) ── */}
       {customerModalReq && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#0A1128]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-black text-[#0A1128]">Müşteri Profili</h3>
@@ -808,7 +808,7 @@ export default function CarrierJobsPage() {
                 {customerModalReq.customerName[0]}
               </div>
               <div>
-                <h4 className="font-black text-base text-slate-900">{customerModalReq.customerName}</h4>
+                <h4 className="font-black text-base text-[#0A1128]">{customerModalReq.customerName}</h4>
                 <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md mt-0.5">
                   ✓ Doğrulanmış Cep Telefonu
                 </span>
@@ -818,11 +818,11 @@ export default function CarrierJobsPage() {
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                 <span className="text-slate-400 block text-[10px] font-bold uppercase">Konum</span>
-                <span className="font-black text-slate-800">{customerModalReq.originCity} / {customerModalReq.originDistrict}</span>
+                <span className="font-black text-[#0A1128]">{customerModalReq.originCity} / {customerModalReq.originDistrict}</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                 <span className="text-slate-400 block text-[10px] font-bold uppercase">Taşınma Sayısı</span>
-                <span className="font-black text-slate-800">2 Başarılı Taşıma</span>
+                <span className="font-black text-[#0A1128]">2 Başarılı Taşıma</span>
               </div>
             </div>
 
@@ -843,7 +843,7 @@ export default function CarrierJobsPage() {
 
               {canViewPhone ? (
                 <div className="flex items-center justify-between pt-1">
-                  <span className="font-black text-base text-slate-900 tracking-wider">
+                  <span className="font-black text-base text-[#0A1128] tracking-wider">
                     {customerModalReq.customerPhone}
                   </span>
                   <a href={`tel:${customerModalReq.customerPhone}`}>

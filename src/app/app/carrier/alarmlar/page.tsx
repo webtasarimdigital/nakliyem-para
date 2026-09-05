@@ -73,7 +73,7 @@ export default function CarrierAlarmsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
             İş ve Rota Alarmlarım
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -98,7 +98,7 @@ export default function CarrierAlarmsPage() {
             <Bell className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Anlık Tarayıcı Bildirimleri</h3>
+            <h3 className="text-sm font-bold text-[#0A1128]">Anlık Tarayıcı Bildirimleri</h3>
             <p className="text-xs text-slate-600 mt-0.5">
               Yeni işler açıldığında ilk teklif verenlerden olmak için bildirimleri aktif edin.
             </p>
@@ -155,7 +155,7 @@ export default function CarrierAlarmsPage() {
               <button
                 type="button"
                 onClick={() => handleToggleAlarm(alarm.id, alarm.status)}
-                className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5"
+                className="text-xs font-bold text-slate-600 hover:text-[#0A1128] flex items-center gap-1.5"
               >
                 {alarm.status === 'ACTIVE' ? (
                   <>

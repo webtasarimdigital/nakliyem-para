@@ -113,7 +113,7 @@ function CarrierDefterContent() {
               Nakliyeciler Arası İş Ağı
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
             Nakliyeci Defteri
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -174,7 +174,7 @@ function CarrierDefterContent() {
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <Link href={`/firma/${post.carrier.slug}`} className="font-bold text-sm text-slate-900 hover:text-[#146EF5]">
+                      <Link href={`/firma/${post.carrier.slug}`} className="font-bold text-sm text-[#0A1128] hover:text-[#146EF5]">
                         {post.carrier.companyName}
                       </Link>
                       {post.carrier.planId === 'plan_gold' && <Badge variant="gold" size="sm" />}
@@ -265,7 +265,7 @@ function CarrierDefterContent() {
         <div className="space-y-6">
           {/* Quick Route Alarm Shortcut */}
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-            <h3 className="text-sm font-bold text-slate-900 mb-2">Defter Alarmları</h3>
+            <h3 className="text-sm font-bold text-[#0A1128] mb-2">Defter Alarmları</h3>
             <p className="text-xs text-slate-500 mb-4">
               Takip ettiğiniz rotada yeni bir boş araç veya yük paylaşıldığında bildirim alın.
             </p>

@@ -70,7 +70,7 @@ export default function CustomerRequestsPage() {
             {/* Header + Tabs */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
                   Taleplerim
                 </h1>
                 <Link href="/teklif-al">
@@ -124,7 +124,7 @@ export default function CustomerRequestsPage() {
                             {initials}
                           </div>
                           <div>
-                            <h3 className="font-black text-sm text-slate-900 leading-tight">
+                            <h3 className="font-black text-sm text-[#0A1128] leading-tight">
                               {shortName}
                             </h3>
                             <span className="text-[11px] text-slate-400 font-bold block">
@@ -149,11 +149,11 @@ export default function CustomerRequestsPage() {
                       <div className="flex items-center gap-3 flex-wrap pt-1">
                         <div className="flex items-center gap-2 text-rose-500 font-black text-sm">
                           <span className="text-base">〰</span>
-                          <span className="text-slate-900 font-black text-base">
+                          <span className="text-[#0A1128] font-black text-base">
                             {req.originCity} <span className="text-rose-500 font-bold">→</span> {req.destinationCity}
                           </span>
                         </div>
-                        <span className="inline-flex items-center gap-1 text-xs font-black text-slate-700 bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-xl shadow-2xs">
+                        <span className="inline-flex items-center gap-1 text-xs font-black text-[#0A1128] bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-xl shadow-2xs">
                           <span>🏠</span>
                           <span>Evden Eve</span>
                         </span>
@@ -270,7 +270,7 @@ export default function CustomerRequestsPage() {
             {/* Top Card: Teklif Al Banner */}
             <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-3">
               <div>
-                <h3 className="text-sm font-black text-slate-900 tracking-tight">
+                <h3 className="text-sm font-black text-[#0A1128] tracking-tight">
                   Teklif Al
                 </h3>
                 <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1">
@@ -279,7 +279,7 @@ export default function CustomerRequestsPage() {
               </div>
 
               <Link href="/teklif-al" className="block">
-                <button className="w-full py-2.5 px-4 rounded-xl bg-[#FFD200] hover:bg-[#F5C400] text-black font-black text-xs transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                <button className="w-full py-2.5 px-4 rounded-xl bg-[#FFD200] hover:bg-[#F5C400] text-[#0A1128] font-black text-xs transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
                   <PlusCircle className="w-4 h-4" />
                   <span>Teklif Al</span>
                 </button>
@@ -296,7 +296,7 @@ export default function CustomerRequestsPage() {
                   🏠
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-slate-900 leading-tight">
+                  <h4 className="text-xs font-black text-[#0A1128] leading-tight">
                     Evden Eve Nakliyat
                   </h4>
                   <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
@@ -313,7 +313,7 @@ export default function CustomerRequestsPage() {
                   ⚡
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-slate-900 leading-tight">
+                  <h4 className="text-xs font-black text-[#0A1128] leading-tight">
                     Ekspres Parça
                   </h4>
                   <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
@@ -330,7 +330,7 @@ export default function CustomerRequestsPage() {
                   📦
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-slate-900 leading-tight">
+                  <h4 className="text-xs font-black text-[#0A1128] leading-tight">
                     Depolama
                   </h4>
                   <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
@@ -347,7 +347,7 @@ export default function CustomerRequestsPage() {
                   🏢
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-slate-900 leading-tight">
+                  <h4 className="text-xs font-black text-[#0A1128] leading-tight">
                     Ofis Taşıma
                   </h4>
                   <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
@@ -364,7 +364,7 @@ export default function CustomerRequestsPage() {
                   📖
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-slate-900 leading-tight">
+                  <h4 className="text-xs font-black text-[#0A1128] leading-tight">
                     Defter
                   </h4>
                   <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">

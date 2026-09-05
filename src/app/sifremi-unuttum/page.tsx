@@ -119,12 +119,12 @@ export default function SifremiUnuttumPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F8] flex items-center justify-center p-3 sm:p-6 lg:p-10">
+    <div className="min-h-[calc(100vh-4.5rem)] bg-[#F8FAFC] flex items-center justify-center py-6 sm:py-10 px-4 sm:px-6">
       {/* Outer Card Container (Split Screen) */}
-      <div className="w-full max-w-5xl bg-white rounded-3xl sm:rounded-4xl shadow-xl shadow-slate-200/60 overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-slate-200/80">
+      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl shadow-slate-200/70 overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-slate-200/80 items-stretch">
         
         {/* ── LEFT PANEL: Branded Visual & Trust (Same as giris & kayit) ── */}
-        <div className="lg:col-span-6 bg-gradient-to-br from-[#0A1128] via-[#101D42] to-[#1E3264] p-8 sm:p-12 text-white flex flex-col justify-between relative overflow-hidden">
+        <div className="lg:col-span-6 bg-gradient-to-br from-[#0A1128] via-[#101D42] to-[#1E3264] p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden h-full">
           {/* Subtle Grid / Pattern */}
           <div className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
 
@@ -214,7 +214,7 @@ export default function SifremiUnuttumPage() {
             {step === 'PHONE' && (
               <form onSubmit={handlePhoneSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
                     Kayıtlı Telefon Numaranız
                   </label>
                   <div className="relative">
@@ -225,7 +225,7 @@ export default function SifremiUnuttumPage() {
                       placeholder="0532 555 00 00"
                       required
                       autoFocus
-                      className="w-full border-2 border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                      className="w-full border-2 border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                     />
                     <Phone className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                   </div>
@@ -254,7 +254,7 @@ export default function SifremiUnuttumPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
                     SMS Onay Kodu
                   </label>
                   <input
@@ -265,7 +265,7 @@ export default function SifremiUnuttumPage() {
                     maxLength={6}
                     required
                     autoFocus
-                    className="w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-center text-lg font-black tracking-widest text-slate-900 placeholder:text-slate-300 focus:border-[#F95700] focus:outline-none transition-colors"
+                    className="w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-center text-lg font-black tracking-widest text-[#0A1128] placeholder:text-slate-300 focus:border-[#F95700] focus:outline-none transition-colors"
                   />
                 </div>
 
@@ -293,7 +293,7 @@ export default function SifremiUnuttumPage() {
             {step === 'NEW_PASSWORD' && (
               <form onSubmit={handlePasswordSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
                     Yeni Şifreniz
                   </label>
                   <div className="relative">
@@ -304,7 +304,7 @@ export default function SifremiUnuttumPage() {
                       placeholder="En az 6 karakter"
                       required
                       autoFocus
-                      className="w-full border-2 border-slate-200 rounded-2xl pl-11 pr-11 py-3 text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                      className="w-full border-2 border-slate-200 rounded-2xl pl-11 pr-11 py-3 text-sm font-bold text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                     />
                     <Lock className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                     <button
@@ -318,7 +318,7 @@ export default function SifremiUnuttumPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
                     Yeni Şifrenizi Tekrar Girin
                   </label>
                   <div className="relative">
@@ -328,7 +328,7 @@ export default function SifremiUnuttumPage() {
                       onChange={e => setConfirmPassword(e.target.value)}
                       placeholder="Şifreyi tekrar yazın"
                       required
-                      className="w-full border-2 border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                      className="w-full border-2 border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                     />
                     <Lock className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                   </div>

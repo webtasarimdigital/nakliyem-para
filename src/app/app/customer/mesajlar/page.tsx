@@ -60,9 +60,13 @@ function CustomerMessagesContent() {
     }
   }, [activeConvId]);
 
-  // Scroll to bottom
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom without page jumping
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages, isTyping]);
 
   const activeConv = conversations.find(c => c.id === activeConvId);
@@ -238,7 +242,7 @@ function CustomerMessagesContent() {
             </div>
 
             {/* Messages Feed */}
-            <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-[#F8FAFC]">
+            <div ref={messagesContainerRef} className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-[#F8FAFC]">
               
               {/* Context Banner */}
               <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between text-xs font-medium text-slate-700">
@@ -258,7 +262,7 @@ function CustomerMessagesContent() {
                 </div>
 
                 <div>
-                  <h3 className="font-black text-base text-slate-900 leading-tight">
+                  <h3 className="font-black text-base text-[#0A1128] leading-tight">
                     {activeCarrier.companyName}
                   </h3>
                   <p className="text-[11px] text-slate-400 font-bold mt-0.5">
@@ -273,15 +277,15 @@ function CustomerMessagesContent() {
                 {/* 3 Stats Columns */}
                 <div className="grid grid-cols-3 divide-x divide-slate-100 py-2 border-y border-slate-100">
                   <div>
-                    <span className="font-black text-base text-slate-900 block">{activeCarrier.reviewCount || 58}</span>
+                    <span className="font-black text-base text-[#0A1128] block">{activeCarrier.reviewCount || 58}</span>
                     <span className="text-[10px] font-bold text-slate-400">Paylaşım</span>
                   </div>
                   <div>
-                    <span className="font-black text-base text-slate-900 block">2</span>
+                    <span className="font-black text-base text-[#0A1128] block">2</span>
                     <span className="text-[10px] font-bold text-slate-400">Yük/İş</span>
                   </div>
                   <div>
-                    <span className="font-black text-base text-slate-900 block">Yeni</span>
+                    <span className="font-black text-base text-[#0A1128] block">Yeni</span>
                     <span className="text-[10px] font-bold text-slate-400">Yorum</span>
                   </div>
                 </div>
@@ -308,7 +312,7 @@ function CustomerMessagesContent() {
                           <FileText className="w-4 h-4" />
                           <span>Taşınma Talebi</span>
                         </div>
-                        <p className="text-xs sm:text-sm font-bold text-slate-800 leading-relaxed whitespace-pre-line">
+                        <p className="text-xs sm:text-sm font-bold text-[#0A1128] leading-relaxed whitespace-pre-line">
                           {msg.content}
                         </p>
                         <div className="text-right">
@@ -392,7 +396,7 @@ function CustomerMessagesContent() {
                 value={inputMessage}
                 onChange={e => setInputMessage(e.target.value)}
                 placeholder="Mesajınızı yazın (fiyat, asansör, saat detayı vb.)..."
-                className="flex-1 px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-[#F95700] focus:outline-none text-sm font-medium text-slate-900 bg-slate-50/50"
+                className="flex-1 px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-[#F95700] focus:outline-none text-sm font-medium text-[#0A1128] bg-slate-50/50"
               />
               <Button
                 type="submit"
@@ -409,7 +413,7 @@ function CustomerMessagesContent() {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
             <MessageSquare className="w-12 h-12 mb-3 text-slate-300" />
-            <h3 className="font-bold text-slate-700 text-base mb-1">Bir sohbet seçin</h3>
+            <h3 className="font-bold text-[#0A1128] text-base mb-1">Bir sohbet seçin</h3>
             <p className="text-xs text-slate-400">Teklif veren nakliyeciler ile mesajlaşmak için soldan bir firma seçin.</p>
           </div>
         )}

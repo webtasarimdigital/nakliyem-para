@@ -259,7 +259,7 @@ export default function NakliyeciDefteriPage() {
           ))}
         </div>
 
-        {/* Customer View in Defter: Informative Alert (Customer doesn't publish in borsa) */}
+        {/* Role-based Defter Top Panel */}
         {currentUser?.role === 'CUSTOMER' ? (
           <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5">
@@ -279,8 +279,40 @@ export default function NakliyeciDefteriPage() {
               </Button>
             </Link>
           </div>
+        ) : !currentUser ? (
+          /* Guest / Logged out view: Cannot publish without logging in as Carrier */
+          <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-[#0A1128] text-[#F95700] flex items-center justify-center shrink-0 shadow-xs">
+                <Truck className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-black text-sm text-[#0A1128]">Nakliyeci Defteri Paylaşım Ağı</h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                    Nakliyecilere Özel
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-1 max-w-xl leading-relaxed">
+                  Boş araç, dönüş yükü ve mobil asansör ilanı paylaşabilmek için nakliyeci hesabınızla giriş yapmanız gerekmektedir.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link href="/giris?role=nakliyeci">
+                <Button variant="primary" size="md" className="font-black text-xs px-5 py-2.5 rounded-xl">
+                  Nakliyeci Girişi Yap →
+                </Button>
+              </Link>
+              <Link href="/kayit?role=nakliyeci">
+                <Button variant="outline" size="md" className="font-bold text-xs px-4 py-2.5 rounded-xl">
+                  Üye Ol
+                </Button>
+              </Link>
+            </div>
+          </div>
         ) : (
-          /* Inline Publishing Card (Image 4 exact) */
+          /* Inline Publishing Card (ONLY FOR LOGGED-IN CARRIER) */
           <div className="bg-white rounded-3xl border-2 border-slate-200 p-4 sm:p-5 shadow-xs mb-6 space-y-3">
             {/* Ban Warning Banner */}
             <div className="p-3 px-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2">
@@ -304,7 +336,7 @@ export default function NakliyeciDefteriPage() {
                 }}
                 rows={3}
                 placeholder="En az 10 kelime veya 25 karakter yazın..."
-                className="w-full p-4 rounded-2xl border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none resize-none bg-slate-50/50"
+                className="w-full p-4 rounded-2xl border border-slate-200 text-sm font-medium text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none resize-none bg-slate-50/50"
               />
 
               {/* Inline Word Count Error Banner (right above buttons) */}
@@ -434,7 +466,7 @@ export default function NakliyeciDefteriPage() {
                     {post.destinationCity && post.destinationCity !== 'Tüm Türkiye' && (
                       <>
                         <MoveRight className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="text-slate-900 font-black">{post.destinationCity}</span>
+                        <span className="text-[#0A1128] font-black">{post.destinationCity}</span>
                       </>
                     )}
                   </div>
@@ -503,7 +535,7 @@ export default function NakliyeciDefteriPage() {
       >
         <form onSubmit={handleCreatePost} className="space-y-4">
           <div>
-            <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Paylaşım Türü</label>
+            <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Paylaşım Türü</label>
             <select
               value={postCategory}
               onChange={e => setPostCategory(e.target.value as DefterPostCategory)}
@@ -519,7 +551,7 @@ export default function NakliyeciDefteriPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Çıkış İli (Nereden?)</label>
+              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Çıkış İli (Nereden?)</label>
               <select
                 value={originCity}
                 onChange={e => setOriginCity(e.target.value)}
@@ -530,7 +562,7 @@ export default function NakliyeciDefteriPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Varış / Güzergâh</label>
+              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Varış / Güzergâh</label>
               <select
                 value={destCity}
                 onChange={e => setDestCity(e.target.value)}
@@ -543,7 +575,7 @@ export default function NakliyeciDefteriPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">Araç Tipi</label>
+            <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Araç Tipi</label>
             <input
               type="text"
               value={vehicleType}
@@ -554,7 +586,7 @@ export default function NakliyeciDefteriPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">İlan Açıklaması *</label>
+            <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">İlan Açıklaması *</label>
             <textarea
               rows={3}
               value={content}

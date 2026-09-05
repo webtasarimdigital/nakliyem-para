@@ -59,7 +59,7 @@ export default function CarrierDigitalGrowthPage() {
           <Sparkles className="w-3.5 h-3.5 text-amber-600" />
           <span>Firma Büyütme Çözümleri</span>
         </div>
-        <h1 className="text-2xl sm:text-4xl font-black text-slate-900 mb-2">
+        <h1 className="text-2xl sm:text-4xl font-black text-[#0A1128] mb-2">
           Firmanızı Dijitalde Büyütün 🚀
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -83,12 +83,12 @@ export default function CarrierDigitalGrowthPage() {
                   {srv.slug.includes('maps') && <MapPin className="w-6 h-6" />}
                 </div>
 
-                <span className="text-xs font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg">
+                <span className="text-xs font-bold text-[#0A1128] bg-slate-100 px-2.5 py-1 rounded-lg">
                   {srv.startingPrice}
                 </span>
               </div>
 
-              <h3 className="text-lg font-black text-slate-900 group-hover:text-[#146EF5] transition-colors mb-2">
+              <h3 className="text-lg font-black text-[#0A1128] group-hover:text-[#146EF5] transition-colors mb-2">
                 {srv.title}
               </h3>
 

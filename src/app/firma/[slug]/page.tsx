@@ -351,7 +351,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                       <span>{carrier.rating.toFixed(1)}</span>
                     </div>
                     <div className="text-left border-l border-slate-200 pl-4">
-                      <p className="text-xs font-black text-slate-800">{carrier.reviewCount} Değerlendirme</p>
+                      <p className="text-xs font-black text-[#0A1128]">{carrier.reviewCount} Değerlendirme</p>
                       <p className="text-[10px] text-emerald-600 font-bold">%100 Doğrulanmış Müşteri</p>
                     </div>
                   </div>
@@ -513,7 +513,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-400 font-black block">Telefon</span>
-                    <span className="font-black text-slate-900">{showPhone ? carrier.phone : '05** *** ** **'}</span>
+                    <span className="font-black text-[#0A1128]">{showPhone ? carrier.phone : '05** *** ** **'}</span>
                   </div>
                 </div>
 
@@ -548,7 +548,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
       {selectedPhoto && (
         <div
           onClick={() => setSelectedPhoto(null)}
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 cursor-zoom-out"
+          className="fixed inset-0 bg-[#0A1128]/90 z-50 flex items-center justify-center p-4 cursor-zoom-out"
         >
           <div className="relative max-w-4xl max-h-[90vh]">
             <img src={selectedPhoto} alt="Büyük Görsel" className="w-full h-full object-contain rounded-2xl" />

@@ -58,8 +58,12 @@ export default function CarrierMessagesPage() {
     }
   }, [activeConvId]);
 
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const activeConv = conversations.find(c => c.id === activeConvId);
@@ -223,7 +227,7 @@ export default function CarrierMessagesPage() {
             </div>
 
             {/* Messages Feed */}
-            <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-[#F8FAFC]">
+            <div ref={messagesContainerRef} className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-[#F8FAFC]">
               {messages.map((msg) => {
                 const isMe = msg.senderRole === 'CARRIER';
                 return (
@@ -280,7 +284,7 @@ export default function CarrierMessagesPage() {
                   value={inputMessage}
                   onChange={e => setInputMessage(e.target.value)}
                   placeholder="Müşteriye teklif notu veya yanıt yazın..."
-                  className="flex-1 px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-[#F95700] focus:outline-none text-sm font-medium text-slate-900 bg-slate-50/50"
+                  className="flex-1 px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-[#F95700] focus:outline-none text-sm font-medium text-[#0A1128] bg-slate-50/50"
                 />
                 <Button
                   type="submit"
@@ -298,7 +302,7 @@ export default function CarrierMessagesPage() {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
             <MessageSquare className="w-12 h-12 mb-3 text-slate-300" />
-            <h3 className="font-bold text-slate-700 text-base mb-1">Bir sohbet seçin</h3>
+            <h3 className="font-bold text-[#0A1128] text-base mb-1">Bir sohbet seçin</h3>
           </div>
         )}
       </div>

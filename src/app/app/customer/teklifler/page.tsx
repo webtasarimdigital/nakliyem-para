@@ -356,7 +356,7 @@ export default function CustomerOffersPage() {
                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black text-white ${i === 0 ? 'bg-[#F95700]' : 'bg-[#0A1128]'}`}>
                             {i + 1}
                           </div>
-                          <span className={`text-xs font-black ${i === 0 ? 'text-[#F95700]' : 'text-slate-900'}`}>
+                          <span className={`text-xs font-black ${i === 0 ? 'text-[#F95700]' : 'text-[#0A1128]'}`}>
                             {offer.carrier.companyName.split(' ')[0]}
                           </span>
                           <div className="flex items-center gap-0.5 text-[10px] text-amber-600 font-bold">
@@ -384,7 +384,7 @@ export default function CustomerOffersPage() {
                         return (
                           <td key={offer.id} className={`p-4 text-center ${ci === 0 ? 'bg-orange-50/30' : ''}`}>
                             {criterion.key === 'price' ? (
-                              <span className={`font-black text-base ${ci === 0 ? 'text-[#F95700]' : 'text-slate-900'}`}>
+                              <span className={`font-black text-base ${ci === 0 ? 'text-[#F95700]' : 'text-[#0A1128]'}`}>
                                 {(val as number).toLocaleString('tr-TR')} TL
                               </span>
                             ) : typeof val === 'boolean' ? (
@@ -430,7 +430,7 @@ export default function CustomerOffersPage() {
         {offers.length === 0 && (
           <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-16 text-center">
             <Truck className="w-16 h-16 text-slate-200 mx-auto mb-4" />
-            <h2 className="font-black text-slate-700 text-xl mb-2">Henüz teklif yok</h2>
+            <h2 className="font-black text-[#0A1128] text-xl mb-2">Henüz teklif yok</h2>
             <p className="text-slate-500 font-medium">Nakliyeciler tekliflerini gönderdikçe burada listelenir.</p>
           </div>
         )}

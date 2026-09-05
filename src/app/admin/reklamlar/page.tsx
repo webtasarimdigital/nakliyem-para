@@ -25,10 +25,10 @@ export default function AdminAdsManagerPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 mb-1">
+          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#0A1128] mb-1">
             <ArrowLeft className="w-4 h-4" /> Admin Paneline Dön
           </Link>
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-2xl font-black text-[#0A1128]">
             Dinamik Reklam Alanları & Sponsor Kampanyaları
           </h1>
         </div>
@@ -36,7 +36,7 @@ export default function AdminAdsManagerPage() {
 
       {/* Ad Slots Overview (Spec Item 169) */}
       <div className="mb-10">
-        <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">
+        <h2 className="text-sm font-bold text-[#0A1128] uppercase tracking-wider mb-4">
           Tanımlı Reklam Yerleşimleri (Ad Slots)
         </h2>
 
@@ -50,7 +50,7 @@ export default function AdminAdsManagerPage() {
                 <Badge variant="verified" size="sm" />
               </div>
 
-              <h3 className="font-bold text-slate-900 text-sm">{slot.title}</h3>
+              <h3 className="font-bold text-[#0A1128] text-sm">{slot.title}</h3>
               <p className="text-xs text-slate-500">{slot.description}</p>
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
@@ -66,7 +66,7 @@ export default function AdminAdsManagerPage() {
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h2 className="text-base font-bold text-slate-900">Aktif Sponsor Kampanyaları</h2>
+            <h2 className="text-base font-bold text-[#0A1128]">Aktif Sponsor Kampanyaları</h2>
             <p className="text-xs text-slate-500">Gold üyelik ve doğrudan reklam kampanyalarından beslenen liste</p>
           </div>
         </div>
@@ -87,7 +87,7 @@ export default function AdminAdsManagerPage() {
             <tbody className="divide-y divide-slate-100">
               {campaigns.map((c) => (
                 <tr key={c.id} className="hover:bg-slate-50">
-                  <td className="p-4 font-bold text-slate-900">{c.carrier.companyName}</td>
+                  <td className="p-4 font-bold text-[#0A1128]">{c.carrier.companyName}</td>
                   <td className="p-4 text-slate-700 font-mono text-[11px]">{c.slotKey}</td>
                   <td className="p-4">
                     <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-900 font-bold border border-amber-200 text-[10px]">
@@ -95,7 +95,7 @@ export default function AdminAdsManagerPage() {
                     </span>
                   </td>
                   <td className="p-4 text-slate-500">{c.startDate} → {c.endDate}</td>
-                  <td className="p-4 font-bold text-slate-900">{c.currentImpressions.toLocaleString('tr-TR')}</td>
+                  <td className="p-4 font-bold text-[#0A1128]">{c.currentImpressions.toLocaleString('tr-TR')}</td>
                   <td className="p-4 font-bold text-blue-600">{c.currentClicks.toLocaleString('tr-TR')}</td>
                   <td className="p-4">
                     <span className="text-emerald-600 font-bold text-xs">✓ Yayında</span>

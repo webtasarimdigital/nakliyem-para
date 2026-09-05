@@ -121,7 +121,7 @@ export function LiveOfferChatModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#0A1128]/40 backdrop-blur-xs animate-fade-in">
       
       {/* ── CHAT MODAL CONTAINER (Image media_1788383028254 exact) ── */}
       <div className="bg-white rounded-3xl sm:rounded-4xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[650px] max-h-[92vh] animate-scale-in">
@@ -141,7 +141,7 @@ export function LiveOfferChatModal({
               {carrierName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'SN'}
             </div>
 
-            <span className="font-black text-xs sm:text-sm text-slate-900 tracking-tight">
+            <span className="font-black text-xs sm:text-sm text-[#0A1128] tracking-tight">
               {carrierName}
             </span>
           </div>
@@ -175,7 +175,7 @@ export function LiveOfferChatModal({
             </div>
 
             <div>
-              <h3 className="font-black text-base text-slate-900 leading-tight">
+              <h3 className="font-black text-base text-[#0A1128] leading-tight">
                 {carrierName}
               </h3>
               <p className="text-[11px] text-slate-400 font-bold mt-0.5">
@@ -190,15 +190,15 @@ export function LiveOfferChatModal({
             {/* 3 Stats Columns */}
             <div className="grid grid-cols-3 divide-x divide-slate-100 py-2 border-y border-slate-100">
               <div>
-                <span className="font-black text-base text-slate-900 block">58</span>
+                <span className="font-black text-base text-[#0A1128] block">58</span>
                 <span className="text-[10px] font-bold text-slate-400">Paylaşım</span>
               </div>
               <div>
-                <span className="font-black text-base text-slate-900 block">2</span>
+                <span className="font-black text-base text-[#0A1128] block">2</span>
                 <span className="text-[10px] font-bold text-slate-400">Yük/İş</span>
               </div>
               <div>
-                <span className="font-black text-base text-slate-900 block">Yeni</span>
+                <span className="font-black text-base text-[#0A1128] block">Yeni</span>
                 <span className="text-[10px] font-bold text-slate-400">Yorum</span>
               </div>
             </div>
@@ -234,7 +234,7 @@ export function LiveOfferChatModal({
                       <FileText className="w-3.5 h-3.5" />
                       <span>Taşınma Talebi</span>
                     </div>
-                    <p className="text-xs font-bold text-slate-800 leading-relaxed whitespace-pre-line">
+                    <p className="text-xs font-bold text-[#0A1128] leading-relaxed whitespace-pre-line">
                       {msg.content}
                     </p>
                     <div className="text-right">
@@ -295,7 +295,7 @@ export function LiveOfferChatModal({
           <div className="absolute bottom-20 right-8 z-10">
             <button
               onClick={scrollToBottom}
-              className="w-9 h-9 rounded-full bg-white shadow-lg border border-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all animate-bounce"
+              className="w-9 h-9 rounded-full bg-white shadow-lg border border-slate-200 text-slate-600 hover:text-[#0A1128] flex items-center justify-center transition-all animate-bounce"
             >
               <ChevronDown className="w-4 h-4" />
             </button>
@@ -310,7 +310,7 @@ export function LiveOfferChatModal({
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               placeholder="Mesajınızı yazın..."
-              className="w-full py-3 pl-4 pr-12 rounded-full bg-slate-100/90 border border-slate-200/80 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#F95700] focus:outline-none transition-all shadow-inner"
+              className="w-full py-3 pl-4 pr-12 rounded-full bg-slate-100/90 border border-slate-200/80 text-xs font-medium text-[#0A1128] placeholder:text-slate-400 focus:bg-white focus:border-[#F95700] focus:outline-none transition-all shadow-inner"
             />
             <button
               type="submit"

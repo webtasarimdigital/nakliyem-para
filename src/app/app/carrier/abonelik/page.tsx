@@ -74,7 +74,7 @@ export default function CarrierSubscriptionPage() {
               Abonelik & Paket Yönetimi
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
             Firma Üyeliğiniz ve Ayrıcalıklarınız
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -106,18 +106,18 @@ export default function CarrierSubscriptionPage() {
               </span>
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900">
+            <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
               {currentPlan.name} Üyelik Paketi
             </h2>
 
             <p className="text-xs sm:text-sm text-slate-600">
               {isCanceled ? (
                 <>
-                  Aboneliğiniz iptal edildi. Dönem sonuna (<strong className="text-slate-900">{periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>) kadar tüm haklarınız geçerlidir. Otomatik yenilenmeyecektir.
+                  Aboneliğiniz iptal edildi. Dönem sonuna (<strong className="text-[#0A1128]">{periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>) kadar tüm haklarınız geçerlidir. Otomatik yenilenmeyecektir.
                 </>
               ) : (
                 <>
-                  Sonraki Yenileme Tarihi: <strong className="text-slate-900">{periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong> • Aylık Ücret: <strong className="text-slate-900">{currentPlan.priceMonthly.toLocaleString('tr-TR')} TL / Ay</strong>
+                  Sonraki Yenileme Tarihi: <strong className="text-[#0A1128]">{periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong> • Aylık Ücret: <strong className="text-[#0A1128]">{currentPlan.priceMonthly.toLocaleString('tr-TR')} TL / Ay</strong>
                 </>
               )}
             </p>
@@ -172,7 +172,7 @@ export default function CarrierSubscriptionPage() {
 
       {/* 3 PLAN COMPARISON CARDS (Spec Item 105) */}
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-slate-900 mb-2">Tüm Paketler</h2>
+        <h2 className="text-xl font-bold text-[#0A1128] mb-2">Tüm Paketler</h2>
         <p className="text-xs text-slate-500 mb-6">İhtiyacınıza uygun paketi seçerek 7 gün ücretsiz deneyebilirsiniz.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -191,7 +191,7 @@ export default function CarrierSubscriptionPage() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-black text-slate-900">{p.name}</h3>
+                    <h3 className="text-lg font-black text-[#0A1128]">{p.name}</h3>
                     {p.badge && (
                       <span className="text-[10px] uppercase font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
                         {p.badge}
@@ -204,7 +204,7 @@ export default function CarrierSubscriptionPage() {
                   </p>
 
                   <div className="mb-6">
-                    <span className="text-3xl font-black text-slate-900">{p.priceMonthly.toLocaleString('tr-TR')} TL</span>
+                    <span className="text-3xl font-black text-[#0A1128]">{p.priceMonthly.toLocaleString('tr-TR')} TL</span>
                     <span className="text-xs text-slate-500 font-medium"> / Ay + KDV</span>
                   </div>
 
@@ -265,7 +265,7 @@ export default function CarrierSubscriptionPage() {
           <form onSubmit={handleStartTrial} className="space-y-4 text-xs sm:text-sm">
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
               <div>
-                <span className="font-bold text-slate-900 block text-base">{selectedPlanForTrial.name} Paket</span>
+                <span className="font-bold text-[#0A1128] block text-base">{selectedPlanForTrial.name} Paket</span>
                 <span className="text-xs text-slate-500">{selectedPlanForTrial.priceMonthly} TL / Ay (7 gün sonra)</span>
               </div>
               <Badge variant="gold" size="sm" />

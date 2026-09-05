@@ -78,10 +78,10 @@ export default function AdminVerificationConsolePage() {
       {/* Top Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 mb-1">
+          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#0A1128] mb-1">
             <ArrowLeft className="w-4 h-4" /> Admin Paneline Dön
           </Link>
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-2xl font-black text-[#0A1128]">
             Firma Doğrulama Konsolu
           </h1>
         </div>
@@ -108,7 +108,7 @@ export default function AdminVerificationConsolePage() {
               onClick={() => setSelectedCarrier(c)}
               className={`p-3 rounded-xl cursor-pointer transition-all border text-xs ${
                 selectedCarrier.id === c.id
-                  ? 'border-[#146EF5] bg-blue-50/50 shadow-2xs font-bold text-slate-900'
+                  ? 'border-[#146EF5] bg-blue-50/50 shadow-2xs font-bold text-[#0A1128]'
                   : 'border-slate-100 hover:bg-slate-50 text-slate-700'
               }`}
             >
@@ -125,7 +125,7 @@ export default function AdminVerificationConsolePage() {
         <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6">
           <div>
             <div className="flex items-center justify-between gap-2 mb-2">
-              <h2 className="text-lg font-black text-slate-900">{selectedCarrier.companyName}</h2>
+              <h2 className="text-lg font-black text-[#0A1128]">{selectedCarrier.companyName}</h2>
               <Badge variant={selectedCarrier.verificationStatus === 'APPROVED' ? 'verified' : 'pending'} size="md" />
             </div>
             <p className="text-xs text-slate-500">
@@ -134,7 +134,7 @@ export default function AdminVerificationConsolePage() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Yüklenen Belgeler</h3>
+            <h3 className="text-xs font-bold text-[#0A1128] uppercase tracking-wider">Yüklenen Belgeler</h3>
 
             {carrierDocs.length > 0 ? (
               carrierDocs.map((doc) => (
@@ -143,7 +143,7 @@ export default function AdminVerificationConsolePage() {
                     <div className="flex items-center gap-2">
                       <FileText className="w-5 h-5 text-[#146EF5]" />
                       <div>
-                        <span className="text-xs font-bold text-slate-900 block">{doc.title}</span>
+                        <span className="text-xs font-bold text-[#0A1128] block">{doc.title}</span>
                         <span className="text-[11px] text-slate-400">{doc.fileName}</span>
                       </div>
                     </div>
@@ -197,7 +197,7 @@ export default function AdminVerificationConsolePage() {
 
         {/* Right Col (3/12): Final Decision & Action */}
         <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 p-5 shadow-xs h-fit space-y-4 text-xs">
-          <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Doğrulama Kararı</h3>
+          <h3 className="text-xs font-bold text-[#0A1128] uppercase tracking-wider">Doğrulama Kararı</h3>
 
           <div>
             <label className="block font-bold text-slate-700 mb-1">Yönetici Notu (Gerekirse)</label>

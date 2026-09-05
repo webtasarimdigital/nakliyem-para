@@ -45,7 +45,7 @@ export default function BlogListingPage() {
           <BookOpen className="w-3.5 h-3.5 text-[#146EF5]" />
           <span>Taşınma Bilgi Bankası</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3">
+        <h1 className="text-3xl sm:text-4xl font-black text-[#0A1128] mb-3">
           Taşınmadan Önce Bilmeniz Gerekenler
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -65,7 +65,7 @@ export default function BlogListingPage() {
                 <span>{post.readTime}</span>
               </div>
 
-              <h2 className="text-base font-bold text-slate-900 group-hover:text-[#146EF5] transition-colors mb-2 leading-snug">
+              <h2 className="text-base font-bold text-[#0A1128] group-hover:text-[#146EF5] transition-colors mb-2 leading-snug">
                 {post.title}
               </h2>
 

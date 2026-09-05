@@ -157,7 +157,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
           <ChevronRight className="w-3.5 h-3.5" />
           <Link href="/pazaryeri" className="hover:text-[#F95700]">Pazaryeri</Link>
           <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-slate-900 font-bold truncate max-w-[200px]">{listing.title}</span>
+          <span className="text-[#0A1128] font-bold truncate max-w-[200px]">{listing.title}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -189,17 +189,17 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                   <>
                     <button
                       onClick={handlePrevPhoto}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#0A1128]/50 hover:bg-[#0A1128]/70 text-white flex items-center justify-center transition-all"
                     >
                       <ChevronLeft className="w-6 h-6" />
                     </button>
                     <button
                       onClick={handleNextPhoto}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#0A1128]/50 hover:bg-[#0A1128]/70 text-white flex items-center justify-center transition-all"
                     >
                       <ChevronRight className="w-6 h-6" />
                     </button>
-                    <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-black/60 text-white text-xs font-black">
+                    <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-[#0A1128]/60 text-white text-xs font-black">
                       {listing.photos.length} fotoğraf
                     </div>
                     <div className="absolute bottom-3 left-3 flex gap-1.5">
@@ -297,7 +297,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       <span className="block text-[11px] text-slate-400 font-black uppercase tracking-wider">
                         {spec.label}
                       </span>
-                      <span className="block text-base font-black text-slate-900">
+                      <span className="block text-base font-black text-[#0A1128]">
                         {spec.value}
                       </span>
                     </div>
@@ -378,7 +378,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       type="text"
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
-                      className="flex-1 px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-xs sm:text-sm font-medium bg-white text-slate-900"
+                      className="flex-1 px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-xs sm:text-sm font-medium bg-white text-[#0A1128]"
                     />
                     <Button
                       variant="primary"
@@ -421,7 +421,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-900 truncate group-hover:text-[#F95700] transition-colors">
+                      <p className="text-xs font-bold text-[#0A1128] truncate group-hover:text-[#F95700] transition-colors">
                         {l.title}
                       </p>
                       <p className="text-xs font-black text-[#F95700]">{l.priceLabel}</p>
@@ -442,7 +442,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
       {/* Full Gallery Modal */}
       {showFullGallery && listing.photos.length > 0 && (
-        <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-[#0A1128]/95 z-50 flex items-center justify-center">
           <button
             onClick={() => setShowFullGallery(false)}
             className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all"

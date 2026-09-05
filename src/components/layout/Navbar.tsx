@@ -18,7 +18,13 @@ import {
   MessageSquare,
   Package,
   Settings,
-  Briefcase
+  Briefcase,
+  Globe,
+  Search,
+  MapPin,
+  Megaphone,
+  Share2,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { db } from '@/lib/data/mock-db';
@@ -31,6 +37,7 @@ export const Navbar: React.FC = () => {
   const [loginDropdownOpen, setLoginDropdownOpen] = useState(false);
   const [registerDropdownOpen, setRegisterDropdownOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [digitalDropdownOpen, setDigitalDropdownOpen] = useState(false);
 
   // Dynamic reactive current user state
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -54,12 +61,14 @@ export const Navbar: React.FC = () => {
   const loginDropdownRef = useRef<HTMLDivElement>(null);
   const registerDropdownRef = useRef<HTMLDivElement>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
+  const digitalDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (loginDropdownRef.current && !loginDropdownRef.current.contains(event.target as Node)) setLoginDropdownOpen(false);
       if (registerDropdownRef.current && !registerDropdownRef.current.contains(event.target as Node)) setRegisterDropdownOpen(false);
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) setUserDropdownOpen(false);
+      if (digitalDropdownRef.current && !digitalDropdownRef.current.contains(event.target as Node)) setDigitalDropdownOpen(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -146,6 +155,114 @@ export const Navbar: React.FC = () => {
               Pazaryeri
             </Link>
           )}
+
+          {/* Dijital Hizmetler Dropdown for Carrier */}
+          {isCarrier && (
+            <div className="relative" ref={digitalDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setDigitalDropdownOpen(!digitalDropdownOpen)}
+                className={`px-3 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                  pathname?.includes('dijital-hizmetler')
+                    ? 'bg-orange-50 text-[#F95700]'
+                    : 'text-slate-700 hover:bg-slate-100 hover:text-[#0A1128]'
+                }`}
+              >
+                <Sparkles className="w-4 h-4 text-[#F95700] shrink-0" />
+                <span>Dijital</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${digitalDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {digitalDropdownOpen && (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-white rounded-3xl shadow-xl border border-slate-200 p-2 z-50 animate-fade-in space-y-1">
+                  <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Firmanızı İnternette Büyütün
+                  </div>
+
+                  <Link
+                    href="/app/carrier/dijital-hizmetler/web-sitesi"
+                    onClick={() => setDigitalDropdownOpen(false)}
+                    className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#F95700] flex items-center justify-center shrink-0">
+                      <Globe className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-[#0A1128] group-hover:text-[#F95700] truncate">Web Sitesi Hizmeti</div>
+                      <div className="text-[10px] text-slate-400">Mobil uyumlu & formlu</div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/app/carrier/dijital-hizmetler/google-seo"
+                    onClick={() => setDigitalDropdownOpen(false)}
+                    className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                      <Search className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-[#0A1128] group-hover:text-[#F95700] truncate">Google SEO</div>
+                      <div className="text-[10px] text-slate-400">Aramalarda 1. sayfa</div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/app/carrier/dijital-hizmetler/harita-seo"
+                    onClick={() => setDigitalDropdownOpen(false)}
+                    className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-[#0A1128] group-hover:text-[#F95700] truncate">Harita SEO (Google Maps)</div>
+                      <div className="text-[10px] text-slate-400">Bölgenizde ilk sırada</div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/app/carrier/dijital-hizmetler/google-reklamlari"
+                    onClick={() => setDigitalDropdownOpen(false)}
+                    className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                      <Megaphone className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-[#0A1128] group-hover:text-[#F95700] truncate">Google Reklamları</div>
+                      <div className="text-[10px] text-slate-400">Anında arayan müşteriler</div>
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/app/carrier/dijital-hizmetler/sosyal-medya"
+                    onClick={() => setDigitalDropdownOpen(false)}
+                    className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center shrink-0">
+                      <Share2 className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-[#0A1128] group-hover:text-[#F95700] truncate">Sosyal Medya Reklamları</div>
+                      <div className="text-[10px] text-slate-400">Instagram & Facebook</div>
+                    </div>
+                  </Link>
+
+                  <div className="pt-1.5 border-t border-slate-100">
+                    <Link
+                      href="/app/carrier/dijital-hizmetler"
+                      onClick={() => setDigitalDropdownOpen(false)}
+                      className="flex items-center justify-between px-3 py-2 text-xs font-bold text-[#F95700] hover:bg-orange-50 rounded-xl"
+                    >
+                      <span>Tüm Dijital Hizmetler</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </nav>
 
         {/* Right: Auth Profile or Login/Register */}
@@ -173,7 +290,7 @@ export const Navbar: React.FC = () => {
               {userDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-fade-in">
                   <div className="px-4 py-2.5 border-b border-slate-100">
-                    <p className="text-xs font-black text-slate-900 truncate">{displayName}</p>
+                    <p className="text-xs font-black text-[#0A1128] truncate">{displayName}</p>
                     <p className="text-[11px] font-medium text-slate-500 truncate">{currentUser.email || currentUser.phone}</p>
                   </div>
 
@@ -220,6 +337,10 @@ export const Navbar: React.FC = () => {
                         <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
                         Abonelik &amp; Paketim
                       </Link>
+                      <Link href="/app/carrier/dijital-hizmetler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                        <Sparkles className="w-3.5 h-3.5 text-[#F95700]" />
+                        Dijital Hizmetler
+                      </Link>
                     </div>
                   )}
 
@@ -239,7 +360,7 @@ export const Navbar: React.FC = () => {
               <div className="relative" ref={loginDropdownRef}>
                 <button
                   onClick={() => { setLoginDropdownOpen(!loginDropdownOpen); setRegisterDropdownOpen(false); }}
-                  className="flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-black text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+                  className="flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-black text-[#0A1128] hover:bg-slate-100 transition-all cursor-pointer"
                 >
                   Giriş Yap <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                 </button>
@@ -298,7 +419,7 @@ export const Navbar: React.FC = () => {
           {currentUser ? (
             <Link
               href={isCarrier ? '/app/carrier/profil' : '/app/customer/profil'}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-black text-slate-800"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-black text-[#0A1128]"
             >
               <div className={`w-5 h-5 rounded-full ${isCarrier ? 'bg-[#0A1128]' : 'bg-[#F95700]'} text-white flex items-center justify-center text-[10px]`}>
                 {avatarInitial}
@@ -352,7 +473,7 @@ export const Navbar: React.FC = () => {
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-4 py-3 rounded-2xl text-sm font-black transition-all text-slate-800 hover:bg-slate-100"
+                className="flex items-center gap-2.5 px-4 py-3 rounded-2xl text-sm font-black transition-all text-[#0A1128] hover:bg-slate-100"
               >
                 {link.icon}
                 {link.label}

@@ -37,12 +37,12 @@ export default function DistrictDirectoryPage({ params }: { params: Promise<{ ci
         <ChevronRight className="w-3.5 h-3.5" />
         <Link href={`/nakliyat-firmalari/${cityObj.slug}`} className="hover:text-slate-800">{cityObj.name}</Link>
         <ChevronRight className="w-3.5 h-3.5" />
-        <span className="text-slate-900 font-bold">{matchedDistrict}</span>
+        <span className="text-[#0A1128] font-bold">{matchedDistrict}</span>
       </nav>
 
       {/* Hero */}
       <div className="max-w-3xl mb-8">
-        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3">
+        <h1 className="text-3xl sm:text-4xl font-black text-[#0A1128] mb-3">
           {cityObj.name} {matchedDistrict} Nakliyat Firmaları
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -81,7 +81,7 @@ export default function DistrictDirectoryPage({ params }: { params: Promise<{ ci
                   <Truck className="w-7 h-7 text-[#146EF5]" />
                 </div>
                 <div>
-                  <Link href={`/firma/${c.slug}`} className="font-bold text-base text-slate-900 group-hover:text-[#146EF5] truncate block">
+                  <Link href={`/firma/${c.slug}`} className="font-bold text-base text-[#0A1128] group-hover:text-[#146EF5] truncate block">
                     {c.companyName}
                   </Link>
                   <div className="flex items-center text-amber-500 font-bold text-xs gap-1 mt-1">

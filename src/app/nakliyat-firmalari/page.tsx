@@ -30,7 +30,7 @@ export default function NakliyatFirmalariDirectoryPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
       {/* Header */}
       <div className="max-w-3xl mb-10">
-        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3">
+        <h1 className="text-3xl sm:text-4xl font-black text-[#0A1128] mb-3">
           Onaylı & Belgeli Nakliyat Firmaları
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">

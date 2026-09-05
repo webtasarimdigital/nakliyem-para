@@ -58,7 +58,7 @@ export default function CustomerProfilePage() {
           <main className="lg:col-span-9 space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
                   Hesap Bilgilerim &amp; Ayarlar
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
@@ -84,42 +84,42 @@ export default function CustomerProfilePage() {
             <form onSubmit={handleSave} className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs space-y-6 text-xs sm:text-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="block font-black text-slate-700 mb-1.5">Adınız</label>
+                  <label className="block font-black text-[#0A1128] mb-1.5">Adınız</label>
                   <input
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-slate-200 font-bold text-slate-900 focus:border-[#F95700] focus:outline-none"
+                    className="w-full p-3 rounded-xl border border-slate-200 font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-black text-slate-700 mb-1.5">Soyadınız</label>
+                  <label className="block font-black text-[#0A1128] mb-1.5">Soyadınız</label>
                   <input
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-slate-200 font-bold text-slate-900 focus:border-[#F95700] focus:outline-none"
+                    className="w-full p-3 rounded-xl border border-slate-200 font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-black text-slate-700 mb-1.5">Cep Telefonu Numarası</label>
+                  <label className="block font-black text-[#0A1128] mb-1.5">Cep Telefonu Numarası</label>
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-slate-200 font-bold text-slate-900 focus:border-[#F95700] focus:outline-none"
+                    className="w-full p-3 rounded-xl border border-slate-200 font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-black text-slate-700 mb-1.5">E-posta Adresi</label>
+                  <label className="block font-black text-[#0A1128] mb-1.5">E-posta Adresi</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-slate-200 font-bold text-slate-900 focus:border-[#F95700] focus:outline-none"
+                    className="w-full p-3 rounded-xl border border-slate-200 font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
                   />
                 </div>
               </div>

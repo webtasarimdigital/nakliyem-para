@@ -188,7 +188,7 @@ export default function AdminDashboardPage() {
               )}
 
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
                   Kullanıcı Adı
                 </label>
                 <input
@@ -197,12 +197,12 @@ export default function AdminDashboardPage() {
                   onChange={e => setLoginUser(e.target.value)}
                   placeholder="admin"
                   required
-                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
                   Şifre
                 </label>
                 <input
@@ -211,7 +211,7 @@ export default function AdminDashboardPage() {
                   onChange={e => setLoginPass(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                 />
               </div>
 
@@ -382,7 +382,7 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-amber-500" />
-                <h2 className="font-bold text-slate-900">Nakliyeci Abonelik Dağılımı</h2>
+                <h2 className="font-bold text-[#0A1128]">Nakliyeci Abonelik Dağılımı</h2>
               </div>
               <Link href="/admin/uyeler" className="text-xs font-bold text-[#146EF5] hover:underline">
                 Tümünü Gör →
@@ -435,7 +435,7 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#F95700]" />
-                <h2 className="font-bold text-slate-900">Platform Aktivitesi</h2>
+                <h2 className="font-bold text-[#0A1128]">Platform Aktivitesi</h2>
               </div>
             </div>
 
@@ -480,7 +480,7 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-amber-500" />
-                <h2 className="font-bold text-slate-900">Belge Onayı Bekleyen</h2>
+                <h2 className="font-bold text-[#0A1128]">Belge Onayı Bekleyen</h2>
                 {pendingDocs.length > 0 && (
                   <span className="text-[10px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
                     {pendingDocs.length}
@@ -502,7 +502,7 @@ export default function AdminDashboardPage() {
                 {pendingDocs.slice(0, 4).map((doc) => (
                   <div key={doc.id} className="p-3.5 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-between text-xs gap-2">
                     <div className="min-w-0">
-                      <span className="font-bold text-slate-900 block truncate">{doc.title}</span>
+                      <span className="font-bold text-[#0A1128] block truncate">{doc.title}</span>
                       <span className="text-slate-500">{doc.fileName}</span>
                     </div>
                     <Link href="/admin/dogrulamalar">
@@ -521,7 +521,7 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#F95700]" />
-                <h2 className="font-bold text-slate-900">Son Müşteri Talepleri</h2>
+                <h2 className="font-bold text-[#0A1128]">Son Müşteri Talepleri</h2>
               </div>
             </div>
 
@@ -529,7 +529,7 @@ export default function AdminDashboardPage() {
               {requests.slice(0, 4).map((req) => (
                 <div key={req.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs gap-2">
                   <div className="min-w-0">
-                    <span className="font-bold text-slate-900 block">{req.customerName}</span>
+                    <span className="font-bold text-[#0A1128] block">{req.customerName}</span>
                     <span className="text-slate-500">{req.originCity} → {req.destinationCity} • {req.homeSize}</span>
                   </div>
                   <span className={`shrink-0 px-2 py-1 rounded-full text-[10px] font-black ${
