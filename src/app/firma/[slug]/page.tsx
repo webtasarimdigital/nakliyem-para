@@ -202,7 +202,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black whitespace-nowrap transition-all cursor-pointer ${
                   activeTab === tab.id
-                    ? 'bg-[#0A1128] text-white shadow-xs'
+                    ? 'bg-[#1E3A8A] text-white shadow-xs'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >

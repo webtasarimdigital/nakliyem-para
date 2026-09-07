@@ -371,7 +371,7 @@ export const Navbar: React.FC = () => {
                       <span>Müşteri Girişi</span>
                     </Link>
                     <Link href="/giris?role=nakliyeci" onClick={() => setLoginDropdownOpen(false)} className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-slate-800 font-black text-xs transition-colors">
-                      <div className="w-7 h-7 rounded-lg bg-[#0A1128] text-white flex items-center justify-center shrink-0"><Truck className="w-3.5 h-3.5" /></div>
+                      <div className="w-7 h-7 rounded-lg bg-[#162E65] text-white flex items-center justify-center shrink-0"><Truck className="w-3.5 h-3.5" /></div>
                       <span>Nakliyeci Girişi</span>
                     </Link>
                   </div>
@@ -393,7 +393,7 @@ export const Navbar: React.FC = () => {
                       <span>Müşteri Hesabı</span>
                     </Link>
                     <Link href="/kayit?role=nakliyeci" onClick={() => setRegisterDropdownOpen(false)} className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-slate-800 font-black text-xs transition-colors">
-                      <div className="w-7 h-7 rounded-lg bg-[#0A1128] text-white flex items-center justify-center shrink-0"><Truck className="w-3.5 h-3.5" /></div>
+                      <div className="w-7 h-7 rounded-lg bg-[#162E65] text-white flex items-center justify-center shrink-0"><Truck className="w-3.5 h-3.5" /></div>
                       <span>Nakliyeci Kaydı</span>
                     </Link>
                   </div>

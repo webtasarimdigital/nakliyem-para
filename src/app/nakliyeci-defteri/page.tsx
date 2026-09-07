@@ -219,25 +219,34 @@ export default function NakliyeciDefteriPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <div className="max-w-3xl lg:max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-12">
 
-        {/* ── 1. HEADER (Human & Professional Community Look) ──────── */}
-        <div className="mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold mb-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Canlı Nakliye Borsası • 81 İl Aktif İlanlar</span>
-          </div>
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
+        {/* ── 1. HEADER (Aligned with Talepler Page) ──────── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1E3A8A]">
                 Nakliyeci Defteri
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-                Boş araç, dönüş yükü ve kiralık mobil asansör paylaşım ağı. Doğrudan telefonla iletişim.
-              </p>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Canlı Borsa • 81 İl</span>
+              </span>
             </div>
+            <p className="text-xs sm:text-sm font-medium text-slate-500">
+              Boş araç, dönüş yükü ve kiralık mobil asansör paylaşım ağı. Doğrudan telefonla iletişim.
+            </p>
           </div>
+
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => setIsComposerOpen(true)}
+            className="bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-md shrink-0 cursor-pointer w-fit"
+            leftIcon={<Plus className="w-4 h-4 stroke-[3]" />}
+          >
+            Yeni İlan Paylaş
+          </Button>
         </div>
 
         {/* ── 2. IMAGE 4 COMPOSER & CITY QUICK FILTERS ───────────────── */}
@@ -250,7 +259,7 @@ export default function NakliyeciDefteriPage() {
               onClick={() => setFilterOrigin(cityName === 'Tümü' ? '' : cityName)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
                 (cityName === 'Tümü' && !filterOrigin) || filterOrigin === cityName
-                  ? 'bg-slate-900 text-white shadow-xs'
+                  ? 'bg-[#1E3A8A] text-white shadow-xs'
                   : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
               }`}
             >
@@ -313,7 +322,7 @@ export default function NakliyeciDefteriPage() {
                       onClick={() => setInlinePostCategory(cat.id as DefterPostCategory)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
                         inlinePostCategory === cat.id
-                          ? 'bg-slate-900 text-white'
+                          ? 'bg-[#1E3A8A] text-white'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
                     >
@@ -349,7 +358,7 @@ export default function NakliyeciDefteriPage() {
                 onClick={() => setActiveCategory(tab.id)}
                 className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap select-none ${
                   isSelected
-                    ? 'bg-[#0A1128] text-white shadow-md'
+                    ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-900/20'
                     : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50/80 shadow-2xs'
                 }`}
               >
@@ -375,7 +384,7 @@ export default function NakliyeciDefteriPage() {
                 {/* Header: Carrier Logo, Name, Badge, Menu Dots */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-[#0A1128] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-2xs">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1E3A8A] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-2xs">
                       {post.carrier.companyName.charAt(0)}
                     </div>
                     <div>

@@ -366,7 +366,7 @@ export default function CarrierJobsPage() {
                 onClick={() => setActiveCategory(tab.id)}
                 className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap select-none ${
                   isSelected
-                    ? 'bg-[#0A1128] text-white shadow-md ring-2 ring-[#0A1128]/20'
+                    ? 'bg-[#1E3A8A] text-white shadow-md ring-2 ring-[#1E3A8A]/20'
                     : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50/80 shadow-2xs'
                 }`}
               >

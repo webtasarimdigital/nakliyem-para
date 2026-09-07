@@ -226,14 +226,14 @@ export default function IlanVerPage() {
         
         {/* Header */}
         <div className="mb-8">
-          <Link href="/pazaryeri" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#F95700] font-bold mb-4 transition-colors">
-            <ChevronLeft className="w-4 h-4" />
-            Pazaryerine Dön
+          <Link href="/pazaryeri" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#F95700] font-bold mb-3 transition-colors px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-2xs w-fit">
+            <ChevronLeft className="w-4 h-4 text-slate-400" />
+            <span>Pazaryerine Dön</span>
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#1E3A8A] tracking-tight">
             Ücretsiz İlan Ver
           </h1>
-          <p className="text-slate-500 text-sm font-medium mt-1">
+          <p className="text-slate-500 text-sm font-normal mt-1">
             Aracınızı veya ekipmanınızı hızla satışa çıkarın.
           </p>
         </div>
@@ -282,8 +282,8 @@ export default function IlanVerPage() {
           {/* STEP 1: CATEGORY */}
           {step === 'CATEGORY' && (
             <div>
-              <h2 className="text-xl font-black text-[#0A1128] mb-1">Ne satmak istiyorsunuz?</h2>
-              <p className="text-sm text-slate-500 font-medium mb-6">Bir kategori seçin</p>
+              <h2 className="text-lg sm:text-xl font-bold text-[#1E3A8A] mb-1">Ne satmak istiyorsunuz?</h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-normal mb-6">Bir kategori seçin</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {CATEGORY_OPTIONS.map(cat => (
                   <button
@@ -291,13 +291,13 @@ export default function IlanVerPage() {
                     onClick={() => update('category', cat.id)}
                     className={`text-left p-4 rounded-2xl border-2 transition-all cursor-pointer hover:border-[#F95700] ${
                       form.category === cat.id 
-                        ? 'border-[#F95700] bg-orange-50' 
+                        ? 'border-[#F95700] bg-orange-50/70 shadow-xs' 
                         : 'border-slate-200 hover:bg-orange-50/30'
                     }`}
                   >
                     <div className="text-2xl mb-2">{cat.icon}</div>
-                    <div className="font-black text-[#0A1128] text-sm">{cat.label}</div>
-                    <div className="text-xs text-slate-500 font-medium mt-0.5">{cat.description}</div>
+                    <div className="font-bold text-[#1E3A8A] text-sm">{cat.label}</div>
+                    <div className="text-xs text-slate-500 font-normal mt-0.5">{cat.description}</div>
                   </button>
                 ))}
               </div>
@@ -307,19 +307,19 @@ export default function IlanVerPage() {
           {/* STEP 2: DETAILS */}
           {step === 'DETAILS' && (
             <div>
-              <h2 className="text-xl font-black text-[#0A1128] mb-1">İlan Detayları</h2>
-              <p className="text-sm text-slate-500 font-medium mb-6">Aracınız veya ürününüz hakkında bilgi verin</p>
+              <h2 className="text-lg sm:text-xl font-bold text-[#1E3A8A] mb-1">İlan Detayları</h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-normal mb-6">Aracınız veya ürününüz hakkında bilgi verin</p>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Durum</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Durum</label>
                   <div className="grid grid-cols-2 gap-3">
                     {[{ id: 'SIFIR', label: 'Sıfır' }, { id: 'IKINCI_EL', label: 'İkinci El' }].map(opt => (
                       <button
                         key={opt.id}
                         onClick={() => update('condition', opt.id)}
-                        className={`py-2.5 rounded-xl border-2 text-sm font-black transition-all cursor-pointer ${
-                          form.condition === opt.id ? 'border-[#F95700] bg-orange-50 text-[#F95700]' : 'border-slate-200 text-slate-700 hover:border-slate-300'
+                        className={`py-2.5 rounded-xl border-2 text-sm font-bold transition-all cursor-pointer ${
+                          form.condition === opt.id ? 'border-[#F95700] bg-orange-50/70 text-[#F95700]' : 'border-slate-200 text-slate-700 hover:border-slate-300'
                         }`}
                       >
                         {opt.label}
@@ -332,7 +332,7 @@ export default function IlanVerPage() {
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Marka</label>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Marka</label>
                         <select
                           value={form.brand}
                           onChange={(e) => update('brand', e.target.value)}
@@ -343,7 +343,7 @@ export default function IlanVerPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Model</label>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Model</label>
                         <input
                           type="text"
                           value={form.model}
@@ -356,7 +356,7 @@ export default function IlanVerPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Yıl</label>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Yıl</label>
                         <input
                           type="number"
                           value={form.year}
@@ -367,7 +367,7 @@ export default function IlanVerPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">KM</label>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">KM</label>
                         <input
                           type="number"
                           value={form.km}
@@ -380,7 +380,7 @@ export default function IlanVerPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Vites</label>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Vites</label>
                         <select
                           value={form.transmission}
                           onChange={(e) => update('transmission', e.target.value)}
@@ -392,7 +392,7 @@ export default function IlanVerPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Yakıt</label>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Yakıt</label>
                         <select
                           value={form.fuel}
                           onChange={(e) => update('fuel', e.target.value)}
@@ -409,7 +409,7 @@ export default function IlanVerPage() {
                 )}
 
                 <div>
-                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Fiyat (TL)</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Fiyat (TL)</label>
                   <div className="flex gap-3">
                     <input
                       type="number"
@@ -432,7 +432,7 @@ export default function IlanVerPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Şehir</label>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Şehir</label>
                     <select
                       value={form.city}
                       onChange={(e) => update('city', e.target.value)}
@@ -443,7 +443,7 @@ export default function IlanVerPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">İlçe</label>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">İlçe</label>
                     <input
                       type="text"
                       value={form.district}
@@ -455,7 +455,7 @@ export default function IlanVerPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Açıklama</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Açıklama</label>
                   <textarea
                     value={form.description}
                     onChange={(e) => update('description', e.target.value)}
@@ -500,7 +500,7 @@ export default function IlanVerPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Ad Soyad / Firma Adı</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Ad Soyad / Firma Adı</label>
                   <input
                     type="text"
                     value={form.sellerName}
@@ -511,7 +511,7 @@ export default function IlanVerPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Telefon</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Telefon</label>
                   <input
                     type="tel"
                     value={form.sellerPhone}
