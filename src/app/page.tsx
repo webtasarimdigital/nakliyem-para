@@ -244,11 +244,11 @@ export default function HomePage() {
                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2.5 text-left">Hızlı Teklif Al</p>
                 <div className="flex gap-2 items-center mb-3">
                   <div className="flex-1 relative">
-                    <CircleDot className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#F95700]" />
+                    <CircleDot className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#F95700] pointer-events-none z-10" />
                     <select
                       value={heroOriginCity}
                       onChange={e => setHeroOriginCity(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-2 py-2.5 text-xs font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none cursor-pointer"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-2 py-2.5 text-xs font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none cursor-pointer"
                     >
                       {TURKEY_CITIES.map(c => (
                         <option key={c.id} value={c.name}>{c.name}</option>
@@ -259,11 +259,11 @@ export default function HomePage() {
                     <MoveRight className="w-3.5 h-3.5 text-slate-400" />
                   </div>
                   <div className="flex-1 relative">
-                    <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#F95700]" />
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#F95700] pointer-events-none z-10" />
                     <select
                       value={heroDestCity}
                       onChange={e => setHeroDestCity(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-2 py-2.5 text-xs font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none cursor-pointer"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-2 py-2.5 text-xs font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none cursor-pointer"
                     >
                       {TURKEY_CITIES.map(c => (
                         <option key={c.id} value={c.name}>{c.name}</option>
@@ -273,12 +273,12 @@ export default function HomePage() {
                 </div>
                 <div className="flex gap-2">
                   <Link href={`/teklif-al?originCity=${encodeURIComponent(heroOriginCity)}&destCity=${encodeURIComponent(heroDestCity)}`} className="flex-1">
-                    <button className="w-full bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm py-3 px-4 rounded-xl shadow-md shadow-orange-900/20 transition-all flex items-center justify-center gap-1.5">
+                    <button className="w-full bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm py-3 px-4 rounded-xl shadow-md shadow-orange-900/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
                       Teklif Al <ArrowRight className="w-4 h-4" />
                     </button>
                   </Link>
                   <Link href={`/nakliyeci-defteri?originCity=${encodeURIComponent(heroOriginCity)}&destCity=${encodeURIComponent(heroDestCity)}`} className="flex-1">
-                    <button className="w-full bg-[#0A1128] hover:bg-[#111d45] text-white font-black text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-1.5">
+                    <button className="w-full bg-[#0A1128] hover:bg-[#111d45] text-white font-black text-sm py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer">
                       Dönüş Aracı Bul <ArrowRight className="w-4 h-4" />
                     </button>
                   </Link>
@@ -286,7 +286,7 @@ export default function HomePage() {
               </div>
 
               {/* Alt güvence */}
-              <div className="flex flex-wrap justify-center lg:justify-start gap-4 text-xs text-slate-500 font-medium">
+              <div className="flex flex-wrap justify-center lg:justify-start gap-4 text-xs text-slate-400 font-medium">
                 {[
                   { icon: ShieldCheck, text: 'K3 Belgeli Nakliyeciler' },
                   { icon: Check, text: 'Ücretsiz Teklif Al' },
@@ -301,22 +301,21 @@ export default function HomePage() {
             </div>
 
             {/* ── SAĞ: Demo teklif kartı ── */}
-            <div className="lg:col-span-5 w-full flex flex-col space-y-3">
-
-              {/* Üst floating badge */}
-              <div className="flex justify-end items-center px-1">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Canlı Teklif Sistemi
-                </div>
-              </div>
+            <div className="lg:col-span-5 w-full flex flex-col pt-3 lg:pt-0">
 
               {/* Ana demo kartı */}
               <div className="bg-white border-2 border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xl shadow-slate-200/60 relative">
-                {/* DEMO etiketi */}
+                
+                {/* SOL ROZET: DEMO etiketi */}
                 <div className="absolute -top-3.5 left-6 px-3.5 py-1 rounded-full bg-[#F95700] text-xs font-bold text-white flex items-center gap-1.5 shadow-sm">
                   <Sparkles className="w-3.5 h-3.5" />
                   Örnek Teklif Karşılaştırma
+                </div>
+
+                {/* SAĞ ROZET: Canlı Teklif Sistemi — Örnek Teklif Karşılaştırma ile tam aynı hizada */}
+                <div className="absolute -top-3.5 right-6 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-700 text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Canlı Teklif Sistemi
                 </div>
 
                 {/* Rota başlığı */}
