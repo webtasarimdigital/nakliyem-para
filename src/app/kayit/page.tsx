@@ -217,27 +217,27 @@ function KayitContent() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4.5rem)] bg-[#F8FAFC] flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6">
+    <div className="min-h-[calc(100vh-4.5rem)] bg-[#F8FAFC] flex items-center justify-center py-6 sm:py-8 px-4 sm:px-6">
       <div className="w-full max-w-5xl bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/60 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
 
         {/* SOL BİLGİLENDİRİCİ PANEL */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-[#111E38] via-[#172554] to-[#0f172a] p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
+        <div className="lg:col-span-5 bg-gradient-to-br from-[#111E38] via-[#172554] to-[#0f172a] p-6 sm:p-8 text-white flex flex-col justify-between relative overflow-hidden">
           {/* Arka plan dekoratif daireler */}
           <div className="absolute -top-16 -right-16 w-56 h-56 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
           <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-orange-500/15 rounded-full blur-2xl pointer-events-none" />
 
-          <div className="relative z-10 space-y-6">
+          <div className="relative z-10 space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-orange-300">
               <Sparkles className="w-3.5 h-3.5 text-[#F95700]" />
               <span>{isCarrier ? 'Taşıyıcı & Nakliyeci Portalı' : 'Hızlı & Güvenli Taşınma'}</span>
             </div>
 
             {/* Müşteri / Nakliyeci Dinamik Başlık */}
-            <div className="space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white leading-snug">
+            <div className="space-y-1.5">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white leading-snug">
                 {isCarrier ? 'İşinizi Büyütün, Boş Dönüş Yapmayın' : 'Ev Taşımanın En Kolay ve Güvenli Yolu'}
               </h2>
-              <p className="text-slate-300 text-sm leading-relaxed">
+              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
                 {isCarrier
                   ? 'Türkiye genelinde her gün yayınlanan yüzlerce ilana teklif verin, araçlarınızı her zaman dolu tutun.'
                   : 'Tek bir talep oluşturun, onaylı nakliyecilerden dakikalar içinde komisyonsuz en iyi teklifleri toplayın.'}
@@ -245,40 +245,40 @@ function KayitContent() {
             </div>
 
             {/* Avantaj Kartları */}
-            <div className="space-y-4 pt-2">
+            <div className="space-y-2.5 pt-1">
               {isCarrier ? (
                 <>
-                  <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
-                    <div className="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-400/30 flex items-center justify-center shrink-0 text-[#F95700]">
-                      <Truck className="w-5 h-5" />
+                  <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+                    <div className="w-8 h-8 rounded-lg bg-orange-500/20 border border-orange-400/30 flex items-center justify-center shrink-0 text-[#F95700]">
+                      <Truck className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-white">Dönüş Yükü Fırsatları</h3>
-                      <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                      <h3 className="text-xs sm:text-sm font-bold text-white">Dönüş Yükü Fırsatları</h3>
+                      <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
                         Şehirlerarası boş seferlerinizi ilanlarla doldurarak yakıt ve zaman tasarrufu yapın.
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0 text-emerald-400">
-                      <Briefcase className="w-5 h-5" />
+                  <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0 text-emerald-400">
+                      <Briefcase className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-white">Doğrudan Müşteri İletişimi</h3>
-                      <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                      <h3 className="text-xs sm:text-sm font-bold text-white">Doğrudan Müşteri İletişimi</h3>
+                      <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
                         Aracı komisyonu yok. Müşteriyle doğrudan anlaşın, ödemenizi kendi koşullarınızla alın.
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
-                    <div className="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 text-blue-300">
-                      <Clock className="w-5 h-5" />
+                  <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 text-blue-300">
+                      <Clock className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-white">7 Gün Ücretsiz Deneme</h3>
-                      <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                      <h3 className="text-xs sm:text-sm font-bold text-white">7 Gün Ücretsiz Deneme</h3>
+                      <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
                         Hemen üye olun, taahhütsüz 7 gün boyunca tüm taşınma taleplerine anında teklif verin.
                       </p>
                     </div>
@@ -286,37 +286,37 @@ function KayitContent() {
                 </>
               ) : (
                 <>
-                  <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
-                    <div className="w-9 h-9 rounded-xl bg-orange-500/20 border border-orange-400/30 flex items-center justify-center shrink-0 text-[#F95700]">
-                      <ShieldCheck className="w-5 h-5" />
+                  <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+                    <div className="w-8 h-8 rounded-lg bg-orange-500/20 border border-orange-400/30 flex items-center justify-center shrink-0 text-[#F95700]">
+                      <ShieldCheck className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-white">Doğrulanmış Firmalar</h3>
-                      <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                      <h3 className="text-xs sm:text-sm font-bold text-white">Doğrulanmış Firmalar</h3>
+                      <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
                         K3 yetki belgeli, vergi levhalı ve gerçek müşteri değerlendirmesi almış ekipler.
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0 text-emerald-400">
-                      <BadgePercent className="w-5 h-5" />
+                  <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0 text-emerald-400">
+                      <BadgePercent className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-white">%40&apos;a Varan Fiyat Tasarrufu</h3>
-                      <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                      <h3 className="text-xs sm:text-sm font-bold text-white">%40&apos;a Varan Fiyat Tasarrufu</h3>
+                      <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
                         Rekabetçi canlı tekliflerle bütçenize en uygun taşınma fiyatını zahmetsizce yakalayın.
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xs">
-                    <div className="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 text-blue-300">
-                      <Clock className="w-5 h-5" />
+                  <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0 text-blue-300">
+                      <Clock className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-white">2 Dakikada Hızlı Başvuru</h3>
-                      <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                      <h3 className="text-xs sm:text-sm font-bold text-white">2 Dakikada Hızlı Başvuru</h3>
+                      <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
                         Teklifleri SMS ve panel üzerinden karşılaştırın, dilediğiniz firmayla doğrudan el sıkışın.
                       </p>
                     </div>
@@ -327,25 +327,25 @@ function KayitContent() {
           </div>
 
           {/* Alt Güven & Sosyal Kanıt */}
-          <div className="relative z-10 pt-8 mt-6 border-t border-white/10 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-slate-300">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <div className="relative z-10 pt-4 mt-4 border-t border-white/10 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
               <span>{isCarrier ? '1.200+ Aktif Nakliyeci' : '45.000+ Mutlu Müşteri'}</span>
             </div>
-            <div className="text-xs font-semibold text-orange-300">
+            <div className="font-semibold text-orange-300">
               {isCarrier ? 'Hızlı Onay Süreci' : '★ 4.9/5 Memnuniyet'}
             </div>
           </div>
         </div>
 
         {/* SAĞ FORM PANELİ */}
-        <div className="lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-center bg-white">
-          <div className="max-w-md w-full mx-auto space-y-6">
+        <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-center bg-white">
+          <div className="max-w-lg w-full mx-auto space-y-3.5">
 
             {/* Başlık */}
-            <div className="space-y-1.5">
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#111E38] tracking-tight">Hesap Oluştur</h1>
-              <p className="text-sm text-slate-500 font-medium">
+            <div className="space-y-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-[#111E38] tracking-tight">Hesap Oluştur</h1>
+              <p className="text-xs text-slate-500 font-medium">
                 {isCarrier ? 'Nakliyeci profilinizi oluşturun, iş teklifleri vermeye başlayın.' : 'Ücretsiz başlayın — dakikalar içinde teklif toplayın.'}
               </p>
             </div>
@@ -355,9 +355,9 @@ function KayitContent() {
               type="button"
               onClick={handleRealGoogleRegister}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 hover:border-[#111E38]/30 bg-slate-50/60 hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-all cursor-pointer disabled:opacity-60"
+              className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-slate-200 hover:border-[#111E38]/30 bg-slate-50/60 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all cursor-pointer disabled:opacity-60"
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
@@ -367,9 +367,9 @@ function KayitContent() {
             </button>
 
             {/* Divider */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 my-0.5">
               <div className="flex-1 h-px bg-slate-200" />
-              <span className="text-xs font-medium text-slate-400">veya e-posta ile</span>
+              <span className="text-[11px] font-medium text-slate-400">veya e-posta ile</span>
               <div className="flex-1 h-px bg-slate-200" />
             </div>
 
@@ -378,7 +378,7 @@ function KayitContent() {
               <button
                 type="button"
                 onClick={() => setRole('musteri')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   !isCarrier
                     ? 'bg-white text-[#111E38] shadow-xs'
                     : 'text-slate-500 hover:text-slate-800'
@@ -389,7 +389,7 @@ function KayitContent() {
               <button
                 type="button"
                 onClick={() => setRole('nakliyeci')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   isCarrier
                     ? 'bg-white text-[#111E38] shadow-xs'
                     : 'text-slate-500 hover:text-slate-800'
@@ -400,9 +400,9 @@ function KayitContent() {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-3.5">
+            <form onSubmit={handleSubmit} className="space-y-2.5">
               {errorMessage && (
-                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium space-y-2">
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                     <span>{errorMessage}</span>
@@ -423,116 +423,119 @@ function KayitContent() {
                 </div>
               )}
 
-              {/* Ad Soyad */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  {isCarrier ? 'Firma Yetkilisi (Ad Soyad)' : 'Ad Soyad'}
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    placeholder="Ahmet Yılmaz"
-                    required
-                    className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Firma Adı (Nakliyeci için) */}
-              {isCarrier && (
+              {/* Responsive Grid Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {/* Ad Soyad */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Firma Adı (Ticari Ünvan)
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    {isCarrier ? 'Firma Yetkilisi' : 'Ad Soyad'}
                   </label>
                   <div className="relative">
-                    <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                       type="text"
-                      value={companyName}
-                      onChange={e => setCompanyName(e.target.value)}
-                      placeholder="Boğaziçi Nakliyat Ltd."
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                      placeholder="Ahmet Yılmaz"
                       required
-                      className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
+                      className="w-full border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
                     />
                   </div>
                 </div>
-              )}
 
-              {/* Telefon */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Telefon Numarası
-                </label>
-                <div className="relative">
-                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={e => setPhone(e.target.value)}
-                    placeholder="05XX XXX XX XX"
-                    required
-                    className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
-                  />
+                {/* Telefon */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Telefon Numarası
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={e => setPhone(e.target.value)}
+                      placeholder="05XX XXX XX XX"
+                      required
+                      className="w-full border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* E-posta */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  E-posta Adresi
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="ornek@mail.com"
-                    required
-                    className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
-                  />
+                {/* Firma Adı (Sadece Nakliyeci için, 2 kolon kaplar) */}
+                {isCarrier && (
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Firma Adı (Ticari Ünvan)
+                    </label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input
+                        type="text"
+                        value={companyName}
+                        onChange={e => setCompanyName(e.target.value)}
+                        placeholder="Boğaziçi Nakliyat Ltd. Şti."
+                        required
+                        className="w-full border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* E-posta */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    E-posta Adresi
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      placeholder="ornek@mail.com"
+                      required
+                      className="w-full border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Şifre */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Şifre
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="En az 6 karakter"
-                    required
-                    minLength={6}
-                    className="w-full border border-slate-200 rounded-xl pl-10 pr-11 py-2.5 sm:py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+                {/* Şifre */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Şifre
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="En az 6 karakter"
+                      required
+                      minLength={6}
+                      className="w-full border border-slate-200 rounded-xl pl-9 pr-9 py-2 text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {/* Sözleşme Onayı */}
-              <label className="flex items-start gap-2.5 cursor-pointer pt-1">
+              <label className="flex items-start gap-2 cursor-pointer pt-0.5">
                 <input
                   type="checkbox"
                   checked={agree}
                   onChange={e => setAgree(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 accent-[#F95700] shrink-0 cursor-pointer"
+                  className="mt-0.5 w-3.5 h-3.5 accent-[#F95700] shrink-0 cursor-pointer"
                   required
                 />
-                <span className="text-xs text-slate-500 font-medium leading-relaxed">
+                <span className="text-[11px] text-slate-500 font-medium leading-tight">
                   <Link href="/kullanim-kosullari" target="_blank" className="text-[#F95700] font-semibold hover:underline">
                     Kullanım Koşulları
                   </Link>
@@ -548,7 +551,7 @@ function KayitContent() {
               <button
                 type="submit"
                 disabled={loading || !agree}
-                className="w-full bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-sm py-3.5 px-4 rounded-xl shadow-md shadow-orange-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+                className="w-full bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-xs sm:text-sm py-2.5 sm:py-3 px-4 rounded-xl shadow-md shadow-orange-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-1"
               >
                 <span>{loading ? 'Hesap oluşturuluyor...' : 'Hesap Oluştur'}</span>
                 {!loading && <ArrowRight className="w-4 h-4" />}
@@ -556,7 +559,7 @@ function KayitContent() {
             </form>
 
             {/* Alt Linkler */}
-            <div className="pt-2 text-center space-y-2.5">
+            <div className="pt-1 text-center space-y-1.5">
               <p className="text-xs text-slate-500 font-medium">
                 Zaten bir hesabınız var mı?{' '}
                 <Link href="/giris" className="text-[#F95700] font-bold hover:underline">

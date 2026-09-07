@@ -30,7 +30,7 @@ export default function NakliyatFirmalariDirectoryPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
       {/* Header */}
       <div className="max-w-3xl mb-10">
-        <h1 className="text-3xl sm:text-4xl font-black text-[#0A1128] mb-3">
+        <h1 className="text-3xl sm:text-4xl font-black text-[#111E38] mb-3">
           Onaylı & Belgeli Nakliyat Firmaları
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -63,7 +63,7 @@ export default function NakliyatFirmalariDirectoryPage() {
 
       {/* All Verified Carriers Listing */}
       <div className="mt-10">
-        <h2 className="text-xl font-black text-[#0A1128] mb-6">Tüm Doğrulanmış Firmalar ({carriers.length})</h2>
+        <h2 className="text-xl font-black text-[#111E38] mb-6">Tüm Doğrulanmış Firmalar ({carriers.length})</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {carriers.map((c) => (
@@ -82,7 +82,7 @@ export default function NakliyatFirmalariDirectoryPage() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <Link href={`/firma/${c.slug}`} className="font-black text-base text-[#0A1128] group-hover:text-[#F95700] truncate block">
+                    <Link href={`/firma/${c.slug}`} className="font-black text-base text-[#111E38] group-hover:text-[#F95700] truncate block">
                       {c.companyName}
                     </Link>
 

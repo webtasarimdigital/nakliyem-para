@@ -31,6 +31,7 @@ import { RouteDisplay } from '@/components/ui/RouteDisplay';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { db } from '@/lib/data/mock-db';
 import { MovingRequest, ServiceCategory } from '@/types';
+import { executeRecaptcha } from '@/lib/recaptcha';
 
 // Room item checklist definitions
 const ROOM_ITEMS: Record<string, string[]> = {
@@ -93,6 +94,11 @@ function RequestWizardContent() {
     if (searchParams?.get('size')) setHomeSize(searchParams.get('size')!);
   }, [searchParams]);
 
+  // Scroll to top when step changes so long forms don't leave user in footer
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [step]);
+
   const originDistricts = TURKEY_CITIES.find(c => c.name === originCity)?.districts || [];
   const destDistricts = TURKEY_CITIES.find(c => c.name === destinationCity)?.districts || [];
 
@@ -117,14 +123,16 @@ function RequestWizardContent() {
   };
 
   const handleNext = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     setStep(prev => Math.min(prev + 1, totalSteps + 1));
   };
 
   const handleBack = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     setStep(prev => Math.max(prev - 1, 1));
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     const user = db.getCurrentUser();
     if (!user) {
       setAuthModalOpen(true);
@@ -184,6 +192,13 @@ function RequestWizardContent() {
       updatedAt: new Date().toISOString()
     };
 
+    // reCAPTCHA Enterprise bot koruması
+    try {
+      await executeRecaptcha('SUBMIT_REQUEST');
+    } catch {
+      // sessiz güvenli devam
+    }
+
     db.addRequest(newRequest);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('storage'));
@@ -199,7 +214,7 @@ function RequestWizardContent() {
           <CheckCircle2 className="w-10 h-10" />
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] mb-3">
+        <h1 className="text-2xl sm:text-3xl font-black text-[#111E38] mb-3">
           Talebiniz Başarıyla Yayınlandı! 🎉
         </h1>
 
@@ -247,7 +262,7 @@ function RequestWizardContent() {
             <span className="px-3 py-1 rounded-full bg-orange-100 text-[#C23E00] font-black text-xs">
               Adım {step} / {totalSteps + 1}
             </span>
-            <span className="text-[#0A1128] font-black hidden sm:inline">
+            <span className="text-[#111E38] font-black hidden sm:inline">
               {step === 1 && '🏠 Hizmet Türü'}
               {step === 2 && '📍 Rota Seçimi'}
               {step === 3 && '🛋️ Ev & Eşya Büyüklüğü'}
@@ -278,7 +293,7 @@ function RequestWizardContent() {
             
             {/* Left: Origin House Icon (Ev) */}
             <div className="flex flex-col items-center shrink-0">
-              <div className="w-9 h-9 rounded-2xl bg-[#0A1128] text-white flex items-center justify-center text-sm shadow-sm border border-slate-200">
+              <div className="w-9 h-9 rounded-2xl bg-[#111E38] text-white flex items-center justify-center text-sm shadow-sm border border-slate-200">
                 🏠
               </div>
               <span className="text-[10px] font-black text-slate-500 mt-1">Ev</span>
@@ -308,7 +323,7 @@ function RequestWizardContent() {
                   <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-sm shadow-md border border-white animate-bounce">
                     📦
                   </div>
-                  <span className="text-[8px] font-black bg-[#0A1128] text-white px-1.5 py-0.5 rounded mt-0.5 whitespace-nowrap shadow-xs">
+                  <span className="text-[8px] font-black bg-[#111E38] text-white px-1.5 py-0.5 rounded mt-0.5 whitespace-nowrap shadow-xs">
                     {step === 9 ? 'Yüklendi' : 'Kolileniyor'}
                   </span>
                 </div>
@@ -320,11 +335,11 @@ function RequestWizardContent() {
               <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all shadow-sm border ${
                 step === 9 
                   ? 'bg-[#F95700] border-amber-300 text-white scale-110 ring-2 ring-orange-400/30' 
-                  : 'bg-[#0A1128] border-slate-200 text-white'
+                  : 'bg-[#111E38] border-slate-200 text-white'
               }`}>
                 <Truck className={`w-4 h-4 ${step === 9 ? 'text-white' : 'text-amber-400'}`} />
               </div>
-              <span className="text-[10px] font-black text-[#0A1128] mt-1 flex items-center gap-0.5">
+              <span className="text-[10px] font-black text-[#111E38] mt-1 flex items-center gap-0.5">
                 <span>Tır</span>
                 {step === 9 && <span className="text-emerald-500 font-bold">✓</span>}
               </span>
@@ -341,7 +356,7 @@ function RequestWizardContent() {
         {step === 1 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-[#0A1128] tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-bold text-[#111E38] tracking-tight">
                 Ne tür bir nakliyat hizmeti arıyorsunuz?
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-normal mt-1">
@@ -387,7 +402,7 @@ function RequestWizardContent() {
         {step === 2 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+              <h2 className="text-xl sm:text-2xl font-black text-[#111E38]">
                 Nereden nereye taşınacaksınız?
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
@@ -398,7 +413,7 @@ function RequestWizardContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Origin */}
               <div className="p-4 rounded-2xl border-2 border-slate-200 space-y-3 bg-slate-50/50">
-                <div className="flex items-center gap-2 text-xs font-black text-[#0A1128] uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-xs font-black text-[#111E38] uppercase tracking-wider">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#F95700]" />
                   Çıkış Adresi (Nereden)
                 </div>
@@ -430,7 +445,7 @@ function RequestWizardContent() {
 
               {/* Destination */}
               <div className="p-4 rounded-2xl border-2 border-slate-200 space-y-3 bg-slate-50/50">
-                <div className="flex items-center gap-2 text-xs font-black text-[#0A1128] uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-xs font-black text-[#111E38] uppercase tracking-wider">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
                   Varış Adresi (Nereye)
                 </div>
@@ -467,7 +482,7 @@ function RequestWizardContent() {
         {step === 3 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+              <h2 className="text-xl sm:text-2xl font-black text-[#111E38]">
                 Taşınacak Ev &amp; Eşya Büyüklüğü
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
@@ -499,7 +514,7 @@ function RequestWizardContent() {
                 <div className="flex items-center gap-2.5 text-left">
                   <Layers className="w-5 h-5 text-[#F95700]" />
                   <div>
-                    <p className="text-sm font-black text-[#0A1128]">Eşyalarımı Oda Oda Detaylı Eklemek İstiyorum (Opsiyonel)</p>
+                    <p className="text-sm font-black text-[#111E38]">Eşyalarımı Oda Oda Detaylı Eklemek İstiyorum (Opsiyonel)</p>
                     <p className="text-xs text-slate-500 font-medium">Teklif doğruluğunu artırır, sürpriz ek ücretleri önler.</p>
                   </div>
                 </div>
@@ -512,7 +527,7 @@ function RequestWizardContent() {
                 <div className="mt-4 p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-5 animate-fade-in">
                   {Object.entries(ROOM_ITEMS).map(([room, items]) => (
                     <div key={room} className="space-y-2">
-                      <h4 className="text-xs font-black text-[#0A1128] uppercase tracking-wider">{room}</h4>
+                      <h4 className="text-xs font-black text-[#111E38] uppercase tracking-wider">{room}</h4>
                       <div className="flex flex-wrap gap-2">
                         {items.map((item) => {
                           const isSelected = selectedRoomItems[room]?.includes(item);
@@ -538,7 +553,7 @@ function RequestWizardContent() {
 
                   {/* Custom Items Add */}
                   <div className="pt-3 border-t border-slate-200 space-y-2">
-                    <label className="text-xs font-black text-[#0A1128] uppercase tracking-wider block">Özel / Listede Olmayan Eşya Ekle</label>
+                    <label className="text-xs font-black text-[#111E38] uppercase tracking-wider block">Özel / Listede Olmayan Eşya Ekle</label>
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -578,7 +593,7 @@ function RequestWizardContent() {
         {step === 4 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+              <h2 className="text-xl sm:text-2xl font-black text-[#111E38]">
                 Taşınma Tarihiniz Ne Zaman?
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
@@ -588,7 +603,7 @@ function RequestWizardContent() {
 
             <div className="p-5 rounded-2xl border-2 border-slate-200 bg-slate-50/50 space-y-4">
               <div>
-                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">
+                <label className="block text-xs font-black text-[#111E38] uppercase tracking-wider mb-2">
                   Hedef Taşınma Tarihi
                 </label>
                 <input
@@ -608,7 +623,7 @@ function RequestWizardContent() {
                     className="w-4 h-4 accent-[#F95700] rounded"
                   />
                   <div>
-                    <span className="text-sm font-black text-[#0A1128] block">Tarihim ± birkaç gün esneyebilir</span>
+                    <span className="text-sm font-black text-[#111E38] block">Tarihim ± birkaç gün esneyebilir</span>
                     <span className="text-xs text-slate-500 font-medium">Boş dönüş yapan nakliyecilerden ekstra indirimli teklifler alabilirsiniz.</span>
                   </div>
                 </label>
@@ -641,7 +656,7 @@ function RequestWizardContent() {
         {step === 5 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+              <h2 className="text-xl sm:text-2xl font-black text-[#111E38]">
                 Bina Kat ve Asansör Bilgileri
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
@@ -652,7 +667,7 @@ function RequestWizardContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Çıkış Binası */}
               <div className="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/50 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-black text-[#0A1128] uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-xs font-black text-[#111E38] uppercase tracking-wider">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#F95700]" />
                   Çıkış Binası
                 </div>
@@ -695,7 +710,7 @@ function RequestWizardContent() {
 
               {/* Varış Binası */}
               <div className="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/50 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-black text-[#0A1128] uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-xs font-black text-[#111E38] uppercase tracking-wider">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
                   Varış Binası
                 </div>
@@ -743,7 +758,7 @@ function RequestWizardContent() {
         {step === 6 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+              <h2 className="text-xl sm:text-2xl font-black text-[#111E38]">
                 Paketleme ve Ek Hizmet Tercihiniz
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
@@ -776,7 +791,7 @@ function RequestWizardContent() {
             />
 
             <div>
-              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Ek Hizmetler</label>
+              <label className="block text-xs font-black text-[#111E38] uppercase tracking-wider mb-2">Ek Hizmetler</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 {[
                   { id: 'disassembly_assembly', label: 'Mobilya Sökme & Montaj (Marangoz)' },
@@ -816,7 +831,7 @@ function RequestWizardContent() {
         {step === 7 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+              <h2 className="text-xl sm:text-2xl font-black text-[#111E38]">
                 Fotoğraf &amp; Video Ekspertiz (Opsiyonel)
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
@@ -825,7 +840,7 @@ function RequestWizardContent() {
             </div>
 
             {/* Video Ekspertiz Teaser Box (Prompt 234) */}
-            <div className="p-4 rounded-2xl bg-[#0A1128] text-white flex items-center gap-3">
+            <div className="p-4 rounded-2xl bg-[#111E38] text-white flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-[#F95700] flex items-center justify-center shrink-0">
                 <Video className="w-5 h-5 text-white" />
               </div>
@@ -845,7 +860,7 @@ function RequestWizardContent() {
             />
 
             <div>
-              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-black text-[#111E38] uppercase tracking-wider mb-1.5">
                 Nakliyecilere Ek Açıklama Notu
               </label>
               <textarea
@@ -863,7 +878,7 @@ function RequestWizardContent() {
         {step === 8 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+              <h2 className="text-xl sm:text-2xl font-black text-[#111E38]">
                 İletişim &amp; Gizlilik Tercihiniz
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
@@ -878,7 +893,7 @@ function RequestWizardContent() {
                     <Phone className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-[#0A1128]">
+                    <h3 className="text-sm font-black text-[#111E38]">
                       Teklif Veren Onaylı Firmalar Beni Telefonla Arayabilsin
                     </h3>
                     <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">
@@ -909,7 +924,7 @@ function RequestWizardContent() {
         {step === 9 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+              <h2 className="text-xl sm:text-2xl font-black text-[#111E38]">
                 Talebinizi Gözden Geçirin
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
@@ -935,7 +950,7 @@ function RequestWizardContent() {
               <div className="p-4 flex items-center justify-between">
                 <div>
                   <span className="text-slate-400 font-black uppercase text-[10px] block mb-1">Eşya &amp; Tarih</span>
-                  <span className="font-bold text-[#0A1128] text-sm">{homeSize} • {movingDate} ({isDateFlexible ? `±${flexibleDays} gün esnek` : 'Kesin Tarih'})</span>
+                  <span className="font-bold text-[#111E38] text-sm">{homeSize} • {movingDate} ({isDateFlexible ? `±${flexibleDays} gün esnek` : 'Kesin Tarih'})</span>
                 </div>
                 <button onClick={() => setStep(3)} className="text-[#F95700] font-black hover:underline">Düzenle</button>
               </div>
@@ -989,10 +1004,10 @@ function RequestWizardContent() {
             <Button
               type="button"
               variant="primary"
-              size="lg"
+              size="md"
               onClick={handleNext}
               rightIcon={<ArrowRight className="w-4 h-4" />}
-              className="font-black shadow-md"
+              className="font-bold shadow-md px-6"
             >
               Devam Et
             </Button>
@@ -1000,10 +1015,10 @@ function RequestWizardContent() {
             <Button
               type="button"
               variant="primary"
-              size="lg"
+              size="md"
               onClick={handlePublish}
               rightIcon={<Sparkles className="w-4 h-4" />}
-              className="font-black shadow-lg shadow-orange-900/15 px-8"
+              className="font-bold shadow-md px-5"
             >
               Talebi Ücretsiz Yayınla 🚀
             </Button>

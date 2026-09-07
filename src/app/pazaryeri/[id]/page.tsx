@@ -157,7 +157,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
           <ChevronRight className="w-3.5 h-3.5" />
           <Link href="/pazaryeri" className="hover:text-[#F95700]">Pazaryeri</Link>
           <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-[#0A1128] font-bold truncate max-w-[200px]">{listing.title}</span>
+          <span className="text-[#111E38] font-bold truncate max-w-[200px]">{listing.title}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -189,17 +189,17 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                   <>
                     <button
                       onClick={handlePrevPhoto}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#0A1128]/50 hover:bg-[#0A1128]/70 text-white flex items-center justify-center transition-all"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#111E38]/50 hover:bg-[#111E38]/70 text-white flex items-center justify-center transition-all"
                     >
                       <ChevronLeft className="w-6 h-6" />
                     </button>
                     <button
                       onClick={handleNextPhoto}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#0A1128]/50 hover:bg-[#0A1128]/70 text-white flex items-center justify-center transition-all"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#111E38]/50 hover:bg-[#111E38]/70 text-white flex items-center justify-center transition-all"
                     >
                       <ChevronRight className="w-6 h-6" />
                     </button>
-                    <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-[#0A1128]/60 text-white text-xs font-black">
+                    <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-[#111E38]/60 text-white text-xs font-black">
                       {listing.photos.length} fotoğraf
                     </div>
                     <div className="absolute bottom-3 left-3 flex gap-1.5">
@@ -249,7 +249,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       Yayında
                     </span>
                   </div>
-                  <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
+                  <h1 className="text-2xl sm:text-3xl font-black text-[#111E38]">
                     {listing.title}
                   </h1>
                 </div>
@@ -288,7 +288,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
             {/* Technical Specs Card */}
             {listing.specs && listing.specs.length > 0 && (
               <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs">
-                <h2 className="font-black text-[#0A1128] text-lg mb-4 pb-3 border-b border-slate-100">
+                <h2 className="font-black text-[#111E38] text-lg mb-4 pb-3 border-b border-slate-100">
                   Araç Bilgileri
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -297,7 +297,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       <span className="block text-[11px] text-slate-400 font-black uppercase tracking-wider">
                         {spec.label}
                       </span>
-                      <span className="block text-base font-black text-[#0A1128]">
+                      <span className="block text-base font-black text-[#111E38]">
                         {spec.value}
                       </span>
                     </div>
@@ -308,7 +308,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
             {/* Description */}
             <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs">
-              <h2 className="font-black text-[#0A1128] text-lg mb-4 pb-3 border-b border-slate-100">
+              <h2 className="font-black text-[#111E38] text-lg mb-4 pb-3 border-b border-slate-100">
                 İlan Açıklaması
               </h2>
               <div className="text-sm sm:text-base text-slate-700 font-medium leading-relaxed whitespace-pre-line">
@@ -334,7 +334,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h3 className="font-black text-[#0A1128] text-sm leading-tight">
+                    <h3 className="font-black text-[#111E38] text-sm leading-tight">
                       {listing.sellerName}
                     </h3>
                     {listing.isVerified && (
@@ -378,7 +378,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       type="text"
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
-                      className="flex-1 px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-xs sm:text-sm font-medium bg-white text-[#0A1128]"
+                      className="flex-1 px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-xs sm:text-sm font-medium bg-white text-[#111E38]"
                     />
                     <Button
                       variant="primary"
@@ -409,7 +409,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
             {/* Similar Listings */}
             <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs">
-              <h3 className="font-black text-sm text-[#0A1128] mb-3">Benzer İlanlar</h3>
+              <h3 className="font-black text-sm text-[#111E38] mb-3">Benzer İlanlar</h3>
               <div className="space-y-3">
                 {SAMPLE_LISTINGS.filter(l => l.id !== listing.id && l.category === listing.category).slice(0, 2).map(l => (
                   <Link key={l.id} href={`/pazaryeri/${l.id}`} className="flex gap-3 group">
@@ -421,7 +421,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-[#0A1128] truncate group-hover:text-[#F95700] transition-colors">
+                      <p className="text-xs font-bold text-[#111E38] truncate group-hover:text-[#F95700] transition-colors">
                         {l.title}
                       </p>
                       <p className="text-xs font-black text-[#F95700]">{l.priceLabel}</p>
@@ -442,7 +442,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
       {/* Full Gallery Modal */}
       {showFullGallery && listing.photos.length > 0 && (
-        <div className="fixed inset-0 bg-[#0A1128]/95 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-[#111E38]/95 z-50 flex items-center justify-center">
           <button
             onClick={() => setShowFullGallery(false)}
             className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all"

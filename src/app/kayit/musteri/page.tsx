@@ -35,7 +35,7 @@ export default function CustomerRegisterPage() {
         <div className="w-20 h-20 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-md">
           <CheckCircle2 className="w-12 h-12 stroke-[2.5]" />
         </div>
-        <h1 className="text-3xl font-black text-[#0A1128] mb-2">Hesabınız Başarıyla Oluşturuldu!</h1>
+        <h1 className="text-3xl font-black text-[#111E38] mb-2">Hesabınız Başarıyla Oluşturuldu!</h1>
         <p className="text-sm sm:text-base text-slate-600 font-medium mb-8">
           Şimdi ilk taşınma talebinizi 2 dakika içinde oluşturarak onaylı firmalardan ücretsiz teklifler alabilirsiniz.
         </p>
@@ -55,7 +55,7 @@ export default function CustomerRegisterPage() {
           <div className="w-12 h-12 rounded-2xl bg-orange-100 text-[#F95700] flex items-center justify-center font-bold mb-4">
             <UserCheck className="w-6 h-6 stroke-[2.5]" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">Müşteri Hesabı Açın</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-[#111E38]">Müşteri Hesabı Açın</h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">Ücretsiz nakliyat teklifleri almak için bilgilerinizi girin.</p>
         </div>
 
@@ -69,7 +69,7 @@ export default function CustomerRegisterPage() {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="Ahmet"
-                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#0A1128]"
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#111E38]"
               />
             </div>
             <div>
@@ -80,7 +80,7 @@ export default function CustomerRegisterPage() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="Yılmaz"
-                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#0A1128]"
+                className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#111E38]"
               />
             </div>
           </div>
@@ -93,7 +93,7 @@ export default function CustomerRegisterPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="0532 000 00 00"
-              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#0A1128]"
+              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#111E38]"
             />
           </div>
 
@@ -105,7 +105,7 @@ export default function CustomerRegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="ahmet@example.com"
-              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#0A1128]"
+              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#111E38]"
             />
           </div>
 
@@ -117,7 +117,7 @@ export default function CustomerRegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#0A1128]"
+              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-sm font-bold bg-white text-[#111E38]"
             />
           </div>
 

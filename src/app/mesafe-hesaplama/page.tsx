@@ -65,7 +65,7 @@ export default function MesafeHesaplamaPage() {
             <span>Şehirlerarası Nakliyat Mesafe &amp; Fiyat Hesaplayıcı</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#0A1128] leading-tight mb-2.5 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#111E38] leading-tight mb-2.5 tracking-tight">
             Mesafe, Süre ve Ortalama Taşıma Fiyatı
           </h1>
           <p className="text-slate-500 font-medium text-xs sm:text-sm">
@@ -81,13 +81,13 @@ export default function MesafeHesaplamaPage() {
             
             {/* Route & Size Picker Card */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-md space-y-6">
-              <h2 className="text-lg font-black text-[#0A1128] pb-3 border-b border-slate-100">
+              <h2 className="text-lg font-black text-[#111E38] pb-3 border-b border-slate-100">
                 1. Rota ve Ev Büyüklüğü
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Çıkış Şehri (Nereden?)</label>
+                  <label className="block text-xs font-black text-[#111E38] uppercase tracking-wider mb-1.5">Çıkış Şehri (Nereden?)</label>
                   <select
                     value={originCity}
                     onChange={e => setOriginCity(e.target.value)}
@@ -98,7 +98,7 @@ export default function MesafeHesaplamaPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Varış Şehri (Nereye?)</label>
+                  <label className="block text-xs font-black text-[#111E38] uppercase tracking-wider mb-1.5">Varış Şehri (Nereye?)</label>
                   <select
                     value={destCity}
                     onChange={e => setDestCity(e.target.value)}
@@ -110,7 +110,7 @@ export default function MesafeHesaplamaPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-2">Ev / Eşya Hacmi</label>
+                <label className="block text-xs font-black text-[#111E38] uppercase tracking-wider mb-2">Ev / Eşya Hacmi</label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {Object.keys(HOME_SIZE_RATES).map(size => (
                     <button
@@ -134,7 +134,7 @@ export default function MesafeHesaplamaPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs text-center">
                 <span className="text-xs font-black text-slate-400 uppercase tracking-wider block mb-1">Karayolu Mesafesi</span>
-                <span className="text-3xl font-black text-[#0A1128]">{distanceInfo.km} KM</span>
+                <span className="text-3xl font-black text-[#111E38]">{distanceInfo.km} KM</span>
               </div>
 
               <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-xs text-center">
@@ -147,7 +147,7 @@ export default function MesafeHesaplamaPage() {
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-black text-sm text-[#0A1128]">Nakliyeci Operasyonel Maliyet Simülasyonu</h3>
+                  <h3 className="font-black text-sm text-[#111E38]">Nakliyeci Operasyonel Maliyet Simülasyonu</h3>
                   <p className="text-xs text-slate-500 font-medium">Yakıt, personel yevmiyesi ve otoyol/köprü giderleri</p>
                 </div>
                 <button
@@ -163,18 +163,18 @@ export default function MesafeHesaplamaPage() {
                 <div className="mt-4 pt-4 border-t border-slate-100 space-y-3 text-xs animate-fade-in">
                   <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
                     <span className="text-slate-600 font-medium">Tahmini Yakıt ({Math.round(totalFuelLiters)} Litre Motorin):</span>
-                    <span className="font-black text-[#0A1128]">{totalFuelCost.toLocaleString('tr-TR')} TL</span>
+                    <span className="font-black text-[#111E38]">{totalFuelCost.toLocaleString('tr-TR')} TL</span>
                   </div>
                   <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
                     <span className="text-slate-600 font-medium">Personel &amp; Yükleme/İndirme (3 Kişi):</span>
-                    <span className="font-black text-[#0A1128]">{totalStaffCost.toLocaleString('tr-TR')} TL</span>
+                    <span className="font-black text-[#111E38]">{totalStaffCost.toLocaleString('tr-TR')} TL</span>
                   </div>
                   <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
                     <span className="text-slate-600 font-medium">Otoyol &amp; Köprü Geçiş Tahmini:</span>
-                    <span className="font-black text-[#0A1128]">{totalHighwayTolls.toLocaleString('tr-TR')} TL</span>
+                    <span className="font-black text-[#111E38]">{totalHighwayTolls.toLocaleString('tr-TR')} TL</span>
                   </div>
                   <div className="flex items-center justify-between pt-2">
-                    <span className="font-black text-[#0A1128] text-sm">Toplam Direkt Sefer Maliyeti:</span>
+                    <span className="font-black text-[#111E38] text-sm">Toplam Direkt Sefer Maliyeti:</span>
                     <span className="font-black text-[#F95700] text-base">{totalDirectCost.toLocaleString('tr-TR')} TL</span>
                   </div>
                 </div>
@@ -186,7 +186,7 @@ export default function MesafeHesaplamaPage() {
           <div className="lg:col-span-5 space-y-5">
             
             {/* Price Estimation Card */}
-            <div className="bg-gradient-to-br from-[#0A1128] via-[#132247] to-[#0A1128] rounded-3xl p-6 sm:p-8 text-white shadow-xl space-y-6">
+            <div className="bg-gradient-to-br from-[#111E38] via-[#132247] to-[#111E38] rounded-3xl p-6 sm:p-8 text-white shadow-xl space-y-6">
               <div>
                 <span className="text-xs font-black text-[#F95700] uppercase tracking-wider block mb-1">
                   Piyasa Ortalama Fiyatı

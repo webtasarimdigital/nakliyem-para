@@ -5,6 +5,8 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   GoogleAuthProvider,
+  sendPasswordResetEmail,
+  sendEmailVerification,
   User as FirebaseUser 
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
@@ -201,3 +203,23 @@ export async function loginWithGoogleFirebase(targetRole: UserRole = 'CUSTOMER')
     return { user: null, error: err.message || 'Google ile giriş başarısız oldu.' };
   }
 }
+
+/**
+ * Send Password Reset Email via Firebase
+ */
+export async function sendPasswordResetFirebase(email: string): Promise<{ success: boolean; error: string | null }> {
+  if (!isFirebaseConfigured() || !auth) {
+    return { success: true, error: null };
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return { success: true, error: null };
+  } catch (err: any) {
+    let message = 'Şifre sıfırlama e-postası gönderilemedi.';
+    if (err.code === 'auth/user-not-found') message = 'Bu e-posta adresine kayıtlı bir kullanıcı bulunamadı.';
+    if (err.code === 'auth/invalid-email') message = 'Geçerli bir e-posta adresi giriniz.';
+    return { success: false, error: message };
+  }
+}
+

@@ -268,7 +268,7 @@ export default function PazaryeriPage() {
                 <ShoppingBag className="w-3.5 h-3.5 text-[#F95700]" />
                 <span>Nakliyat Ticaret Merkezi</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-black text-[#0A1128]">
+              <h1 className="text-3xl sm:text-4xl font-black text-[#111E38]">
                 Nakliyat Pazaryeri
               </h1>
               <p className="text-sm text-slate-500 font-medium mt-1">
@@ -296,7 +296,7 @@ export default function PazaryeriPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Araç markası, model, şehir ara..."
-              className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-2 border-slate-200 focus:border-[#F95700] focus:ring-0 text-sm sm:text-base font-medium bg-white text-[#0A1128] shadow-xs"
+              className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-2 border-slate-200 focus:border-[#F95700] focus:ring-0 text-sm sm:text-base font-medium bg-white text-[#111E38] shadow-xs"
             />
           </div>
         </div>
@@ -308,7 +308,7 @@ export default function PazaryeriPage() {
           {/* LEFT SIDEBAR: Category Filter */}
           <div className="hidden lg:block w-64 shrink-0">
             <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs sticky top-28">
-              <h3 className="font-black text-sm text-[#0A1128] uppercase tracking-wider mb-3">Kategoriler</h3>
+              <h3 className="font-black text-sm text-[#111E38] uppercase tracking-wider mb-3">Kategoriler</h3>
               <div className="space-y-1">
                 {CATEGORIES.map((cat) => {
                   const Icon = cat.icon;
@@ -372,7 +372,7 @@ export default function PazaryeriPage() {
             {/* Sort & Count Header */}
             <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 flex items-center justify-between">
               <span className="text-sm font-bold text-slate-600">
-                <strong className="text-[#0A1128]">{sortedListings.length}</strong> ilan listeleniyor
+                <strong className="text-[#111E38]">{sortedListings.length}</strong> ilan listeleniyor
               </span>
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="w-4 h-4 text-slate-400" />
@@ -410,7 +410,7 @@ export default function PazaryeriPage() {
                           </div>
                         )}
                         {listing.photos.length > 1 && (
-                          <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-[#0A1128]/60 text-white text-xs font-bold">
+                          <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-[#111E38]/60 text-white text-xs font-bold">
                             {listing.photos.length} fotoğraf
                           </div>
                         )}
@@ -429,7 +429,7 @@ export default function PazaryeriPage() {
                       <div className="flex-1 p-5 sm:p-6 flex flex-col justify-between">
                         <div>
                           <div className="flex items-start justify-between gap-3 mb-2">
-                            <h2 className="text-lg sm:text-xl font-black text-[#0A1128] group-hover:text-[#F95700] transition-colors leading-snug">
+                            <h2 className="text-lg sm:text-xl font-black text-[#111E38] group-hover:text-[#F95700] transition-colors leading-snug">
                               {listing.title}
                             </h2>
                             <button 
@@ -457,7 +457,7 @@ export default function PazaryeriPage() {
                                   <span className="block text-slate-400 font-black uppercase tracking-wider text-[10px] mb-0.5">
                                     {spec.label}
                                   </span>
-                                  <span className="font-bold text-[#0A1128]">{spec.value}</span>
+                                  <span className="font-bold text-[#111E38]">{spec.value}</span>
                                 </div>
                               ))}
                             </div>
@@ -499,7 +499,7 @@ export default function PazaryeriPage() {
             {filteredListings.length === 0 && (
               <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
                 <Search className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="font-bold text-[#0A1128] text-lg mb-1">Sonuç bulunamadı</h3>
+                <h3 className="font-bold text-[#111E38] text-lg mb-1">Sonuç bulunamadı</h3>
                 <p className="text-sm text-slate-500">Farklı bir kategori veya arama terimi deneyin.</p>
               </div>
             )}

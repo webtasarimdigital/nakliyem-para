@@ -17,12 +17,20 @@ import {
   KeyRound,
   Sparkles,
   Award,
-  Check
+  Check,
+  Mail
 } from 'lucide-react';
 import { db } from '@/lib/data/mock-db';
+import { sendPasswordResetFirebase } from '@/lib/firebase/auth';
+import { executeRecaptcha } from '@/lib/recaptcha';
 
 export default function SifremiUnuttumPage() {
   const router = useRouter();
+
+  // Method: 'EMAIL' | 'PHONE'
+  const [method, setMethod] = useState<'EMAIL' | 'PHONE'>('EMAIL');
+  const [email, setEmail] = useState('');
+  const [emailSent, setEmailSent] = useState(false);
 
   // Steps: 'PHONE' | 'OTP' | 'NEW_PASSWORD' | 'SUCCESS'
   const [step, setStep] = useState<'PHONE' | 'OTP' | 'NEW_PASSWORD' | 'SUCCESS'>('PHONE');
@@ -33,6 +41,40 @@ export default function SifremiUnuttumPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Email Submit via Firebase Auth
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!email.trim() || !email.includes('@')) {
+      setError('Lütfen geçerli bir e-posta adresi giriniz.');
+      return;
+    }
+
+    setLoading(true);
+    // reCAPTCHA Enterprise bot koruması
+    try {
+      const token = await executeRecaptcha('FORGOT_PASSWORD');
+      if (token) {
+        await fetch('/api/recaptcha/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, action: 'FORGOT_PASSWORD' }),
+        });
+      }
+    } catch {
+      // sessiz güvenli devam
+    }
+
+    const res = await sendPasswordResetFirebase(email.trim());
+    setLoading(false);
+
+    if (res.error) {
+      setError(res.error);
+    } else {
+      setEmailSent(true);
+    }
+  };
 
   // 1. Step: Phone Submit
   const handlePhoneSubmit = (e: React.FormEvent) => {
@@ -124,7 +166,7 @@ export default function SifremiUnuttumPage() {
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl shadow-slate-200/70 overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-slate-200/80 items-stretch">
         
         {/* ── LEFT PANEL: Branded Visual & Trust (Same as giris & kayit) ── */}
-        <div className="lg:col-span-6 bg-gradient-to-br from-[#0A1128] via-[#101D42] to-[#1E3264] p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden h-full">
+        <div className="lg:col-span-6 bg-gradient-to-br from-[#111E38] via-[#101D42] to-[#1E3264] p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden h-full">
           {/* Subtle Grid / Pattern */}
           <div className="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
 
@@ -190,17 +232,54 @@ export default function SifremiUnuttumPage() {
             </div>
 
             {/* Title Header */}
-            <div className="mb-6">
-              <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
+            <div className="mb-5">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111E38] tracking-tight">
                 Şifre Sıfırlama
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-                {step === 'PHONE' && 'Telefon numaranızı girerek onay kodu talep edin.'}
-                {step === 'OTP' && 'Telefonunuza gelen 6 haneli kodu giriniz.'}
-                {step === 'NEW_PASSWORD' && 'Yeni güvenli şifrenizi belirleyiniz.'}
-                {step === 'SUCCESS' && 'Şifreniz yenilendi, profilinize aktarılıyorsunuz!'}
+                {method === 'EMAIL'
+                  ? emailSent
+                    ? 'E-posta adresinize sıfırlama bağlantısı gönderildi.'
+                    : 'Kayıtlı e-posta adresinize şifre sıfırlama bağlantısı gönderelim.'
+                  : step === 'PHONE'
+                  ? 'Telefon numaranızı girerek onay kodu talep edin.'
+                  : step === 'OTP'
+                  ? 'Telefonunuza gelen 6 haneli kodu giriniz.'
+                  : step === 'NEW_PASSWORD'
+                  ? 'Yeni güvenli şifrenizi belirleyiniz.'
+                  : 'Şifreniz yenilendi, profilinize aktarılıyorsunuz!'}
               </p>
             </div>
+
+            {/* Method Tabs (Only on initial step) */}
+            {step === 'PHONE' && !emailSent && (
+              <div className="flex p-1 bg-slate-100 rounded-xl mb-5">
+                <button
+                  type="button"
+                  onClick={() => { setMethod('EMAIL'); setError(''); }}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    method === 'EMAIL'
+                      ? 'bg-white text-[#111E38] shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>E-posta ile Sıfırla</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMethod('PHONE'); setError(''); }}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    method === 'PHONE'
+                      ? 'bg-white text-[#111E38] shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>SMS ile Sıfırla</span>
+                </button>
+              </div>
+            )}
 
             {/* Error Message */}
             {error && (
@@ -210,11 +289,70 @@ export default function SifremiUnuttumPage() {
               </div>
             )}
 
+            {/* ── EMAIL METHOD FLOW ── */}
+            {method === 'EMAIL' && (
+              emailSent ? (
+                <div className="space-y-4 text-center py-2">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 mx-auto flex items-center justify-center shadow-xs">
+                    <CheckCircle2 className="w-6 h-6 stroke-[2.5]" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <h3 className="text-base sm:text-lg font-bold text-[#111E38]">Bağlantı Gönderildi!</h3>
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed max-w-sm mx-auto">
+                      <strong>{email}</strong> adresinize güvenli şifre sıfırlama bağlantısı gönderilmiştir. Lütfen gelen kutunuzu ve spam klasörünüzü kontrol ediniz.
+                    </p>
+                  </div>
+                  <div className="pt-2">
+                    <Link href="/giris">
+                      <button
+                        type="button"
+                        className="w-full py-3 px-6 rounded-xl bg-[#111E38] hover:bg-[#1b2a4a] text-white font-bold text-xs sm:text-sm transition-all shadow-md cursor-pointer"
+                      >
+                        Giriş Ekranına Dön
+                      </button>
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleEmailSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Kayıtlı E-posta Adresiniz
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        placeholder="ornek@mail.com"
+                        required
+                        autoFocus
+                        className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
+                      />
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    </div>
+                    <p className="text-[11px] text-slate-400 font-medium mt-1.5">
+                      Firebase altyapımız üzerinden anında tek tıkla şifre belirleme bağlantısı iletilir.
+                    </p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3 px-6 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-xs sm:text-sm transition-all shadow-md shadow-orange-950/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {loading ? 'E-posta Gönderiliyor...' : 'Şifre Sıfırlama Bağlantısı Gönder'}
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </form>
+              )
+            )}
+
             {/* ── STEP 1: PHONE INPUT ── */}
-            {step === 'PHONE' && (
+            {method === 'PHONE' && step === 'PHONE' && (
               <form onSubmit={handlePhoneSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-black text-[#111E38] uppercase tracking-wider mb-1.5">
                     Kayıtlı Telefon Numaranız
                   </label>
                   <div className="relative">
@@ -225,7 +363,7 @@ export default function SifremiUnuttumPage() {
                       placeholder="0532 555 00 00"
                       required
                       autoFocus
-                      className="w-full border-2 border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                      className="w-full border-2 border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-[#111E38] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                     />
                     <Phone className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                   </div>
@@ -254,7 +392,7 @@ export default function SifremiUnuttumPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-black text-[#111E38] uppercase tracking-wider mb-1.5">
                     SMS Onay Kodu
                   </label>
                   <input
@@ -265,7 +403,7 @@ export default function SifremiUnuttumPage() {
                     maxLength={6}
                     required
                     autoFocus
-                    className="w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-center text-lg font-black tracking-widest text-[#0A1128] placeholder:text-slate-300 focus:border-[#F95700] focus:outline-none transition-colors"
+                    className="w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-center text-lg font-black tracking-widest text-[#111E38] placeholder:text-slate-300 focus:border-[#F95700] focus:outline-none transition-colors"
                   />
                 </div>
 
@@ -293,7 +431,7 @@ export default function SifremiUnuttumPage() {
             {step === 'NEW_PASSWORD' && (
               <form onSubmit={handlePasswordSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-black text-[#111E38] uppercase tracking-wider mb-1.5">
                     Yeni Şifreniz
                   </label>
                   <div className="relative">
@@ -304,7 +442,7 @@ export default function SifremiUnuttumPage() {
                       placeholder="En az 6 karakter"
                       required
                       autoFocus
-                      className="w-full border-2 border-slate-200 rounded-2xl pl-11 pr-11 py-3 text-sm font-bold text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                      className="w-full border-2 border-slate-200 rounded-2xl pl-11 pr-11 py-3 text-sm font-bold text-[#111E38] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                     />
                     <Lock className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                     <button
@@ -318,7 +456,7 @@ export default function SifremiUnuttumPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-black text-[#111E38] uppercase tracking-wider mb-1.5">
                     Yeni Şifrenizi Tekrar Girin
                   </label>
                   <div className="relative">
@@ -328,7 +466,7 @@ export default function SifremiUnuttumPage() {
                       onChange={e => setConfirmPassword(e.target.value)}
                       placeholder="Şifreyi tekrar yazın"
                       required
-                      className="w-full border-2 border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-[#0A1128] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
+                      className="w-full border-2 border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-[#111E38] placeholder:text-slate-400 focus:border-[#F95700] focus:outline-none transition-colors"
                     />
                     <Lock className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                   </div>
@@ -351,7 +489,7 @@ export default function SifremiUnuttumPage() {
                 <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-md shadow-emerald-600/15">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
-                <h3 className="text-xl font-black text-[#0A1128]">
+                <h3 className="text-xl font-black text-[#111E38]">
                   Şifreniz Başarıyla Güncellendi!
                 </h3>
                 <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-xs mx-auto">

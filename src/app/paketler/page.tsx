@@ -52,7 +52,7 @@ const PLANS = [
     hasTrial: true,
     trialBadge: '7 GÜN ÜCRETSİZ DENEME',
     color: 'border-[#F95700] ring-4 ring-[#F95700]/20 shadow-2xl',
-    headerBg: 'bg-gradient-to-br from-[#0A1128] via-[#132247] to-[#0A1128]',
+    headerBg: 'bg-gradient-to-br from-[#111E38] via-[#1B2A4A] to-[#111E38]',
     isFeatured: true,
     badge: '⭐ EN ÇOK TERCİH EDİLEN & EN KAPSAMLI',
     ctaText: '7 Gün Ücretsiz Başla (0 TL)',
@@ -138,46 +138,42 @@ export default function PaketlerPage() {
     <div className="min-h-screen bg-[#F8FAFC]">
 
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <div className="bg-[#0A1128] text-white py-16 sm:py-20 relative overflow-hidden">
-        {/* Subtle grid pattern */}
-        <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{ backgroundImage: 'radial-gradient(circle, #F95700 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
-
+      <div className="bg-white border-b border-slate-100 py-12 sm:py-16 relative overflow-hidden">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F95700]/20 border border-[#F95700]/30 text-[#F95700] text-xs font-black mb-5 shadow-xs">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200/60 text-[#F95700] text-xs font-bold mb-4 shadow-xs">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Nakliyeci İşletim Sistemi Planları</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight mb-4 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#111E38] leading-tight mb-4 tracking-tight">
             Firmanız İçin En Güçlü Paketi Seçin
           </h1>
-          <p className="text-slate-300 font-medium text-base sm:text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
+          <p className="text-slate-600 font-medium text-base sm:text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
             Müşteriye %100 ücretsiz. En üst paketimiz <strong className="text-[#F95700]">Gold ile ilk 7 gün tamamen ücretsiz</strong> başlayın, sınırsız iş teklifi verin.
           </p>
 
           {/* Billing Toggle (Aylık / Yıllık 2 Ay Bedava) */}
-          <div className="inline-flex items-center bg-white/10 border border-white/20 rounded-2xl p-1.5 gap-1.5 shadow-lg">
+          <div className="inline-flex items-center bg-slate-100 border border-slate-200 rounded-2xl p-1.5 gap-1.5 shadow-inner">
             <button
               onClick={() => setBilling('monthly')}
-              className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all cursor-pointer ${
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                 billing === 'monthly'
-                  ? 'bg-white text-[#0A1128] shadow-md'
-                  : 'text-white/80 hover:text-white'
+                  ? 'bg-white text-[#111E38] shadow-md'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Aylık Ödeme
             </button>
             <button
               onClick={() => setBilling('yearly')}
-              className={`px-6 py-2.5 rounded-xl text-sm font-black transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 billing === 'yearly'
                   ? 'bg-[#F95700] text-white shadow-md'
-                  : 'text-white/80 hover:text-white'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Yıllık Ödeme
-              <span className="bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
+              <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs">
                 2 Ay Bedava
               </span>
             </button>
@@ -188,7 +184,7 @@ export default function PaketlerPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
         {/* ── 3 PLAN CARDS (CENTER: GOLD TOP TIER PROMINENT) ─── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-4 -mt-10 mb-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-4 py-8 mb-16 items-center">
           {PLANS.map((plan) => (
             <div
               key={plan.id}
@@ -207,7 +203,7 @@ export default function PaketlerPage() {
               )}
 
               {/* Header Box */}
-              <div className={`${plan.headerBg} p-6 sm:p-7 rounded-t-[22px] ${plan.isFeatured ? 'text-white' : 'text-[#0A1128]'}`}>
+              <div className={`${plan.headerBg} p-6 sm:p-7 rounded-t-[22px] ${plan.isFeatured ? 'text-white' : 'text-[#111E38]'}`}>
                 
                 {/* 7 Days Free Trial Banner for Top Tier */}
                 {plan.hasTrial && (
@@ -273,7 +269,7 @@ export default function PaketlerPage() {
                       )}
                       <span className={`text-xs sm:text-sm font-medium ${typeof val === 'boolean' && !val ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
                         {typeof val === 'boolean' ? row.label : `${row.label}: `}
-                        {typeof val !== 'boolean' && <strong className={plan.isFeatured ? 'text-[#F95700]' : 'text-[#0A1128]'}>{val}</strong>}
+                        {typeof val !== 'boolean' && <strong className={plan.isFeatured ? 'text-[#F95700]' : 'text-[#111E38]'}>{val}</strong>}
                       </span>
                     </div>
                   );
@@ -303,7 +299,7 @@ export default function PaketlerPage() {
         {/* ── DETAYLI KARŞILAŞTIRMA TABLOSU ───────────────────── */}
         <div className="mb-16">
           <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128]">Tüm Plan Özelliklerini Karşılaştırın</h2>
+            <h2 className="text-2xl sm:text-3xl font-black text-[#111E38]">Tüm Plan Özelliklerini Karşılaştırın</h2>
             <p className="text-slate-500 text-sm font-medium mt-1">İhtiyacınıza en uygun teklif ve görünürlük kapasitesini seçin</p>
           </div>
 
@@ -315,7 +311,7 @@ export default function PaketlerPage() {
                     <th className="text-left text-xs font-black text-slate-500 uppercase tracking-wider p-4 sm:p-5 w-56">Özellik / Kapsam</th>
                     {PLANS.map((plan) => (
                       <th key={plan.id} className={`text-center p-4 sm:p-5 ${plan.isFeatured ? 'bg-orange-50/70 border-x-2 border-[#F95700]/30' : ''}`}>
-                        <div className="font-black text-sm text-[#0A1128]">{plan.name}</div>
+                        <div className="font-black text-sm text-[#111E38]">{plan.name}</div>
                         <div className={`text-lg font-black mt-0.5 ${plan.isFeatured ? 'text-[#F95700]' : 'text-slate-800'}`}>
                           {getPrice(plan).toLocaleString('tr-TR')} TL
                           <span className="text-xs font-medium text-slate-400">/ay</span>
@@ -381,7 +377,7 @@ export default function PaketlerPage() {
         </div>
 
         {/* ── İŞ MODELİ: MÜŞTERİYE %100 ÜCRETSİZ ──────────────── */}
-        <div className="bg-[#0A1128] rounded-3xl p-8 sm:p-12 text-white mb-16 text-center relative overflow-hidden">
+        <div className="bg-[#111E38] rounded-3xl p-8 sm:p-12 text-white mb-16 text-center relative overflow-hidden">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F95700]/20 border border-[#F95700]/30 text-[#F95700] text-xs font-black mb-4">
             Gelir &amp; Büyüme Modeli
           </div>
@@ -409,7 +405,7 @@ export default function PaketlerPage() {
 
         {/* ── SSS ACCORDION ────────────────────────────────────── */}
         <div className="mb-16 max-w-3xl mx-auto">
-          <h2 className="text-2xl font-black text-[#0A1128] mb-6 text-center">Sıkça Sorulan Sorular</h2>
+          <h2 className="text-2xl font-black text-[#111E38] mb-6 text-center">Sıkça Sorulan Sorular</h2>
           <div className="space-y-3">
             {FAQS.map((faq, i) => (
               <div key={i} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
@@ -417,7 +413,7 @@ export default function PaketlerPage() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between p-5 text-left cursor-pointer hover:bg-slate-50 transition-colors"
                 >
-                  <span className="font-black text-[#0A1128] text-sm pr-4">{faq.q}</span>
+                  <span className="font-black text-[#111E38] text-sm pr-4">{faq.q}</span>
                   {openFaq === i
                     ? <ChevronUp className="w-5 h-5 text-[#F95700] shrink-0" />
                     : <ChevronDown className="w-5 h-5 text-slate-400 shrink-0" />
@@ -436,7 +432,7 @@ export default function PaketlerPage() {
         {/* ── BOTTOM CTA ────────────────────────────────────────── */}
         <div className="text-center pb-16">
           <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-orange-50 via-white to-orange-50 border-2 border-[#F95700]/30 shadow-lg max-w-4xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128] mb-2">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#111E38] mb-2">
               En Üst Paket Gold ile Hemen Başlayın
             </h2>
             <p className="text-slate-600 font-medium text-sm sm:text-base max-w-xl mx-auto mb-6">

@@ -5,6 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { MobileCustomerNav } from '@/components/layout/MobileCustomerNav';
 import { MobileCarrierNav } from '@/components/layout/MobileCarrierNav';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://tasinteklif.com'),
@@ -34,9 +35,16 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const recaptchaSiteKey =
+    process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6Le22K4tAAAAAAb2KMhCh96ThKKAL4DvBfytmaSV';
+
   return (
     <html lang="tr">
       <body className="min-h-screen flex flex-col bg-[#F7F9FC] text-[#172033] antialiased">
+        <Script
+          src={`https://www.google.com/recaptcha/enterprise.js?render=${recaptchaSiteKey}`}
+          strategy="afterInteractive"
+        />
         <GlobalAppBand />
         <Navbar />
         <main className="flex-1 w-full pb-16 md:pb-0">

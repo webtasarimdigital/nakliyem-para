@@ -18,6 +18,7 @@ import {
 import { loginWithFirebase, loginWithGoogleFirebase } from '@/lib/firebase/auth';
 import { isFirebaseConfigured } from '@/lib/firebase/config';
 import { db } from '@/lib/data/mock-db';
+import { executeRecaptcha } from '@/lib/recaptcha';
 
 function GirisContent() {
   const router = useRouter();
@@ -45,6 +46,13 @@ function GirisContent() {
     e.preventDefault();
     setLoading(true);
     setErrorMessage('');
+
+    // reCAPTCHA Enterprise bot koruması
+    try {
+      await executeRecaptcha('LOGIN');
+    } catch {
+      // sessiz güvenli devam
+    }
 
     if (isFirebaseConfigured()) {
       const res = await loginWithFirebase(email, password);

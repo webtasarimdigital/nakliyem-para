@@ -12,7 +12,7 @@ export const Footer: React.FC = () => {
   }
 
   return (
-    <footer className="bg-[#0A1128] text-white border-t border-slate-800 pt-16 pb-12 mt-auto">
+    <footer className="bg-[#111E38] text-white border-t border-slate-800 pt-16 pb-12 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800/80">
           
@@ -114,6 +114,8 @@ export const Footer: React.FC = () => {
               <li><Link href="/kullanim-kosullari" className="hover:text-[#F95700] transition-colors">Kullanım Koşulları</Link></li>
               <li><Link href="/gizlilik" className="hover:text-[#F95700] transition-colors">Gizlilik Politikası</Link></li>
               <li><Link href="/kvkk" className="hover:text-[#F95700] transition-colors">KVKK Aydınlatma</Link></li>
+              <li><Link href="/cerez-politikasi" className="hover:text-[#F95700] transition-colors">Çerez Politikası</Link></li>
+              <li><Link href="/nakliyeci-sozlesmesi" className="hover:text-[#F95700] transition-colors">Nakliyeci Sözleşmesi</Link></li>
             </ul>
           </div>
 
