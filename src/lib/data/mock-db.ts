@@ -1186,14 +1186,7 @@ class MockDatabase {
 
   // Active User session (Simulated auth state for demo)
   getCurrentUser(): User | null {
-    return this.getItem<User | null>('currentUser', {
-      id: 'user_cust_1',
-      email: 'ahmet@example.com',
-      phone: '0535 234 56 78',
-      role: 'CUSTOMER',
-      customerProfileId: 'cust_1',
-      createdAt: '2024-01-01T00:00:00Z'
-    });
+    return this.getItem<User | null>('currentUser', null);
   }
 
   setCurrentUser(user: User | null): void {

@@ -304,14 +304,11 @@ export default function HomePage() {
             <div className="lg:col-span-5 w-full flex flex-col space-y-3">
 
               {/* Üst floating badge */}
-              <div className="flex justify-center lg:justify-between items-center px-1">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold">
+              <div className="flex justify-end items-center px-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold shadow-2xs">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Canlı Teklif Sistemi
                 </div>
-                <span className="hidden sm:inline text-xs text-slate-400 font-medium">
-                  Anlık 4 Onaylı Teklif
-                </span>
               </div>
 
               {/* Ana demo kartı */}
@@ -722,77 +719,62 @@ export default function HomePage() {
       </section>
 
       {/* ── 4. NAKLİYECİ İÇİN — Operasyon & Defter Merkezi ─────── */}
-      <section className="bg-[#0A1128] text-white py-16 sm:py-24 relative overflow-hidden">
+      <section className="bg-[#F8FAFC] border-t border-b border-slate-200 py-16 sm:py-24 relative overflow-hidden">
         
-        {/* Authentic Logistics Fleet Photo with Dark Overlay */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <img
-            src="https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=1600&auto=format&fit=crop&q=80"
-            alt="Nakliye Filosu ve Karayolu Taşımacılığı"
-            className="w-full h-full object-cover opacity-15 mix-blend-luminosity scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0A1128] via-[#0A1128]/95 to-[#0A1128]/80" />
-        </div>
+        {/* Subtle decorative background pattern */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]"
+          style={{ backgroundImage: 'radial-gradient(circle, #0A1128 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
-        {/* Floating Cargo Box & Truck Silhouettes in Background */}
-        <div className="absolute right-10 top-12 opacity-5 text-7xl select-none pointer-events-none hidden lg:block">
-          🚛
-        </div>
-        <div className="absolute right-1/3 bottom-8 opacity-5 text-6xl select-none pointer-events-none hidden lg:block">
-          📦
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 space-y-16">
             
           {/* ── BÖLÜM 1: İŞLETMENİZİ BÜYÜTÜN ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center mb-16 pb-16 border-b border-white/10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center pb-16 border-b border-slate-200">
             
             {/* Sol: Değer Önerisi (6/12) */}
             <div className="lg:col-span-6 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F95700]/20 text-[#F95700] text-xs font-bold border border-[#F95700]/30 shadow-xs">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F95700]/10 text-[#F95700] text-xs font-bold border border-[#F95700]/25 shadow-xs">
                 <Truck className="w-3.5 h-3.5" />
                 <span>Nakliyeci Dijital Ekosistemi</span>
               </div>
 
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0A1128] leading-tight tracking-tight">
                 Sadece iş bulmak değil,<br />
                 <span className="text-[#F95700]">işletmenizi büyütmek</span> için.
               </h2>
 
-              <p className="text-slate-300 font-normal text-sm sm:text-base leading-relaxed">
+              <p className="text-slate-600 font-medium text-sm sm:text-base leading-relaxed">
                 Rotanıza uygun işleri bulun, aracınızın boş kapasitesini doldurun ve takviminizi tek merkezden yönetin. Aracı komisyonu olmadan doğrudan müşteriyle el sıkışın.
               </p>
 
               {/* 3 Net Özellik Kartı */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                <div className="p-4 rounded-2xl bg-white/[0.06] border border-white/10 hover:border-[#F95700]/50 transition-all">
+                <div className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-[#F95700]/50 transition-all shadow-xs">
                   <div className="text-xl mb-2">🎯</div>
-                  <h4 className="font-bold text-sm text-white mb-1">Rota Eşleşmesi</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed font-normal">Boş güzergahınıza uyan talepler otomatik önünüze gelir.</p>
+                  <h4 className="font-bold text-sm text-[#0A1128] mb-1">Rota Eşleşmesi</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed font-normal">Boş güzergahınıza uyan talepler otomatik önünüze gelir.</p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-white/[0.06] border border-white/10 hover:border-[#F95700]/50 transition-all">
+                <div className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-[#F95700]/50 transition-all shadow-xs">
                   <div className="text-xl mb-2">💰</div>
-                  <h4 className="font-bold text-sm text-white mb-1">%0 Komisyon</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed font-normal">Teklif kabul edildiğinde kazancınızdan kesinti yapılmaz.</p>
+                  <h4 className="font-bold text-sm text-[#0A1128] mb-1">%0 Komisyon</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed font-normal">Teklif kabul edildiğinde kazancınızdan kesinti yapılmaz.</p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-white/[0.06] border border-white/10 hover:border-[#F95700]/50 transition-all">
+                <div className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-[#F95700]/50 transition-all shadow-xs">
                   <div className="text-xl mb-2">⭐</div>
-                  <h4 className="font-bold text-sm text-white mb-1">Kurumsal Vitrin</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed font-normal">Puanlarınız ve yorumlarınızla bölgenizin lider firması olun.</p>
+                  <h4 className="font-bold text-sm text-[#0A1128] mb-1">Kurumsal Vitrin</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed font-normal">Puanlarınız ve yorumlarınızla bölgenizin lider firması olun.</p>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-3 pt-2">
                 <Link href="/kayit?role=nakliyeci">
-                  <Button variant="primary" size="lg" className="font-bold px-7 py-3.5 shadow-lg shadow-orange-900/30 text-sm sm:text-base" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                  <Button variant="primary" size="lg" className="font-bold px-7 py-3.5 shadow-lg shadow-orange-900/20 text-sm sm:text-base" rightIcon={<ArrowRight className="w-4 h-4" />}>
                     7 Gün Ücretsiz Başla →
                   </Button>
                 </Link>
                 <Link href="/paketler">
-                  <Button variant="outline-white" size="lg" className="font-bold text-sm">
+                  <Button variant="outline" size="lg" className="font-bold text-sm text-[#0A1128] border-slate-300 hover:bg-slate-100">
                     Abonelik Paketleri
                   </Button>
                 </Link>
@@ -801,43 +783,43 @@ export default function HomePage() {
 
             {/* Sağ: Canlı Operasyon Yönetimi (6/12) */}
             <div className="lg:col-span-6 space-y-4">
-              <div className="bg-gradient-to-b from-[#132247] to-[#0A1128] border border-white/15 rounded-3xl p-6 shadow-2xl backdrop-blur-xl space-y-4">
-                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 shadow-xl space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Taşıyıcı Kontrol Paneli</span>
-                    <span className="text-base font-bold text-white">Canlı Günlük İş Takibi</span>
+                    <span className="text-base font-bold text-[#0A1128]">Canlı Günlük İş Takibi</span>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30">
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
                     ● AKTİF ÇALIŞIYOR
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2.5 text-center">
-                  <div className="p-3 rounded-2xl bg-white/[0.05] border border-white/5">
-                    <span className="text-xs text-slate-400 font-medium block">Yeni İşler</span>
-                    <span className="text-lg font-black text-white">14 Adet</span>
+                  <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                    <span className="text-xs text-slate-500 font-medium block">Yeni İşler</span>
+                    <span className="text-lg font-black text-[#0A1128]">14 Adet</span>
                   </div>
-                  <div className="p-3 rounded-2xl bg-white/[0.05] border border-white/5">
-                    <span className="text-xs text-slate-400 font-medium block">Aktif Teklifler</span>
+                  <div className="p-3 rounded-2xl bg-orange-50 border border-orange-200">
+                    <span className="text-xs text-slate-500 font-medium block">Aktif Teklifler</span>
                     <span className="text-lg font-black text-[#F95700]">3 Bekleyen</span>
                   </div>
-                  <div className="p-3 rounded-2xl bg-white/[0.05] border border-white/5">
-                    <span className="text-xs text-slate-400 font-medium block">Onay Oranı</span>
-                    <span className="text-lg font-black text-emerald-400">%88</span>
+                  <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200">
+                    <span className="text-xs text-slate-500 font-medium block">Onay Oranı</span>
+                    <span className="text-lg font-black text-emerald-600">%88</span>
                   </div>
                 </div>
 
                 {/* Match Highlight Banner */}
-                <div className="p-4 rounded-2xl bg-[#F95700]/15 border border-[#F95700]/30 flex items-center justify-between">
+                <div className="p-4 rounded-2xl bg-orange-50/70 border border-orange-200 flex items-center justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-1.5 text-xs font-bold text-[#F95700]">
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>%96 Rota Uyumu Yakalandı</span>
                     </div>
-                    <span className="text-xs text-slate-300 font-normal">İstanbul, Kadıköy → İzmir, Karşıyaka (3+1 Ev)</span>
+                    <span className="text-xs text-slate-700 font-medium">İstanbul, Kadıköy → İzmir, Karşıyaka (3+1 Ev)</span>
                   </div>
                   <Link href="/kayit?role=nakliyeci">
-                    <button className="text-xs font-bold text-white bg-[#F95700] hover:bg-[#E04D00] px-3.5 py-2 rounded-xl transition-all shrink-0">
+                    <button className="text-xs font-bold text-white bg-[#F95700] hover:bg-[#E04D00] px-3.5 py-2 rounded-xl transition-all shrink-0 cursor-pointer shadow-xs">
                       Teklif Ver
                     </button>
                   </Link>
@@ -851,53 +833,53 @@ export default function HomePage() {
             
             {/* Sol: Defter Nedir ve Nasıl Çalışır? (6/12) */}
             <div className="lg:col-span-6 space-y-5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30 shadow-xs">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 shadow-xs">
                 <BookOpen className="w-3.5 h-3.5" />
                 <span>Meslektaşlar Arası Canlı Borsa</span>
               </div>
 
-              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight tracking-tight">
+              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#0A1128] leading-tight tracking-tight">
                 Nakliyeci Defteri ile<br />
-                <span className="text-emerald-400">hiçbir araç boş dönmesin.</span>
+                <span className="text-[#F95700]">hiçbir araç boş dönmesin.</span>
               </h3>
 
-              <p className="text-slate-300 font-normal text-sm sm:text-base leading-relaxed">
+              <p className="text-slate-600 font-medium text-sm sm:text-base leading-relaxed">
                 Nakliyeci Defteri, 81 ildeki doğrulanmış nakliyatçıların birbirleriyle anlık boş araç, dönüş yükü ve kiralık mobil asansör paylaştığı kapalı devre iş ağıdır.
               </p>
 
               {/* 3 Pillar Cards */}
               <div className="space-y-3 pt-1">
-                <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/[0.05] border border-white/10">
-                  <div className="w-9 h-9 rounded-xl bg-orange-500/20 text-[#F95700] flex items-center justify-center shrink-0 text-base">
+                <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white border-2 border-slate-200 shadow-2xs">
+                  <div className="w-9 h-9 rounded-xl bg-orange-100 text-[#F95700] flex items-center justify-center shrink-0 text-base font-black">
                     🚛
                   </div>
                   <div>
-                    <h5 className="font-bold text-sm text-white">Boş Araç Paylaşımı</h5>
-                    <p className="text-xs text-slate-400 leading-relaxed font-normal">
+                    <h5 className="font-bold text-sm text-[#0A1128]">Boş Araç Paylaşımı</h5>
+                    <p className="text-xs text-slate-500 leading-relaxed font-normal">
                       Ankara&apos;ya eşya indirdiniz ve İstanbul&apos;a boş döneceksiniz. Defter&apos;e 10 saniyede ilan bırakın, güzergahtaki işler telefonunuza gelsin.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/[0.05] border border-white/10">
-                  <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 text-base">
+                <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white border-2 border-slate-200 shadow-2xs">
+                  <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 text-base font-black">
                     📦
                   </div>
                   <div>
-                    <h5 className="font-bold text-sm text-white">Dönüş Yükü &amp; Parsiyel Eşya</h5>
-                    <p className="text-xs text-slate-400 leading-relaxed font-normal">
+                    <h5 className="font-bold text-sm text-[#0A1128]">Dönüş Yükü &amp; Parsiyel Eşya</h5>
+                    <p className="text-xs text-slate-500 leading-relaxed font-normal">
                       Kamyonunuzda kalan boş hacmi parça eşyalarla doldurarak sefer kârlılığınızı %60&apos;a kadar artırın.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white/[0.05] border border-white/10">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 text-base">
+                <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-white border-2 border-slate-200 shadow-2xs">
+                  <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 text-base font-black">
                     🏗️
                   </div>
                   <div>
-                    <h5 className="font-bold text-sm text-white">Mobil Asansör Kiralama &amp; Paslaşma</h5>
-                    <p className="text-xs text-slate-400 leading-relaxed font-normal">
+                    <h5 className="font-bold text-sm text-[#0A1128]">Mobil Asansör Kiralama &amp; Paslaşma</h5>
+                    <p className="text-xs text-slate-500 leading-relaxed font-normal">
                       Farklı şehre gittiğinizde yüksek katlar için yerel meslektaşlarınızdan anında saatlik mobil dış cephe asansörü kiralayın.
                     </p>
                   </div>
@@ -915,11 +897,11 @@ export default function HomePage() {
 
             {/* Sağ: Canlı Defter İlan Akışı Önizleme (6/12) */}
             <div className="lg:col-span-6 space-y-3">
-              <div className="bg-white/[0.08] backdrop-blur-2xl border border-white/20 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-3">
-                <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="bg-white border-2 border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="font-bold text-sm text-white">Canlı Defter Paylaşımları</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="font-bold text-sm text-[#0A1128]">Canlı Defter Paylaşımları</span>
                   </div>
                   <span className="text-[11px] font-semibold text-slate-400">81 İl Canlı Akış</span>
                 </div>
@@ -952,20 +934,20 @@ export default function HomePage() {
                       phone: '0530 987 ** **'
                     }
                   ].map((post, idx) => (
-                    <div key={idx} className="p-3.5 rounded-2xl bg-white/[0.06] border border-white/10 hover:border-white/20 transition-all space-y-2">
+                    <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-[#F95700]">{post.route}</span>
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white/10 text-white">
+                          <span className="font-bold text-sm text-[#0A1128]">{post.route}</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700">
                             {post.type}
                           </span>
                         </div>
                         <span className="text-[10px] text-slate-400 font-medium">{post.time}</span>
                       </div>
-                      <p className="text-xs text-slate-200 font-normal leading-relaxed">{post.desc}</p>
-                      <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[11px]">
-                        <span className="text-slate-400 font-medium">{post.carrier}</span>
-                        <span className="font-bold text-emerald-400">📞 {post.phone}</span>
+                      <p className="text-xs text-slate-600 font-normal leading-relaxed">{post.desc}</p>
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[11px]">
+                        <span className="text-slate-500 font-medium">{post.carrier}</span>
+                        <span className="font-bold text-emerald-600">📞 {post.phone}</span>
                       </div>
                     </div>
                   ))}
@@ -980,9 +962,9 @@ export default function HomePage() {
             </div>
 
           </div>
-          </div>
         </div>
       </section>
+
 
       {/* ── 5. SIKÇA SORULAN SORULAR (SSS) ───────────────────── */}
       <section className="py-16 sm:py-20 bg-white border-b border-slate-200">
@@ -1018,25 +1000,25 @@ export default function HomePage() {
       </section>
 
       {/* ── 6. ŞEHİRLERE GÖRE NAKLİYAT — Visual Cards ─── */}
-      <section className="py-16 sm:py-20 bg-[#0A1128] relative overflow-hidden">
+      <section className="py-16 sm:py-20 bg-white border-b border-slate-200 relative overflow-hidden">
         
         {/* Background dot texture */}
-        <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.06]"
-          style={{ backgroundImage: 'radial-gradient(circle, #F95700 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]"
+          style={{ backgroundImage: 'radial-gradient(circle, #0A1128 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
           
           {/* Section Header */}
           <div className="text-center mb-10">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F95700]/20 text-[#F95700] text-xs font-black border border-[#F95700]/30 mb-4">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F95700]/10 text-[#F95700] text-xs font-black border border-[#F95700]/25 mb-4">
               <MapPin className="w-3.5 h-3.5" />
               Tüm Türkiye&apos;de Hizmet
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">Şehre Göre Nakliyat Firmaları</h2>
-            <p className="text-slate-400 text-sm font-medium">81 il genelinde K3 belgeli, puanı yüksek evden eve nakliyat firmaları</p>
+            <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128] mb-2">Şehre Göre Nakliyat Firmaları</h2>
+            <p className="text-slate-500 text-sm font-medium">81 il genelinde K3 belgeli, puanı yüksek evden eve nakliyat firmaları</p>
           </div>
 
-          {/* City Cards Grid (Redesigned for maximum clarity and contrast) */}
+          {/* City Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-10">
             {[
               { city: 'İstanbul', slug: 'istanbul', count: '340+', route: 'Tüm Türkiye Rotaları' },
@@ -1051,28 +1033,28 @@ export default function HomePage() {
               <Link
                 key={item.city}
                 href={`/nakliyat-firmalari/${encodeURIComponent(item.slug)}`}
-                className="group relative bg-gradient-to-b from-white/[0.12] to-white/[0.05] hover:from-white/[0.18] hover:to-white/[0.08] border border-white/20 hover:border-[#F95700] rounded-3xl p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-950/20 backdrop-blur-md flex flex-col justify-between"
+                className="group relative bg-slate-50 hover:bg-orange-50/25 border-2 border-slate-200 hover:border-[#F95700] rounded-3xl p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#F95700]/20 border border-[#F95700]/30 flex items-center justify-center text-[#F95700] group-hover:scale-110 transition-transform shadow-xs">
+                    <div className="w-10 h-10 rounded-2xl bg-[#F95700]/10 border border-[#F95700]/25 flex items-center justify-center text-[#F95700] group-hover:scale-110 transition-transform shadow-xs">
                       <MapPin className="w-5 h-5 text-[#F95700]" />
                     </div>
-                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                       {item.count} Firma
                     </span>
                   </div>
 
-                  <h3 className="font-black text-white text-lg tracking-tight group-hover:text-[#F95700] transition-colors">
+                  <h3 className="font-black text-[#0A1128] text-lg tracking-tight group-hover:text-[#F95700] transition-colors">
                     {item.city}
                   </h3>
-                  <p className="text-xs text-slate-300 font-normal mt-0.5">
+                  <p className="text-xs text-slate-500 font-normal mt-0.5">
                     Evden Eve &amp; Şehirlerarası Nakliyat
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
-                  <span className="text-slate-400 font-medium text-[11px] truncate">{item.route}</span>
+                <div className="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-medium text-[11px] truncate">{item.route}</span>
                   <span className="text-[#F95700] font-bold group-hover:translate-x-1 transition-transform shrink-0 flex items-center gap-0.5">
                     İncele →
                   </span>
@@ -1082,28 +1064,26 @@ export default function HomePage() {
           </div>
 
           {/* Thin separator */}
-          <div className="border-t border-white/10 my-8" />
+          <div className="border-t border-slate-200 my-8" />
 
           {/* Bottom CTA */}
-          <div className="relative rounded-3xl border border-[#F95700]/30 bg-gradient-to-r from-[#F95700]/10 via-white/5 to-[#F95700]/10 p-8 sm:p-12 text-center overflow-hidden">
-            <div className="absolute inset-0 bg-[#F95700]/5 opacity-50 pointer-events-none" />
-            
+          <div className="relative rounded-3xl border-2 border-orange-200 bg-gradient-to-r from-orange-50/80 via-white to-orange-50/80 p-8 sm:p-12 text-center overflow-hidden shadow-sm">
             <div className="relative z-10">
-              <div className="w-14 h-14 rounded-2xl bg-[#F95700]/20 border border-[#F95700]/30 flex items-center justify-center mx-auto mb-4">
+              <div className="w-14 h-14 rounded-2xl bg-orange-100 border border-orange-200 flex items-center justify-center mx-auto mb-4">
                 <Truck className="w-7 h-7 text-[#F95700]" />
               </div>
-              <h3 className="text-2xl sm:text-3xl font-black text-white mb-2">Hemen Taşınma Teklifi Toplayın</h3>
-              <p className="text-sm text-slate-300 font-medium mb-6 max-w-lg mx-auto">
+              <h3 className="text-2xl sm:text-3xl font-black text-[#0A1128] mb-2">Hemen Taşınma Teklifi Toplayın</h3>
+              <p className="text-sm text-slate-600 font-medium mb-6 max-w-lg mx-auto leading-relaxed">
                 2 dakikanızı ayırın — bölgenizdeki K3 belgeli firmaların fiyatlarını ücretsiz karşılaştırın, sürpriz ek ücret olmadan.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link href="/teklif-al">
-                  <Button variant="primary" size="lg" className="font-black px-10 shadow-lg shadow-orange-900/30 text-base" rightIcon={<ArrowRight className="w-5 h-5" />}>
+                  <Button variant="primary" size="lg" className="font-black px-10 shadow-lg shadow-orange-900/20 text-base" rightIcon={<ArrowRight className="w-5 h-5" />}>
                     Ücretsiz Teklif Al
                   </Button>
                 </Link>
                 <Link href="/nakliyat-firmalari">
-                  <button className="px-6 py-3.5 rounded-2xl border border-white/20 text-white font-black text-sm hover:bg-white/10 transition-all">
+                  <button className="px-6 py-3.5 rounded-2xl border-2 border-slate-200 text-[#0A1128] font-black text-sm hover:bg-slate-100 transition-all cursor-pointer">
                     Tüm Firmaları Gör →
                   </button>
                 </Link>
