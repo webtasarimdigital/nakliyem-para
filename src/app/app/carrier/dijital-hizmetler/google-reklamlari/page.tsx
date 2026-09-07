@@ -182,7 +182,7 @@ export default function SubServicePage() {
 
             {/* Why Choose Us Features */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
-              <h3 className="text-lg font-black text-[#0A1128]">Neden NakliyemPara Dijital Çözümleri?</h3>
+              <h3 className="text-lg font-black text-[#0A1128]">Neden TaşınTeklif Dijital Çözümleri?</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 {FEATURES.map((item, i) => (
                   <div key={i} className="flex items-start gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-100">

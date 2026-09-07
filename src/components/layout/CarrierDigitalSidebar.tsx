@@ -136,7 +136,7 @@ export const CarrierDigitalSidebar: React.FC = () => {
           </p>
         </div>
         <a 
-          href="https://wa.me/908503080000?text=Merhaba,%20nakliyem-para%20dijital%20hizmetleri%20hakkında%20bilgi%20almak%20istiyorum."
+          href="https://wa.me/908503080000?text=Merhaba,%20tasinteklif%20dijital%20hizmetleri%20hakkında%20bilgi%20almak%20istiyorum."
           target="_blank"
           rel="noopener noreferrer" 
           className="inline-flex items-center justify-center gap-1.5 w-full py-2.5 px-3 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white text-xs font-bold transition-colors shadow-xs"

@@ -448,7 +448,7 @@ export default function PaketlerPage() {
               </Button>
             </Link>
             <p className="text-xs text-slate-400 font-medium mt-3">
-              Sorularınız için: <a href="mailto:destek@nakliyem.para" className="text-[#F95700] font-bold hover:underline">destek@nakliyem.para</a>
+              Sorularınız için: <a href="mailto:bilgi@tasinteklif.com" className="text-[#F95700] font-bold hover:underline">bilgi@tasinteklif.com</a>
             </p>
           </div>
         </div>

@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   if (isMatched) {
     // Güvenli bir token oluştur (username + timestamp + salt)
     const token = Buffer.from(
-      `${username}:${Date.now()}:nakliyempara_admin_secret_2024`
+      `${username}:${Date.now()}:TaşınTeklif_admin_secret_2024`
     ).toString('base64');
 
     const response = NextResponse.json({ success: true });

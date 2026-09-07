@@ -17,7 +17,7 @@ import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { db } from '@/lib/data/mock-db';
 
 export const metadata: Metadata = {
-  title: 'Onaylı Nakliyat Firmaları | Nakliyem Para',
+  title: 'Onaylı Nakliyat Firmaları | TaşınTeklif',
   description: 'Türkiye genelinde 81 ilde hizmet veren onaylı, belgeli ve müşteri puanı yüksek evden eve nakliyat firmalarını listeleyin.',
   keywords: ['nakliyat firmaları', 'evden eve nakliyeciler', 'güvenilir nakliyat firmaları', 'en iyi nakliyat']
 };

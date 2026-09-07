@@ -7,9 +7,26 @@ import { MobileCustomerNav } from '@/components/layout/MobileCustomerNav';
 import { MobileCarrierNav } from '@/components/layout/MobileCarrierNav';
 
 export const metadata: Metadata = {
-  title: 'Evden Eve Nakliyat Teklifi Al | Nakliyem Para',
-  description: 'Evden eve nakliyat, ofis taşıma, parça eşya ve depolama için talep oluşturun; uygun nakliyat firmalarından teklif alın ve karşılaştırın.',
-  keywords: ['evden eve nakliyat', 'nakliyat teklifi', 'nakliyat firmaları', 'ev taşıma', 'şehirler arası nakliyat']
+  metadataBase: new URL('https://tasinteklif.com'),
+  title: {
+    default: 'Evden Eve Nakliyat Teklifi Al | TaşınTeklif',
+    template: '%s | TaşınTeklif',
+  },
+  description: 'Evden eve nakliyat, ofis taşıma, parça eşya ve depolama için talep oluşturun; onaylı nakliyat firmalarından komisyonsuz fiyat teklifi alın ve karşılaştırın.',
+  keywords: ['evden eve nakliyat', 'nakliyat teklifi', 'nakliyat firmaları', 'ev taşıma', 'şehirler arası nakliyat', 'nakliyeci defteri', 'nakliyat pazaryeri'],
+  openGraph: {
+    type: 'website',
+    locale: 'tr_TR',
+    url: 'https://tasinteklif.com',
+    siteName: 'TaşınTeklif',
+    title: 'TaşınTeklif — Güvenilir Nakliyat ve Fiyat Teklifi Karşılaştırma',
+    description: '81 ilde onaylı nakliyecilerden anında fiyat teklifi alın. Komisyon yok, sürpriz yok.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'TaşınTeklif — Evden Eve Nakliyat Teklifi Al',
+    description: 'Onaylı nakliyat firmalarından komisyonsuz teklif toplayın ve karşılaştırın.',
+  },
 };
 
 export default function RootLayout({

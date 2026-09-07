@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { DynamicAdSlot } from '@/components/ui/DynamicAdSlot';
 
 export const metadata: Metadata = {
-  title: 'Parça Eşya Taşıma & Parsiyel Nakliye | Nakliyem Para',
+  title: 'Parça Eşya Taşıma & Parsiyel Nakliye | TaşınTeklif',
   description: 'Tek koltuk, beyaz eşya veya birkaç koli eşyanız için uygun fiyatlı şehirler arası ve şehir içi parça eşya nakliye teklifleri alın.',
   keywords: ['parça eşya taşıma', 'parsiyel nakliye', 'parça ev eşyası', 'tek eşya taşıma']
 };

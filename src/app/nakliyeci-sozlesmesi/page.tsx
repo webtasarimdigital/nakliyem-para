@@ -2,7 +2,7 @@ import React from 'react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Nakliyeci Üyelik ve Hizmet Sözleşmesi | Nakliyem Para',
+  title: 'Nakliyeci Üyelik ve Hizmet Sözleşmesi | TaşınTeklif',
   description: 'Nakliyat firmaları için platform katılım, abonelik ve Defter kullanım kuralları sözleşmesi.'
 };
 
@@ -15,7 +15,7 @@ export default function NakliyeciSozlesmesiPage() {
         </h1>
 
         <p>
-          İşbu sözleşme, Nakliyem Para platformuna kayıt olan nakliyat firmaları ile platform işleticisi arasındaki hak ve yükümlülükleri düzenler.
+          İşbu sözleşme, TaşınTeklif platformuna kayıt olan nakliyat firmaları ile platform işleticisi arasındaki hak ve yükümlülükleri düzenler.
         </p>
 
         <h2 className="text-base font-bold text-[#0A1128] pt-2">1. Doğrulama ve Belge Yükümlülüğü</h2>

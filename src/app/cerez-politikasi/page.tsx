@@ -2,8 +2,8 @@ import React from 'react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Çerez Politikası | Nakliyem Para',
-  description: 'Nakliyem Para çerez kullanımı ve tercihleri.'
+  title: 'Çerez Politikası | TaşınTeklif',
+  description: 'TaşınTeklif çerez kullanımı ve tercihleri.'
 };
 
 export default function CerezPolitikasiPage() {

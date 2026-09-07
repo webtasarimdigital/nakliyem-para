@@ -111,7 +111,7 @@ export const Navbar: React.FC = () => {
           </div>
           <div className="flex flex-col">
             <span className="font-black text-xl tracking-tight text-[#0A1128] leading-none">
-              NAKLİYEM<span className="text-[#F95700]">PARA</span>
+              TAŞIN<span className="text-[#F95700]">TEKLİF</span>
             </span>
             <span className="text-[10px] text-slate-500 font-bold tracking-wider uppercase mt-0.5">
               Taşıma &amp; Nakliyeci İş Ağı
@@ -411,7 +411,7 @@ export const Navbar: React.FC = () => {
             <Truck className="w-5 h-5 stroke-[2.5]" />
           </div>
           <span className="font-black text-lg tracking-tight text-[#0A1128]">
-            NAKLİYEM<span className="text-[#F95700]">PARA</span>
+            TAŞIN<span className="text-[#F95700]">TEKLİF</span>
           </span>
         </Link>
 

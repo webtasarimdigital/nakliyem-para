@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/Button';
 
 export const metadata: Metadata = {
-  title: 'Nakliyat Firmaları İçin İş Ağı & 7 Gün Ücretsiz Deneme | Nakliyem Para',
+  title: 'Nakliyat Firmaları İçin İş Ağı & 7 Gün Ücretsiz Deneme | TaşınTeklif',
   description: 'Bölgenizdeki ev ve ofis taşıma taleplerine anında teklif verin. Nakliyeci Defteri ile boş dönüşlerinizi paraya çevirin. 7 gün ücretsiz deneyin.',
   keywords: ['nakliyeci üyeliği', 'nakliye işleri', 'boş araç yük bulma', 'nakliyeci iş ağı']
 };
@@ -67,7 +67,7 @@ export default function NakliyecilerLandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <h2 className="text-2xl sm:text-3xl font-bold text-[#0A1128] mb-3">
-              Nakliyeciler Neden Nakliyem Para Kullanıyor?
+              Nakliyeciler Neden TaşınTeklif Kullanıyor?
             </h2>
             <p className="text-xs sm:text-sm text-slate-500">
               Platformumuz bir ilan sitesi değil, firmanızı her gün büyütecek modern bir iş istasyonudur.

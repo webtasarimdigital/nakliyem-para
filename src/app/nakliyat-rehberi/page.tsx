@@ -5,7 +5,7 @@ import { BookOpen, CheckCircle2, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 export const metadata: Metadata = {
-  title: 'Kapsamlı Ev ve Ofis Taşınma Rehberi | Nakliyem Para',
+  title: 'Kapsamlı Ev ve Ofis Taşınma Rehberi | TaşınTeklif',
   description: 'Taşınma öncesinde, taşınma gününde ve sonrasında yapılması gereken tüm adımları içeren pratik rehber.',
   keywords: ['nakliyat rehberi', 'ev taşınma tavsiyeleri', 'koli hazırlama rehberi']
 };

@@ -66,7 +66,7 @@ function AdminNavbar({ onLogout }: { onLogout: () => void }) {
         <div className="w-7 h-7 rounded-lg bg-[#F95700] flex items-center justify-center shrink-0">
           <ShieldCheck className="w-4 h-4 text-white" />
         </div>
-        <span className="font-black text-sm tracking-tight truncate">Nakliyem Para <span className="text-[#F95700]">Admin</span></span>
+        <span className="font-black text-sm tracking-tight truncate">TaşınTeklif <span className="text-[#F95700]">Admin</span></span>
       </div>
 
       <nav className="hidden md:flex items-center gap-1 text-xs font-bold text-slate-400">

@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { DynamicAdSlot } from '@/components/ui/DynamicAdSlot';
 
 export const metadata: Metadata = {
-  title: 'Evden Eve Nakliyat Fiyat Teklifi Al | Nakliyem Para',
+  title: 'Evden Eve Nakliyat Fiyat Teklifi Al | TaşınTeklif',
   description: 'Türkiye genelinde profesyonel ve sigortalı evden eve nakliyat firmalarından ücretsiz fiyat teklifi alın. Fiyatları karşılaştırın, en uygun nakliyeciyi seçin.',
   keywords: ['evden eve nakliyat', 'ev taşıma fiyatları', 'asansörlü ev taşıma', 'şehirler arası evden eve']
 };

@@ -1140,9 +1140,9 @@ export const SEED_MESSAGES: ConversationMessage[] = [
 
 // Seed System Settings
 export const SEED_SETTINGS: SystemSettings = {
-  platformName: 'Nakliyem Para',
+  platformName: 'TaşınTeklif',
   supportPhone: '0850 300 00 00',
-  supportEmail: 'destek@nakliyempara.com',
+  supportEmail: 'bilgi@tasinteklif.com',
   appStoreUrl: 'https://apple.com/app-store',
   googlePlayUrl: 'https://play.google.com',
   mobileAppBandActive: true,
@@ -1234,7 +1234,7 @@ class MockDatabase {
     if (role === 'ADMIN') {
       this.setCurrentUser({
         id: 'user_admin_1',
-        email: 'admin@nakliyempara.com',
+        email: 'admin@TaşınTeklif.com',
         phone: '0850 300 00 00',
         role: 'ADMIN',
         createdAt: '2023-01-01T00:00:00Z'

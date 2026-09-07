@@ -2,8 +2,8 @@ import React from 'react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Kullanım Koşulları ve Platform Sorumluluk Reddi | Nakliyem Para',
-  description: 'Nakliyem Para platform kullanım koşulları, üyelik şartları ve taşıma sorumluluk maddeleri.'
+  title: 'Kullanım Koşulları ve Platform Sorumluluk Reddi | TaşınTeklif',
+  description: 'TaşınTeklif platform kullanım koşulları, üyelik şartları ve taşıma sorumluluk maddeleri.'
 };
 
 export default function KullanimKosullariPage() {
@@ -15,7 +15,7 @@ export default function KullanimKosullariPage() {
         </h1>
 
         <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-medium">
-          <strong>Önemli Yasal Bilgilendirme:</strong> Nakliyem Para platformu bir aracı hizmet sağlayıcıdır. Taşıma ücretini tahsil etmez ve nakliyat operasyonunun bizzat tarafı değildir. Müşteriler taşıma sözleşmesini ve ödeme detaylarını anlaştıkları nakliyeci ile doğrudan kararlaştırır.
+          <strong>Önemli Yasal Bilgilendirme:</strong> TaşınTeklif platformu bir aracı hizmet sağlayıcıdır. Taşıma ücretini tahsil etmez ve nakliyat operasyonunun bizzat tarafı değildir. Müşteriler taşıma sözleşmesini ve ödeme detaylarını anlaştıkları nakliyeci ile doğrudan kararlaştırır.
         </div>
 
         <h2 className="text-base font-bold text-[#0A1128] pt-2">1. Hizmetin Kapsamı</h2>

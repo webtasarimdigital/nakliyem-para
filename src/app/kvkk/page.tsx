@@ -2,7 +2,7 @@ import React from 'react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'KVKK Aydınlatma Metni | Nakliyem Para',
+  title: 'KVKK Aydınlatma Metni | TaşınTeklif',
   description: '6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında aydınlatma metni.'
 };
 
@@ -15,7 +15,7 @@ export default function KvkkPage() {
         </h1>
 
         <p>
-          Nakliyem Para olarak 6698 sayılı Kişisel Verilerin Korunması Kanunu (&quot;KVKK&quot;) uyarınca veri sorumlusu sıfatıyla kişisel verilerinizin güvenliğine ve gizliliğine azami hassasiyet göstermekteyiz.
+          TaşınTeklif olarak 6698 sayılı Kişisel Verilerin Korunması Kanunu (&quot;KVKK&quot;) uyarınca veri sorumlusu sıfatıyla kişisel verilerinizin güvenliğine ve gizliliğine azami hassasiyet göstermekteyiz.
         </p>
 
         <h2 className="text-base font-bold text-[#0A1128] pt-2">1. İşlenen Kişisel Veriler</h2>
@@ -30,7 +30,7 @@ export default function KvkkPage() {
 
         <h2 className="text-base font-bold text-[#0A1128] pt-2">3. İletişim ve Haklarınız</h2>
         <p>
-          KVKK 11. maddesi kapsamındaki haklarınızı kullanmak için <strong>destek@nakliyempara.com</strong> adresine yazılı olarak başvurabilirsiniz.
+          KVKK 11. maddesi kapsamındaki haklarınızı kullanmak için <strong>bilgi@tasinteklif.com</strong> adresine yazılı olarak başvurabilirsiniz.
         </p>
       </div>
     </div>

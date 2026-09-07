@@ -23,7 +23,7 @@ export const Footer: React.FC = () => {
                 <Truck className="w-6 h-6 stroke-[2.5]" />
               </div>
               <span className="font-black text-2xl tracking-tight text-white">
-                NAKLİYEM<span className="text-[#F95700]">PARA</span>
+                TAŞIN<span className="text-[#F95700]">TEKLİF</span>
               </span>
             </Link>
 
@@ -31,11 +31,17 @@ export const Footer: React.FC = () => {
               Türkiye&apos;nin en güvenilir evden eve nakliyat, kurumsal taşımacılık, Nakliyeci Defteri ve lojistik pazaryeri platformu.
             </p>
 
-            <div className="flex items-center gap-3 pt-2 text-xs font-bold text-slate-300">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                %100 Doğrulanmış Firmalar
-              </span>
+            <div className="flex flex-col gap-2 pt-2 text-xs font-bold text-slate-300">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  %100 Doğrulanmış Firmalar
+                </span>
+              </div>
+              <a href="mailto:bilgi@tasinteklif.com" className="inline-flex items-center gap-2 text-slate-300 hover:text-[#F95700] transition-colors font-semibold">
+                <Mail className="w-4 h-4 text-[#F95700]" />
+                bilgi@tasinteklif.com
+              </a>
             </div>
 
             {/* Mobil Uygulamalarımız — App Store & Google Play */}
@@ -115,9 +121,9 @@ export const Footer: React.FC = () => {
 
         {/* Bottom Legal Disclaimer */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-medium">
-          <p>© {new Date().getFullYear()} Nakliyem Para. Tüm hakları saklıdır.</p>
+          <p>© {new Date().getFullYear()} TaşınTeklif. Tüm hakları saklıdır.</p>
           <p className="text-[11px] text-slate-500 text-center md:text-right">
-            Nakliyem Para bir aracı hizmet sağlayıcıdır. Taşıma ücreti doğrudan anlaşmalı nakliyeciye ödenir.
+            TaşınTeklif bir aracı hizmet sağlayıcıdır. Taşıma ücreti doğrudan anlaşmalı nakliyeciye ödenir.
           </p>
         </div>
       </div>

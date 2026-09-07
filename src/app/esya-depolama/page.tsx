@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { DynamicAdSlot } from '@/components/ui/DynamicAdSlot';
 
 export const metadata: Metadata = {
-  title: 'Eşya Depolama Hizmeti ve Fiyatları | Nakliyem Para',
+  title: 'Eşya Depolama Hizmeti ve Fiyatları | TaşınTeklif',
   description: 'Kilitli oda tipi, 7/24 güvenlikli ve sigortalı ev & ofis eşyası depolama hizmeti. Aylık ve yıllık uygun depolama fiyatları.',
   keywords: ['eşya depolama', 'ev eşyası deposu', 'kilitli depolama', 'oda depo']
 };

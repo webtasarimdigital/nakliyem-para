@@ -2,8 +2,8 @@ import React from 'react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Gizlilik Politikası | Nakliyem Para',
-  description: 'Nakliyem Para kullanıcı ve firma gizlilik politikası ilkeleri.'
+  title: 'Gizlilik Politikası | TaşınTeklif',
+  description: 'TaşınTeklif kullanıcı ve firma gizlilik politikası ilkeleri.'
 };
 
 export default function GizlilikPage() {
@@ -15,7 +15,7 @@ export default function GizlilikPage() {
         </h1>
 
         <p>
-          Gizliliğiniz bizim için en üst düzeyde öneme sahiptir. Nakliyem Para olarak topladığımız tüm kişisel verileri endüstri standardı güvenlik protokolleri ile korumaktayız.
+          Gizliliğiniz bizim için en üst düzeyde öneme sahiptir. TaşınTeklif olarak topladığımız tüm kişisel verileri endüstri standardı güvenlik protokolleri ile korumaktayız.
         </p>
 
         <h2 className="text-base font-bold text-[#0A1128] pt-2">1. İletişim Bilgilerinin Gizliliği</h2>

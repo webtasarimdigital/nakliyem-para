@@ -5,7 +5,7 @@ import { BookOpen, Calendar, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 export const metadata: Metadata = {
-  title: 'Nakliyat Blog & Taşınma Rehberleri | Nakliyem Para',
+  title: 'Nakliyat Blog & Taşınma Rehberleri | TaşınTeklif',
   description: 'Ev taşırken dikkat edilmesi gerekenler, nakliyat fiyat hesaplama yöntemleri ve profesyonel ambalajlama ipuçları.',
   keywords: ['nakliyat blogu', 'taşınma rehberi', 'ev taşıma tavsiyeleri']
 };

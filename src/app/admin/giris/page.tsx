@@ -48,7 +48,7 @@ export default function AdminLoginPage() {
             <Shield className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-black text-white">Yönetim Paneli</h1>
-          <p className="text-slate-400 text-sm mt-1 font-medium">Nakliyem Para — Admin Girişi</p>
+          <p className="text-slate-400 text-sm mt-1 font-medium">TaşınTeklif — Admin Girişi</p>
         </div>
 
         {/* Card */}

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { DynamicAdSlot } from '@/components/ui/DynamicAdSlot';
 
 export const metadata: Metadata = {
-  title: 'Ofis ve İşyeri Taşıma Fiyat Teklifi Al | Nakliyem Para',
+  title: 'Ofis ve İşyeri Taşıma Fiyat Teklifi Al | TaşınTeklif',
   description: 'Kurumsal ofis, işyeri, fabrika ve arşiv taşımacılığı için profesyonel nakliyat firmalarından teklif alın. Sigortalı ve sözleşmeli nakliye.',
   keywords: ['ofis taşıma', 'işyeri nakliyesi', 'kurumsal taşımacılık', 'büro nakliyatı']
 };
