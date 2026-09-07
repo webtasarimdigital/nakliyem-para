@@ -33,10 +33,10 @@ export const Button: React.FC<ButtonProps> = ({
   const variantStyles = {
     primary: 'bg-[#F95700] text-white hover:bg-[#E04D00] focus:ring-[#F95700] shadow-md shadow-orange-950/10 hover:shadow-lg hover:shadow-orange-950/20',
     secondary: 'bg-[#FFF4ED] text-[#C23E00] hover:bg-[#FFE8D6] focus:ring-[#F95700] border border-[#FFD8BE]',
-    navy: 'bg-[#1E3A8A] text-white hover:bg-[#1E40AF] focus:ring-[#1E3A8A] shadow-md shadow-blue-900/25',
-    outline: 'border-2 border-slate-300 bg-white text-[#0A1128] hover:border-[#F95700]/60 hover:bg-orange-50/40 focus:ring-[#F95700]',
+    navy: 'bg-[#111E38] text-white hover:bg-[#1A2E56] focus:ring-[#111E38] shadow-md shadow-slate-900/15',
+    outline: 'border-2 border-slate-300 bg-white text-[#111E38] hover:border-[#F95700]/60 hover:bg-orange-50/40 focus:ring-[#F95700]',
     'outline-white': 'border-2 border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/60 focus:ring-white shadow-sm',
-    ghost: 'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-[#0A1128]',
+    ghost: 'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-[#111E38]',
     danger: 'bg-[#EF4444] text-white hover:bg-[#DC2626] focus:ring-[#EF4444] shadow-sm',
     gold: 'bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-white hover:opacity-95 shadow-md focus:ring-[#F59E0B]'
   };

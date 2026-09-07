@@ -110,7 +110,7 @@ export const Navbar: React.FC = () => {
             <Truck className="w-5 h-5 stroke-[2.5]" />
           </div>
           <div className="flex flex-col">
-            <span className="font-black text-xl tracking-tight text-[#0A1128] leading-none">
+            <span className="font-black text-xl tracking-tight text-[#111E38] leading-none">
               TAŞIN<span className="text-[#F95700]">TEKLİF</span>
             </span>
             <span className="text-[10px] text-slate-500 font-bold tracking-wider uppercase mt-0.5">
@@ -165,7 +165,7 @@ export const Navbar: React.FC = () => {
                 className={`px-3 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                   pathname?.includes('dijital-hizmetler')
                     ? 'bg-orange-50 text-[#F95700]'
-                    : 'text-slate-700 hover:bg-slate-100 hover:text-[#0A1128]'
+                    : 'text-slate-700 hover:bg-slate-100 hover:text-[#111E38]'
                 }`}
               >
                 <Sparkles className="w-4 h-4 text-[#F95700] shrink-0" />
@@ -188,7 +188,7 @@ export const Navbar: React.FC = () => {
                       <Globe className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-bold text-[#0A1128] group-hover:text-[#F95700] truncate">Web Sitesi Hizmeti</div>
+                      <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Web Sitesi Hizmeti</div>
                       <div className="text-[10px] text-slate-400">Mobil uyumlu & formlu</div>
                     </div>
                   </Link>
@@ -202,7 +202,7 @@ export const Navbar: React.FC = () => {
                       <Search className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-bold text-[#0A1128] group-hover:text-[#F95700] truncate">Google SEO</div>
+                      <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Google SEO</div>
                       <div className="text-[10px] text-slate-400">Aramalarda 1. sayfa</div>
                     </div>
                   </Link>
@@ -216,7 +216,7 @@ export const Navbar: React.FC = () => {
                       <MapPin className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-bold text-[#0A1128] group-hover:text-[#F95700] truncate">Harita SEO (Google Maps)</div>
+                      <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Harita SEO (Google Maps)</div>
                       <div className="text-[10px] text-slate-400">Bölgenizde ilk sırada</div>
                     </div>
                   </Link>
@@ -230,7 +230,7 @@ export const Navbar: React.FC = () => {
                       <Megaphone className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-bold text-[#0A1128] group-hover:text-[#F95700] truncate">Google Reklamları</div>
+                      <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Google Reklamları</div>
                       <div className="text-[10px] text-slate-400">Anında arayan müşteriler</div>
                     </div>
                   </Link>
@@ -244,7 +244,7 @@ export const Navbar: React.FC = () => {
                       <Share2 className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-bold text-[#0A1128] group-hover:text-[#F95700] truncate">Sosyal Medya Reklamları</div>
+                      <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Sosyal Medya Reklamları</div>
                       <div className="text-[10px] text-slate-400">Instagram & Facebook</div>
                     </div>
                   </Link>
@@ -273,11 +273,11 @@ export const Navbar: React.FC = () => {
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                 className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer text-sm font-bold text-slate-800 shadow-xs"
               >
-                <div className={`w-8 h-8 rounded-xl ${isCarrier ? 'bg-[#0A1128] text-white' : 'bg-gradient-to-br from-[#F95700] to-[#E04D00] text-white'} flex items-center justify-center text-xs font-black shadow-sm`}>
+                <div className={`w-8 h-8 rounded-xl ${isCarrier ? 'bg-[#111E38] text-white' : 'bg-gradient-to-br from-[#F95700] to-[#E04D00] text-white'} flex items-center justify-center text-xs font-black shadow-sm`}>
                   {avatarInitial}
                 </div>
                 <div className="text-left flex flex-col">
-                  <span className="font-black text-xs text-[#0A1128] leading-tight max-w-[120px] truncate">
+                  <span className="font-black text-xs text-[#111E38] leading-tight max-w-[120px] truncate">
                     {displayName}
                   </span>
                   <span className="text-[10px] font-bold text-slate-500 leading-none">
@@ -290,7 +290,7 @@ export const Navbar: React.FC = () => {
               {userDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-fade-in">
                   <div className="px-4 py-2.5 border-b border-slate-100">
-                    <p className="text-xs font-black text-[#0A1128] truncate">{displayName}</p>
+                    <p className="text-xs font-black text-[#111E38] truncate">{displayName}</p>
                     <p className="text-[11px] font-medium text-slate-500 truncate">{currentUser.email || currentUser.phone}</p>
                   </div>
 
@@ -360,7 +360,7 @@ export const Navbar: React.FC = () => {
               <div className="relative" ref={loginDropdownRef}>
                 <button
                   onClick={() => { setLoginDropdownOpen(!loginDropdownOpen); setRegisterDropdownOpen(false); }}
-                  className="flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-black text-[#0A1128] hover:bg-slate-100 transition-all cursor-pointer"
+                  className="flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-black text-[#111E38] hover:bg-slate-100 transition-all cursor-pointer"
                 >
                   Giriş Yap <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                 </button>
@@ -410,7 +410,7 @@ export const Navbar: React.FC = () => {
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#F95700] to-[#E04D00] text-white flex items-center justify-center shadow-sm">
             <Truck className="w-5 h-5 stroke-[2.5]" />
           </div>
-          <span className="font-black text-lg tracking-tight text-[#0A1128]">
+          <span className="font-black text-lg tracking-tight text-[#111E38]">
             TAŞIN<span className="text-[#F95700]">TEKLİF</span>
           </span>
         </Link>
@@ -419,9 +419,9 @@ export const Navbar: React.FC = () => {
           {currentUser ? (
             <Link
               href={isCarrier ? '/app/carrier/profil' : '/app/customer/profil'}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-black text-[#0A1128]"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-black text-[#111E38]"
             >
-              <div className={`w-5 h-5 rounded-full ${isCarrier ? 'bg-[#0A1128]' : 'bg-[#F95700]'} text-white flex items-center justify-center text-[10px]`}>
+              <div className={`w-5 h-5 rounded-full ${isCarrier ? 'bg-[#111E38]' : 'bg-[#F95700]'} text-white flex items-center justify-center text-[10px]`}>
                 {avatarInitial}
               </div>
               <span className="max-w-[70px] truncate">{displayName}</span>
@@ -448,11 +448,11 @@ export const Navbar: React.FC = () => {
           {currentUser && (
             <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-xl ${isCarrier ? 'bg-[#0A1128]' : 'bg-[#F95700]'} text-white flex items-center justify-center font-black text-sm`}>
+                <div className={`w-8 h-8 rounded-xl ${isCarrier ? 'bg-[#111E38]' : 'bg-[#F95700]'} text-white flex items-center justify-center font-black text-sm`}>
                   {avatarInitial}
                 </div>
                 <div>
-                  <div className="font-black text-xs text-[#0A1128]">{displayName}</div>
+                  <div className="font-black text-xs text-[#111E38]">{displayName}</div>
                   <div className="text-[10px] text-slate-500 font-semibold">{currentUser.email || currentUser.phone}</div>
                 </div>
               </div>
@@ -473,7 +473,7 @@ export const Navbar: React.FC = () => {
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-4 py-3 rounded-2xl text-sm font-black transition-all text-[#0A1128] hover:bg-slate-100"
+                className="flex items-center gap-2.5 px-4 py-3 rounded-2xl text-sm font-black transition-all text-[#111E38] hover:bg-slate-100"
               >
                 {link.icon}
                 {link.label}

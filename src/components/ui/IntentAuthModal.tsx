@@ -85,22 +85,22 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
     >
       <div className="space-y-5">
         {/* Value props badge */}
-        <div className="p-3.5 rounded-xl bg-[#EAF3FF] border border-blue-100 flex items-start gap-3">
+        <div className="p-3.5 rounded-xl bg-orange-50 border border-orange-200/80 flex items-start gap-3">
           {targetRole === 'CUSTOMER' ? (
-            <ShieldCheck className="w-5 h-5 text-[#146EF5] shrink-0 mt-0.5" />
+            <ShieldCheck className="w-5 h-5 text-[#F95700] shrink-0 mt-0.5" />
           ) : (
-            <Truck className="w-5 h-5 text-[#146EF5] shrink-0 mt-0.5" />
+            <Truck className="w-5 h-5 text-[#F95700] shrink-0 mt-0.5" />
           )}
           <div className="text-xs text-slate-700 space-y-1">
             {targetRole === 'CUSTOMER' ? (
               <>
-                <p className="font-semibold text-[#0B3B8F]">Müşteri Avantajları:</p>
+                <p className="font-bold text-[#111E38]">Müşteri Avantajları:</p>
                 <p>✓ Ücretsiz nakliyat teklifleri alın ve karşılaştırın</p>
                 <p>✓ Onaylı ve belgeli nakliyecilerle güvenle mesajlaşın</p>
               </>
             ) : (
               <>
-                <p className="font-semibold text-[#0B3B8F]">Nakliyeci Avantajları:</p>
+                <p className="font-bold text-[#111E38]">Nakliyeci Avantajları:</p>
                 <p>✓ Günlük 100+ yeni ev ve ofis taşıma işine ulaşın</p>
                 <p>✓ 7 gün ücretsiz deneyin, boş dönüşlerinizi paraya çevirin</p>
               </>
@@ -113,10 +113,10 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
           <button
             type="button"
             onClick={() => setTab('REGISTER')}
-            className={`flex-1 py-2 text-sm font-semibold border-b-2 text-center transition-colors ${
+            className={`flex-1 py-2 text-sm font-bold border-b-2 text-center transition-colors cursor-pointer ${
               tab === 'REGISTER'
-                ? 'border-[#146EF5] text-[#146EF5]'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                ? 'border-[#F95700] text-[#F95700]'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
             Hızlı Üye Ol
@@ -124,10 +124,10 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
           <button
             type="button"
             onClick={() => setTab('LOGIN')}
-            className={`flex-1 py-2 text-sm font-semibold border-b-2 text-center transition-colors ${
+            className={`flex-1 py-2 text-sm font-bold border-b-2 text-center transition-colors cursor-pointer ${
               tab === 'LOGIN'
-                ? 'border-[#146EF5] text-[#146EF5]'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+                ? 'border-[#F95700] text-[#F95700]'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
             Giriş Yap
@@ -147,7 +147,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={targetRole === 'CUSTOMER' ? 'Örn: Ahmet Yılmaz' : 'Örn: Murat Kaya'}
-                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#146EF5]"
+                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F95700]"
               />
             </div>
           )}
@@ -160,7 +160,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="05XX XXX XX XX"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#146EF5]"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F95700]"
             />
           </div>
 
@@ -172,7 +172,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#146EF5]"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#F95700]"
             />
           </div>
 

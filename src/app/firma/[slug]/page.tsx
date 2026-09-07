@@ -53,7 +53,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
     <div className="min-h-screen bg-[#F8FAFC]">
       
       {/* ── HERO & COVER PHOTO ───────────────────────────────── */}
-      <div className="bg-[#0A1128] text-white">
+      <div className="bg-[#111E38] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-0">
           
           {/* Cover Photo */}
@@ -65,9 +65,9 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                 className="w-full h-full object-cover opacity-50 mix-blend-luminosity"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-r from-[#0A1128] via-[#132247] to-[#0A1128]" />
+              <div className="w-full h-full bg-gradient-to-r from-[#111E38] via-[#132247] to-[#111E38]" />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0A1128] via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#111E38] via-transparent to-transparent" />
           </div>
 
           {/* Profile Bar */}
@@ -122,7 +122,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
 
                 {showPhone ? (
                   <a href={`tel:${carrier.phone}`}>
-                    <button className="h-[52px] px-5 rounded-xl bg-white text-[#0A1128] font-black text-sm sm:text-base inline-flex items-center gap-2 shadow-md hover:bg-slate-100 transition-colors cursor-pointer">
+                    <button className="h-[52px] px-5 rounded-xl bg-white text-[#111E38] font-black text-sm sm:text-base inline-flex items-center gap-2 shadow-md hover:bg-slate-100 transition-colors cursor-pointer">
                       <Phone className="w-4 h-4 text-[#F95700]" />
                       <span>{carrier.phone}</span>
                     </button>
@@ -202,7 +202,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black whitespace-nowrap transition-all cursor-pointer ${
                   activeTab === tab.id
-                    ? 'bg-[#1E3A8A] text-white shadow-xs'
+                    ? 'bg-[#111E38] text-white shadow-xs'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -225,7 +225,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
               <div className="space-y-6 animate-fade-in">
                 {/* Short Bio Callout */}
                 <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs">
-                  <h2 className="text-xl font-black text-[#0A1128] mb-3">Kurumsal Profil</h2>
+                  <h2 className="text-xl font-black text-[#111E38] mb-3">Kurumsal Profil</h2>
                   <p className="text-base text-slate-800 font-bold leading-relaxed mb-4">
                     &ldquo;{carrier.shortBio}&rdquo;
                   </p>
@@ -236,7 +236,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
 
                 {/* Packaging & Quality Standards */}
                 <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs">
-                  <h3 className="text-lg font-black text-[#0A1128] mb-4">Taşıma &amp; Paketleme Standartlarımız</h3>
+                  <h3 className="text-lg font-black text-[#111E38] mb-4">Taşıma &amp; Paketleme Standartlarımız</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[
                       { title: 'Çift Kat Balonlu Patpat', desc: 'Mobilyalar, beyaz eşyalar ve hassas eşyalar kalın havalı ambalaj naylonu ile sarılır.' },
@@ -248,7 +248,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                         <div className="w-7 h-7 rounded-xl bg-[#F95700]/15 text-[#F95700] flex items-center justify-center font-black text-xs mb-2">
                           ✓
                         </div>
-                        <h4 className="font-black text-sm text-[#0A1128] mb-1">{st.title}</h4>
+                        <h4 className="font-black text-sm text-[#111E38] mb-1">{st.title}</h4>
                         <p className="text-xs text-slate-500 font-medium leading-relaxed">{st.desc}</p>
                       </div>
                     ))}
@@ -261,7 +261,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
             {activeTab === 'FLEET' && (
               <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs animate-fade-in space-y-6">
                 <div>
-                  <h2 className="text-xl font-black text-[#0A1128] mb-1">Araç Filosu &amp; Ekipman Görselleri</h2>
+                  <h2 className="text-xl font-black text-[#111E38] mb-1">Araç Filosu &amp; Ekipman Görselleri</h2>
                   <p className="text-xs sm:text-sm text-slate-500 font-medium">
                     Firmamıza ait kapalı kasa nakliye araçları ve dış cephe mobil asansörleri.
                   </p>
@@ -292,7 +292,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                       🏢
                     </div>
                     <div>
-                      <h4 className="font-black text-sm text-[#0A1128]">Mobil Asansör Teknik Özellikleri</h4>
+                      <h4 className="font-black text-sm text-[#111E38]">Mobil Asansör Teknik Özellikleri</h4>
                       <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">
                         {carrier.elevatorSpec.description || `${carrier.elevatorSpec.maxFloor || 15}. kata kadar hidrolik araç üstü asansör ile dar merdivenli veya bina yönetiminin asansör kullanımına izin vermediği durumlarda hızlı servis.`}
                       </p>
@@ -306,7 +306,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
             {activeTab === 'SERVICES' && (
               <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs animate-fade-in space-y-6">
                 <div>
-                  <h2 className="text-xl font-black text-[#0A1128] mb-1">Verilen Hizmetler</h2>
+                  <h2 className="text-xl font-black text-[#111E38] mb-1">Verilen Hizmetler</h2>
                   <div className="flex flex-wrap gap-2 mt-3">
                     {carrier.services.map((s, i) => (
                       <span key={i} className="px-3 py-1.5 rounded-xl bg-orange-50 text-[#C23E00] border border-orange-200 font-black text-xs">
@@ -317,7 +317,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                 </div>
 
                 <div className="pt-6 border-t border-slate-100">
-                  <h3 className="text-base font-black text-[#0A1128] mb-2">Hizmet Verilen İller &amp; Rotalar</h3>
+                  <h3 className="text-base font-black text-[#111E38] mb-2">Hizmet Verilen İller &amp; Rotalar</h3>
                   <p className="text-xs text-slate-500 font-medium mb-3">
                     Bu iller arasında düzenli seferler ve araç üstü nakliyat sağlanmaktadır.
                   </p>
@@ -339,7 +339,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                 {/* Header & Overall Summary */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-slate-100">
                   <div>
-                    <h2 className="text-xl font-black text-[#0A1128]">Müşteri Değerlendirmeleri</h2>
+                    <h2 className="text-xl font-black text-[#111E38]">Müşteri Değerlendirmeleri</h2>
                     <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
                       Bu firmayla taşınması tamamlanan onaylı müşterilerin bağımsız yorumları.
                     </p>
@@ -351,7 +351,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                       <span>{carrier.rating.toFixed(1)}</span>
                     </div>
                     <div className="text-left border-l border-slate-200 pl-4">
-                      <p className="text-xs font-black text-[#0A1128]">{carrier.reviewCount} Değerlendirme</p>
+                      <p className="text-xs font-black text-[#111E38]">{carrier.reviewCount} Değerlendirme</p>
                       <p className="text-[10px] text-emerald-600 font-bold">%100 Doğrulanmış Müşteri</p>
                     </div>
                   </div>
@@ -379,7 +379,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                         <div className="flex items-start justify-between gap-2 flex-wrap">
                           <div>
                             <div className="flex items-center gap-2">
-                              <p className="font-black text-sm text-[#0A1128]">{maskedName}</p>
+                              <p className="font-black text-sm text-[#111E38]">{maskedName}</p>
                               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">
                                 <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                                 Onaylı Taşınma
@@ -451,7 +451,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
             {activeTab === 'DEFTER' && (
               <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs animate-fade-in space-y-4">
                 <div>
-                  <h2 className="text-xl font-black text-[#0A1128] mb-1">Aktif Nakliyeci Defteri Paylaşımları</h2>
+                  <h2 className="text-xl font-black text-[#111E38] mb-1">Aktif Nakliyeci Defteri Paylaşımları</h2>
                   <p className="text-xs sm:text-sm text-slate-500 font-medium">
                     Firmanın güncel boş araç, dönüş rotası ve yük paylaşımları.
                   </p>
@@ -485,7 +485,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
           <div className="lg:col-span-4 space-y-5">
             
             {/* Quick Request Box */}
-            <div className="bg-gradient-to-br from-[#0A1128] to-[#132247] rounded-3xl p-6 text-white shadow-xl">
+            <div className="bg-gradient-to-br from-[#111E38] to-[#132247] rounded-3xl p-6 text-white shadow-xl">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F95700]/20 text-[#F95700] text-xs font-black mb-3">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Öncelikli Teklif</span>
@@ -504,7 +504,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
 
             {/* Direct Contact Card */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
-              <h4 className="font-black text-sm text-[#0A1128] uppercase tracking-wider">İletişim Bilgileri</h4>
+              <h4 className="font-black text-sm text-[#111E38] uppercase tracking-wider">İletişim Bilgileri</h4>
               
               <div className="space-y-3 text-xs sm:text-sm">
                 <div className="flex items-center gap-3">
@@ -513,7 +513,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-400 font-black block">Telefon</span>
-                    <span className="font-black text-[#0A1128]">{showPhone ? carrier.phone : '05** *** ** **'}</span>
+                    <span className="font-black text-[#111E38]">{showPhone ? carrier.phone : '05** *** ** **'}</span>
                   </div>
                 </div>
 
@@ -548,7 +548,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
       {selectedPhoto && (
         <div
           onClick={() => setSelectedPhoto(null)}
-          className="fixed inset-0 bg-[#0A1128]/90 z-50 flex items-center justify-center p-4 cursor-zoom-out"
+          className="fixed inset-0 bg-[#111E38]/90 z-50 flex items-center justify-center p-4 cursor-zoom-out"
         >
           <div className="relative max-w-4xl max-h-[90vh]">
             <img src={selectedPhoto} alt="Büyük Görsel" className="w-full h-full object-contain rounded-2xl" />

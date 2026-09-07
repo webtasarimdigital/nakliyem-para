@@ -199,7 +199,7 @@ export default function IlanVerPage() {
           <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
             <Check className="w-10 h-10 text-emerald-600" />
           </div>
-          <h2 className="text-2xl font-black text-[#0A1128] mb-3">İlanınız Alındı!</h2>
+          <h2 className="text-2xl font-black text-[#111E38] mb-3">İlanınız Alındı!</h2>
           <p className="text-slate-600 font-medium leading-relaxed mb-8">
             İlanınız incelemeye alındı. Onaylanması birkaç saat içinde gerçekleşecek ve yayına girecek.
           </p>
@@ -230,7 +230,7 @@ export default function IlanVerPage() {
             <ChevronLeft className="w-4 h-4 text-slate-400" />
             <span>Pazaryerine Dön</span>
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#1E3A8A] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#111E38] tracking-tight">
             Ücretsiz İlan Ver
           </h1>
           <p className="text-slate-500 text-sm font-normal mt-1">
@@ -282,7 +282,7 @@ export default function IlanVerPage() {
           {/* STEP 1: CATEGORY */}
           {step === 'CATEGORY' && (
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-[#1E3A8A] mb-1">Ne satmak istiyorsunuz?</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-[#111E38] mb-1">Ne satmak istiyorsunuz?</h2>
               <p className="text-xs sm:text-sm text-slate-500 font-normal mb-6">Bir kategori seçin</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {CATEGORY_OPTIONS.map(cat => (
@@ -296,7 +296,7 @@ export default function IlanVerPage() {
                     }`}
                   >
                     <div className="text-2xl mb-2">{cat.icon}</div>
-                    <div className="font-bold text-[#1E3A8A] text-sm">{cat.label}</div>
+                    <div className="font-bold text-[#111E38] text-sm">{cat.label}</div>
                     <div className="text-xs text-slate-500 font-normal mt-0.5">{cat.description}</div>
                   </button>
                 ))}
@@ -307,7 +307,7 @@ export default function IlanVerPage() {
           {/* STEP 2: DETAILS */}
           {step === 'DETAILS' && (
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-[#1E3A8A] mb-1">İlan Detayları</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-[#111E38] mb-1">İlan Detayları</h2>
               <p className="text-xs sm:text-sm text-slate-500 font-normal mb-6">Aracınız veya ürününüz hakkında bilgi verin</p>
 
               <div className="space-y-4">
@@ -336,7 +336,7 @@ export default function IlanVerPage() {
                         <select
                           value={form.brand}
                           onChange={(e) => update('brand', e.target.value)}
-                          className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none bg-white"
+                          className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111E38] focus:border-[#F95700] focus:outline-none bg-white"
                         >
                           <option value="">Seçin</option>
                           {BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
@@ -349,7 +349,7 @@ export default function IlanVerPage() {
                           value={form.model}
                           onChange={(e) => update('model', e.target.value)}
                           placeholder="Örn: 2523, Transit..."
-                          className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none"
+                          className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111E38] focus:border-[#F95700] focus:outline-none"
                         />
                       </div>
                     </div>
@@ -363,7 +363,7 @@ export default function IlanVerPage() {
                           onChange={(e) => update('year', e.target.value)}
                           placeholder="2005"
                           min="1980" max="2025"
-                          className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none"
+                          className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111E38] focus:border-[#F95700] focus:outline-none"
                         />
                       </div>
                       <div>
@@ -373,7 +373,7 @@ export default function IlanVerPage() {
                           value={form.km}
                           onChange={(e) => update('km', e.target.value)}
                           placeholder="250000"
-                          className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none"
+                          className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111E38] focus:border-[#F95700] focus:outline-none"
                         />
                       </div>
                     </div>
@@ -384,7 +384,7 @@ export default function IlanVerPage() {
                         <select
                           value={form.transmission}
                           onChange={(e) => update('transmission', e.target.value)}
-                          className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none bg-white"
+                          className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111E38] focus:border-[#F95700] focus:outline-none bg-white"
                         >
                           <option>Manuel</option>
                           <option>Otomatik</option>
@@ -396,7 +396,7 @@ export default function IlanVerPage() {
                         <select
                           value={form.fuel}
                           onChange={(e) => update('fuel', e.target.value)}
-                          className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none bg-white"
+                          className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111E38] focus:border-[#F95700] focus:outline-none bg-white"
                         >
                           <option>Dizel</option>
                           <option>Benzin</option>
@@ -416,7 +416,7 @@ export default function IlanVerPage() {
                       value={form.price}
                       onChange={(e) => update('price', e.target.value)}
                       placeholder="1.500.000"
-                      className="flex-1 border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none"
+                      className="flex-1 border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111E38] focus:border-[#F95700] focus:outline-none"
                     />
                     <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
                       <input 
@@ -436,7 +436,7 @@ export default function IlanVerPage() {
                     <select
                       value={form.city}
                       onChange={(e) => update('city', e.target.value)}
-                      className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none bg-white"
+                      className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111E38] focus:border-[#F95700] focus:outline-none bg-white"
                     >
                       <option value="">Seçin</option>
                       {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -449,7 +449,7 @@ export default function IlanVerPage() {
                       value={form.district}
                       onChange={(e) => update('district', e.target.value)}
                       placeholder="İlçe adı"
-                      className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none"
+                      className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111E38] focus:border-[#F95700] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -461,7 +461,7 @@ export default function IlanVerPage() {
                     onChange={(e) => update('description', e.target.value)}
                     rows={4}
                     placeholder="Araç veya ürün hakkında detaylı açıklama yazın..."
-                    className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none resize-none"
+                    className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111E38] focus:border-[#F95700] focus:outline-none resize-none"
                   />
                 </div>
               </div>
@@ -471,7 +471,7 @@ export default function IlanVerPage() {
           {/* STEP 3: PHOTOS */}
           {step === 'PHOTOS' && (
             <div>
-              <h2 className="text-xl font-black text-[#0A1128] mb-1">Fotoğraflar</h2>
+              <h2 className="text-xl font-black text-[#111E38] mb-1">Fotoğraflar</h2>
               <p className="text-sm text-slate-500 font-medium mb-6">
                 Daha fazla fotoğraf = daha fazla ilgi. En az 3 fotoğraf eklemenizi öneririz.
               </p>
@@ -495,7 +495,7 @@ export default function IlanVerPage() {
           {/* STEP 4: CONTACT */}
           {step === 'CONTACT' && (
             <div>
-              <h2 className="text-xl font-black text-[#0A1128] mb-1">İletişim Bilgileri</h2>
+              <h2 className="text-xl font-black text-[#111E38] mb-1">İletişim Bilgileri</h2>
               <p className="text-sm text-slate-500 font-medium mb-6">Alıcıların size nasıl ulaşacağını belirleyin</p>
 
               <div className="space-y-4">
@@ -506,7 +506,7 @@ export default function IlanVerPage() {
                     value={form.sellerName}
                     onChange={(e) => update('sellerName', e.target.value)}
                     placeholder="Firma veya ad soyad"
-                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none"
+                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-[#111E38] focus:border-[#F95700] focus:outline-none"
                   />
                 </div>
 
@@ -517,7 +517,7 @@ export default function IlanVerPage() {
                     value={form.sellerPhone}
                     onChange={(e) => update('sellerPhone', e.target.value)}
                     placeholder="05XX XXX XX XX"
-                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-[#0A1128] focus:border-[#F95700] focus:outline-none"
+                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-[#111E38] focus:border-[#F95700] focus:outline-none"
                   />
                 </div>
 
@@ -549,7 +549,7 @@ export default function IlanVerPage() {
           {/* STEP 5: PREVIEW */}
           {step === 'PREVIEW' && (
             <div>
-              <h2 className="text-xl font-black text-[#0A1128] mb-1">İlanınızı İnceleyin</h2>
+              <h2 className="text-xl font-black text-[#111E38] mb-1">İlanınızı İnceleyin</h2>
               <p className="text-sm text-slate-500 font-medium mb-6">Yayına girmeden önce bilgilerinizi kontrol edin</p>
 
               <div className="space-y-4">
@@ -557,24 +557,24 @@ export default function IlanVerPage() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Kategori</span>
-                      <span className="font-bold text-[#0A1128]">{CATEGORY_OPTIONS.find(c => c.id === form.category)?.label || '—'}</span>
+                      <span className="font-bold text-[#111E38]">{CATEGORY_OPTIONS.find(c => c.id === form.category)?.label || '—'}</span>
                     </div>
                     {form.brand && (
                       <div>
                         <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Marka / Model</span>
-                        <span className="font-bold text-[#0A1128]">{form.brand} {form.model}</span>
+                        <span className="font-bold text-[#111E38]">{form.brand} {form.model}</span>
                       </div>
                     )}
                     {form.year && (
                       <div>
                         <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Yıl</span>
-                        <span className="font-bold text-[#0A1128]">{form.year}</span>
+                        <span className="font-bold text-[#111E38]">{form.year}</span>
                       </div>
                     )}
                     {form.km && (
                       <div>
                         <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">KM</span>
-                        <span className="font-bold text-[#0A1128]">{parseInt(form.km).toLocaleString('tr-TR')} km</span>
+                        <span className="font-bold text-[#111E38]">{parseInt(form.km).toLocaleString('tr-TR')} km</span>
                       </div>
                     )}
                     <div>
@@ -586,7 +586,7 @@ export default function IlanVerPage() {
                     </div>
                     <div>
                       <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Şehir</span>
-                      <span className="font-bold text-[#0A1128]">{form.city || '—'}</span>
+                      <span className="font-bold text-[#111E38]">{form.city || '—'}</span>
                     </div>
                   </div>
                   {form.description && (
@@ -598,7 +598,7 @@ export default function IlanVerPage() {
                 </div>
 
                 <div className="bg-slate-50 rounded-2xl border border-slate-200 p-5">
-                  <h3 className="text-sm font-black text-[#0A1128] mb-3">İletişim</h3>
+                  <h3 className="text-sm font-black text-[#111E38] mb-3">İletişim</h3>
                   <div className="text-sm font-medium text-slate-700 space-y-1">
                     <p>{form.sellerName || '—'}</p>
                     <p>{form.isPhoneVisible ? form.sellerPhone || '—' : 'Telefon gizli'}</p>

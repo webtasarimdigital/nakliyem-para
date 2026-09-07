@@ -280,10 +280,10 @@ export default function CarrierJobsPage() {
         {/* ── 1. HEADER (Title & Search Toggle exactly like screenshot) ── */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-[#111E38] tracking-tight">
               Talepler
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-[#0A1128] text-xs font-black">
+            <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-[#111E38] text-xs font-black">
               {filteredRequests.length} İş
             </span>
           </div>
@@ -339,7 +339,7 @@ export default function CarrierJobsPage() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Şehir, ilçe, müşteri adı veya talep kodu ara (#26134)..."
-                className="w-full pl-11 pr-10 py-3 rounded-2xl border-2 border-slate-300 text-sm font-bold text-[#0A1128] bg-white focus:border-[#F95700] focus:outline-none shadow-sm"
+                className="w-full pl-11 pr-10 py-3 rounded-2xl border-2 border-slate-300 text-sm font-bold text-[#111E38] bg-white focus:border-[#F95700] focus:outline-none shadow-sm"
                 autoFocus
               />
               <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -366,7 +366,7 @@ export default function CarrierJobsPage() {
                 onClick={() => setActiveCategory(tab.id)}
                 className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap select-none ${
                   isSelected
-                    ? 'bg-[#1E3A8A] text-white shadow-md ring-2 ring-[#1E3A8A]/20'
+                    ? 'bg-[#111E38] text-white shadow-md ring-2 ring-[#111E38]/20'
                     : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50/80 shadow-2xs'
                 }`}
               >
@@ -381,7 +381,7 @@ export default function CarrierJobsPage() {
         {showFilterDrawer && (
           <div className="bg-white rounded-3xl border-2 border-slate-200 p-5 mb-8 shadow-xs animate-fade-in space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <span className="text-xs font-black text-[#0A1128] uppercase tracking-wider">Detaylı Güzergâh &amp; Hacim Filtresi</span>
+              <span className="text-xs font-black text-[#111E38] uppercase tracking-wider">Detaylı Güzergâh &amp; Hacim Filtresi</span>
               {hasActiveFilters && (
                 <button onClick={resetFilters} className="text-xs font-black text-red-500 hover:underline">
                   Filtreleri Temizle
@@ -471,7 +471,7 @@ export default function CarrierJobsPage() {
                           setCustomerModalReq(req);
                           setCustomerPhoneWarning(false);
                         }}
-                        className="font-black text-base text-[#0A1128] hover:text-[#F95700] transition-colors cursor-pointer text-left block"
+                        className="font-black text-base text-[#111E38] hover:text-[#F95700] transition-colors cursor-pointer text-left block"
                       >
                         {req.customerName}
                       </button>
@@ -489,7 +489,7 @@ export default function CarrierJobsPage() {
 
                 {/* 2. Route & Service Category (Image 3 exact): Muğla → Antalya  🏠 Evden Eve */}
                 <div className="flex items-center gap-3 flex-wrap">
-                  <div className="flex items-center gap-2 text-lg sm:text-xl font-black text-[#0A1128]">
+                  <div className="flex items-center gap-2 text-lg sm:text-xl font-black text-[#111E38]">
                     <span className="text-teal-600 font-black">〰</span>
                     <span>{req.originCity}</span>
                     <span className="text-slate-400 font-light">→</span>
@@ -543,7 +543,7 @@ export default function CarrierJobsPage() {
                       className="relative w-24 h-16 rounded-xl overflow-hidden border border-slate-200 cursor-pointer group shadow-2xs"
                     >
                       <img src={photoList[0]} alt="Eşya fotoğrafı" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                      <div className="absolute inset-0 bg-[#0A1128]/20 group-hover:bg-[#0A1128]/40 flex items-center justify-center transition-colors">
+                      <div className="absolute inset-0 bg-[#111E38]/20 group-hover:bg-[#111E38]/40 flex items-center justify-center transition-colors">
                         <Maximize2 className="w-3.5 h-3.5 text-white" />
                       </div>
                     </div>
@@ -598,7 +598,7 @@ export default function CarrierJobsPage() {
                           onFocus={(e) => handleInputInteraction(req.id, e)}
                           onClick={(e) => handleInputInteraction(req.id, e)}
                           placeholder="Hemen teklifinizi yazın (TL)..."
-                          className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-bold text-[#0A1128] placeholder:text-slate-400 border border-slate-200 rounded-xl focus:border-[#F95700] focus:outline-none bg-white shadow-2xs"
+                          className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-bold text-[#111E38] placeholder:text-slate-400 border border-slate-200 rounded-xl focus:border-[#F95700] focus:outline-none bg-white shadow-2xs"
                         />
                         <button
                           type="submit"
@@ -629,7 +629,7 @@ export default function CarrierJobsPage() {
           {filteredRequests.length === 0 && (
             <div className="bg-white rounded-3xl border-2 border-dashed border-slate-200 p-16 text-center">
               <Truck className="w-14 h-14 text-slate-300 mx-auto mb-3" />
-              <h3 className="font-black text-[#0A1128] text-lg mb-1">Kriterlere uygun talep bulunamadı</h3>
+              <h3 className="font-black text-[#111E38] text-lg mb-1">Kriterlere uygun talep bulunamadı</h3>
               <p className="text-xs text-slate-400 mb-4">Filtreleri sıfırlayarak tüm açık taşıma taleplerini görebilirsiniz.</p>
               <Button variant="outline" size="sm" onClick={resetFilters} className="font-bold">
                 Filtreleri Sıfırla
@@ -700,7 +700,7 @@ export default function CarrierJobsPage() {
         {offerModalReq && !offerSubmitted && (
           <div className="space-y-5">
             <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200">
-              <div className="flex items-center gap-2 text-sm font-black text-[#0A1128]">
+              <div className="flex items-center gap-2 text-sm font-black text-[#111E38]">
                 <span>{offerModalReq.originCity}</span>
                 <MoveRight className="w-4 h-4 text-[#F95700] shrink-0" />
                 <span>{offerModalReq.destinationCity}</span>
@@ -711,7 +711,7 @@ export default function CarrierJobsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-black text-[#0A1128] uppercase tracking-wider mb-1.5">Teklif Fiyatı (TL) *</label>
+              <label className="block text-xs font-black text-[#111E38] uppercase tracking-wider mb-1.5">Teklif Fiyatı (TL) *</label>
               <input
                 type="number"
                 value={offerPrice}
@@ -763,7 +763,7 @@ export default function CarrierJobsPage() {
             <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
               <Check className="w-8 h-8 text-emerald-600" />
             </div>
-            <h3 className="font-black text-[#0A1128] text-lg">Teklifiniz İletildi!</h3>
+            <h3 className="font-black text-[#111E38] text-lg">Teklifiniz İletildi!</h3>
             <p className="text-xs text-slate-500 font-medium">Müşteri teklifinizi incelediğinde panelinizden ve SMS ile bilgilendirileceksiniz.</p>
             <Button variant="primary" size="md" className="font-black w-full" onClick={resetOfferForm}>
               Tamam
@@ -776,7 +776,7 @@ export default function CarrierJobsPage() {
       {lightboxPhoto && (
         <div
           onClick={() => setLightboxPhoto(null)}
-          className="fixed inset-0 bg-[#0A1128]/90 z-50 flex items-center justify-center p-4 cursor-zoom-out"
+          className="fixed inset-0 bg-[#111E38]/90 z-50 flex items-center justify-center p-4 cursor-zoom-out"
         >
           <div className="relative max-w-4xl max-h-[90vh]">
             <img src={lightboxPhoto} alt="Büyük Görsel" className="w-full h-full object-contain rounded-2xl" />
@@ -791,10 +791,10 @@ export default function CarrierJobsPage() {
       )}
       {/* ── MÜŞTERİ PROFİLİ MODALI (Paket Korumalı Telefon & Mesaj) ── */}
       {customerModalReq && (
-        <div className="fixed inset-0 z-50 bg-[#0A1128]/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#111E38]/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-base font-black text-[#0A1128]">Müşteri Profili</h3>
+              <h3 className="text-base font-black text-[#111E38]">Müşteri Profili</h3>
               <button
                 onClick={() => { setCustomerModalReq(null); setCustomerPhoneWarning(false); }}
                 className="text-slate-400 hover:text-slate-600 cursor-pointer"
@@ -804,11 +804,11 @@ export default function CarrierJobsPage() {
             </div>
 
             <div className="flex items-center gap-3.5">
-              <div className="w-14 h-14 rounded-2xl bg-[#0A1128] text-white font-black text-lg flex items-center justify-center shadow-md">
+              <div className="w-14 h-14 rounded-2xl bg-[#111E38] text-white font-black text-lg flex items-center justify-center shadow-md">
                 {customerModalReq.customerName[0]}
               </div>
               <div>
-                <h4 className="font-black text-base text-[#0A1128]">{customerModalReq.customerName}</h4>
+                <h4 className="font-black text-base text-[#111E38]">{customerModalReq.customerName}</h4>
                 <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md mt-0.5">
                   ✓ Doğrulanmış Cep Telefonu
                 </span>
@@ -818,11 +818,11 @@ export default function CarrierJobsPage() {
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                 <span className="text-slate-400 block text-[10px] font-bold uppercase">Konum</span>
-                <span className="font-black text-[#0A1128]">{customerModalReq.originCity} / {customerModalReq.originDistrict}</span>
+                <span className="font-black text-[#111E38]">{customerModalReq.originCity} / {customerModalReq.originDistrict}</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                 <span className="text-slate-400 block text-[10px] font-bold uppercase">Taşınma Sayısı</span>
-                <span className="font-black text-[#0A1128]">2 Başarılı Taşıma</span>
+                <span className="font-black text-[#111E38]">2 Başarılı Taşıma</span>
               </div>
             </div>
 
@@ -843,7 +843,7 @@ export default function CarrierJobsPage() {
 
               {canViewPhone ? (
                 <div className="flex items-center justify-between pt-1">
-                  <span className="font-black text-base text-[#0A1128] tracking-wider">
+                  <span className="font-black text-base text-[#111E38] tracking-wider">
                     {customerModalReq.customerPhone}
                   </span>
                   <a href={`tel:${customerModalReq.customerPhone}`}>
@@ -890,7 +890,7 @@ export default function CarrierJobsPage() {
             {/* Mesaj Gönder Butonu */}
             <div className="pt-2">
               <Link href={`/app/carrier/mesajlar?recipient=${customerModalReq.customerId}&reqId=${customerModalReq.id}`}>
-                <button className="w-full py-3 px-4 rounded-xl bg-[#0A1128] hover:bg-[#132247] text-white font-black text-xs inline-flex items-center justify-center gap-2 shadow-md cursor-pointer transition-colors">
+                <button className="w-full py-3 px-4 rounded-xl bg-[#111E38] hover:bg-[#132247] text-white font-black text-xs inline-flex items-center justify-center gap-2 shadow-md cursor-pointer transition-colors">
                   <MessageSquare className="w-4 h-4 text-[#F95700]" />
                   <span>Müşteriye Güvenli Mesaj Gönder</span>
                 </button>

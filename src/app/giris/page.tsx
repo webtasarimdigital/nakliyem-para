@@ -121,7 +121,7 @@ function GirisContent() {
       <div className="w-full max-w-5xl bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/60 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
 
         {/* SOL BİLGİLENDİRİCİ PANEL */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-[#1E3A8A] via-[#172554] to-[#0f172a] p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
+        <div className="lg:col-span-5 bg-gradient-to-br from-[#111E38] via-[#172554] to-[#0f172a] p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
           {/* Arka plan dekoratif daireler */}
           <div className="absolute -top-16 -right-16 w-56 h-56 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
           <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-orange-500/15 rounded-full blur-2xl pointer-events-none" />
@@ -199,7 +199,7 @@ function GirisContent() {
 
             {/* Başlık */}
             <div className="space-y-1.5">
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#1E3A8A] tracking-tight">Giriş Yap</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#111E38] tracking-tight">Giriş Yap</h1>
               <p className="text-sm text-slate-500 font-medium">
                 Hesabınıza erişin, tekliflerinizi ve operasyonunuzu kolayca yönetin.
               </p>
@@ -210,7 +210,7 @@ function GirisContent() {
               type="button"
               onClick={handleRealGoogleLogin}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 hover:border-[#1E3A8A]/30 bg-slate-50/60 hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-all cursor-pointer disabled:opacity-60"
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 hover:border-[#111E38]/30 bg-slate-50/60 hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-all cursor-pointer disabled:opacity-60"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -235,7 +235,7 @@ function GirisContent() {
                 onClick={() => setTab('musteri')}
                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   tab === 'musteri'
-                    ? 'bg-white text-[#1E3A8A] shadow-xs'
+                    ? 'bg-white text-[#111E38] shadow-xs'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -246,7 +246,7 @@ function GirisContent() {
                 onClick={() => setTab('nakliyeci')}
                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   tab === 'nakliyeci'
-                    ? 'bg-white text-[#1E3A8A] shadow-xs'
+                    ? 'bg-white text-[#111E38] shadow-xs'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -275,7 +275,7 @@ function GirisContent() {
                     onChange={e => setEmail(e.target.value)}
                     placeholder="ornek@mail.com"
                     required
-                    className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
+                    className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
                   />
                 </div>
               </div>
@@ -297,7 +297,7 @@ function GirisContent() {
                     onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full border border-slate-200 rounded-xl pl-10 pr-11 py-2.5 sm:py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
+                    className="w-full border border-slate-200 rounded-xl pl-10 pr-11 py-2.5 sm:py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
                   />
                   <button
                     type="button"

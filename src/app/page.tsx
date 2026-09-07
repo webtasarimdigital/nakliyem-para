@@ -158,7 +158,7 @@ export default function HomePage() {
         {/* Subtle decorative background */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full opacity-[0.06]" style={{ background: 'radial-gradient(circle, #F95700 0%, transparent 70%)' }} />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-[0.04]" style={{ background: 'radial-gradient(circle, #0A1128 0%, transparent 70%)' }} />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-[0.04]" style={{ background: 'radial-gradient(circle, #111E38 0%, transparent 70%)' }} />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-14 sm:py-18 lg:py-22">
@@ -168,22 +168,22 @@ export default function HomePage() {
             <div className="lg:col-span-7 space-y-7 text-center lg:text-left">
 
               {/* Üst badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black border border-[#F95700]/25 bg-[#F95700]/8 text-[#F95700]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#F95700] animate-pulse" />
-                81 İlde Aktif · 10.000+ Taşınma Tamamlandı
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold border border-orange-200/90 bg-orange-50/70 text-[#F95700] shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-[#F95700] animate-pulse" />
+                <span>81 İlde Aktif · 10.000+ Taşınma Tamamlandı</span>
               </div>
 
-              {/* H1 */}
-              <div className="space-y-3">
-                <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-black leading-[1.08] tracking-tight text-[#0A1128]">
+              {/* H1 - İç açıcı ferah tipografi */}
+              <div className="space-y-3.5">
+                <h1 className="text-3xl sm:text-5xl lg:text-[3.25rem] font-extrabold leading-[1.2] sm:leading-[1.12] text-[#111E38] tracking-tight">
                   Taşınmanızı Planlayın,{' '}
                   <span className="text-[#F95700]">Teklifleri Tek Yerde</span>{' '}
                   Karşılaştırın.
                 </h1>
-                <p className="text-base sm:text-lg text-slate-500 font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
+                <p className="text-sm sm:text-base lg:text-lg text-slate-600 font-normal leading-relaxed max-w-xl mx-auto lg:mx-0">
                   Talep açın, dakikalar içinde onlarca onaylı nakliyeci firmasından fiyat teklifi alın.
                   Paketleme, sigorta, asansör — hepsini yan yana karşılaştırın.{' '}
-                  <strong className="text-[#0A1128] font-bold">Komisyon yok, aracı yok.</strong>
+                  <strong className="text-[#111E38] font-bold">Komisyon yok, aracı yok.</strong>
                 </p>
               </div>
 
@@ -195,7 +195,7 @@ export default function HomePage() {
                   { value: '4.8', label: 'Ortalama Puan', hasStar: true },
                 ].map((stat) => (
                   <div key={stat.label} className="text-center lg:text-left">
-                    <div className="text-xl font-black text-[#0A1128] flex items-center justify-center lg:justify-start gap-1">
+                    <div className="text-xl font-extrabold text-[#111E38] flex items-center justify-center lg:justify-start gap-1">
                       <span>{stat.value}</span>
                       {stat.hasStar && <Star className="w-4 h-4 fill-amber-400 text-amber-400" />}
                     </div>
@@ -223,20 +223,22 @@ export default function HomePage() {
               </div>
 
               {/* Arama widgeti */}
-              <div className="bg-white rounded-2xl p-4 shadow-lg shadow-slate-200/60 max-w-xl mx-auto lg:mx-0 border border-slate-200">
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2.5 text-left">Hızlı Teklif Al</p>
+              <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-lg shadow-slate-200/50 max-w-xl mx-auto lg:mx-0 border border-slate-200">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5 text-left">Hızlı Teklif Al</p>
                 <div className="flex gap-2 items-center mb-3">
                   <div className="flex-1 relative">
                     <CircleDot className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#F95700] pointer-events-none z-10" />
                     <select
                       value={heroOriginCity}
                       onChange={e => setHeroOriginCity(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-2 py-2.5 text-xs font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none cursor-pointer"
+                      style={{ WebkitAppearance: 'none' }}
+                      className="w-full appearance-none bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl pl-9 pr-7 py-2.5 text-xs sm:text-sm font-bold text-[#111E38] focus:border-[#F95700] focus:bg-white focus:outline-none cursor-pointer transition-colors"
                     >
                       {TURKEY_CITIES.map(c => (
                         <option key={c.id} value={c.name}>{c.name}</option>
                       ))}
                     </select>
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none z-10" />
                   </div>
                   <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
                     <MoveRight className="w-3.5 h-3.5 text-slate-400" />
@@ -246,22 +248,24 @@ export default function HomePage() {
                     <select
                       value={heroDestCity}
                       onChange={e => setHeroDestCity(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-2 py-2.5 text-xs font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none cursor-pointer"
+                      style={{ WebkitAppearance: 'none' }}
+                      className="w-full appearance-none bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl pl-9 pr-7 py-2.5 text-xs sm:text-sm font-bold text-[#111E38] focus:border-[#F95700] focus:bg-white focus:outline-none cursor-pointer transition-colors"
                     >
                       {TURKEY_CITIES.map(c => (
                         <option key={c.id} value={c.name}>{c.name}</option>
                       ))}
                     </select>
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none z-10" />
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Link href={`/teklif-al?originCity=${encodeURIComponent(heroOriginCity)}&destCity=${encodeURIComponent(heroDestCity)}`} className="flex-1">
-                    <button className="w-full bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm py-3 px-4 rounded-xl shadow-md shadow-orange-900/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <button className="w-full bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-xs sm:text-sm py-3 px-4 rounded-xl shadow-md shadow-orange-950/15 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
                       Teklif Al <ArrowRight className="w-4 h-4" />
                     </button>
                   </Link>
                   <Link href={`/nakliyeci-defteri?originCity=${encodeURIComponent(heroOriginCity)}&destCity=${encodeURIComponent(heroDestCity)}`} className="flex-1">
-                    <button className="w-full bg-[#1E3A8A] hover:bg-[#1E40AF] text-white font-black text-sm py-3 px-4 rounded-xl shadow-md shadow-blue-900/25 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <button className="w-full bg-[#111E38] hover:bg-[#1A2E56] text-white font-bold text-xs sm:text-sm py-3 px-4 rounded-xl shadow-md shadow-slate-950/15 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
                       Dönüş Aracı Bul <ArrowRight className="w-4 h-4" />
                     </button>
                   </Link>
@@ -309,7 +313,7 @@ export default function HomePage() {
                     <MoveRight className="w-3.5 h-3.5 text-slate-400" />
                     <span>Ankara, Çankaya</span>
                   </div>
-                  <p className="text-base sm:text-lg font-bold text-[#1E3A8A] tracking-tight">
+                  <p className="text-base sm:text-lg font-bold text-[#111E38] tracking-tight">
                     3+1 Ev Eşyası Taşıma · 15 Eylül · 3 Onaylı Teklif Hazır
                   </p>
                 </div>
@@ -337,7 +341,7 @@ export default function HomePage() {
                             {o.puan}
                           </span>
                         </div>
-                        <span className={`text-base sm:text-lg font-extrabold tracking-tight shrink-0 ${i === 0 ? 'text-[#F95700]' : 'text-[#1E3A8A]'}`}>
+                        <span className={`text-base sm:text-lg font-extrabold tracking-tight shrink-0 ${i === 0 ? 'text-[#F95700]' : 'text-[#111E38]'}`}>
                           {o.fiyat.toLocaleString('tr-TR')} TL
                         </span>
                       </div>
@@ -430,7 +434,7 @@ export default function HomePage() {
               <Sparkles className="w-3.5 h-3.5" />
               Şeffaf ve Basit Süreç
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111E38] tracking-tight">
               4 Adımda Kolayca Taşının
             </h2>
             <p className="text-slate-500 text-sm font-medium mt-1 max-w-xl mx-auto">
@@ -484,7 +488,7 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <h3 className="font-black text-[#0A1128] text-base mb-1.5 group-hover:text-[#F95700] transition-colors">
+                  <h3 className="font-extrabold text-[#111E38] text-base mb-1.5 group-hover:text-[#F95700] transition-colors">
                     {item.title}
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
@@ -530,7 +534,7 @@ export default function HomePage() {
                 <span className="w-2 h-2 rounded-full bg-[#F95700] animate-pulse" />
                 <span>Canlı Pazar • Yeni Açılan İşler</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128] tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111E38] tracking-tight">
                 Öne Çıkan Güncel Taşınma Talepleri
               </h2>
               <p className="text-slate-500 text-sm font-medium mt-1">
@@ -560,7 +564,7 @@ export default function HomePage() {
                   onClick={() => setRequestCategoryFilter(tab.id as any)}
                   className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
                     isSelected
-                      ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-900/20'
+                      ? 'bg-[#111E38] text-white shadow-md shadow-blue-900/20'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                   }`}
                 >
@@ -592,7 +596,7 @@ export default function HomePage() {
 
                     {/* Category & Date Badge */}
                     <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                      <span className="px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-xs text-[#0A1128] text-[11px] font-black shadow-xs">
+                      <span className="px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-xs text-[#111E38] text-[11px] font-black shadow-xs">
                         {req.homeSize || serviceLabel}
                       </span>
                     </div>
@@ -619,7 +623,7 @@ export default function HomePage() {
                   <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3">
                     {/* Route */}
                     <div>
-                      <div className="flex items-center gap-2 text-xs font-black text-[#0A1128]">
+                      <div className="flex items-center gap-2 text-xs font-extrabold text-[#111E38]">
                         <span className="truncate">{req.originCity} ({req.originDistrict})</span>
                         <MoveRight className="w-3.5 h-3.5 text-[#F95700] shrink-0" />
                         <span className="truncate">{req.destinationCity} ({req.destinationDistrict})</span>
@@ -650,7 +654,7 @@ export default function HomePage() {
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                       <div>
                         <span className="text-[10px] text-slate-400 font-bold block">Talep Kodu</span>
-                        <span className="text-xs font-black text-[#0A1128]">{req.requestCode}</span>
+                        <span className="text-xs font-extrabold text-[#111E38]">{req.requestCode}</span>
                       </div>
 
                       <Link href="/talepler">
@@ -674,7 +678,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-xs font-black text-[#F95700] uppercase tracking-wider block mb-1">Güvenilirlik &amp; Standartlar</span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128]">Neden TaşınTeklif ile Taşınmalısınız?</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111E38]">Neden TaşınTeklif ile Taşınmalısınız?</h2>
             <p className="text-slate-500 text-sm font-medium mt-1">Sektördeki belgesiz ve merdiven altı riskleri ortadan kaldırıyoruz.</p>
           </div>
 
@@ -705,7 +709,7 @@ export default function HomePage() {
                 <div className="w-12 h-12 rounded-2xl bg-orange-50 text-[#F95700] flex items-center justify-center shrink-0">
                   {card.icon}
                 </div>
-                <h3 className="font-black text-[#0A1128] text-base">{card.title}</h3>
+                <h3 className="font-extrabold text-[#111E38] text-base">{card.title}</h3>
                 <p className="text-xs text-slate-500 font-medium leading-relaxed">{card.desc}</p>
               </div>
             ))}
@@ -718,7 +722,7 @@ export default function HomePage() {
         
         {/* Subtle decorative background pattern */}
         <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]"
-          style={{ backgroundImage: 'radial-gradient(circle, #0A1128 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+          style={{ backgroundImage: 'radial-gradient(circle, #111E38 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 space-y-16">
             
@@ -732,7 +736,7 @@ export default function HomePage() {
                 <span>Nakliyeci Dijital Ekosistemi</span>
               </div>
 
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0A1128] leading-tight tracking-tight">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#111E38] leading-tight tracking-tight">
                 Sadece iş bulmak değil,<br />
                 <span className="text-[#F95700]">işletmenizi büyütmek</span> için.
               </h2>
@@ -745,19 +749,19 @@ export default function HomePage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                 <div className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-[#F95700]/50 transition-all shadow-xs">
                   <div className="text-xl mb-2">🎯</div>
-                  <h4 className="font-bold text-sm text-[#0A1128] mb-1">Rota Eşleşmesi</h4>
+                  <h4 className="font-bold text-sm text-[#111E38] mb-1">Rota Eşleşmesi</h4>
                   <p className="text-xs text-slate-500 leading-relaxed font-normal">Boş güzergahınıza uyan talepler otomatik önünüze gelir.</p>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-[#F95700]/50 transition-all shadow-xs">
                   <div className="text-xl mb-2">💰</div>
-                  <h4 className="font-bold text-sm text-[#0A1128] mb-1">%0 Komisyon</h4>
+                  <h4 className="font-bold text-sm text-[#111E38] mb-1">%0 Komisyon</h4>
                   <p className="text-xs text-slate-500 leading-relaxed font-normal">Teklif kabul edildiğinde kazancınızdan kesinti yapılmaz.</p>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-[#F95700]/50 transition-all shadow-xs">
                   <div className="text-xl mb-2">⭐</div>
-                  <h4 className="font-bold text-sm text-[#0A1128] mb-1">Kurumsal Vitrin</h4>
+                  <h4 className="font-bold text-sm text-[#111E38] mb-1">Kurumsal Vitrin</h4>
                   <p className="text-xs text-slate-500 leading-relaxed font-normal">Puanlarınız ve yorumlarınızla bölgenizin lider firması olun.</p>
                 </div>
               </div>
@@ -769,7 +773,7 @@ export default function HomePage() {
                   </Button>
                 </Link>
                 <Link href="/paketler">
-                  <Button variant="outline" size="lg" className="font-bold text-sm text-[#0A1128] border-slate-300 hover:bg-slate-100">
+                  <Button variant="outline" size="lg" className="font-bold text-sm text-[#111E38] border-slate-300 hover:bg-slate-100">
                     Abonelik Paketleri
                   </Button>
                 </Link>
@@ -782,7 +786,7 @@ export default function HomePage() {
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Taşıyıcı Kontrol Paneli</span>
-                    <span className="text-base font-bold text-[#0A1128]">Canlı Günlük İş Takibi</span>
+                    <span className="text-base font-bold text-[#111E38]">Canlı Günlük İş Takibi</span>
                   </div>
                   <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
                     ● AKTİF ÇALIŞIYOR
@@ -792,7 +796,7 @@ export default function HomePage() {
                 <div className="grid grid-cols-3 gap-2.5 text-center">
                   <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
                     <span className="text-xs text-slate-500 font-medium block">Yeni İşler</span>
-                    <span className="text-lg font-black text-[#0A1128]">14 Adet</span>
+                    <span className="text-lg font-extrabold text-[#111E38]">14 Adet</span>
                   </div>
                   <div className="p-3 rounded-2xl bg-orange-50 border border-orange-200">
                     <span className="text-xs text-slate-500 font-medium block">Aktif Teklifler</span>
@@ -833,7 +837,7 @@ export default function HomePage() {
                 <span>Meslektaşlar Arası Canlı Borsa</span>
               </div>
 
-              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#0A1128] leading-tight tracking-tight">
+              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#111E38] leading-tight tracking-tight">
                 Nakliyeci Defteri ile<br />
                 <span className="text-[#F95700]">hiçbir araç boş dönmesin.</span>
               </h3>
@@ -849,7 +853,7 @@ export default function HomePage() {
                     🚛
                   </div>
                   <div>
-                    <h5 className="font-bold text-sm text-[#0A1128]">Boş Araç Paylaşımı</h5>
+                    <h5 className="font-bold text-sm text-[#111E38]">Boş Araç Paylaşımı</h5>
                     <p className="text-xs text-slate-500 leading-relaxed font-normal">
                       Ankara&apos;ya eşya indirdiniz ve İstanbul&apos;a boş döneceksiniz. Defter&apos;e 10 saniyede ilan bırakın, güzergahtaki işler telefonunuza gelsin.
                     </p>
@@ -861,7 +865,7 @@ export default function HomePage() {
                     📦
                   </div>
                   <div>
-                    <h5 className="font-bold text-sm text-[#0A1128]">Dönüş Yükü &amp; Parsiyel Eşya</h5>
+                    <h5 className="font-bold text-sm text-[#111E38]">Dönüş Yükü &amp; Parsiyel Eşya</h5>
                     <p className="text-xs text-slate-500 leading-relaxed font-normal">
                       Kamyonunuzda kalan boş hacmi parça eşyalarla doldurarak sefer kârlılığınızı %60&apos;a kadar artırın.
                     </p>
@@ -873,7 +877,7 @@ export default function HomePage() {
                     🏗️
                   </div>
                   <div>
-                    <h5 className="font-bold text-sm text-[#0A1128]">Mobil Asansör Kiralama &amp; Paslaşma</h5>
+                    <h5 className="font-bold text-sm text-[#111E38]">Mobil Asansör Kiralama &amp; Paslaşma</h5>
                     <p className="text-xs text-slate-500 leading-relaxed font-normal">
                       Farklı şehre gittiğinizde yüksek katlar için yerel meslektaşlarınızdan anında saatlik mobil dış cephe asansörü kiralayın.
                     </p>
@@ -896,7 +900,7 @@ export default function HomePage() {
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="font-bold text-sm text-[#0A1128]">Canlı Defter Paylaşımları</span>
+                    <span className="font-bold text-sm text-[#111E38]">Canlı Defter Paylaşımları</span>
                   </div>
                   <span className="text-[11px] font-semibold text-slate-400">81 İl Canlı Akış</span>
                 </div>
@@ -932,7 +936,7 @@ export default function HomePage() {
                     <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-[#0A1128]">{post.route}</span>
+                          <span className="font-bold text-sm text-[#111E38]">{post.route}</span>
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700">
                             {post.type}
                           </span>
@@ -966,7 +970,7 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10">
             <span className="text-xs font-black text-[#F95700] uppercase tracking-wider block mb-1">Merak Edilenler</span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128]">Sıkça Sorulan Sorular</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111E38]">Sıkça Sorulan Sorular</h2>
             <p className="text-slate-500 text-sm font-medium mt-1">Taşınma süreci ve platform işleyişi hakkında bilmeniz gerekenler.</p>
           </div>
 
@@ -977,7 +981,7 @@ export default function HomePage() {
                   onClick={() => setOpenFaqIndex(openFaqIndex === i ? null : i)}
                   className="w-full flex items-center justify-between p-5 text-left cursor-pointer hover:bg-slate-100/60 transition-colors"
                 >
-                  <span className="font-black text-sm text-[#0A1128] pr-4">{faq.q}</span>
+                  <span className="font-black text-sm text-[#111E38] pr-4">{faq.q}</span>
                   {openFaqIndex === i
                     ? <ChevronUp className="w-5 h-5 text-[#F95700] shrink-0" />
                     : <ChevronDown className="w-5 h-5 text-slate-400 shrink-0" />
@@ -999,7 +1003,7 @@ export default function HomePage() {
         
         {/* Background dot texture */}
         <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]"
-          style={{ backgroundImage: 'radial-gradient(circle, #0A1128 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
+          style={{ backgroundImage: 'radial-gradient(circle, #111E38 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
           
@@ -1009,7 +1013,7 @@ export default function HomePage() {
               <MapPin className="w-3.5 h-3.5" />
               Tüm Türkiye&apos;de Hizmet
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#0A1128] mb-2">Şehre Göre Nakliyat Firmaları</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111E38] mb-2">Şehre Göre Nakliyat Firmaları</h2>
             <p className="text-slate-500 text-sm font-medium">81 il genelinde K3 belgeli, puanı yüksek evden eve nakliyat firmaları</p>
           </div>
 
@@ -1040,7 +1044,7 @@ export default function HomePage() {
                     </span>
                   </div>
 
-                  <h3 className="font-black text-[#0A1128] text-lg tracking-tight group-hover:text-[#F95700] transition-colors">
+                  <h3 className="font-extrabold text-[#111E38] text-lg tracking-tight group-hover:text-[#F95700] transition-colors">
                     {item.city}
                   </h3>
                   <p className="text-xs text-slate-500 font-normal mt-0.5">
@@ -1067,7 +1071,7 @@ export default function HomePage() {
               <div className="w-14 h-14 rounded-2xl bg-orange-100 border border-orange-200 flex items-center justify-center mx-auto mb-4">
                 <Truck className="w-7 h-7 text-[#F95700]" />
               </div>
-              <h3 className="text-2xl sm:text-3xl font-black text-[#0A1128] mb-2">Hemen Taşınma Teklifi Toplayın</h3>
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#111E38] mb-2">Hemen Taşınma Teklifi Toplayın</h3>
               <p className="text-sm text-slate-600 font-medium mb-6 max-w-lg mx-auto leading-relaxed">
                 2 dakikanızı ayırın — bölgenizdeki K3 belgeli firmaların fiyatlarını ücretsiz karşılaştırın, sürpriz ek ücret olmadan.
               </p>
@@ -1078,7 +1082,7 @@ export default function HomePage() {
                   </Button>
                 </Link>
                 <Link href="/nakliyat-firmalari">
-                  <button className="px-6 py-3.5 rounded-2xl border-2 border-slate-200 text-[#0A1128] font-black text-sm hover:bg-slate-100 transition-all cursor-pointer">
+                  <button className="px-6 py-3.5 rounded-2xl border-2 border-slate-200 text-[#111E38] font-black text-sm hover:bg-slate-100 transition-all cursor-pointer">
                     Tüm Firmaları Gör →
                   </button>
                 </Link>
