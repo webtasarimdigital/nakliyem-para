@@ -737,8 +737,8 @@ export default function CarrierJobsPage() {
           setAuthActionPayload(null);
         }}
         targetRole="CARRIER"
-        title="Taleplere Teklif Vermek İçin Nakliyeci Girişi Yapın"
-        subtitle="Müşteri taleplerine teklif vermek, telefon numaralarına erişmek ve doğrudan iş almak için onaylı nakliyeci hesabınıza giriş yapın veya 7 gün ücretsiz deneyin."
+        title="Teklif Vermek İçin Giriş Yapın"
+        subtitle="Hızlıca giriş yapın veya ücretsiz üye olun."
         onSuccess={() => {
           setAuthModalOpen(false);
           if (authActionPayload?.type === 'PHONE') {

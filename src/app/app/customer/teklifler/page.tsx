@@ -50,19 +50,26 @@ function CustomerOffersContent() {
   const searchParams = useSearchParams();
   const reqIdParam = searchParams?.get('reqId');
 
-  const currentUser = db.getCurrentUser();
+  const [currentUser, setCurrentUser] = useState(() => db.getCurrentUser());
   const [requests, setRequests] = useState<MovingRequest[]>(() => db.getRequests());
   const [selectedReqId, setSelectedReqId] = useState<string>(reqIdParam || '');
 
-  // Reload requests on events
+  // Reload requests and auth on events
   useEffect(() => {
     const handleReloadReqs = () => {
       setRequests(db.getRequests());
     };
+    const handleAuth = () => {
+      setCurrentUser(db.getCurrentUser());
+    };
     window.addEventListener('storage', handleReloadReqs);
+    window.addEventListener('storage', handleAuth);
+    window.addEventListener('auth-changed', handleAuth);
     window.addEventListener('request-added', handleReloadReqs);
     return () => {
       window.removeEventListener('storage', handleReloadReqs);
+      window.removeEventListener('storage', handleAuth);
+      window.removeEventListener('auth-changed', handleAuth);
       window.removeEventListener('request-added', handleReloadReqs);
     };
   }, []);

@@ -87,6 +87,113 @@ function RequestWizardContent() {
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isDraftRestored, setIsDraftRestored] = useState(false);
+
+  // Restore draft from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedDraft = localStorage.getItem('tasinteklif_wizard_draft');
+      if (savedDraft) {
+        const d = JSON.parse(savedDraft);
+        if (d.serviceCategory) setServiceCategory(d.serviceCategory);
+        if (d.originCity) setOriginCity(d.originCity);
+        if (d.originDistrict) setOriginDistrict(d.originDistrict);
+        if (d.destinationCity) setDestCity(d.destinationCity);
+        if (d.destinationDistrict) setDestDistrict(d.destinationDistrict);
+        if (d.homeSize) setHomeSize(d.homeSize);
+        if (d.movingDate) setMovingDate(d.movingDate);
+        if (typeof d.isDateFlexible === 'boolean') setIsDateFlexible(d.isDateFlexible);
+        if (typeof d.flexibleDays === 'number') setFlexibleDays(d.flexibleDays);
+        if (typeof d.originFloor === 'number') setOriginFloor(d.originFloor);
+        if (typeof d.originHasElevator === 'boolean') setOriginHasElevator(d.originHasElevator);
+        if (typeof d.originRequiresMobileElevator === 'boolean') setOriginRequiresMobileElevator(d.originRequiresMobileElevator);
+        if (typeof d.originTruckAccess === 'boolean') setOriginTruckAccess(d.originTruckAccess);
+        if (typeof d.destinationFloor === 'number') setDestFloor(d.destinationFloor);
+        if (typeof d.destinationHasElevator === 'boolean') setDestHasElevator(d.destinationHasElevator);
+        if (typeof d.destinationRequiresMobileElevator === 'boolean') setDestRequiresMobileElevator(d.destinationRequiresMobileElevator);
+        if (typeof d.destinationTruckAccess === 'boolean') setDestTruckAccess(d.destinationTruckAccess);
+        if (d.packagingPreference) setPackagingPreference(d.packagingPreference);
+        if (Array.isArray(d.extraServices)) setExtraServices(d.extraServices);
+        if (typeof d.showDetailedItems === 'boolean') setShowDetailedItems(d.showDetailedItems);
+        if (d.selectedRoomItems && typeof d.selectedRoomItems === 'object') setSelectedRoomItems(d.selectedRoomItems);
+        if (Array.isArray(d.customItems)) setCustomItems(d.customItems);
+        if (Array.isArray(d.photos)) setPhotos(d.photos);
+        if (typeof d.notes === 'string') setNotes(d.notes);
+        if (typeof d.allowPhoneCall === 'boolean') setAllowPhoneCall(d.allowPhoneCall);
+        if (typeof d.step === 'number' && d.step > 0) setStep(d.step);
+      }
+    } catch (e) {
+      console.warn('Failed to restore draft:', e);
+    } finally {
+      setIsDraftRestored(true);
+    }
+  }, []);
+
+  // Persist draft to localStorage whenever fields change
+  useEffect(() => {
+    if (!isDraftRestored) return;
+    try {
+      const draftData = {
+        serviceCategory,
+        originCity,
+        originDistrict,
+        destinationCity,
+        destinationDistrict,
+        homeSize,
+        movingDate,
+        isDateFlexible,
+        flexibleDays,
+        originFloor,
+        originHasElevator,
+        originRequiresMobileElevator,
+        originTruckAccess,
+        destinationFloor,
+        destinationHasElevator,
+        destinationRequiresMobileElevator,
+        destinationTruckAccess,
+        packagingPreference,
+        extraServices,
+        showDetailedItems,
+        selectedRoomItems,
+        customItems,
+        photos,
+        notes,
+        allowPhoneCall,
+        step
+      };
+      localStorage.setItem('tasinteklif_wizard_draft', JSON.stringify(draftData));
+    } catch (e) {
+      // ignore quota / private mode errors
+    }
+  }, [
+    isDraftRestored,
+    serviceCategory,
+    originCity,
+    originDistrict,
+    destinationCity,
+    destinationDistrict,
+    homeSize,
+    movingDate,
+    isDateFlexible,
+    flexibleDays,
+    originFloor,
+    originHasElevator,
+    originRequiresMobileElevator,
+    originTruckAccess,
+    destinationFloor,
+    destinationHasElevator,
+    destinationRequiresMobileElevator,
+    destinationTruckAccess,
+    packagingPreference,
+    extraServices,
+    showDetailedItems,
+    selectedRoomItems,
+    customItems,
+    photos,
+    notes,
+    allowPhoneCall,
+    step
+  ]);
 
   // Sync with searchParams
   useEffect(() => {
@@ -133,8 +240,8 @@ function RequestWizardContent() {
     setStep(prev => Math.max(prev - 1, 1));
   };
 
-  const handlePublish = async () => {
-    const user = db.getCurrentUser();
+  const handlePublish = async (overrideUser?: any) => {
+    const user = overrideUser || db.getCurrentUser();
     if (!user) {
       setAuthModalOpen(true);
       return;
@@ -205,6 +312,11 @@ function RequestWizardContent() {
     }
 
     if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('tasinteklif_wizard_draft');
+      } catch (e) {
+        // ignore
+      }
       window.dispatchEvent(new Event('storage'));
       window.dispatchEvent(new CustomEvent('request-added', { detail: newRequest }));
     }
@@ -1035,11 +1147,11 @@ function RequestWizardContent() {
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         targetRole="CUSTOMER"
-        title="Talebinizi Yayınlamak İçin Hesabınızı Oluşturun"
-        subtitle="Doldurduğunuz tüm taşınma bilgileri korunacak ve talebiniz anında doğrulanmış nakliyecilere iletilecektir."
-        onSuccess={() => {
+        title="Talebi Yayınlamak İçin Giriş Yapın"
+        subtitle="Doldurduğunuz tüm bilgiler korunur, giriş sonrası talebiniz anında yayınlanır."
+        onSuccess={(loggedInUser) => {
           setAuthModalOpen(false);
-          handlePublish();
+          handlePublish(loggedInUser);
         }}
       />
     </div>
