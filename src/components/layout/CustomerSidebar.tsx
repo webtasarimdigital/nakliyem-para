@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -16,6 +16,7 @@ import {
   Settings
 } from 'lucide-react';
 import { db } from '@/lib/data/mock-db';
+import { MovingRequest, Offer } from '@/types';
 import { openSupportChat } from '@/components/ui/SupportChatWidget';
 
 interface CustomerSidebarProps {
@@ -24,19 +25,39 @@ interface CustomerSidebarProps {
 
 export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
   const pathname = usePathname();
-  const currentUser = db.getCurrentUser();
-  const requests = db.getRequests();
-  const offers = db.getOffers();
+  const [currentUser, setCurrentUser] = useState(() => db.getCurrentUser());
+  const [requests, setRequests] = useState(() => db.getRequests());
+  const [offers, setOffers] = useState(() => db.getOffers());
 
-  const displayName = currentUser?.fullName || (currentUser as any)?.name || 'Hakan Yavaş';
+  useEffect(() => {
+    const handleUpdate = () => {
+      setCurrentUser(db.getCurrentUser());
+      setRequests(db.getRequests());
+      setOffers(db.getOffers());
+    };
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('auth-changed', handleUpdate);
+    window.addEventListener('request-added', handleUpdate);
+    window.addEventListener('offer-added', handleUpdate);
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('auth-changed', handleUpdate);
+      window.removeEventListener('request-added', handleUpdate);
+      window.removeEventListener('offer-added', handleUpdate);
+    };
+  }, []);
+
+  const displayName = currentUser?.fullName || (currentUser as any)?.name || (currentUser?.email ? currentUser.email.split('@')[0] : 'Değerli Müşterimiz');
   const nameParts = displayName.trim().split(' ');
   const initials = nameParts.length > 1
     ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
     : displayName.slice(0, 2).toUpperCase();
 
-  // Counts
-  const requestCount = requests.length || 1;
-  const offerCount = offers.length || 2;
+  // Counts strictly for this logged-in user
+  const myRequests = currentUser ? requests.filter((r: MovingRequest) => r.customerId === currentUser.id) : [];
+  const requestCount = myRequests.length;
+  const myOffers = currentUser ? offers.filter((o: Offer) => myRequests.some((r: MovingRequest) => r.id === o.requestId)) : [];
+  const offerCount = myOffers.length;
   const unreadMessagesCount = 0;
   const trackingCount = 0;
 

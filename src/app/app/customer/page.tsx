@@ -63,11 +63,11 @@ export default function CustomerDashboard() {
     ? `${nameParts[0]} ${nameParts[nameParts.length - 1][0]}.`
     : displayName;
 
-  // Filter requests belonging to this customer, or fallback to the rich seed request if new
+  // Filter requests belonging to this customer
   const customerRequests = allRequests.filter(
-    r => (currentUser?.id && r.customerId === currentUser.id) || r.id === 'req_26093'
+    r => currentUser?.id && r.customerId === currentUser.id
   );
-  const displayRequests = customerRequests.length > 0 ? customerRequests : allRequests.slice(0, 2);
+  const displayRequests = customerRequests;
   const [liveChatOpen, setLiveChatOpen] = useState(false);
   const [chatData, setChatData] = useState({
     carrierName: 'SAYCANLAR NAKLİYAT',

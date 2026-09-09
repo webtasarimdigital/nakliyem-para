@@ -292,7 +292,7 @@ function RequestWizardContent() {
       destinationTruckAccess,
       packagingPreference,
       extraServices,
-      photos: photos && photos.length > 0 ? photos : ['/mock-photos/moving_room_1.jpg'],
+      photos: photos || [],
       notes: compiledNotes,
       status: 'ACTIVE',
       offersCount: 0,

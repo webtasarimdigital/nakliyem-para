@@ -81,12 +81,10 @@ function CustomerOffersContent() {
     }
   }, [reqIdParam]);
 
-  // Find customer's requests or active requests
-  const customerRequests = requests.filter(r => (currentUser?.id && r.customerId === currentUser.id) || r.id === 'req_26093');
-  const activeReq = (selectedReqId ? requests.find(r => r.id === selectedReqId || r.requestCode === selectedReqId) : null)
-    || (customerRequests.length > 0 ? customerRequests[0] : null)
-    || requests.find(r => r.status === 'ACTIVE')
-    || requests[0];
+  // Find customer's requests
+  const customerRequests = requests.filter(r => currentUser?.id && r.customerId === currentUser.id);
+  const activeReq = (selectedReqId ? requests.find(r => (r.id === selectedReqId || r.requestCode === selectedReqId) && (!currentUser?.id || r.customerId === currentUser.id)) : null)
+    || (customerRequests.length > 0 ? customerRequests[0] : null);
 
   const [offers, setOffers] = useState<Offer[]>([]);
   const [sortBy, setSortBy] = useState<'price' | 'rating' | 'delivery'>('price');
@@ -177,6 +175,40 @@ function CustomerOffersContent() {
                 </Button>
               </a>
             )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!activeReq) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+            <div className="lg:col-span-3">
+              <CustomerSidebar activeTab="offers" />
+            </div>
+            <div className="lg:col-span-9">
+              <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-14 text-center space-y-4 shadow-xs">
+                <div className="w-16 h-16 rounded-2xl bg-orange-50 text-[#F95700] flex items-center justify-center mx-auto shadow-xs">
+                  <Clock className="w-8 h-8" />
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-xl font-black text-[#0A1128]">Henüz Yayınlanmış Bir Talebiniz Yok</h2>
+                  <p className="text-xs sm:text-sm text-slate-500 font-medium max-w-md mx-auto leading-relaxed">
+                    Nakliyat firmalarından teklif alabilmek için önce birkaç adımda taşınma talebinizi oluşturun.
+                  </p>
+                </div>
+                <div className="pt-4 flex justify-center">
+                  <Link href="/teklif-al">
+                    <Button variant="primary" size="lg" className="font-black text-sm">
+                      Hemen Ücretsiz Talep Oluştur →
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

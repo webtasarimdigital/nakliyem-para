@@ -22,34 +22,41 @@ import { db } from '@/lib/data/mock-db';
 
 export default function CustomerRequestsPage() {
   const [tab, setTab] = useState<'ALL' | 'ACTIVE' | 'ASSIGNED' | 'CLOSED'>('ALL');
-  const currentUser = db.getCurrentUser();
+  const [currentUser, setCurrentUser] = useState(() => db.getCurrentUser());
   const [allRequests, setAllRequests] = useState(() => db.getRequests());
 
   useEffect(() => {
     const handleReload = () => {
       setAllRequests(db.getRequests());
     };
+    const handleAuthChange = () => {
+      setCurrentUser(db.getCurrentUser());
+    };
     window.addEventListener('storage', handleReload);
+    window.addEventListener('storage', handleAuthChange);
+    window.addEventListener('auth-changed', handleAuthChange);
     window.addEventListener('request-added', handleReload);
     window.addEventListener('offer-added', handleReload);
     return () => {
       window.removeEventListener('storage', handleReload);
+      window.removeEventListener('storage', handleAuthChange);
+      window.removeEventListener('auth-changed', handleAuthChange);
       window.removeEventListener('request-added', handleReload);
       window.removeEventListener('offer-added', handleReload);
     };
   }, []);
 
   const customerRequests = allRequests.filter(
-    r => (currentUser?.id && r.customerId === currentUser.id) || r.id === 'req_26093'
+    r => currentUser?.id && r.customerId === currentUser.id
   );
-  const baseRequests = customerRequests.length > 0 ? customerRequests : allRequests;
+  const baseRequests = customerRequests;
 
   const filteredRequests = baseRequests.filter(r => {
     if (tab === 'ALL') return true;
     return r.status === tab;
   });
 
-  const displayName = currentUser?.fullName || (currentUser as any)?.name || 'Hakan Yavaş';
+  const displayName = currentUser?.fullName || (currentUser as any)?.name || (currentUser?.email ? currentUser.email.split('@')[0] : 'Değerli Müşterimiz');
   const nameParts = displayName.trim().split(' ');
   const initials = nameParts.length > 1
     ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
