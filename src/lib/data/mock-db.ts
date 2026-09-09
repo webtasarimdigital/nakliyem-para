@@ -324,6 +324,40 @@ export const SEED_REGISTERED_USERS: RegisteredUserRecord[] = [
 export const SEED_REQUESTS: MovingRequest[] = [
   {
     id: 'req_1',
+    requestCode: '#26368',
+    customerId: 'cust_ahmet',
+    customerName: 'Ahmet T.',
+    customerPhone: '0534 812 ** **',
+    allowPhoneCall: true,
+    serviceCategory: 'EVDEN_EVE',
+    originCity: 'Bursa',
+    originDistrict: 'Yıldırım',
+    destinationCity: 'Bursa',
+    destinationDistrict: 'Yıldırım',
+    homeSize: '3+1',
+    movingDate: '30 Eylül 2026',
+    isDateFlexible: false,
+    originFloor: 3,
+    originHasElevator: false,
+    originHasFreightElevator: false,
+    originRequiresMobileElevator: false,
+    originTruckAccess: true,
+    destinationFloor: 1,
+    destinationHasElevator: false,
+    destinationHasFreightElevator: false,
+    destinationRequiresMobileElevator: false,
+    destinationTruckAccess: true,
+    packagingPreference: 'CARRIER_PACKS',
+    extraServices: ['disassembly_assembly'],
+    photos: ['/mock-photos/living_room_bursa.jpg'],
+    notes: 'Mobilyaların söküm ve montajı yapılacak, beyaz eşyalar patpat naylonla sarılmalı.',
+    status: 'ACTIVE',
+    offersCount: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'req_2',
     requestCode: '#38491',
     customerId: 'cust_selim',
     customerName: 'Selim K.',
@@ -335,7 +369,7 @@ export const SEED_REQUESTS: MovingRequest[] = [
     destinationCity: 'Ankara',
     destinationDistrict: 'Çankaya',
     homeSize: '3+1',
-    movingDate: '18 Eylül 2026',
+    movingDate: '18 Ekim 2026',
     isDateFlexible: true,
     flexibleDays: 3,
     originFloor: 3,
@@ -350,15 +384,15 @@ export const SEED_REQUESTS: MovingRequest[] = [
     destinationTruckAccess: true,
     packagingPreference: 'CARRIER_PACKS',
     extraServices: ['disassembly_assembly', 'white_goods_connection', 'insured'],
-    photos: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80'],
+    photos: ['/mock-photos/moving_room_1.jpg'],
     notes: 'Mobilyaların söküm ve montajı yapılacak, beyaz eşyalar patpat naylonla sarılmalı. İki bina da asansörlü.',
     status: 'ACTIVE',
-    offersCount: 2,
+    offersCount: 0,
     createdAt: new Date(Date.now() - 3600000 * 3).toISOString(),
     updatedAt: new Date().toISOString()
   },
   {
-    id: 'req_2',
+    id: 'req_3',
     requestCode: '#49102',
     customerId: 'cust_busra',
     customerName: 'Büşra T.',
@@ -370,7 +404,7 @@ export const SEED_REQUESTS: MovingRequest[] = [
     destinationCity: 'Bursa',
     destinationDistrict: 'Nilüfer',
     homeSize: '2+1',
-    movingDate: '22 Eylül 2026',
+    movingDate: '22 Ekim 2026',
     isDateFlexible: false,
     originFloor: 2,
     originHasElevator: true,
@@ -387,12 +421,12 @@ export const SEED_REQUESTS: MovingRequest[] = [
     photos: ['https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=600&auto=format&fit=crop&q=80'],
     notes: 'Kırılacak eşyalar tarafımızdan kolilendi. Gardırop ve yatak odası mobilyaları demonte edilip kurulacak.',
     status: 'ACTIVE',
-    offersCount: 1,
+    offersCount: 0,
     createdAt: new Date(Date.now() - 3600000 * 7).toISOString(),
     updatedAt: new Date().toISOString()
   },
   {
-    id: 'req_3',
+    id: 'req_4',
     requestCode: '#51283',
     customerId: 'cust_murat',
     customerName: 'Murat Y.',
@@ -404,7 +438,7 @@ export const SEED_REQUESTS: MovingRequest[] = [
     destinationCity: 'İstanbul',
     destinationDistrict: 'Ataşehir',
     homeSize: 'office_small',
-    movingDate: '25 Eylül 2026',
+    movingDate: '25 Ekim 2026',
     isDateFlexible: true,
     flexibleDays: 2,
     originFloor: 5,
@@ -422,86 +456,14 @@ export const SEED_REQUESTS: MovingRequest[] = [
     photos: ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80'],
     notes: '12 çalışma masası, dosya dolapları ve ofis koltukları. Hafta sonu taşınması gerekmektedir.',
     status: 'ACTIVE',
-    offersCount: 2,
+    offersCount: 0,
     createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: 'req_4',
-    requestCode: '#62940',
-    customerId: 'cust_elif',
-    customerName: 'Elif D.',
-    customerPhone: '0553 234 ** **',
-    allowPhoneCall: false,
-    serviceCategory: 'PARCA_ESYA',
-    originCity: 'Antalya',
-    originDistrict: 'Muratpaşa',
-    destinationCity: 'İstanbul',
-    destinationDistrict: 'Ümraniye',
-    homeSize: 'single_item',
-    movingDate: '28 Eylül 2026',
-    isDateFlexible: true,
-    flexibleDays: 5,
-    originFloor: 1,
-    originHasElevator: false,
-    originHasFreightElevator: false,
-    originRequiresMobileElevator: false,
-    originTruckAccess: true,
-    destinationFloor: 3,
-    destinationHasElevator: true,
-    destinationHasFreightElevator: false,
-    destinationRequiresMobileElevator: false,
-    destinationTruckAccess: true,
-    packagingPreference: 'CUSTOMER_PACKS',
-    extraServices: ['insured'],
-    photos: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&auto=format&fit=crop&q=80'],
-    notes: '1 adet 3lü koltuk ve 1 yemek masası. Parsiyel / parça eşya aracı olanlar yazsın lütfen.',
-    status: 'ACTIVE',
-    offersCount: 1,
-    createdAt: new Date(Date.now() - 3600000 * 18).toISOString(),
     updatedAt: new Date().toISOString()
   }
 ];
 
-// Seed Offers — Örnek teklifler
-export const SEED_OFFERS: Offer[] = [
-  {
-    id: 'off_1',
-    requestId: 'req_1',
-    carrierId: 'carr_saycanlar',
-    carrier: SEED_CARRIERS[0],
-    price: 24500,
-    isVatIncluded: true,
-    isPackagingIncluded: true,
-    isMobileElevatorIncluded: true,
-    isAssemblyIncluded: true,
-    isInsuranceIncluded: true,
-    estimatedDeliveryDuration: 'Aynı Gün',
-    validUntil: new Date(Date.now() + 86400000 * 7).toISOString(),
-    notes: 'Saycanlar Nakliyat güvencesiyle 10 teker kapalı çelik kasa aracımız ve 4 kişilik kadrolu ekibimizle hizmetinizdeyiz.',
-    status: 'PENDING',
-    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: 'off_2',
-    requestId: 'req_1',
-    carrierId: 'carr_bogazici',
-    carrier: SEED_CARRIERS[1],
-    price: 26000,
-    isVatIncluded: true,
-    isPackagingIncluded: true,
-    isMobileElevatorIncluded: true,
-    isAssemblyIncluded: true,
-    isInsuranceIncluded: true,
-    estimatedDeliveryDuration: '24 Saat',
-    validUntil: new Date(Date.now() + 86400000 * 7).toISOString(),
-    notes: 'Boğaziçi Nakliyat olarak eşyalarınızı sıfır ambalaj malzemeleriyle paketleyip sigortalı taşıyoruz.',
-    status: 'PENDING',
-    createdAt: new Date(Date.now() - 3600000 * 1).toISOString(),
-    updatedAt: new Date().toISOString()
-  }
-];
+// Seed Offers — Canlıda nakliyecilerin boş form görmesi ve teklif vermeye yönlendirilmesi için boş başlar
+export const SEED_OFFERS: Offer[] = [];
 
 // Seed Defter Posts — Canlı ve Güncel İlanlar
 export const SEED_DEFTER_POSTS: DefterPost[] = [
@@ -1112,7 +1074,12 @@ class MockDatabase {
 
   // Requests
   getRequests(): MovingRequest[] {
-    return this.getItem<MovingRequest[]>('requests', SEED_REQUESTS);
+    const list = this.getItem<MovingRequest[]>('requests', SEED_REQUESTS);
+    if (list.length > 0 && list[0].requestCode === '#38491') {
+      this.setItem('requests', SEED_REQUESTS);
+      return SEED_REQUESTS;
+    }
+    return list;
   }
 
   getRequestById(id: string): MovingRequest | undefined {
@@ -1131,7 +1098,7 @@ class MockDatabase {
 
   // Offers
   getOffers(): Offer[] {
-    return this.getItem<Offer[]>('offers', SEED_OFFERS);
+    return this.getItem<Offer[]>('offers', SEED_OFFERS).filter(o => o.id !== 'off_1' && o.id !== 'off_2');
   }
 
   getOffersForRequest(requestId: string): Offer[] {
@@ -1139,6 +1106,7 @@ class MockDatabase {
   }
 
   getOffersForCarrier(carrierId: string): Offer[] {
+    if (!carrierId) return [];
     return this.getOffers().filter(o => o.carrierId === carrierId);
   }
 

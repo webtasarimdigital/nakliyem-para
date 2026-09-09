@@ -56,7 +56,7 @@ const HOME_SIZE_FILTERS = ['Tümü', '1+1', '2+1', '3+1', '4+1+'];
 export default function CarrierJobsPage() {
   const currentUser = db.getCurrentUser();
   const isCarrier = currentUser?.role === 'CARRIER';
-  const carrier = db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) || db.getCarriers()[0];
+  const carrier = isCarrier ? (db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) || null) : null;
   const isApproved = carrier?.verificationStatus === 'APPROVED';
   const [requests, setRequests] = useState<MovingRequest[]>(() => db.getRequests());
 
@@ -99,11 +99,11 @@ export default function CarrierJobsPage() {
   }, []);
 
   // Carrier subscription plan & offer checks
-  const carrierPlan = SEED_PLANS.find(p => p.id === carrier?.planId) || SEED_PLANS[0];
-  const myCarrierOffers = db.getOffersForCarrier(carrier?.id || '');
+  const carrierPlan = carrier ? (SEED_PLANS.find(p => p.id === carrier?.planId) || SEED_PLANS[0]) : null;
+  const myCarrierOffers = carrier ? db.getOffersForCarrier(carrier.id) : [];
   const carrierOffersCount = myCarrierOffers.length;
-  const canCreateOffer = !carrierPlan || (carrierPlan.features.offerCreate && (carrierPlan.features.monthlyOfferLimit === 'unlimited' || carrierOffersCount < carrierPlan.features.monthlyOfferLimit));
-  const canViewPhone = carrierPlan?.features.customerPhoneAccess === true;
+  const canCreateOffer = Boolean(carrier && (!carrierPlan || (carrierPlan.features.offerCreate && (carrierPlan.features.monthlyOfferLimit === 'unlimited' || carrierOffersCount < carrierPlan.features.monthlyOfferLimit))));
+  const canViewPhone = Boolean(carrier && carrierPlan?.features.customerPhoneAccess === true);
 
   // Plan limitation modal state
   const [planModalOpen, setPlanModalOpen] = useState(false);
@@ -206,7 +206,7 @@ export default function CarrierJobsPage() {
   // Trigger offer action with auth gate
   const handleQuickOfferSubmit = (req: MovingRequest, e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser || currentUser.role !== 'CARRIER') {
+    if (!currentUser || currentUser.role !== 'CARRIER' || !carrier) {
       setAuthActionPayload({ reqId: req.id, type: 'OFFER' });
       setAuthModalOpen(true);
       return;
@@ -466,9 +466,9 @@ export default function CarrierJobsPage() {
         {/* ── 4. SPACIOUS REQUESTS FEED ───────────────────────── */}
         <div className="space-y-6">
           {filteredRequests.map((req) => {
-            const myOffer = db.getOffersForCarrier(carrier.id).find(o => o.requestId === req.id);
+            const myOffer = carrier ? db.getOffersForCarrier(carrier.id).find(o => o.requestId === req.id) : null;
             const photoList = req.photos && req.photos.length > 0 ? req.photos : [
-              '/mock-photos/moving_room_1.jpg'
+              '/mock-photos/living_room_bursa.jpg'
             ];
             const currentPhotoIdx = activePhotoIndices[req.id] || 0;
             const isPhoneRevealed = revealedPhones[req.id];
@@ -476,9 +476,9 @@ export default function CarrierJobsPage() {
             return (
               <div
                 key={req.id}
-                className="bg-white rounded-3xl border border-slate-200 hover:border-[#F95700]/40 transition-all p-5 sm:p-7 shadow-xs space-y-4"
+                className="bg-white rounded-3xl border border-slate-200 hover:border-slate-300 transition-all p-5 sm:p-7 shadow-xs space-y-4"
               >
-                {/* 1. Header (Image 3 exact): Avatar EB + Esra B. Bireysel Üye + #26208 Yeni */}
+                {/* 1. Header (Avatar AT + Ahmet T. Bireysel Üye + #26368 Şimdi) */}
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <button
@@ -487,7 +487,7 @@ export default function CarrierJobsPage() {
                         setCustomerModalReq(req);
                         setCustomerPhoneWarning(false);
                       }}
-                      className="w-12 h-12 rounded-full bg-gradient-to-tr from-rose-400 via-orange-400 to-indigo-400 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm cursor-pointer hover:scale-105 transition-transform"
+                      className="w-12 h-12 rounded-full bg-[#3B82F6] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
                     >
                       {req.customerName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                     </button>
@@ -508,19 +508,19 @@ export default function CarrierJobsPage() {
 
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-400">{req.requestCode}</span>
-                    <span className="px-3 py-0.5 rounded-full bg-[#FFD200] text-amber-950 text-xs font-black shadow-xs">
-                      Yeni
+                    <span className="px-3 py-0.5 rounded-full bg-[#E11D48] text-white text-xs font-black shadow-xs">
+                      Şimdi
                     </span>
                   </div>
                 </div>
 
-                {/* 2. Route & Service Category (Image 3 exact): Muğla → Antalya  🏠 Evden Eve */}
+                {/* 2. Route & Service Category (⤳ Bursa → Bursa  🏠 Evden Eve) */}
                 <div className="flex items-center gap-3 flex-wrap">
                   <div className="flex items-center gap-2 text-lg sm:text-xl font-black text-[#111E38]">
-                    <span className="text-teal-600 font-black">〰</span>
-                    <span>{req.originCity}</span>
+                    <span className="text-[#8B5CF6] font-bold text-lg">⤳</span>
+                    <span className="text-[#8B5CF6]">{req.originCity}</span>
                     <span className="text-slate-400 font-light">→</span>
-                    <span>{req.destinationCity}</span>
+                    <span className="text-[#8B5CF6]">{req.destinationCity}</span>
                   </div>
 
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-2xs">
@@ -534,19 +534,46 @@ export default function CarrierJobsPage() {
                   )}
                 </div>
 
-                {/* 3. Detailed Address Line: 📍 Muğla, Fethiye → Antalya, Konyaaltı */}
+                {/* 3. Big Eşya Fotoğrafı Carousel (Image 2 exact) */}
+                {photoList.length > 0 && photoList[0] && (
+                  <div className="relative w-full h-56 sm:h-72 md:h-80 rounded-2xl overflow-hidden border border-slate-200 shadow-2xs group bg-slate-100">
+                    <img 
+                      src={photoList[currentPhotoIdx % photoList.length]} 
+                      alt="Eşya fotoğrafı" 
+                      className="w-full h-full object-cover cursor-pointer group-hover:scale-102 transition-transform duration-300"
+                      onClick={() => setLightboxPhoto(photoList[currentPhotoIdx % photoList.length])}
+                    />
+                    {/* Carousel Dots */}
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/40 backdrop-blur-xs px-2.5 py-1 rounded-full pointer-events-none">
+                      <span className="w-2 h-2 rounded-full bg-white" />
+                      <span className="w-2 h-2 rounded-full bg-white/50" />
+                      <span className="w-2 h-2 rounded-full bg-white/50" />
+                    </div>
+                    {/* Expand icon bottom right */}
+                    <button
+                      type="button"
+                      onClick={() => setLightboxPhoto(photoList[currentPhotoIdx % photoList.length])}
+                      className="absolute bottom-3 right-3 p-1.5 rounded-lg bg-black/50 hover:bg-black/70 text-white transition-colors cursor-pointer"
+                      title="Büyüt"
+                    >
+                      <Maximize2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* 4. Detailed Address Line: 📍 Bursa, Yıldırım → Bursa, Yıldırım */}
                 <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800">
                   <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
                   <span>{req.originCity}, {req.originDistrict} → {req.destinationCity}, {req.destinationDistrict}</span>
                 </div>
 
-                {/* 4. Moving Date Line: 📅 19 Eylül 2026'da taşınacak */}
+                {/* 5. Moving Date Line: 📅 30 Eylül 2026'da taşınacak */}
                 <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-600 font-medium">
                   <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-                  <span>{req.movingDate}&apos;da taşınacak ({req.isDateFlexible ? '±Esnek' : 'Kesin Tarih'})</span>
+                  <span>{req.movingDate}&apos;da taşınacak{req.isDateFlexible ? ' (±Esnek)' : ''}</span>
                 </div>
 
-                {/* 5. Feature Badges Pills (Image 3 exact) */}
+                {/* 6. Feature Badges Pills */}
                 <div className="flex flex-wrap gap-2 pt-1">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 shadow-2xs">
                     🛋️ {req.homeSize} eşya
@@ -562,30 +589,14 @@ export default function CarrierJobsPage() {
                   </span>
                 </div>
 
-                {/* Photos Thumbnail Preview if photo available */}
-                {photoList.length > 0 && photoList[0] && (
-                  <div className="flex items-center gap-2 pt-1">
-                    <div 
-                      onClick={() => setLightboxPhoto(photoList[0])}
-                      className="relative w-24 h-16 rounded-xl overflow-hidden border border-slate-200 cursor-pointer group shadow-2xs"
-                    >
-                      <img src={photoList[0]} alt="Eşya fotoğrafı" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                      <div className="absolute inset-0 bg-[#111E38]/20 group-hover:bg-[#111E38]/40 flex items-center justify-center transition-colors">
-                        <Maximize2 className="w-3.5 h-3.5 text-white" />
-                      </div>
-                    </div>
-                    <span className="text-[11px] text-slate-500 font-bold">📷 Eşya Fotoğrafı (Büyütmek için tıklayın)</span>
-                  </div>
-                )}
-
-                {/* 6. Notes if present */}
+                {/* 7. Notes if present */}
                 {req.notes && (
                   <p className="text-xs text-slate-600 font-medium bg-slate-50 p-3.5 rounded-2xl border border-slate-100 leading-relaxed">
                     &ldquo;{req.notes}&rdquo;
                   </p>
                 )}
 
-                {/* 7. Action Bar: Quick Offer Input + Yellow Gönder + Numarayı Göster (Image 3 exact) */}
+                {/* 8. Action Bar: Quick Offer Input + Yellow Gönder + Numarayı Göster (Image 2 exact) */}
                 <div className="pt-3 border-t border-slate-100 space-y-3">
                   {(() => {
                     const existingOffer = myCarrierOffers.find(o => o.requestId === req.id);
@@ -619,17 +630,17 @@ export default function CarrierJobsPage() {
                         className="flex items-center gap-2"
                       >
                         <input
-                          type="number"
+                          type="text"
                           value={quickOfferPrices[req.id] || ''}
                           onChange={e => setQuickOfferPrices({ ...quickOfferPrices, [req.id]: e.target.value })}
                           onFocus={(e) => handleInputInteraction(req.id, e)}
                           onClick={(e) => handleInputInteraction(req.id, e)}
-                          placeholder="Hemen teklifinizi yazın (TL)..."
-                          className="flex-1 px-4 py-2.5 text-xs sm:text-sm font-bold text-[#111E38] placeholder:text-slate-400 border border-slate-200 rounded-xl focus:border-[#F95700] focus:outline-none bg-white shadow-2xs"
+                          placeholder="Hemen teklifinizi yazın"
+                          className="flex-1 px-4 py-3 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 border border-slate-200 rounded-xl focus:border-[#FFC000] focus:ring-1 focus:ring-[#FFC000] focus:outline-none bg-white shadow-2xs"
                         />
                         <button
                           type="submit"
-                          className="bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs sm:text-sm px-6 sm:px-8 py-2.5 rounded-xl shadow-md shadow-orange-950/20 shrink-0 cursor-pointer transition-all"
+                          className="bg-[#FFC000] hover:bg-[#E5AC00] text-slate-950 font-bold text-xs sm:text-sm px-6 sm:px-8 py-3 rounded-xl shadow-2xs shrink-0 cursor-pointer transition-all"
                         >
                           Gönder
                         </button>
@@ -642,7 +653,7 @@ export default function CarrierJobsPage() {
                     <button
                       type="button"
                       onClick={() => handleShowPhone(req)}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer"
                     >
                       <Phone className="w-3.5 h-3.5 text-slate-600" />
                       <span>{isPhoneRevealed ? req.customerPhone : 'Numarayı Göster'}</span>
@@ -758,6 +769,10 @@ export default function CarrierJobsPage() {
                 className="flex-1 font-black"
                 disabled={!offerPrice || parseFloat(offerPrice) <= 0}
                 onClick={() => {
+                  if (!carrier) {
+                    setAuthModalOpen(true);
+                    return;
+                  }
                   db.addOffer({
                     id: `off_${Date.now()}`,
                     requestId: offerModalReq.id,
