@@ -26,6 +26,8 @@ import { RouteDisplay } from '@/components/ui/RouteDisplay';
 import { Modal } from '@/components/ui/Modal';
 import { ReviewForm } from '@/components/ui/ReviewForm';
 import { db } from '@/lib/data/mock-db';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+import { updateFirestoreRequest } from '@/lib/firebase/firestore';
 
 export default function CustomerRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -57,19 +59,54 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
     ? Math.min(...offers.map(o => o.price)) 
     : null;
 
-  const handleCloseRequest = () => {
+  const handleCloseRequest = async () => {
     db.updateRequest(req.id, {
       status: 'CLOSED',
       closedReason: closeReason
     });
+
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        await updateFirestoreRequest(req.id, {
+          status: 'CLOSED',
+          closedReason: closeReason
+        });
+      } catch (err) {
+        console.warn('Firestore kapatma hatası:', err);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('request-added'));
+      window.dispatchEvent(new Event('storage'));
+    }
+
     setCloseModalOpen(false);
     router.refresh();
   };
 
-  const handleReopenRequest = () => {
+  const handleReopenRequest = async () => {
     db.updateRequest(req.id, {
-      status: 'ACTIVE'
+      status: 'ACTIVE',
+      closedReason: undefined
     });
+
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        await updateFirestoreRequest(req.id, {
+          status: 'ACTIVE',
+          closedReason: undefined
+        });
+      } catch (err) {
+        console.warn('Firestore açma hatası:', err);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('request-added'));
+      window.dispatchEvent(new Event('storage'));
+    }
+
     router.refresh();
   };
 

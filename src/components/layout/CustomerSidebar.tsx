@@ -102,7 +102,7 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
 
   // Counts strictly for this logged-in user
   const myRequests = currentUser ? requests.filter((r: MovingRequest) => isUserRequest(r, currentUser)) : [];
-  const requestCount = myRequests.length;
+  const requestCount = myRequests.filter((r: MovingRequest) => r.status === 'ACTIVE').length;
   const myOffers = currentUser ? offers.filter((o: Offer) => myRequests.some((r: MovingRequest) => r.id === o.requestId)) : [];
   const offerCount = myOffers.length;
   const unreadMessagesCount = 0;

@@ -19,7 +19,8 @@ import {
   Package,
   ShieldCheck,
   ChevronRight,
-  MessageSquare
+  MessageSquare,
+  RotateCcw
 } from 'lucide-react';
 import { CustomerSidebar } from '@/components/layout/CustomerSidebar';
 import { LiveOfferChatModal } from '@/components/ui/LiveOfferChatModal';
@@ -28,6 +29,7 @@ import { useAuth } from '@/context/AuthContext';
 import { MovingRequest } from '@/types';
 import { collection, getDocs } from 'firebase/firestore';
 import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+import { updateFirestoreRequest } from '@/lib/firebase/firestore';
 
 export default function CustomerDashboard() {
   const router = useRouter();
@@ -143,6 +145,56 @@ export default function CustomerDashboard() {
     price: 25000
   });
 
+  // İş Verildi diyerek talebi kapatma işlemi
+  const handleCloseRequestAsGiven = async (reqId: string) => {
+    setAllRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'CLOSED' as const, closedReason: 'İş Verildi' } : r));
+    db.updateRequest(reqId, {
+      status: 'CLOSED',
+      closedReason: 'İş Verildi'
+    });
+
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        await updateFirestoreRequest(reqId, {
+          status: 'CLOSED',
+          closedReason: 'İş Verildi'
+        });
+      } catch (err) {
+        console.warn('Firestore kapatma hatası:', err);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('request-added'));
+      window.dispatchEvent(new Event('storage'));
+    }
+  };
+
+  // Talebi tekrar yayına alma
+  const handleReopenRequest = async (reqId: string) => {
+    setAllRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'ACTIVE' as const, closedReason: undefined } : r));
+    db.updateRequest(reqId, {
+      status: 'ACTIVE',
+      closedReason: undefined
+    });
+
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        await updateFirestoreRequest(reqId, {
+          status: 'ACTIVE',
+          closedReason: undefined
+        });
+      } catch (err) {
+        console.warn('Firestore açma hatası:', err);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('request-added'));
+      window.dispatchEvent(new Event('storage'));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] py-6 sm:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -177,7 +229,9 @@ export default function CustomerDashboard() {
                 {displayRequests.map((req) => {
                   const reqOffers = db.getOffersForRequest(req.id);
                   const offerCount = reqOffers.length;
-                  const isAssigned = req.status === 'ASSIGNED' || req.id === 'req_26093';
+                  const isClosed = req.status === 'CLOSED';
+                  const isAssigned = req.status === 'ASSIGNED';
+                  const isDone = isClosed || isAssigned;
 
                   return (
                     <div
@@ -205,9 +259,9 @@ export default function CustomerDashboard() {
                             {req.requestCode || '#26093'}
                           </span>
                           <span className={`text-[11px] font-black px-2.5 py-0.5 rounded-md text-white shadow-2xs ${
-                            isAssigned ? 'bg-slate-700' : 'bg-emerald-600'
+                            isClosed ? 'bg-slate-500' : isAssigned ? 'bg-slate-700' : 'bg-emerald-600'
                           }`}>
-                            {isAssigned ? 'Verildi' : 'Yayında'}
+                            {isClosed ? 'Kapatıldı' : isAssigned ? 'İş Verildi' : 'Yayında'}
                           </span>
                         </div>
                       </div>
@@ -269,52 +323,82 @@ export default function CustomerDashboard() {
                         </div>
                       </div>
 
-                      {/* Bottom Action Row (Image Exact: Green 'Teklif var' + Gray 'İş Verildi' + Chat Button) */}
+                      {/* Bottom Action Row */}
                       <div className="flex items-center gap-2.5 pt-2 flex-wrap">
-                        {offerCount > 0 ? (
-                          <Link
-                            href={`/app/customer/teklifler?reqId=${req.id}`}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 text-xs font-black hover:bg-emerald-100 transition-colors shadow-2xs"
-                          >
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span>{offerCount} Teklif var</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </Link>
+                        {isDone ? (
+                          <>
+                            <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 text-xs font-black">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>İş Verildi (Kapandı)</span>
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={() => handleReopenRequest(req.id)}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+                              <span>Talebi Tekrar Aç</span>
+                            </button>
+
+                            <Link
+                              href={`/app/customer/taleplerim/${req.id}`}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-bold border border-slate-200 transition-all"
+                            >
+                              <span>Detaylar</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </Link>
+                          </>
                         ) : (
-                          <Link
-                            href={`/app/customer/teklifler?reqId=${req.id}`}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-orange-200 bg-orange-50 text-[#F95700] text-xs font-black hover:bg-orange-100 transition-colors shadow-2xs"
-                          >
-                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                            <span>Teklif Bekleniyor</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </Link>
+                          <>
+                            {offerCount > 0 ? (
+                              <Link
+                                href={`/app/customer/teklifler?reqId=${req.id}`}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 text-xs font-black hover:bg-emerald-100 transition-colors shadow-2xs"
+                              >
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                <span>{offerCount} Teklif var</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                              </Link>
+                            ) : (
+                              <Link
+                                href={`/app/customer/teklifler?reqId=${req.id}`}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-orange-200 bg-orange-50 text-[#F95700] text-xs font-black hover:bg-orange-100 transition-colors shadow-2xs"
+                              >
+                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                                <span>Teklif Bekleniyor</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                              </Link>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setChatData({
+                                  carrierName: 'SAYCANLAR NAKLİYAT',
+                                  carrierSlug: 'saycanlar-nakliyat',
+                                  requestId: req.requestCode || '#26093',
+                                  price: 25000
+                                });
+                                setLiveChatOpen(true);
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-orange-200 bg-orange-50 hover:bg-orange-100 text-[#F95700] text-xs font-black transition-colors shadow-2xs cursor-pointer"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              <span>Teklif Mesajı (1 Yeni)</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleCloseRequestAsGiven(req.id)}
+                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
+                              title="Talebi kapat ve iş verildi olarak işaretle"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                              <span>İş Verildi</span>
+                            </button>
+                          </>
                         )}
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setChatData({
-                              carrierName: 'SAYCANLAR NAKLİYAT',
-                              carrierSlug: 'saycanlar-nakliyat',
-                              requestId: req.requestCode || '#26093',
-                              price: 25000
-                            });
-                            setLiveChatOpen(true);
-                          }}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-orange-200 bg-orange-50 hover:bg-orange-100 text-[#F95700] text-xs font-black transition-colors shadow-2xs cursor-pointer"
-                        >
-                          <MessageSquare className="w-3.5 h-3.5" />
-                          <span>Teklif Mesajı (1 Yeni)</span>
-                        </button>
-
-                        <Link
-                          href={`/app/customer/taleplerim/${req.id}`}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold transition-colors shadow-2xs"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>İş Verildi</span>
-                        </Link>
                       </div>
 
                     </div>
