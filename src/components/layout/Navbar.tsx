@@ -117,8 +117,8 @@ export const Navbar: React.FC = () => {
             <span className="font-black text-xl tracking-tight text-[#111E38] leading-none">
               TAŞIN<span className="text-[#F95700]">TEKLİF</span>
             </span>
-            <span className="text-[10px] text-slate-500 font-bold tracking-wider uppercase mt-0.5">
-              Taşıma &amp; Nakliyeci İş Ağı
+            <span className="text-[10px] text-slate-500 font-bold tracking-wider mt-0.5">
+              Taşınmanın En İyi Teklifi
             </span>
           </div>
         </Link>
@@ -414,11 +414,16 @@ export const Navbar: React.FC = () => {
           <img 
             src="/images/logo-icon.png" 
             alt="TaşınTeklif" 
-            className="h-8 w-auto object-contain" 
+            className="h-8.5 w-auto object-contain shrink-0" 
           />
-          <span className="font-black text-lg tracking-tight text-[#111E38]">
-            TAŞIN<span className="text-[#F95700]">TEKLİF</span>
-          </span>
+          <div className="flex flex-col">
+            <span className="font-black text-base tracking-tight text-[#111E38] leading-tight">
+              TAŞIN<span className="text-[#F95700]">TEKLİF</span>
+            </span>
+            <span className="text-[9px] text-slate-500 font-bold tracking-tight leading-none mt-0.5">
+              Taşınmanın En İyi Teklifi
+            </span>
+          </div>
         </Link>
 
         <div className="flex items-center gap-2.5">
