@@ -953,7 +953,7 @@ function RequestWizardContent() {
           <div className="space-y-6">
             <div>
               <h2 className="text-xl sm:text-2xl font-black text-[#111E38]">
-                Fotoğraf &amp; Video Ekspertiz (Opsiyonel)
+                Fotoğraf &amp; Video Ekspertiz
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
                 Eşyalarınızı veya odalarınızı kısaca gösteren fotoğraflar eklemek net ve sürprizsiz teklif almanızı sağlar.

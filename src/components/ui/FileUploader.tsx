@@ -131,16 +131,24 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
         let finalUrl = dataUrl;
 
-        // 3. Try Firebase Storage if configured
+        // 3. Try Firebase Storage if configured — with 8-second timeout to prevent infinite loading
         if (isFirebaseConfigured() && storage) {
           try {
-            const fileName = `uploads/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
-            const storageRef = ref(storage, fileName);
-            await uploadBytes(storageRef, blob);
-            finalUrl = await getDownloadURL(storageRef);
+            const uploadPromise = (async () => {
+              const fileName = `uploads/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+              const storageRef = ref(storage, fileName);
+              await uploadBytes(storageRef, blob);
+              return await getDownloadURL(storageRef);
+            })();
+
+            const timeoutPromise = new Promise<string>((_, reject) =>
+              setTimeout(() => reject(new Error('Storage upload timeout')), 8000)
+            );
+
+            finalUrl = await Promise.race([uploadPromise, timeoutPromise]);
           } catch (storageErr) {
             console.warn('Firebase Storage upload failed, using compressed Data URL:', storageErr);
-            finalUrl = dataUrl;
+            finalUrl = dataUrl; // Fallback: local dataUrl — always works
           }
         }
 
