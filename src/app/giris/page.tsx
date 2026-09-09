@@ -14,11 +14,11 @@ import {
   Clock,
   CheckCircle2,
   Sparkles,
+  Truck,
 } from 'lucide-react';
 import { loginWithFirebase, loginWithGoogleFirebase } from '@/lib/firebase/auth';
 import { isFirebaseConfigured } from '@/lib/firebase/config';
 import { db } from '@/lib/data/mock-db';
-import { executeRecaptcha } from '@/lib/recaptcha';
 
 function GirisContent() {
   const router = useRouter();
@@ -46,13 +46,6 @@ function GirisContent() {
     e.preventDefault();
     setLoading(true);
     setErrorMessage('');
-
-    // reCAPTCHA Enterprise bot koruması
-    try {
-      await executeRecaptcha('LOGIN');
-    } catch {
-      // sessiz güvenli devam
-    }
 
     if (isFirebaseConfigured()) {
       const res = await loginWithFirebase(email, password);
@@ -107,20 +100,26 @@ function GirisContent() {
     const targetRole = isCarrier ? 'CARRIER' : 'CUSTOMER';
     const res = await loginWithGoogleFirebase(targetRole);
     setLoading(false);
+
     if (res.error) {
       setErrorMessage(res.error);
       return;
     }
-    if (res.user) {
-      db.setCurrentUser(res.user);
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('auth-changed'));
-      }
-      if (res.user.role === 'CARRIER' || isCarrier) {
-        router.push('/app/carrier');
-      } else {
-        router.push('/app/customer');
-      }
+
+    // Kullanıcı popup'ı kapattı — sessizce iptal et
+    if (!res.user) {
+      return;
+    }
+
+    db.setCurrentUser(res.user);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-changed'));
+    }
+    // Yönlendirme kararını kullanıcının Firestore'daki gerçek rolüne göre al
+    if (res.user.role === 'CARRIER') {
+      router.push('/app/carrier');
+    } else {
+      router.push('/app/customer');
     }
   };
 
@@ -128,8 +127,8 @@ function GirisContent() {
     <div className="min-h-[calc(100vh-4.5rem)] bg-[#F8FAFC] flex items-center justify-center py-8 sm:py-12 px-4 sm:px-6">
       <div className="w-full max-w-5xl bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/60 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
 
-        {/* SOL BİLGİLENDİRİCİ PANEL */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-[#111E38] via-[#172554] to-[#0f172a] p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
+        {/* SOL BİLGİLENDİRİCİ PANEL - SADECE DESKTOP */}
+        <div className="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-[#111E38] via-[#172554] to-[#0f172a] p-8 sm:p-10 text-white flex-col justify-between relative overflow-hidden">
           {/* Arka plan dekoratif daireler */}
           <div className="absolute -top-16 -right-16 w-56 h-56 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
           <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-orange-500/15 rounded-full blur-2xl pointer-events-none" />
@@ -205,12 +204,39 @@ function GirisContent() {
         <div className="lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-center bg-white">
           <div className="max-w-md w-full mx-auto space-y-6">
 
-            {/* Başlık */}
-            <div className="space-y-1.5">
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#111E38] tracking-tight">Giriş Yap</h1>
-              <p className="text-sm text-slate-500 font-medium">
-                Hesabınıza erişin, tekliflerinizi ve operasyonunuzu kolayca yönetin.
-              </p>
+            {/* Logo ve Başlık */}
+            <div className="flex flex-col items-center justify-center text-center space-y-3 mb-2">
+              <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center text-[#F95700]">
+                <Truck className="w-8 h-8" />
+              </div>
+              <h1 className="text-2xl font-black text-[#111E38] tracking-tight">TaşınTeklif</h1>
+              <p className="text-sm text-slate-500 font-medium">Hesabınıza giriş yapın</p>
+            </div>
+
+            {/* Rol Seçici Sekmeler (Pill Style) */}
+            <div className="flex p-1 bg-slate-100 rounded-full">
+              <button
+                type="button"
+                onClick={() => setTab('musteri')}
+                className={`flex-1 py-2.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
+                  tab === 'musteri'
+                    ? 'bg-[#111E38] text-white shadow-md'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Müşteri Girişi
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab('nakliyeci')}
+                className={`flex-1 py-2.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
+                  tab === 'nakliyeci'
+                    ? 'bg-[#111E38] text-white shadow-md'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Nakliyeci Girişi
+              </button>
             </div>
 
             {/* Google ile Giriş Yap */}
@@ -218,7 +244,7 @@ function GirisContent() {
               type="button"
               onClick={handleRealGoogleLogin}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 hover:border-[#111E38]/30 bg-slate-50/60 hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-all cursor-pointer disabled:opacity-60"
+              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-slate-200 hover:border-[#111E38]/30 bg-white text-slate-700 text-sm font-semibold transition-all cursor-pointer disabled:opacity-60 shadow-sm"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -234,32 +260,6 @@ function GirisContent() {
               <div className="flex-1 h-px bg-slate-200" />
               <span className="text-xs font-medium text-slate-400">veya e-posta ile</span>
               <div className="flex-1 h-px bg-slate-200" />
-            </div>
-
-            {/* Rol Seçici Sekmeler */}
-            <div className="flex p-1 bg-slate-100 rounded-xl">
-              <button
-                type="button"
-                onClick={() => setTab('musteri')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                  tab === 'musteri'
-                    ? 'bg-white text-[#111E38] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                Evimi Taşıtacağım
-              </button>
-              <button
-                type="button"
-                onClick={() => setTab('nakliyeci')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                  tab === 'nakliyeci'
-                    ? 'bg-white text-[#111E38] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                Nakliyeciyim
-              </button>
             </div>
 
             {/* Form */}
@@ -294,7 +294,7 @@ function GirisContent() {
                     Şifre
                   </label>
                   <Link href="/sifremi-unuttum" className="text-xs font-semibold text-[#F95700] hover:underline">
-                    Şifremi Unuttum
+                    Şifremi Unuttum?
                   </Link>
                 </div>
                 <div className="relative">
@@ -330,14 +330,11 @@ function GirisContent() {
             {/* Alt Linkler */}
             <div className="pt-2 text-center space-y-3">
               <p className="text-xs text-slate-500 font-medium">
-                Henüz hesabınız yok mu?{' '}
+                Hesabın yok mu?{' '}
                 <Link href="/kayit" className="text-[#F95700] font-bold hover:underline">
                   Ücretsiz Kayıt Ol
                 </Link>
               </p>
-              <Link href="/" className="text-[11px] font-semibold text-slate-400 hover:text-slate-600 transition-colors inline-block">
-                ← Ana sayfaya dön
-              </Link>
             </div>
 
           </div>

@@ -299,23 +299,12 @@ export default function HomePage() {
                   Örnek Teklif Karşılaştırma
                 </div>
 
-                {/* SAĞ ROZET: Canlı Teklif Sistemi — Örnek Teklif Karşılaştırma ile tam aynı hizada */}
-                <div className="absolute -top-3.5 right-6 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-700 text-xs font-bold flex items-center gap-1.5 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Canlı Teklif Sistemi
-                </div>
-
                 {/* Rota başlığı */}
-                <div className="pt-2 mb-3.5">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
-                    <CircleDot className="w-3.5 h-3.5 text-[#F95700]" />
-                    <span>İstanbul, Kadıköy</span>
-                    <MoveRight className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Ankara, Çankaya</span>
-                  </div>
-                  <p className="text-base sm:text-lg font-bold text-[#111E38] tracking-tight">
-                    3+1 Ev Eşyası Taşıma · 15 Eylül · 3 Onaylı Teklif Hazır
-                  </p>
+                <div className="pt-2 mb-3 flex items-center gap-2 text-xs font-semibold text-slate-500">
+                  <CircleDot className="w-3.5 h-3.5 text-[#F95700]" />
+                  <span>İstanbul, Kadıköy</span>
+                  <MoveRight className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Ankara, Çankaya</span>
                 </div>
 
                 {/* Teklif satırları (3 Teklif - Ferah ve Okunaklı) */}

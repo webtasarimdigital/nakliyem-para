@@ -3,41 +3,89 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, FileText, CheckSquare, MessageSquare, User } from 'lucide-react';
-import { db } from '@/lib/data/mock-db';
+import { Home, BookOpen, Plus, FileText, ShoppingBag } from 'lucide-react';
+
+const LEFT_ITEMS = [
+  { label: 'Ana Sayfa', href: '/', icon: Home, exact: true },
+  { label: 'Defter', href: '/nakliyeci-defteri', icon: BookOpen, exact: false },
+];
+
+const RIGHT_ITEMS = [
+  { label: 'Talepler', href: '/talepler', icon: FileText, exact: false },
+  { label: 'Pazaryeri', href: '/pazaryeri', icon: ShoppingBag, exact: false },
+];
+
+const FAB = {
+  label: 'İlan Ver',
+  href: '/teklif-al',
+  icon: Plus,
+};
 
 export const MobileCustomerNav: React.FC = () => {
   const pathname = usePathname();
-  const currentUser = db.getCurrentUser();
 
-  // Only show on customer dashboard pages
-  if (!pathname?.startsWith('/app/customer')) return null;
+  // Hide on carrier dashboard and admin paths
+  if (
+    pathname?.startsWith('/app/carrier') ||
+    pathname?.startsWith('/admin')
+  ) {
+    return null;
+  }
 
-  const items = [
-    { label: 'Ana Sayfa', href: '/app/customer', icon: Home, exact: true },
-    { label: 'Talepler', href: '/app/customer/taleplerim', icon: FileText },
-    { label: 'Teklifler', href: '/app/customer/teklifler', icon: CheckSquare },
-    { label: 'Mesajlar', href: '/app/customer/mesajlar', icon: MessageSquare },
-    { label: 'Hesabım', href: '/app/customer/profil', icon: User }
-  ];
+  const isActive = (href: string, exact: boolean) => {
+    if (exact) return pathname === href;
+    return pathname?.startsWith(href) ?? false;
+  };
+
+  const navItemClass = (active: boolean) =>
+    `flex flex-col items-center justify-center flex-1 h-full py-1 gap-0.5 transition-colors ${
+      active
+        ? 'text-[#F95700] font-bold'
+        : 'text-[#6B7280] hover:text-[#F95700]'
+    }`;
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 pb-safe shadow-lg">
-      <div className="flex items-center justify-around h-15 px-2">
-        {items.map((item) => {
+    <nav
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      <div className="flex items-center justify-around h-16 px-2">
+        {/* Left 2 items */}
+        {LEFT_ITEMS.map((item) => {
           const Icon = item.icon;
-          const isActive = item.exact ? pathname === item.href : pathname?.startsWith(item.href);
-
+          const active = isActive(item.href, item.exact);
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors ${
-                isActive ? 'text-[#146EF5] font-bold' : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
-              <span className="text-[10px] mt-0.5">{item.label}</span>
+            <Link key={item.href} href={item.href} className={navItemClass(active)}>
+              <Icon className="w-5 h-5" strokeWidth={active ? 2.5 : 2} />
+              <span className="text-[10px] leading-none">{item.label}</span>
+            </Link>
+          );
+        })}
+
+        {/* Center FAB */}
+        <div className="flex flex-col items-center justify-center flex-1 -mt-4">
+          <Link
+            href={FAB.href}
+            className="flex flex-col items-center gap-1 group"
+            aria-label={FAB.label}
+          >
+            <span className="flex items-center justify-center w-14 h-14 rounded-full bg-[#F95700] shadow-lg ring-4 ring-white transition-transform group-active:scale-95">
+              <FAB.icon className="w-7 h-7 text-white" strokeWidth={2.5} />
+            </span>
+            <span className="text-[10px] leading-none text-[#6B7280] font-medium">
+              {FAB.label}
+            </span>
+          </Link>
+        </div>
+
+        {/* Right 2 items */}
+        {RIGHT_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item.href, item.exact);
+          return (
+            <Link key={item.href} href={item.href} className={navItemClass(active)}>
+              <Icon className="w-5 h-5" strokeWidth={active ? 2.5 : 2} />
+              <span className="text-[10px] leading-none">{item.label}</span>
             </Link>
           );
         })}

@@ -39,6 +39,8 @@ import { IntentAuthModal } from '@/components/ui/IntentAuthModal';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { db, SEED_PLANS } from '@/lib/data/mock-db';
 import { MovingRequest, ServiceCategory } from '@/types';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
 
 // Category pills styled exactly like the user's reference image
 const CATEGORY_TABS = [
@@ -59,9 +61,34 @@ export default function CarrierJobsPage() {
   const [requests, setRequests] = useState<MovingRequest[]>(() => db.getRequests());
 
   useEffect(() => {
-    setRequests(db.getRequests());
+    const loadRequests = async () => {
+      // Firebase yapılandırılmışsa gerçek Firestore verilerini çek
+      if (isFirebaseConfigured() && firestoreDb) {
+        try {
+          const q = query(
+            collection(firestoreDb, 'requests'),
+            where('status', '==', 'ACTIVE'),
+            orderBy('createdAt', 'desc')
+          );
+          const snapshot = await getDocs(q);
+          const firestoreRequests: MovingRequest[] = snapshot.docs.map(doc => ({
+            ...(doc.data() as MovingRequest),
+            id: doc.id,
+          }));
+          setRequests(firestoreRequests);
+        } catch (err) {
+          console.warn('Firestore talep yüklenemedi, mock-db kullanılıyor:', err);
+          setRequests(db.getRequests());
+        }
+      } else {
+        setRequests(db.getRequests());
+      }
+    };
+
+    loadRequests();
+
     const handleReload = () => {
-      setRequests(db.getRequests());
+      loadRequests();
     };
     window.addEventListener('storage', handleReload);
     window.addEventListener('request-added', handleReload);

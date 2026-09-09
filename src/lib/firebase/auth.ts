@@ -16,7 +16,7 @@ import { User, UserRole } from '@/types';
 export interface RegisterParams {
   email: string;
   password: string;
-  phone: string;
+  phone?: string;
   role: UserRole;
   fullName?: string;
   companyName?: string;
@@ -39,7 +39,7 @@ export async function registerWithFirebase(params: RegisterParams): Promise<{ us
     const userProfile: User = {
       id: fbUser.uid,
       email: params.email,
-      phone: params.phone,
+      phone: params.phone ?? '',
       role: params.role,
       createdAt: new Date().toISOString(),
     };
@@ -172,8 +172,10 @@ export async function loginWithGoogleFirebase(targetRole: UserRole = 'CUSTOMER')
 
     let userProfile: User;
     if (userDoc.exists()) {
+      // Mevcut kullanıcı — Firestore'daki gerçek rolünü koru, targetRole ile ezme
       userProfile = userDoc.data() as User;
     } else {
+      // Yeni kullanıcı — targetRole ile kayıt oluştur
       userProfile = {
         id: fbUser.uid,
         email: fbUser.email || '',

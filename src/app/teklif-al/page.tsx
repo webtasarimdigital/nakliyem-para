@@ -31,7 +31,6 @@ import { RouteDisplay } from '@/components/ui/RouteDisplay';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { db } from '@/lib/data/mock-db';
 import { MovingRequest, ServiceCategory } from '@/types';
-import { executeRecaptcha } from '@/lib/recaptcha';
 
 // Room item checklist definitions
 const ROOM_ITEMS: Record<string, string[]> = {
@@ -191,13 +190,6 @@ function RequestWizardContent() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-
-    // reCAPTCHA Enterprise bot koruması
-    try {
-      await executeRecaptcha('SUBMIT_REQUEST');
-    } catch {
-      // sessiz güvenli devam
-    }
 
     db.addRequest(newRequest);
     if (typeof window !== 'undefined') {
