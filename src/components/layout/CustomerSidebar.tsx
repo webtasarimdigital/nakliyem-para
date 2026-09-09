@@ -18,6 +18,9 @@ import {
 import { db } from '@/lib/data/mock-db';
 import { MovingRequest, Offer } from '@/types';
 import { openSupportChat } from '@/components/ui/SupportChatWidget';
+import { useAuth } from '@/context/AuthContext';
+import { collection, getDocs } from 'firebase/firestore';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
 
 interface CustomerSidebarProps {
   activeTab?: 'home' | 'requests' | 'offers' | 'tracking' | 'messages' | 'companies' | 'distance' | 'support' | 'help' | 'settings';
@@ -25,15 +28,49 @@ interface CustomerSidebarProps {
 
 export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
   const pathname = usePathname();
-  const [currentUser, setCurrentUser] = useState(() => db.getCurrentUser());
-  const [requests, setRequests] = useState(() => db.getRequests());
-  const [offers, setOffers] = useState(() => db.getOffers());
+  const { user: authUser } = useAuth();
+  const [currentUser, setCurrentUser] = useState(() => authUser || db.getCurrentUser());
+  const [requests, setRequests] = useState<MovingRequest[]>(() => db.getRequests());
+  const [offers, setOffers] = useState<Offer[]>(() => db.getOffers());
+
+  const loadAllData = async () => {
+    let localReqs = db.getRequests();
+    let firestoreReqs: MovingRequest[] = [];
+
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        const snapshot = await getDocs(collection(firestoreDb, 'requests'));
+        firestoreReqs = snapshot.docs.map(doc => ({
+          ...(doc.data() as MovingRequest),
+          id: doc.id
+        }));
+      } catch (err) {
+        console.warn('Sidebar firestore requests error:', err);
+      }
+    }
+
+    const combined = [...firestoreReqs];
+    localReqs.forEach(lr => {
+      if (!combined.some(r => r.id === lr.id)) {
+        combined.push(lr);
+      }
+    });
+
+    setRequests(combined);
+    setOffers(db.getOffers());
+  };
 
   useEffect(() => {
+    if (authUser) {
+      setCurrentUser(authUser);
+    }
+  }, [authUser]);
+
+  useEffect(() => {
+    loadAllData();
     const handleUpdate = () => {
-      setCurrentUser(db.getCurrentUser());
-      setRequests(db.getRequests());
-      setOffers(db.getOffers());
+      setCurrentUser(authUser || db.getCurrentUser());
+      loadAllData();
     };
     window.addEventListener('storage', handleUpdate);
     window.addEventListener('auth-changed', handleUpdate);
@@ -45,7 +82,7 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
       window.removeEventListener('request-added', handleUpdate);
       window.removeEventListener('offer-added', handleUpdate);
     };
-  }, []);
+  }, [authUser]);
 
   const displayName = currentUser?.fullName || (currentUser as any)?.name || (currentUser?.email ? currentUser.email.split('@')[0] : 'Değerli Müşterimiz');
   const nameParts = displayName.trim().split(' ');
@@ -53,8 +90,18 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
     ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
     : displayName.slice(0, 2).toUpperCase();
 
+  const isUserRequest = (r: MovingRequest, u: any) => {
+    if (!u) return false;
+    if (u.id && (r.customerId === u.id || (r as any).userId === u.id)) return true;
+    if (u.uid && (r.customerId === u.uid || (r as any).userId === u.uid)) return true;
+    if (u.email && r.customerEmail && r.customerEmail.trim().toLowerCase() === u.email.trim().toLowerCase()) return true;
+    if (u.phone && r.customerPhone && r.customerPhone.replace(/\D/g, '').slice(-10) === u.phone.replace(/\D/g, '').slice(-10)) return true;
+    if (u.fullName && r.customerName && r.customerName.trim().toLowerCase() === u.fullName.trim().toLowerCase()) return true;
+    return false;
+  };
+
   // Counts strictly for this logged-in user
-  const myRequests = currentUser ? requests.filter((r: MovingRequest) => r.customerId === currentUser.id) : [];
+  const myRequests = currentUser ? requests.filter((r: MovingRequest) => isUserRequest(r, currentUser)) : [];
   const requestCount = myRequests.length;
   const myOffers = currentUser ? offers.filter((o: Offer) => myRequests.some((r: MovingRequest) => r.id === o.requestId)) : [];
   const offerCount = myOffers.length;

@@ -98,6 +98,7 @@ export interface MovingRequest {
   id: string;
   requestCode: string; // e.g. #26093
   customerId: string;
+  customerEmail?: string;
   customerName: string;
   customerPhone: string;
   allowPhoneCall: boolean;

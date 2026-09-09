@@ -194,8 +194,8 @@ export default function NakliyeciDefteriPage() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
-        {/* ── 1. ÜST BANNER (Rakip Görsel 2 ile Birebir) ── */}
-        <Link href="/teklif-al" className="block mb-5 group">
+        {/* ── 1. ÜST BANNER (Masaüstünde Gösterilir, Mobilde Yer Kaplamaması İçin Gizlendi) ── */}
+        <Link href="/teklif-al" className="hidden md:block mb-5 group">
           <div className="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 flex items-center justify-between shadow-xs hover:border-[#F95700]/40 transition-all">
             <div className="flex items-center gap-3.5 min-w-0">
               <div className="w-10 h-10 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center shrink-0 font-black shadow-xs group-hover:scale-105 transition-transform">
@@ -216,8 +216,8 @@ export default function NakliyeciDefteriPage() {
           </div>
         </Link>
 
-        {/* ── 2. 3'LÜ İSTATİSTİK KARTLARI (Rakip Görsel 2 ile Birebir) ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        {/* ── 2. 3'LÜ İSTATİSTİK KARTLARI (Masaüstünde Gösterilir, Mobilde Gizlendi) ── */}
+        <div className="hidden md:grid sm:grid-cols-3 gap-3 mb-6">
           {/* Kart 1: İş Paylaşıldı */}
           <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 text-center shadow-xs">
             <div className="w-7 h-7 mx-auto mb-1.5 text-amber-500 flex items-center justify-center">

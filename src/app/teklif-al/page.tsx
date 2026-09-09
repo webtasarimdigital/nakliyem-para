@@ -33,6 +33,7 @@ import { db } from '@/lib/data/mock-db';
 import { MovingRequest, ServiceCategory } from '@/types';
 import { doc, setDoc } from 'firebase/firestore';
 import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+import { useAuth } from '@/context/AuthContext';
 
 // Room item checklist definitions
 const ROOM_ITEMS: Record<string, string[]> = {
@@ -46,6 +47,7 @@ const ROOM_ITEMS: Record<string, string[]> = {
 function RequestWizardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user: authUser } = useAuth();
 
   const [step, setStep] = useState(1);
   const totalSteps = 8;
@@ -241,7 +243,7 @@ function RequestWizardContent() {
   };
 
   const handlePublish = async (overrideUser?: any) => {
-    const user = overrideUser || db.getCurrentUser();
+    const user = overrideUser || authUser || db.getCurrentUser();
     if (!user) {
       setAuthModalOpen(true);
       return;
@@ -261,13 +263,16 @@ function RequestWizardContent() {
       compiledNotes = compiledNotes ? `${compiledNotes}\n\nEşya Listesi: ${roomSummary}${customSummary}` : `Eşya Listesi: ${roomSummary}${customSummary}`;
     }
 
-    const customerDisplayName = user?.fullName || (user as any)?.name || (user?.email ? user.email.split('@')[0] : 'Ömer Faruk');
-    const customerPhoneNum = user?.phone || '0538 412 90 75';
+    const userId = user.id || (user as any).uid || user.email || 'cust_demo';
+    const userEmail = user.email || '';
+    const customerDisplayName = user?.fullName || (user as any)?.name || (user as any)?.displayName || (user?.email ? user.email.split('@')[0] : 'Kullanıcı');
+    const customerPhoneNum = user?.phone || (user as any)?.phoneNumber || '0538 412 90 75';
 
     const newRequest: MovingRequest = {
       id: `req_${Date.now()}`,
       requestCode: `#${Math.floor(10000 + Math.random() * 90000)}`,
-      customerId: user.id || 'cust_demo',
+      customerId: userId,
+      customerEmail: userEmail,
       customerName: customerDisplayName,
       customerPhone: customerPhoneNum,
       allowPhoneCall,
@@ -368,17 +373,17 @@ function RequestWizardContent() {
   }
 
   return (
-    <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-10 md:py-16">
+    <div className="max-w-4xl lg:max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-8 md:py-12">
       {/* ── INTERACTIVE CARGO ROLLING TO TRUCK PROGRESS BAR ── */}
-      <div className="mb-10 bg-white rounded-3xl border-2 border-slate-200 p-5 sm:p-6 shadow-xs select-none">
+      <div className="mb-4 sm:mb-7 bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-3.5 sm:p-5 shadow-xs select-none">
         
         {/* Step Info Row */}
-        <div className="flex items-center justify-between text-xs sm:text-sm font-black mb-3">
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-orange-100 text-[#C23E00] font-black text-xs">
+        <div className="flex items-center justify-between text-xs sm:text-sm font-black mb-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-orange-100 text-[#C23E00] font-black text-[11px] sm:text-xs">
               Adım {step} / {totalSteps + 1}
             </span>
-            <span className="text-[#111E38] font-black hidden sm:inline">
+            <span className="text-[#111E38] font-black hidden sm:inline text-xs sm:text-sm">
               {step === 1 && '🏠 Hizmet Türü'}
               {step === 2 && '📍 Rota Seçimi'}
               {step === 3 && '🛋️ Ev & Eşya Büyüklüğü'}
@@ -387,38 +392,38 @@ function RequestWizardContent() {
               {step === 6 && '📦 Paketleme & Ek Hizmetler'}
               {step === 7 && '📸 Fotoğraf & Ekspertiz'}
               {step === 8 && '🔒 İletişim & Gizlilik'}
-              {step === 9 && '🚛 Tıra Yükleme & Yayınlama'}
+              {step === 9 && '✨ İlan Yayınlanıyor'}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-black text-slate-400">
-              %{Math.round((step / 9) * 100)} Tamamlandı
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="text-[11px] sm:text-xs font-black text-slate-400">
+              %{Math.round((step / 9) * 100)}
             </span>
             {step === 9 && (
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider animate-bounce">
-                🎉 Tıra Yüklendi!
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider animate-pulse">
+                ✨ İlan Yayınlanıyor
               </span>
             )}
           </div>
         </div>
 
         {/* The Animated Road Track with Rolling Cargo Box & Destination Truck */}
-        <div className="pt-2 pb-1">
-          <div className="flex items-center gap-3">
+        <div className="pt-1 pb-0.5">
+          <div className="flex items-center gap-2 sm:gap-3">
             
             {/* Left: Origin House Icon (Ev) */}
             <div className="flex flex-col items-center shrink-0">
-              <div className="w-9 h-9 rounded-2xl bg-[#111E38] text-white flex items-center justify-center text-sm shadow-sm border border-slate-200">
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-[#111E38] text-white flex items-center justify-center text-xs sm:text-sm shadow-xs border border-slate-200">
                 🏠
               </div>
-              <span className="text-[10px] font-black text-slate-500 mt-1">Ev</span>
+              <span className="text-[9px] sm:text-[10px] font-black text-slate-500 mt-0.5 sm:mt-1">Ev</span>
             </div>
 
             {/* Middle: Road / Track with moving Cargo Box */}
-            <div className="flex-1 relative py-4">
+            <div className="flex-1 relative py-2.5 sm:py-3.5">
               {/* Road Track */}
-              <div className="h-3 bg-slate-100 rounded-full overflow-hidden relative border border-slate-200">
+              <div className="h-2 sm:h-2.5 bg-slate-100 rounded-full overflow-hidden relative border border-slate-200">
                 {/* Filled Active Progress Track */}
                 <div
                   className="h-full bg-gradient-to-r from-orange-400 via-[#F95700] to-[#E04D00] transition-all duration-500 rounded-full relative"
@@ -430,17 +435,17 @@ function RequestWizardContent() {
 
               {/* Dynamic Rolling Cargo Box (📦) that Glides Along the Road */}
               <div
-                className="absolute top-0 transition-all duration-500 pointer-events-none z-20"
+                className="absolute top-[-3px] sm:top-0 transition-all duration-500 pointer-events-none z-20"
                 style={{
-                  left: `calc(${Math.min(96, Math.max(0, ((step - 1) / 8) * 100))}% - 14px)`,
+                  left: `calc(${Math.min(95, Math.max(0, ((step - 1) / 8) * 100))}% - 12px)`,
                 }}
               >
                 <div className="flex flex-col items-center">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-sm shadow-md border border-white animate-bounce">
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-xs shadow-sm border border-white">
                     📦
                   </div>
-                  <span className="text-[8px] font-black bg-[#111E38] text-white px-1.5 py-0.5 rounded mt-0.5 whitespace-nowrap shadow-xs">
-                    {step === 9 ? 'Yüklendi' : 'Kolileniyor'}
+                  <span className="text-[7px] sm:text-[8px] font-black bg-[#111E38] text-white px-1 sm:px-1.5 py-0.5 rounded mt-0.5 whitespace-nowrap shadow-xs">
+                    {step === 9 ? 'Hazır' : 'Kolileniyor'}
                   </span>
                 </div>
               </div>
@@ -448,14 +453,14 @@ function RequestWizardContent() {
 
             {/* Right: The Waiting Logistics Truck (Tır) */}
             <div className="flex flex-col items-center shrink-0">
-              <div className={`w-9 h-9 rounded-2xl flex items-center justify-center transition-all shadow-sm border ${
+              <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all shadow-xs border ${
                 step === 9 
-                  ? 'bg-[#F95700] border-amber-300 text-white scale-110 ring-2 ring-orange-400/30' 
+                  ? 'bg-[#F95700] border-amber-300 text-white scale-105 ring-2 ring-orange-400/30' 
                   : 'bg-[#111E38] border-slate-200 text-white'
               }`}>
-                <Truck className={`w-4 h-4 ${step === 9 ? 'text-white' : 'text-amber-400'}`} />
+                <Truck className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${step === 9 ? 'text-white' : 'text-amber-400'}`} />
               </div>
-              <span className="text-[10px] font-black text-[#111E38] mt-1 flex items-center gap-0.5">
+              <span className="text-[9px] sm:text-[10px] font-black text-[#111E38] mt-0.5 sm:mt-1 flex items-center gap-0.5">
                 <span>Tır</span>
                 {step === 9 && <span className="text-emerald-500 font-bold">✓</span>}
               </span>
@@ -1129,16 +1134,14 @@ function RequestWizardContent() {
               Devam Et
             </Button>
           ) : (
-            <Button
+            <button
               type="button"
-              variant="primary"
-              size="md"
-              onClick={handlePublish}
-              rightIcon={<Sparkles className="w-4 h-4" />}
-              className="font-bold shadow-md px-5"
+              onClick={() => handlePublish()}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F95700] to-[#E04D00] hover:from-[#E04D00] hover:to-[#C23E00] text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-900/15 active:scale-95 transition-all cursor-pointer"
             >
-              Talebi Ücretsiz Yayınla 🚀
-            </Button>
+              <span>Talebi Yayınla</span>
+              <Sparkles className="w-4 h-4" />
+            </button>
           )}
         </div>
       </div>

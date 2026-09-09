@@ -45,22 +45,59 @@ function getBoolVal(offer: Offer, key: string): boolean | string | number {
   }
 }
 
+import { useAuth } from '@/context/AuthContext';
+
 function CustomerOffersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reqIdParam = searchParams?.get('reqId');
 
-  const [currentUser, setCurrentUser] = useState(() => db.getCurrentUser());
+  const { user: authUser } = useAuth();
+  const [currentUser, setCurrentUser] = useState(() => authUser || db.getCurrentUser());
   const [requests, setRequests] = useState<MovingRequest[]>(() => db.getRequests());
   const [selectedReqId, setSelectedReqId] = useState<string>(reqIdParam || '');
 
+  const loadAllRequests = async () => {
+    let localReqs = db.getRequests();
+    let firestoreReqs: MovingRequest[] = [];
+
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        const snapshot = await getDocs(collection(firestoreDb, 'requests'));
+        firestoreReqs = snapshot.docs.map(doc => ({
+          ...(doc.data() as MovingRequest),
+          id: doc.id
+        }));
+      } catch (err) {
+        console.warn('Firestore talepleri çekilemedi:', err);
+      }
+    }
+
+    const combined = [...firestoreReqs];
+    localReqs.forEach(lr => {
+      if (!combined.some(r => r.id === lr.id)) {
+        combined.push(lr);
+      }
+    });
+
+    setRequests(combined);
+  };
+
+  useEffect(() => {
+    if (authUser) {
+      setCurrentUser(authUser);
+    }
+  }, [authUser]);
+
   // Reload requests and auth on events
   useEffect(() => {
+    loadAllRequests();
     const handleReloadReqs = () => {
-      setRequests(db.getRequests());
+      loadAllRequests();
     };
     const handleAuth = () => {
-      setCurrentUser(db.getCurrentUser());
+      setCurrentUser(authUser || db.getCurrentUser());
+      loadAllRequests();
     };
     window.addEventListener('storage', handleReloadReqs);
     window.addEventListener('storage', handleAuth);
@@ -72,7 +109,7 @@ function CustomerOffersContent() {
       window.removeEventListener('auth-changed', handleAuth);
       window.removeEventListener('request-added', handleReloadReqs);
     };
-  }, []);
+  }, [authUser]);
 
   // Update selectedReqId if URL param changes
   useEffect(() => {
@@ -81,9 +118,19 @@ function CustomerOffersContent() {
     }
   }, [reqIdParam]);
 
+  const isUserRequest = (r: MovingRequest, u: any) => {
+    if (!u) return false;
+    if (u.id && (r.customerId === u.id || (r as any).userId === u.id)) return true;
+    if (u.uid && (r.customerId === u.uid || (r as any).userId === u.uid)) return true;
+    if (u.email && r.customerEmail && r.customerEmail.trim().toLowerCase() === u.email.trim().toLowerCase()) return true;
+    if (u.phone && r.customerPhone && r.customerPhone.replace(/\D/g, '').slice(-10) === u.phone.replace(/\D/g, '').slice(-10)) return true;
+    if (u.fullName && r.customerName && r.customerName.trim().toLowerCase() === u.fullName.trim().toLowerCase()) return true;
+    return false;
+  };
+
   // Find customer's requests
-  const customerRequests = requests.filter(r => currentUser?.id && r.customerId === currentUser.id);
-  const activeReq = (selectedReqId ? requests.find(r => (r.id === selectedReqId || r.requestCode === selectedReqId) && (!currentUser?.id || r.customerId === currentUser.id)) : null)
+  const customerRequests = requests.filter(r => isUserRequest(r, currentUser));
+  const activeReq = (selectedReqId ? requests.find(r => (r.id === selectedReqId || r.requestCode === selectedReqId) && isUserRequest(r, currentUser)) : null)
     || (customerRequests.length > 0 ? customerRequests[0] : null);
 
   const [offers, setOffers] = useState<Offer[]>([]);

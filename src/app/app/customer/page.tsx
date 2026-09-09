@@ -24,19 +24,58 @@ import {
 import { CustomerSidebar } from '@/components/layout/CustomerSidebar';
 import { LiveOfferChatModal } from '@/components/ui/LiveOfferChatModal';
 import { db } from '@/lib/data/mock-db';
+import { useAuth } from '@/context/AuthContext';
+import { MovingRequest } from '@/types';
+import { collection, getDocs } from 'firebase/firestore';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
 
 export default function CustomerDashboard() {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState(() => db.getCurrentUser());
-  const [allRequests, setAllRequests] = useState(() => db.getRequests());
+  const { user: authUser } = useAuth();
+  const [currentUser, setCurrentUser] = useState(() => authUser || db.getCurrentUser());
+  const [allRequests, setAllRequests] = useState<MovingRequest[]>(() => db.getRequests());
   const offers = db.getOffers();
 
+  const loadRequests = async () => {
+    let localReqs = db.getRequests();
+    let firestoreReqs: MovingRequest[] = [];
+
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        const snapshot = await getDocs(collection(firestoreDb, 'requests'));
+        firestoreReqs = snapshot.docs.map(doc => ({
+          ...(doc.data() as MovingRequest),
+          id: doc.id
+        }));
+      } catch (err) {
+        console.warn('Firestore talepleri çekilemedi:', err);
+      }
+    }
+
+    const combined = [...firestoreReqs];
+    localReqs.forEach(lr => {
+      if (!combined.some(r => r.id === lr.id)) {
+        combined.push(lr);
+      }
+    });
+
+    setAllRequests(combined);
+  };
+
   useEffect(() => {
+    if (authUser) {
+      setCurrentUser(authUser);
+    }
+  }, [authUser]);
+
+  useEffect(() => {
+    loadRequests();
     const handleReload = () => {
-      setAllRequests(db.getRequests());
+      loadRequests();
     };
     const handleAuthChange = () => {
-      setCurrentUser(db.getCurrentUser());
+      setCurrentUser(authUser || db.getCurrentUser());
+      loadRequests();
     };
     window.addEventListener('storage', handleReload);
     window.addEventListener('storage', handleAuthChange);
@@ -50,7 +89,7 @@ export default function CustomerDashboard() {
       window.removeEventListener('request-added', handleReload);
       window.removeEventListener('offer-added', handleReload);
     };
-  }, []);
+  }, [authUser]);
 
   // User display info
   const displayName = currentUser?.fullName || (currentUser as any)?.name || (currentUser?.email ? currentUser.email.split('@')[0] : 'Değerli Müşterimiz');
@@ -63,10 +102,18 @@ export default function CustomerDashboard() {
     ? `${nameParts[0]} ${nameParts[nameParts.length - 1][0]}.`
     : displayName;
 
+  const isUserRequest = (r: MovingRequest, u: any) => {
+    if (!u) return false;
+    if (u.id && (r.customerId === u.id || (r as any).userId === u.id)) return true;
+    if (u.uid && (r.customerId === u.uid || (r as any).userId === u.uid)) return true;
+    if (u.email && r.customerEmail && r.customerEmail.trim().toLowerCase() === u.email.trim().toLowerCase()) return true;
+    if (u.phone && r.customerPhone && r.customerPhone.replace(/\D/g, '').slice(-10) === u.phone.replace(/\D/g, '').slice(-10)) return true;
+    if (u.fullName && r.customerName && r.customerName.trim().toLowerCase() === u.fullName.trim().toLowerCase()) return true;
+    return false;
+  };
+
   // Filter requests belonging to this customer
-  const customerRequests = allRequests.filter(
-    r => currentUser?.id && r.customerId === currentUser.id
-  );
+  const customerRequests = allRequests.filter(r => isUserRequest(r, currentUser));
   const displayRequests = customerRequests;
   const [liveChatOpen, setLiveChatOpen] = useState(false);
   const [chatData, setChatData] = useState({

@@ -26,10 +26,15 @@ import { Badge } from '@/components/ui/Badge';
 import { db } from '@/lib/data/mock-db';
 import { CustomerSidebar } from '@/components/layout/CustomerSidebar';
 import { Conversation, ConversationMessage, Offer } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 function CustomerMessagesContent() {
   const searchParams = useSearchParams();
   const targetConvId = searchParams?.get('convId');
+
+  const { user: authUser } = useAuth();
+  const currentUser = authUser || db.getCurrentUser();
+  const userId = currentUser?.id || (currentUser as any)?.uid || '';
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<string>('');
@@ -38,9 +43,20 @@ function CustomerMessagesContent() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load conversations on mount
+  // Load conversations for the current user
   useEffect(() => {
-    const userConvs = db.getConversations();
+    if (!userId) {
+      setConversations([]);
+      setActiveConvId('');
+      setMessages([]);
+      return;
+    }
+    const all = db.getConversations();
+    const userConvs = all.filter(c =>
+      c.participantIds.includes(userId) ||
+      (currentUser?.email && c.participantIds.includes(currentUser.email)) ||
+      (c.participantNames && Object.keys(c.participantNames).includes(userId))
+    );
     setConversations(userConvs);
     if (userConvs.length > 0) {
       const initialId = targetConvId && userConvs.some(c => c.id === targetConvId)
@@ -48,17 +64,20 @@ function CustomerMessagesContent() {
         : userConvs[0].id;
       setActiveConvId(initialId);
       setMessages(db.getMessages(initialId));
-      db.markConversationAsRead(initialId, 'user_cust_1');
+      db.markConversationAsRead(initialId, userId);
+    } else {
+      setActiveConvId('');
+      setMessages([]);
     }
-  }, [targetConvId]);
+  }, [targetConvId, userId, currentUser?.email]);
 
   // Load messages when activeConvId changes
   useEffect(() => {
-    if (activeConvId) {
+    if (activeConvId && userId) {
       setMessages(db.getMessages(activeConvId));
-      db.markConversationAsRead(activeConvId, 'user_cust_1');
+      db.markConversationAsRead(activeConvId, userId);
     }
-  }, [activeConvId]);
+  }, [activeConvId, userId]);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -70,16 +89,18 @@ function CustomerMessagesContent() {
   }, [messages, isTyping]);
 
   const activeConv = conversations.find(c => c.id === activeConvId);
-  const activeCarrier = db.getCarriers().find(c => activeConv?.participantIds.includes(c.userId)) || db.getCarriers()[0];
-  const activeOffer = db.getOffers().find(o => o.carrierId === activeCarrier.id);
+  const activeCarrier = (activeConv ? db.getCarriers().find(c => activeConv.participantIds.includes(c.userId)) : null) || db.getCarriers()[0];
+  const activeOffer = activeCarrier ? db.getOffers().find(o => o.carrierId === activeCarrier.id) : null;
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim() || !activeConvId) return;
+    if (!inputMessage.trim() || !activeConvId || !activeCarrier) return;
+
+    const senderDisplayName = currentUser?.fullName || (currentUser as any)?.name || (currentUser?.email ? currentUser.email.split('@')[0] : 'Müşteri');
 
     const userMsg = db.sendMessage(activeConvId, {
-      senderId: 'user_cust_1',
-      senderName: 'Ahmet Yılmaz',
+      senderId: userId || 'cust_user',
+      senderName: senderDisplayName,
       senderRole: 'CUSTOMER',
       content: inputMessage.trim()
     });
@@ -88,7 +109,12 @@ function CustomerMessagesContent() {
     setInputMessage('');
 
     // Update conversation list item lastMessage
-    setConversations(db.getConversations());
+    const updatedConvs = db.getConversations().filter(c =>
+      c.participantIds.includes(userId) ||
+      (currentUser?.email && c.participantIds.includes(currentUser.email)) ||
+      (c.participantNames && Object.keys(c.participantNames).includes(userId))
+    );
+    setConversations(updatedConvs);
 
     // Simulate carrier intelligent reply
     setIsTyping(true);
@@ -98,10 +124,15 @@ function CustomerMessagesContent() {
         senderId: activeCarrier.userId || 'user_carr_1',
         senderName: activeCarrier.companyName,
         senderRole: 'CARRIER',
-        content: 'Mesajınız alındı Ahmet Bey. Ekiplerimiz talebiniz doğrultusunda gerekli hazırlıkları yapacaktır. Başka bir sorunuz olursa memnuniyetle yanıtlarız.'
+        content: `Mesajınız alındı ${senderDisplayName.split(' ')[0]} Bey/Hanım. Ekiplerimiz talebiniz doğrultusunda gerekli hazırlıkları yapacaktır. Başka bir sorunuz olursa memnuniyetle yanıtlarız.`
       });
       setMessages(prev => [...prev, replyMsg]);
-      setConversations(db.getConversations());
+      const refreshedConvs = db.getConversations().filter(c =>
+        c.participantIds.includes(userId) ||
+        (currentUser?.email && c.participantIds.includes(currentUser.email)) ||
+        (c.participantNames && Object.keys(c.participantNames).includes(userId))
+      );
+      setConversations(refreshedConvs);
     }, 1400);
   };
 
@@ -132,18 +163,43 @@ function CustomerMessagesContent() {
         </Link>
       </div>
 
-      {/* Main Chat Layout */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden h-[calc(100vh-14rem)] min-h-[560px] flex">
-        
-        {/* LEFT COLUMN: Conversations List (1/3) */}
-        <div className="w-full sm:w-80 md:w-96 border-r border-slate-200 flex flex-col shrink-0 bg-slate-50/40">
-          
-          <div className="p-4 border-b border-slate-200 bg-white">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-[#0A1128] uppercase tracking-wider">Sohbetler</span>
-              <span className="text-xs font-bold text-slate-400">{conversations.length} Aktif Firma</span>
-            </div>
+      {/* Main Chat Layout or Empty State */}
+      {conversations.length === 0 ? (
+        <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-12 text-center shadow-xs">
+          <div className="w-16 h-16 rounded-3xl bg-orange-50 text-[#F95700] flex items-center justify-center mx-auto mb-4 border border-orange-100 shadow-xs">
+            <MessageSquare className="w-8 h-8" />
           </div>
+          <h2 className="text-xl sm:text-2xl font-black text-[#0A1128] mb-2">
+            Henüz Bir Mesajınız Yok
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed mb-6 max-w-md mx-auto">
+            Taşınma talebinize nakliyat firmalarından teklif geldiğinde veya firmalarla iletişime geçtiğinizde sohbetleriniz burada anlık olarak listelenecektir.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link href="/app/customer/taleplerim">
+              <Button variant="outline" size="md" className="font-bold text-xs sm:text-sm">
+                Taleplerime Git
+              </Button>
+            </Link>
+            <Link href="/teklif-al">
+              <Button variant="primary" size="md" className="font-bold text-xs sm:text-sm shadow-md shadow-orange-900/15">
+                Yeni Talep Oluştur
+              </Button>
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden h-[calc(100vh-14rem)] min-h-[560px] flex">
+          
+          {/* LEFT COLUMN: Conversations List (1/3) */}
+          <div className="w-full sm:w-80 md:w-96 border-r border-slate-200 flex flex-col shrink-0 bg-slate-50/40">
+            
+            <div className="p-4 border-b border-slate-200 bg-white">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-[#0A1128] uppercase tracking-wider">Sohbetler</span>
+                <span className="text-xs font-bold text-slate-400">{conversations.length} Aktif Firma</span>
+              </div>
+            </div>
 
           <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
             {conversations.map((conv) => {
@@ -411,13 +467,14 @@ function CustomerMessagesContent() {
             </form>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
+          <div className="flex-1 flex-col items-center justify-center p-8 text-center text-slate-400 hidden sm:flex">
             <MessageSquare className="w-12 h-12 mb-3 text-slate-300" />
             <h3 className="font-bold text-[#0A1128] text-base mb-1">Bir sohbet seçin</h3>
             <p className="text-xs text-slate-400">Teklif veren nakliyeciler ile mesajlaşmak için soldan bir firma seçin.</p>
           </div>
         )}
       </div>
+      )}
           </main>
         </div>
       </div>

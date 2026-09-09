@@ -19,18 +19,57 @@ import {
 import { CustomerSidebar } from '@/components/layout/CustomerSidebar';
 import { LiveOfferChatModal } from '@/components/ui/LiveOfferChatModal';
 import { db } from '@/lib/data/mock-db';
+import { useAuth } from '@/context/AuthContext';
+import { MovingRequest } from '@/types';
+import { collection, getDocs } from 'firebase/firestore';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
 
 export default function CustomerRequestsPage() {
+  const { user: authUser } = useAuth();
   const [tab, setTab] = useState<'ALL' | 'ACTIVE' | 'ASSIGNED' | 'CLOSED'>('ALL');
-  const [currentUser, setCurrentUser] = useState(() => db.getCurrentUser());
-  const [allRequests, setAllRequests] = useState(() => db.getRequests());
+  const [currentUser, setCurrentUser] = useState(() => authUser || db.getCurrentUser());
+  const [allRequests, setAllRequests] = useState<MovingRequest[]>(() => db.getRequests());
+
+  const loadRequests = async () => {
+    let localReqs = db.getRequests();
+    let firestoreReqs: MovingRequest[] = [];
+
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        const snapshot = await getDocs(collection(firestoreDb, 'requests'));
+        firestoreReqs = snapshot.docs.map(doc => ({
+          ...(doc.data() as MovingRequest),
+          id: doc.id
+        }));
+      } catch (err) {
+        console.warn('Firestore talepleri çekilemedi:', err);
+      }
+    }
+
+    const combined = [...firestoreReqs];
+    localReqs.forEach(lr => {
+      if (!combined.some(r => r.id === lr.id)) {
+        combined.push(lr);
+      }
+    });
+
+    setAllRequests(combined);
+  };
 
   useEffect(() => {
+    if (authUser) {
+      setCurrentUser(authUser);
+    }
+  }, [authUser]);
+
+  useEffect(() => {
+    loadRequests();
     const handleReload = () => {
-      setAllRequests(db.getRequests());
+      loadRequests();
     };
     const handleAuthChange = () => {
-      setCurrentUser(db.getCurrentUser());
+      setCurrentUser(authUser || db.getCurrentUser());
+      loadRequests();
     };
     window.addEventListener('storage', handleReload);
     window.addEventListener('storage', handleAuthChange);
@@ -44,11 +83,19 @@ export default function CustomerRequestsPage() {
       window.removeEventListener('request-added', handleReload);
       window.removeEventListener('offer-added', handleReload);
     };
-  }, []);
+  }, [authUser]);
 
-  const customerRequests = allRequests.filter(
-    r => currentUser?.id && r.customerId === currentUser.id
-  );
+  const isUserRequest = (r: MovingRequest, u: any) => {
+    if (!u) return false;
+    if (u.id && (r.customerId === u.id || (r as any).userId === u.id)) return true;
+    if (u.uid && (r.customerId === u.uid || (r as any).userId === u.uid)) return true;
+    if (u.email && r.customerEmail && r.customerEmail.trim().toLowerCase() === u.email.trim().toLowerCase()) return true;
+    if (u.phone && r.customerPhone && r.customerPhone.replace(/\D/g, '').slice(-10) === u.phone.replace(/\D/g, '').slice(-10)) return true;
+    if (u.fullName && r.customerName && r.customerName.trim().toLowerCase() === u.fullName.trim().toLowerCase()) return true;
+    return false;
+  };
+
+  const customerRequests = allRequests.filter(r => isUserRequest(r, currentUser));
   const baseRequests = customerRequests;
 
   const filteredRequests = baseRequests.filter(r => {
@@ -85,8 +132,8 @@ export default function CustomerRequestsPage() {
             <CustomerSidebar activeTab="requests" />
           </div>
 
-          {/* 2. Center Content */}
-          <main className="lg:col-span-6 space-y-5">
+          {/* 2. Center Content (Full Width beside Sidebar) */}
+          <main className="lg:col-span-9 space-y-5">
             
             {/* Header + Tabs */}
             <div className="space-y-3">
@@ -295,119 +342,6 @@ export default function CustomerRequestsPage() {
             )}
 
           </main>
-
-          {/* 3. Right Sidebar Widgets */}
-          <aside className="lg:col-span-3 space-y-4">
-            
-            {/* Top Card: Teklif Al Banner */}
-            <div className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs space-y-3">
-              <div>
-                <h3 className="text-sm font-black text-[#0A1128] tracking-tight">
-                  Teklif Al
-                </h3>
-                <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1">
-                  Ücretsiz talep oluştur, onaylı nakliyecilerden hızla fiyat teklifi al.
-                </p>
-              </div>
-
-              <Link href="/teklif-al" className="block">
-                <button className="w-full py-2.5 px-4 rounded-xl bg-[#FFD200] hover:bg-[#F5C400] text-[#0A1128] font-black text-xs transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
-                  <PlusCircle className="w-4 h-4" />
-                  <span>Teklif Al</span>
-                </button>
-              </Link>
-            </div>
-
-            {/* Category Stats Mini-Cards (Image Exact) */}
-            <div className="space-y-2">
-              <Link
-                href="/teklif-al"
-                className="bg-white rounded-2xl border border-slate-200/90 p-3.5 hover:border-[#F95700]/40 transition-all flex items-center gap-3 shadow-2xs group"
-              >
-                <div className="w-9 h-9 rounded-xl bg-orange-50 text-amber-600 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition-transform">
-                  🏠
-                </div>
-                <div>
-                  <h4 className="text-xs font-black text-[#0A1128] leading-tight">
-                    Evden Eve Nakliyat
-                  </h4>
-                  <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
-                    4792 taşınma talebi
-                  </span>
-                </div>
-              </Link>
-
-              <Link
-                href="/teklif-al"
-                className="bg-white rounded-2xl border border-slate-200/90 p-3.5 hover:border-[#F95700]/40 transition-all flex items-center gap-3 shadow-2xs group"
-              >
-                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition-transform">
-                  ⚡
-                </div>
-                <div>
-                  <h4 className="text-xs font-black text-[#0A1128] leading-tight">
-                    Ekspres Parça
-                  </h4>
-                  <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
-                    521 taşınma talebi
-                  </span>
-                </div>
-              </Link>
-
-              <Link
-                href="/teklif-al"
-                className="bg-white rounded-2xl border border-slate-200/90 p-3.5 hover:border-[#F95700]/40 transition-all flex items-center gap-3 shadow-2xs group"
-              >
-                <div className="w-9 h-9 rounded-xl bg-yellow-50 text-yellow-600 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition-transform">
-                  📦
-                </div>
-                <div>
-                  <h4 className="text-xs font-black text-[#0A1128] leading-tight">
-                    Depolama
-                  </h4>
-                  <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
-                    232 taşınma talebi
-                  </span>
-                </div>
-              </Link>
-
-              <Link
-                href="/teklif-al"
-                className="bg-white rounded-2xl border border-slate-200/90 p-3.5 hover:border-[#F95700]/40 transition-all flex items-center gap-3 shadow-2xs group"
-              >
-                <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition-transform">
-                  🏢
-                </div>
-                <div>
-                  <h4 className="text-xs font-black text-[#0A1128] leading-tight">
-                    Ofis Taşıma
-                  </h4>
-                  <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
-                    229 taşınma talebi
-                  </span>
-                </div>
-              </Link>
-
-              <Link
-                href="/nakliyeci-defteri"
-                className="bg-white rounded-2xl border border-slate-200/90 p-3.5 hover:border-[#F95700]/40 transition-all flex items-center gap-3 shadow-2xs group"
-              >
-                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition-transform">
-                  📖
-                </div>
-                <div>
-                  <h4 className="text-xs font-black text-[#0A1128] leading-tight">
-                    Defter
-                  </h4>
-                  <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
-                    30000+ iş paylaşımı
-                  </span>
-                </div>
-              </Link>
-            </div>
-
-          </aside>
-
         </div>
 
         {/* Live Offer Chat Modal (Image media_1788383028254 exact) */}

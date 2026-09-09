@@ -95,16 +95,14 @@ export default function CarrierJobsPage() {
     const loadRequests = async () => {
       if (isFirebaseConfigured() && firestoreDb) {
         try {
-          const q = query(
-            collection(firestoreDb, 'requests'),
-            where('status', '==', 'ACTIVE'),
-            orderBy('createdAt', 'desc')
-          );
-          const snapshot = await getDocs(q);
-          const firestoreRequests: MovingRequest[] = snapshot.docs.map(doc => ({
-            ...(doc.data() as MovingRequest),
-            id: doc.id,
-          }));
+          const snapshot = await getDocs(collection(firestoreDb, 'requests'));
+          const firestoreRequests: MovingRequest[] = snapshot.docs
+            .map(doc => ({
+              ...(doc.data() as MovingRequest),
+              id: doc.id,
+            }))
+            .filter(r => r.status === 'ACTIVE')
+            .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
           const mockRequests = db.getRequests();
           const combined = [...firestoreRequests];
           mockRequests.forEach(mr => {
