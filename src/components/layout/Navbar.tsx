@@ -106,9 +106,11 @@ export const Navbar: React.FC = () => {
 
         {/* Left: Logo */}
         <Link href="/" className="flex items-center gap-2.5 group shrink-0 w-fit">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#F95700] to-[#E04D00] text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-all">
-            <Truck className="w-5 h-5 stroke-[2.5]" />
-          </div>
+          <img 
+            src="/images/logo-icon.png" 
+            alt="TaşınTeklif" 
+            className="h-9 w-auto object-contain group-hover:scale-105 transition-transform" 
+          />
           <div className="flex flex-col">
             <span className="font-black text-xl tracking-tight text-[#111E38] leading-none">
               TAŞIN<span className="text-[#F95700]">TEKLİF</span>
@@ -407,9 +409,11 @@ export const Navbar: React.FC = () => {
       {/* ── MOBILE BAR (logo + hamburger only) ── */}
       <div className="md:hidden flex items-center justify-between px-4 h-16">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#F95700] to-[#E04D00] text-white flex items-center justify-center shadow-sm">
-            <Truck className="w-5 h-5 stroke-[2.5]" />
-          </div>
+          <img 
+            src="/images/logo-icon.png" 
+            alt="TaşınTeklif" 
+            className="h-8 w-auto object-contain" 
+          />
           <span className="font-black text-lg tracking-tight text-[#111E38]">
             TAŞIN<span className="text-[#F95700]">TEKLİF</span>
           </span>

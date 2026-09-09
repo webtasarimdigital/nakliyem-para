@@ -304,10 +304,10 @@ function KayitContent() {
           <div className="max-w-md w-full mx-auto space-y-4">
 
             {/* Logo ve Başlık */}
-            <div className="flex flex-col items-center justify-center text-center space-y-3 mb-2">
-              <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center text-[#F95700]">
-                <Truck className="w-8 h-8" />
-              </div>
+            <div className="flex flex-col items-center justify-center text-center space-y-2 mb-2">
+              <Link href="/" className="inline-block group hover:scale-105 transition-transform">
+                <img src="/images/logo.png" alt="TaşınTeklif" className="h-16 sm:h-20 w-auto object-contain mx-auto" />
+              </Link>
               <h1 className="text-2xl font-black text-[#111E38] tracking-tight">Hesap Oluştur</h1>
             </div>
 

@@ -18,13 +18,12 @@ export const Footer: React.FC = () => {
           
           {/* Col 1: Brand (2/5 on desktop) */}
           <div className="lg:col-span-2 space-y-4">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#F95700] to-[#E04D00] text-white flex items-center justify-center font-bold shadow-md shadow-orange-950/30">
-                <Truck className="w-6 h-6 stroke-[2.5]" />
-              </div>
-              <span className="font-black text-2xl tracking-tight text-white">
-                TAŞIN<span className="text-[#F95700]">TEKLİF</span>
-              </span>
+            <Link href="/" className="inline-block group">
+              <img 
+                src="/images/logo-white.png" 
+                alt="TaşınTeklif" 
+                className="h-14 sm:h-16 w-auto object-contain transition-transform group-hover:scale-105" 
+              />
             </Link>
 
             <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed max-w-sm">
