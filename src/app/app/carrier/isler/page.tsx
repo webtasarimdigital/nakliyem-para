@@ -53,6 +53,34 @@ const CATEGORY_TABS = [
 
 const HOME_SIZE_FILTERS = ['Tümü', '1+1', '2+1', '3+1', '4+1+'];
 
+function getRelativeTimeString(dateStr?: string): { text: string; isHot: boolean } {
+  if (!dateStr) return { text: 'Şimdi', isHot: true };
+  try {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    if (isNaN(diffMs) || diffMs < 0) return { text: 'Şimdi', isHot: true };
+
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHours = Math.floor(diffMin / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMin < 2) return { text: 'Şimdi', isHot: true };
+    if (diffMin < 15) return { text: 'Az önce', isHot: true };
+    if (diffMin < 60) return { text: `${diffMin} dk önce`, isHot: false };
+    if (diffHours < 24) return { text: `${diffHours} saat önce`, isHot: false };
+    if (diffDays === 1) return { text: 'Dün', isHot: false };
+    if (diffDays < 30) return { text: `${diffDays} gün önce`, isHot: false };
+    return {
+      text: date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }),
+      isHot: false,
+    };
+  } catch {
+    return { text: 'Şimdi', isHot: true };
+  }
+}
+
 export default function CarrierJobsPage() {
   const currentUser = db.getCurrentUser();
   const isCarrier = currentUser?.role === 'CARRIER';
@@ -89,35 +117,53 @@ export default function CarrierJobsPage() {
   } : null);
 
   const isApproved = true; // Auto-allow registered carriers
-  const [requests, setRequests] = useState<MovingRequest[]>(() => db.getRequests());
+  const [requests, setRequests] = useState<MovingRequest[]>(() =>
+    db.getRequests()
+      .filter(r => r.status === 'ACTIVE')
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+  );
 
   useEffect(() => {
     const loadRequests = async () => {
+      let combined: MovingRequest[] = [];
       if (isFirebaseConfigured() && firestoreDb) {
         try {
           const snapshot = await getDocs(collection(firestoreDb, 'requests'));
-          const firestoreRequests: MovingRequest[] = snapshot.docs
-            .map(doc => ({
-              ...(doc.data() as MovingRequest),
-              id: doc.id,
-            }))
-            .filter(r => r.status === 'ACTIVE')
-            .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-          const mockRequests = db.getRequests();
-          const combined = [...firestoreRequests];
+          const firestoreDocs = snapshot.docs.map(doc => ({
+            ...(doc.data() as MovingRequest),
+            id: doc.id,
+          }));
+
+          // Track any request explicitly marked as NOT active in Firestore so we don't pull it from mock-db
+          const closedOrInactiveIds = new Set(
+            firestoreDocs.filter(r => r.status !== 'ACTIVE').map(r => r.id)
+          );
+
+          // Only take ACTIVE requests from Firestore
+          const activeFirestore = firestoreDocs.filter(r => r.status === 'ACTIVE');
+          combined = [...activeFirestore];
+
+          // Add mock requests only if ACTIVE and not marked closed/inactive in Firestore
+          const mockRequests = db.getRequests().filter(r => r.status === 'ACTIVE' && !closedOrInactiveIds.has(r.id));
           mockRequests.forEach(mr => {
             if (!combined.some(r => r.id === mr.id)) {
               combined.push(mr);
             }
           });
-          setRequests(combined);
         } catch (err) {
           console.warn('Firestore talep yüklenemedi, mock-db kullanılıyor:', err);
-          setRequests(db.getRequests());
+          combined = db.getRequests().filter(r => r.status === 'ACTIVE');
         }
       } else {
-        setRequests(db.getRequests());
+        combined = db.getRequests().filter(r => r.status === 'ACTIVE');
       }
+
+      // Strictly filter ACTIVE and sort newest to oldest
+      const sorted = combined
+        .filter(r => r.status === 'ACTIVE')
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+
+      setRequests(sorted);
     };
 
     loadRequests();
@@ -517,9 +563,7 @@ export default function CarrierJobsPage() {
         <div className="space-y-6">
           {filteredRequests.map((req) => {
             const myOffer = carrier ? db.getOffersForCarrier(carrier.id).find(o => o.requestId === req.id) : null;
-            const photoList = req.photos && req.photos.length > 0 ? req.photos : [
-              '/mock-photos/living_room_bursa.jpg'
-            ];
+            const photoList = req.photos && req.photos.length > 0 ? req.photos.filter(Boolean) : [];
             const currentPhotoIdx = activePhotoIndices[req.id] || 0;
             const isPhoneRevealed = revealedPhones[req.id];
 
@@ -558,19 +602,30 @@ export default function CarrierJobsPage() {
 
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-400">{req.requestCode}</span>
-                    <span className="px-3 py-0.5 rounded-full bg-[#E11D48] text-white text-xs font-black shadow-xs">
-                      Şimdi
-                    </span>
+                    {(() => {
+                      const relTime = getRelativeTimeString(req.createdAt);
+                      return (
+                        <span
+                          className={`px-3 py-0.5 rounded-full text-xs font-black shadow-xs ${
+                            relTime.text === 'Şimdi' || relTime.text === 'Az önce'
+                              ? 'bg-[#E11D48] text-white'
+                              : 'bg-slate-100 text-slate-600 border border-slate-200'
+                          }`}
+                        >
+                          {relTime.text}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
 
                 {/* 2. Route & Service Category (⤳ Bursa → Bursa  🏠 Evden Eve) */}
                 <div className="flex items-center gap-3 flex-wrap">
-                  <div className="flex items-center gap-2 text-lg sm:text-xl font-black text-[#111E38]">
-                    <span className="text-[#8B5CF6] font-bold text-lg">⤳</span>
-                    <span className="text-[#8B5CF6]">{req.originCity}</span>
-                    <span className="text-slate-400 font-light">→</span>
-                    <span className="text-[#8B5CF6]">{req.destinationCity}</span>
+                  <div className="flex items-center gap-2 text-lg sm:text-xl font-black">
+                    <span className="text-rose-600 font-bold text-lg">⤳</span>
+                    <span className="text-rose-600">{req.originCity}</span>
+                    <span className="text-slate-400 font-light text-base">→</span>
+                    <span className="text-emerald-600">{req.destinationCity}</span>
                   </div>
 
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-2xs">
