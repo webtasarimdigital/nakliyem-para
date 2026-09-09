@@ -125,7 +125,7 @@ export const Navbar: React.FC = () => {
         <nav className="flex items-center justify-center gap-1">
           <Link
             href={isCarrier ? '/app/carrier/defter' : '/nakliyeci-defteri'}
-            className={`px-3 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.includes('defter') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
+            className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.includes('defter') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
           >
             <BookOpen className="w-4 h-4 text-[#F95700] shrink-0" />
             Defter
@@ -133,7 +133,7 @@ export const Navbar: React.FC = () => {
 
           <Link
             href={isCarrier ? '/app/carrier/isler' : isCustomer ? '/app/customer/taleplerim' : '/talepler'}
-            className={`px-3 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.includes('talepler') || pathname?.includes('isler') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
+            className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.includes('talepler') || pathname?.includes('isler') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
           >
             <FileText className="w-4 h-4 text-[#F95700] shrink-0" />
             {isCustomer ? 'Taleplerim' : 'Talepler'}
@@ -142,7 +142,7 @@ export const Navbar: React.FC = () => {
           {/* Clean 'Teklif Al' without orange background per user request */}
           <Link
             href="/teklif-al"
-            className={`px-3 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.startsWith('/teklif-al') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
+            className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.startsWith('/teklif-al') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
           >
             <Truck className="w-4 h-4 text-[#F95700] shrink-0" />
             Teklif Al
@@ -151,7 +151,7 @@ export const Navbar: React.FC = () => {
           {!isCustomer && (
             <Link
               href="/pazaryeri"
-              className={`px-3 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.startsWith('/pazaryeri') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
+              className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.startsWith('/pazaryeri') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
             >
               <ShoppingBag className="w-4 h-4 text-[#F95700] shrink-0" />
               Pazaryeri
@@ -164,7 +164,7 @@ export const Navbar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setDigitalDropdownOpen(!digitalDropdownOpen)}
-                className={`px-3 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                   pathname?.includes('dijital-hizmetler')
                     ? 'bg-orange-50 text-[#F95700]'
                     : 'text-slate-700 hover:bg-slate-100 hover:text-[#111E38]'
@@ -362,17 +362,17 @@ export const Navbar: React.FC = () => {
               <div className="relative" ref={loginDropdownRef}>
                 <button
                   onClick={() => { setLoginDropdownOpen(!loginDropdownOpen); setRegisterDropdownOpen(false); }}
-                  className="flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-black text-[#111E38] hover:bg-slate-100 transition-all cursor-pointer"
+                  className="flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-semibold text-[#111E38] hover:bg-slate-100 transition-all cursor-pointer"
                 >
                   Giriş Yap <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                 </button>
                 {loginDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 z-50 animate-fade-in space-y-1">
-                    <Link href="/giris?role=musteri" onClick={() => setLoginDropdownOpen(false)} className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-orange-50 text-slate-800 font-black text-xs transition-colors">
+                    <Link href="/giris?role=musteri" onClick={() => setLoginDropdownOpen(false)} className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-orange-50 text-slate-800 font-medium text-xs transition-colors">
                       <div className="w-7 h-7 rounded-lg bg-orange-100 text-[#C23E00] flex items-center justify-center shrink-0"><User className="w-3.5 h-3.5" /></div>
                       <span>Müşteri Girişi</span>
                     </Link>
-                    <Link href="/giris?role=nakliyeci" onClick={() => setLoginDropdownOpen(false)} className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-slate-800 font-black text-xs transition-colors">
+                    <Link href="/giris?role=nakliyeci" onClick={() => setLoginDropdownOpen(false)} className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 text-slate-800 font-medium text-xs transition-colors">
                       <div className="w-7 h-7 rounded-lg bg-[#162E65] text-white flex items-center justify-center shrink-0"><Truck className="w-3.5 h-3.5" /></div>
                       <span>Nakliyeci Girişi</span>
                     </Link>
@@ -384,7 +384,7 @@ export const Navbar: React.FC = () => {
               <div className="relative" ref={registerDropdownRef}>
                 <button
                   onClick={() => { setRegisterDropdownOpen(!registerDropdownOpen); setLoginDropdownOpen(false); }}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white text-[15px] font-black transition-all shadow-md shadow-orange-900/20 cursor-pointer"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white text-sm font-semibold transition-all shadow-sm cursor-pointer"
                 >
                   Kayıt Ol <ChevronDown className="w-3.5 h-3.5 text-white/80" />
                 </button>
@@ -431,7 +431,7 @@ export const Navbar: React.FC = () => {
               <span className="max-w-[70px] truncate">{displayName}</span>
             </Link>
           ) : (
-            <Link href="/kayit" className="px-4 py-2 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white text-sm font-black shadow-md shadow-orange-900/15 tracking-wide active:scale-95 transition-all">
+            <Link href="/kayit" className="px-4 py-2 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white text-sm font-semibold shadow-sm tracking-wide active:scale-95 transition-all">
               Kayıt Ol
             </Link>
           )}

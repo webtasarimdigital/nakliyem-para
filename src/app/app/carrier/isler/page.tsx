@@ -306,11 +306,11 @@ export default function CarrierJobsPage() {
 
         {/* ── 1. HEADER (Title & Search Toggle exactly like screenshot) ── */}
         <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-black text-[#111E38] tracking-tight">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#111E38] tracking-tight">
               Talepler
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-[#111E38] text-xs font-black">
+            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
               {filteredRequests.length} İş
             </span>
           </div>
@@ -318,7 +318,7 @@ export default function CarrierJobsPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowFilterDrawer(!showFilterDrawer)}
-              className={`p-2.5 rounded-xl border-2 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-black ${
+              className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold ${
                 showFilterDrawer || filterOriginCity || filterDestCity || filterSize !== 'Tümü'
                   ? 'border-[#F95700] bg-orange-50 text-[#C23E00]'
                   : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
@@ -331,7 +331,7 @@ export default function CarrierJobsPage() {
 
             <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="p-2.5 rounded-xl border-2 border-slate-200 bg-white hover:border-slate-300 text-slate-700 transition-all cursor-pointer"
+              className="p-2.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 text-slate-700 transition-all cursor-pointer"
               title="Arama Yap"
             >
               <Search className="w-5 h-5" />
@@ -341,16 +341,16 @@ export default function CarrierJobsPage() {
 
         {/* Unverified Warning Banner (Spec requirement) */}
         {isCarrier && !isApproved && (
-          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-900 flex items-start gap-3 shadow-xs">
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-3 shadow-xs">
             <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <h4 className="font-black text-sm text-amber-900">
+              <h4 className="font-bold text-sm text-amber-900">
                 ⚠️ Onaysız Profil — Henüz firmamız tarafından doğrulanmış profil değilsiniz
               </h4>
               <p className="text-xs text-amber-800 font-medium leading-relaxed">
                 Yüklediğiniz kimlik ve vergi levhası evraklarınız inceleme aşamasındadır. <strong>12 saat içinde onay &amp; red durumunuz verilecektir.</strong> Talepleri inceleyebilirsiniz; ancak teklif verme ve iletişim haklarınız onay verildikten sonra açılacaktır.
               </p>
-              <Link href="/app/carrier/profil" className="inline-block pt-1 text-xs font-black text-[#F95700] hover:underline">
+              <Link href="/app/carrier/profil" className="inline-block pt-1 text-xs font-bold text-[#F95700] hover:underline">
                 Belgelerimi Görüntüle / Yeni Evrak Yükle →
               </Link>
             </div>
@@ -366,7 +366,7 @@ export default function CarrierJobsPage() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Şehir, ilçe, müşteri adı veya talep kodu ara (#26134)..."
-                className="w-full pl-11 pr-10 py-3 rounded-2xl border-2 border-slate-300 text-sm font-bold text-[#111E38] bg-white focus:border-[#F95700] focus:outline-none shadow-sm"
+                className="w-full pl-11 pr-10 py-3 rounded-2xl border border-slate-300 text-sm font-medium text-[#111E38] bg-white focus:border-[#F95700] focus:outline-none shadow-sm"
                 autoFocus
               />
               <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -391,9 +391,9 @@ export default function CarrierJobsPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveCategory(tab.id)}
-                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap select-none ${
+                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap select-none ${
                   isSelected
-                    ? 'bg-[#111E38] text-white shadow-md ring-2 ring-[#111E38]/20'
+                    ? 'bg-[#111E38] text-white shadow-sm ring-1 ring-[#111E38]'
                     : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50/80 shadow-2xs'
                 }`}
               >
