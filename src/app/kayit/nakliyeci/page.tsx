@@ -7,12 +7,12 @@ export default function NakliyeciRegisterRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/app/carrier/onboarding');
+    router.replace('/kayit?role=nakliyeci');
   }, [router]);
 
   return (
     <div className="p-16 text-center text-sm text-slate-500">
-      Nakliyeci Onboarding ekranına yönlendiriliyorsunuz...
+      Nakliyeci kayıt ekranına yönlendiriliyorsunuz...
     </div>
   );
 }
