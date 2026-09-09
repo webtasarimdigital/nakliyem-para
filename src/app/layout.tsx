@@ -5,6 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { MobileCustomerNav } from '@/components/layout/MobileCustomerNav';
 import { MobileCarrierNav } from '@/components/layout/MobileCarrierNav';
+import { SupportChatWidget } from '@/components/ui/SupportChatWidget';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://tasinteklif.com'),
@@ -56,6 +57,7 @@ export default function RootLayout({
         <Footer />
         <MobileCustomerNav />
         <MobileCarrierNav />
+        <SupportChatWidget />
       </body>
     </html>
   );

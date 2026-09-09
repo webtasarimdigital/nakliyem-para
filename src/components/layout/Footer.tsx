@@ -3,7 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Truck, ShieldCheck, Phone, Mail, MapPin, Sparkles, BookOpen, ShoppingBag } from 'lucide-react';
+import { Truck, ShieldCheck, Phone, Mail, MapPin, Sparkles, BookOpen, ShoppingBag, MessageSquare } from 'lucide-react';
+import { openSupportChat } from '@/components/ui/SupportChatWidget';
 
 export const Footer: React.FC = () => {
   const pathname = usePathname();
@@ -115,6 +116,15 @@ export const Footer: React.FC = () => {
               <li><Link href="/kvkk" className="hover:text-[#F95700] transition-colors">KVKK Aydınlatma</Link></li>
               <li><Link href="/cerez-politikasi" className="hover:text-[#F95700] transition-colors">Çerez Politikası</Link></li>
               <li><Link href="/nakliyeci-sozlesmesi" className="hover:text-[#F95700] transition-colors">Nakliyeci Sözleşmesi</Link></li>
+              <li>
+                <button
+                  onClick={() => openSupportChat()}
+                  className="hover:text-[#F95700] transition-colors font-bold text-orange-300 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-[#F95700]" />
+                  <span>Bize Ulaşın (Canlı Destek)</span>
+                </button>
+              </li>
             </ul>
           </div>
 

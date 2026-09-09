@@ -16,6 +16,7 @@ import {
   Settings
 } from 'lucide-react';
 import { db } from '@/lib/data/mock-db';
+import { openSupportChat } from '@/components/ui/SupportChatWidget';
 
 interface CustomerSidebarProps {
   activeTab?: 'home' | 'requests' | 'offers' | 'tracking' | 'messages' | 'companies' | 'distance' | 'support' | 'help' | 'settings';
@@ -175,17 +176,17 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
         <div className="border-t border-slate-100 my-2 pt-1" />
 
         {/* Canlı Destek */}
-        <a
-          href="https://wa.me/905320000000"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black text-slate-600 hover:bg-slate-50 hover:text-[#0A1128] transition-all"
+        <button
+          type="button"
+          onClick={() => openSupportChat()}
+          className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black text-slate-600 hover:bg-slate-50 hover:text-[#0A1128] transition-all cursor-pointer text-left"
         >
           <div className="flex items-center gap-3">
             <Headphones className="w-4 h-4 text-amber-500" />
             <span>Canlı Destek</span>
           </div>
-        </a>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        </button>
 
         {/* Yardım Merkezi */}
         <Link

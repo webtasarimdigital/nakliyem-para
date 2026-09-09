@@ -302,7 +302,7 @@ export default function CarrierJobsPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 md:py-10">
 
         {/* ── 1. HEADER (Title & Search Toggle exactly like screenshot) ── */}
         <div className="flex items-center justify-between mb-5">
