@@ -361,7 +361,7 @@ function KayitContent() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4.5rem)] bg-[#F8FAFC] flex items-center justify-center py-6 sm:py-8 px-4 sm:px-6">
+    <div className="min-h-[calc(100vh-4.5rem)] bg-[#F8FAFC] flex items-start sm:items-center justify-center pt-3 pb-8 sm:py-8 px-3 sm:px-6">
       <div className="w-full max-w-5xl bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/60 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
 
         {/* SOL BİLGİLENDİRİCİ PANEL - SADECE DESKTOP */}
@@ -483,21 +483,18 @@ function KayitContent() {
         </div>
 
         {/* SAĞ FORM PANELİ */}
-        <div className="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-center bg-white">
+        <div className="lg:col-span-7 p-5 sm:p-8 flex flex-col justify-center bg-white">
           <div className="max-w-md w-full mx-auto space-y-4">
 
-            {/* Logo ve Başlık */}
-            <div className="flex flex-col items-center justify-center text-center space-y-2 mb-2">
-              <Link href="/" className="inline-block group hover:scale-105 transition-transform">
-                <img src="/images/logo.png" alt="TaşınTeklif" className="h-16 sm:h-20 w-auto object-contain mx-auto" />
-              </Link>
+            {/* Başlık */}
+            <div className="text-center space-y-1 mb-2">
               <h1 className="text-2xl font-black text-[#111E38] tracking-tight">
                 {step === 'OTP' ? 'E-Posta Doğrulama' : 'Hesap Oluştur'}
               </h1>
             </div>
 
             {step === 'OTP' ? (
-              <div className="space-y-4 animate-fade-in pt-2">
+              <div className="space-y-4 animate-fade-in pt-1">
                 <div className="text-center space-y-1.5">
                   <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 text-[#F95700] flex items-center justify-center mx-auto shadow-xs">
                     <Mail className="w-6 h-6" />
@@ -570,7 +567,7 @@ function KayitContent() {
                     className="w-full font-bold shadow-lg shadow-orange-900/15"
                     disabled={loading || otpCode.length !== 6 || timeLeft <= 0}
                   >
-                    {loading ? 'Doğrulanıyor...' : 'Doğrula ve Hesabı Aç'}
+                    {loading ? 'Doğrulanıyor...' : 'Doğrula ve Üye Ol'}
                   </Button>
                 </form>
 
