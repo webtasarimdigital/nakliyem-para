@@ -968,8 +968,9 @@ function RequestWizardContent() {
 
             <FileUploader
               label="Eşya / Oda Fotoğrafları"
-              description="Salon, oda veya kaba mobilyaların fotoğraflarını yükleyin."
+              description="Salon, oda veya kaba mobilyaların fotoğraflarını yükleyin (Maks. 5 MB, otomatik optimize edilir)."
               maxFiles={6}
+              maxSizeMB={5}
               files={photos}
               onChange={setPhotos}
               mode="photos"
