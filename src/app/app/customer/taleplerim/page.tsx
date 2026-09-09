@@ -130,6 +130,12 @@ export default function CustomerRequestsPage() {
 
   const filteredRequests = baseRequests.filter(r => {
     if (tab === 'ALL') return true;
+    if (tab === 'ASSIGNED') {
+      return r.status === 'ASSIGNED' || (r.status === 'CLOSED' && r.closedReason === 'İş Verildi');
+    }
+    if (tab === 'CLOSED') {
+      return r.status === 'CLOSED' && r.closedReason !== 'İş Verildi';
+    }
     return r.status === tab;
   });
 
@@ -150,22 +156,22 @@ export default function CustomerRequestsPage() {
     price: 25000
   });
 
-  // İş Verildi diyerek talebi kapatma işlemi
+  // İş Verildi diyerek talebi Anlaşıldı olarak işaretleme işlemi
   const handleCloseRequestAsGiven = async (reqId: string) => {
-    // 1. Optimistic UI update
-    setAllRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'CLOSED' as const, closedReason: 'İş Verildi' } : r));
+    // 1. Optimistic UI update (Anlaşıldı / ASSIGNED)
+    setAllRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'ASSIGNED' as const, closedReason: 'İş Verildi' } : r));
 
     // 2. Update mock-db
     db.updateRequest(reqId, {
-      status: 'CLOSED',
+      status: 'ASSIGNED',
       closedReason: 'İş Verildi'
     });
 
-    // 3. Update Firestore if configured (event dispatch YOK — loadRequests tetiklenirse mock-db'deki eski ACTIVE veri geri gelir)
+    // 3. Update Firestore if configured
     if (isFirebaseConfigured() && firestoreDb) {
       try {
         await updateFirestoreRequest(reqId, {
-          status: 'CLOSED',
+          status: 'ASSIGNED',
           closedReason: 'İş Verildi'
         });
       } catch (err) {
@@ -284,9 +290,9 @@ export default function CustomerRequestsPage() {
                             {req.requestCode || '#26093'}
                           </span>
                           <span className={`text-[11px] font-black px-2.5 py-0.5 rounded-md text-white shadow-2xs ${
-                            isAnlasildi ? 'bg-emerald-600' : isClosed ? 'bg-slate-500' : isAssigned ? 'bg-slate-700' : 'bg-emerald-600'
+                            (isAssigned || isAnlasildi) ? 'bg-emerald-600' : isClosed ? 'bg-slate-500' : 'bg-emerald-600'
                           }`}>
-                            {isAnlasildi ? 'Anlaşıldı ✓' : isClosed ? 'Kapatıldı' : isAssigned ? 'İş Verildi' : 'Yayında'}
+                            {(isAssigned || isAnlasildi) ? 'Anlaşıldı ✓' : isClosed ? 'Kapatıldı' : 'Yayında'}
                           </span>
                         </div>
                       </div>
@@ -352,9 +358,9 @@ export default function CustomerRequestsPage() {
                       <div className="flex items-center gap-2.5 pt-2 flex-wrap">
                         {isDone ? (
                           <>
-                            <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 text-xs font-black">
+                            <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-black">
                               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>İş Verildi (Kapandı)</span>
+                              <span>{(isAssigned || isAnlasildi) ? 'Anlaşıldı ✓' : 'Kapatıldı'}</span>
                             </span>
 
                             <button

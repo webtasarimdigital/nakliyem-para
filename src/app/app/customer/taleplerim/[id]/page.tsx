@@ -60,15 +60,18 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
     : null;
 
   const handleCloseRequest = async () => {
+    const isAgreement = closeReason.includes('anlaştım') || closeReason.includes('buldum') || closeReason === 'İş Verildi';
+    const targetStatus = isAgreement ? 'ASSIGNED' : 'CLOSED';
+
     db.updateRequest(req.id, {
-      status: 'CLOSED',
+      status: targetStatus,
       closedReason: closeReason
     });
 
     if (isFirebaseConfigured() && firestoreDb) {
       try {
         await updateFirestoreRequest(req.id, {
-          status: 'CLOSED',
+          status: targetStatus,
           closedReason: closeReason
         });
       } catch (err) {
@@ -127,7 +130,7 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
             >
               Talebi Kapat
             </Button>
-          ) : req.status === 'CLOSED' ? (
+          ) : (req.status === 'CLOSED' || req.status === 'ASSIGNED') ? (
             <Button
               variant="outline"
               size="sm"
@@ -151,8 +154,8 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
                 <span className="text-sm font-black text-[#0A1128] bg-slate-100 px-2.5 py-1 rounded-md">
                   Talep {req.requestCode}
                 </span>
-                <Badge variant={req.status === 'ACTIVE' ? 'verified' : req.status === 'ASSIGNED' ? 'success' : (req.closedReason === 'İş Verildi' ? 'success' : 'danger')}>
-                  {req.status === 'ACTIVE' ? 'Aktif (Teklif Alıyor)' : req.status === 'ASSIGNED' ? 'Firma Anlaşıldı' : (req.closedReason === 'İş Verildi' ? 'Anlaşıldı ✓' : 'Kapatıldı')}
+                <Badge variant={req.status === 'ACTIVE' ? 'verified' : (req.status === 'ASSIGNED' || req.closedReason === 'İş Verildi' || req.closedReason?.includes('anlaştım')) ? 'success' : 'danger'}>
+                  {req.status === 'ACTIVE' ? 'Aktif (Teklif Alıyor)' : (req.status === 'ASSIGNED' || req.closedReason === 'İş Verildi' || req.closedReason?.includes('anlaştım')) ? 'Anlaşıldı ✓' : 'Kapatıldı'}
                 </Badge>
               </div>
               <span className="text-xs text-slate-400">
