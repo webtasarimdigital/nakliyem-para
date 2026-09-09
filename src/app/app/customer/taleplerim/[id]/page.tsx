@@ -151,8 +151,8 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
                 <span className="text-sm font-black text-[#0A1128] bg-slate-100 px-2.5 py-1 rounded-md">
                   Talep {req.requestCode}
                 </span>
-                <Badge variant={req.status === 'ACTIVE' ? 'verified' : req.status === 'ASSIGNED' ? 'success' : 'danger'}>
-                  {req.status === 'ACTIVE' ? 'Aktif (Teklif Alıyor)' : req.status === 'ASSIGNED' ? 'Firma Anlaşıldı' : 'Kapatıldı'}
+                <Badge variant={req.status === 'ACTIVE' ? 'verified' : req.status === 'ASSIGNED' ? 'success' : (req.closedReason === 'İş Verildi' ? 'success' : 'danger')}>
+                  {req.status === 'ACTIVE' ? 'Aktif (Teklif Alıyor)' : req.status === 'ASSIGNED' ? 'Firma Anlaşıldı' : (req.closedReason === 'İş Verildi' ? 'Anlaşıldı ✓' : 'Kapatıldı')}
                 </Badge>
               </div>
               <span className="text-xs text-slate-400">

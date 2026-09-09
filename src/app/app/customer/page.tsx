@@ -232,6 +232,7 @@ export default function CustomerDashboard() {
                   const isClosed = req.status === 'CLOSED';
                   const isAssigned = req.status === 'ASSIGNED';
                   const isDone = isClosed || isAssigned;
+                  const isAnlasildi = isClosed && req.closedReason === 'İş Verildi';
 
                   return (
                     <div
@@ -259,9 +260,9 @@ export default function CustomerDashboard() {
                             {req.requestCode || '#26093'}
                           </span>
                           <span className={`text-[11px] font-black px-2.5 py-0.5 rounded-md text-white shadow-2xs ${
-                            isClosed ? 'bg-slate-500' : isAssigned ? 'bg-slate-700' : 'bg-emerald-600'
+                            isAnlasildi ? 'bg-emerald-600' : isClosed ? 'bg-slate-500' : isAssigned ? 'bg-slate-700' : 'bg-emerald-600'
                           }`}>
-                            {isClosed ? 'Kapatıldı' : isAssigned ? 'İş Verildi' : 'Yayında'}
+                            {isAnlasildi ? 'Anlaşıldı ✓' : isClosed ? 'Kapatıldı' : isAssigned ? 'İş Verildi' : 'Yayında'}
                           </span>
                         </div>
                       </div>
