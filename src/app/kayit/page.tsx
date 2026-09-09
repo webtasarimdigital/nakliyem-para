@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Eye,
   EyeOff,
-  ArrowRight,
   Lock,
   Mail,
   User,
@@ -571,7 +570,7 @@ function KayitContent() {
                     className="w-full font-bold shadow-lg shadow-orange-900/15"
                     disabled={loading || otpCode.length !== 6 || timeLeft <= 0}
                   >
-                    {loading ? 'Doğrulanıyor...' : 'Doğrula ve Hesabı Aç →'}
+                    {loading ? 'Doğrulanıyor...' : 'Doğrula ve Hesabı Aç'}
                   </Button>
                 </form>
 
@@ -770,10 +769,9 @@ function KayitContent() {
                   <button
                     type="submit"
                     disabled={loading || !agree}
-                    className="w-full bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-sm py-3.5 px-4 rounded-xl shadow-md shadow-orange-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+                    className="w-full bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-sm py-3.5 px-4 rounded-xl shadow-md shadow-orange-500/20 transition-all flex items-center justify-center cursor-pointer disabled:opacity-50 mt-2"
                   >
-                    <span>{loading ? 'Doğrulama Kodu Gönderiliyor...' : 'Doğrulama Kodu Gönder →'}</span>
-                    {!loading && <ArrowRight className="w-4 h-4" />}
+                    <span>{loading ? 'İşleniyor...' : 'Üye Ol'}</span>
                   </button>
                 </form>
 
