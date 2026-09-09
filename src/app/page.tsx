@@ -161,11 +161,11 @@ export default function HomePage() {
           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-[0.04]" style={{ background: 'radial-gradient(circle, #111E38 0%, transparent 70%)' }} />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-14 sm:py-18 lg:py-22">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-12 sm:pt-10 sm:pb-16 lg:py-20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
 
             {/* ── SOL: Başlık + açıklama + arama widgeti ── */}
-            <div className="lg:col-span-7 space-y-7 text-center lg:text-left">
+            <div className="lg:col-span-7 space-y-5 sm:space-y-7 text-center lg:text-left">
 
               {/* Üst badge */}
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold border border-orange-200/90 bg-orange-50/70 text-[#F95700] shadow-2xs">
