@@ -16,6 +16,7 @@ import {
   ImagePlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { FileUploader } from '@/components/ui/FileUploader';
 import { db } from '@/lib/data/mock-db';
 
 type Step = 'CATEGORY' | 'DETAILS' | 'PHOTOS' | 'CONTACT' | 'PREVIEW';
@@ -146,7 +147,7 @@ export default function IlanVerPage() {
     if (prev) setStep(prev);
   };
 
-  const update = (key: string, value: string | boolean) => {
+  const update = (key: string, value: string | boolean | string[]) => {
     setValidationError('');
     setForm(f => ({ ...f, [key]: value }));
   };
@@ -476,15 +477,16 @@ export default function IlanVerPage() {
                 Daha fazla fotoğraf = daha fazla ilgi. En az 3 fotoğraf eklemenizi öneririz.
               </p>
 
-              {/* Mock Upload Zone */}
-              <div className="border-2 border-dashed border-slate-300 rounded-2xl p-10 text-center hover:border-[#F95700] transition-colors cursor-pointer">
-                <ImagePlus className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="font-bold text-slate-700 mb-1">Fotoğraf Ekle</p>
-                <p className="text-xs text-slate-500 font-medium">PNG, JPG — Maks 5 MB, en fazla 16 fotoğraf</p>
-                <Button variant="outline" size="sm" className="mt-4 font-bold">
-                  Galeriden Seç
-                </Button>
-              </div>
+              {/* Real File Uploader with 5MB check & canvas compression */}
+              <FileUploader
+                label="Fotoğraf Ekle"
+                description="PNG, JPG, WEBP — Maks 5 MB, en fazla 16 fotoğraf"
+                maxFiles={16}
+                maxSizeMB={5}
+                files={form.photos}
+                onChange={(photos) => update('photos', photos)}
+                mode="photos"
+              />
 
               <div className="mt-4 p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-800 font-medium">
                 <strong className="font-black">İpucu:</strong> Önce araç fotoğrafı, ardından kasa içi, motor ve arka fotoğraflarını ekleyin.
@@ -593,6 +595,24 @@ export default function IlanVerPage() {
                     <div className="mt-4 pt-4 border-t border-slate-200">
                       <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-1">Açıklama</span>
                       <p className="text-sm text-slate-700 font-medium">{form.description}</p>
+                    </div>
+                  )}
+
+                  {form.photos.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-slate-200">
+                      <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                        Fotoğraflar ({form.photos.length})
+                      </span>
+                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                        {form.photos.map((url, i) => (
+                          <img
+                            key={i}
+                            src={url}
+                            alt={`Fotoğraf ${i + 1}`}
+                            className="w-full aspect-square object-cover rounded-xl border border-slate-200"
+                          />
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -210,6 +210,17 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             </p>
           </div>
 
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              fileInputRef.current?.click();
+            }}
+            className="px-4 py-2 rounded-xl bg-white border-2 border-slate-200 hover:border-[#F95700] hover:text-[#F95700] text-xs font-black text-slate-700 transition-all shadow-2xs cursor-pointer active:scale-95"
+          >
+            {mode === 'photos' ? 'Galeriden Seç' : 'Dosya Seç'}
+          </button>
+
           <input
             ref={fileInputRef}
             type="file"
