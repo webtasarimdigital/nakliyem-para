@@ -113,6 +113,51 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
     return pathname === path || (path !== '/app/customer' && pathname?.startsWith(path));
   };
 
+  const scrollToTarget = (targetId: string) => {
+    if (typeof window === 'undefined') return;
+    const el = document.getElementById(targetId);
+    if (el) {
+      const navOffset = 75; // sticky header height
+      const elementPosition = el.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navOffset;
+      window.scrollTo({
+        top: Math.max(0, offsetPosition),
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleRequestsClick = (e: React.MouseEvent) => {
+    if (pathname === '/app/customer/taleplerim') {
+      e.preventDefault();
+      scrollToTarget('customer-requests-content');
+    } else if (pathname === '/app/customer') {
+      e.preventDefault();
+      scrollToTarget('customer-dashboard-content');
+    }
+  };
+
+  const handleHomeClick = (e: React.MouseEvent) => {
+    if (pathname === '/app/customer') {
+      e.preventDefault();
+      scrollToTarget('customer-dashboard-content');
+    }
+  };
+
+  const handleOffersClick = (e: React.MouseEvent) => {
+    if (pathname === '/app/customer/teklifler') {
+      e.preventDefault();
+      scrollToTarget('customer-offers-content');
+    }
+  };
+
+  const handleMessagesClick = (e: React.MouseEvent) => {
+    if (pathname === '/app/customer/mesajlar') {
+      e.preventDefault();
+      scrollToTarget('customer-messages-content');
+    }
+  };
+
   return (
     <aside className="w-full lg:w-64 bg-white rounded-3xl border border-slate-200/80 p-5 shadow-xs space-y-6 shrink-0 self-start">
       
@@ -136,7 +181,8 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
         {/* Anasayfa */}
         <Link
           href="/app/customer"
-          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all ${
+          onClick={handleHomeClick}
+          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all cursor-pointer ${
             isCurrent('home', '/app/customer')
               ? 'bg-slate-100 text-[#0A1128] shadow-2xs font-extrabold'
               : 'text-slate-600 hover:bg-slate-50 hover:text-[#0A1128]'
@@ -150,8 +196,9 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
 
         {/* Taleplerim */}
         <Link
-          href="/app/customer/taleplerim"
-          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all ${
+          href="/app/customer/taleplerim#customer-requests-content"
+          onClick={handleRequestsClick}
+          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all cursor-pointer ${
             isCurrent('requests', '/app/customer/taleplerim')
               ? 'bg-slate-100 text-[#0A1128] shadow-2xs font-extrabold'
               : 'text-slate-600 hover:bg-slate-50 hover:text-[#0A1128]'
@@ -161,15 +208,23 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
             <Layers className="w-4 h-4 text-slate-500" />
             <span>Taleplerim</span>
           </div>
-          <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center shrink-0">
-            {requestCount}
-          </span>
+          <div className="flex items-center gap-1.5">
+            {requestCount > 0 && (
+              <span className="lg:hidden text-[10px] font-black text-[#F95700] bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full flex items-center gap-0.5 animate-pulse">
+                Aşağıda ↓
+              </span>
+            )}
+            <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center shrink-0">
+              {requestCount}
+            </span>
+          </div>
         </Link>
 
         {/* Gelen Teklifler */}
         <Link
-          href="/app/customer/teklifler"
-          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all ${
+          href="/app/customer/teklifler#customer-offers-content"
+          onClick={handleOffersClick}
+          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all cursor-pointer ${
             isCurrent('offers', '/app/customer/teklifler')
               ? 'bg-slate-100 text-[#0A1128] shadow-2xs font-extrabold'
               : 'text-slate-600 hover:bg-slate-50 hover:text-[#0A1128]'
@@ -199,8 +254,9 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
 
         {/* Mesajlar */}
         <Link
-          href="/app/customer/mesajlar"
-          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all ${
+          href="/app/customer/mesajlar#customer-messages-content"
+          onClick={handleMessagesClick}
+          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all cursor-pointer ${
             isCurrent('messages', '/app/customer/mesajlar')
               ? 'bg-slate-100 text-[#0A1128] shadow-2xs font-extrabold'
               : 'text-slate-600 hover:bg-slate-50 hover:text-[#0A1128]'

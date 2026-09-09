@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, BookOpen, Plus, FileText, ShoppingBag } from 'lucide-react';
+import { db } from '@/lib/data/mock-db';
 
 const LEFT_ITEMS = [
   { label: 'Ana Sayfa', href: '/', icon: Home, exact: true },
@@ -23,6 +24,18 @@ const FAB = {
 
 export const MobileCustomerNav: React.FC = () => {
   const pathname = usePathname();
+  const [currentUser, setCurrentUser] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    setCurrentUser(db.getCurrentUser());
+    const handleAuth = () => setCurrentUser(db.getCurrentUser());
+    window.addEventListener('auth-changed', handleAuth);
+    window.addEventListener('storage', handleAuth);
+    return () => {
+      window.removeEventListener('auth-changed', handleAuth);
+      window.removeEventListener('storage', handleAuth);
+    };
+  }, []);
 
   // Hide on carrier dashboard and admin paths
   if (
@@ -32,9 +45,32 @@ export const MobileCustomerNav: React.FC = () => {
     return null;
   }
 
+  const isCustomer = currentUser?.role === 'CUSTOMER';
+  const taleplerHref = isCustomer ? '/app/customer/taleplerim#customer-requests-content' : '/talepler';
+
   const isActive = (href: string, exact: boolean) => {
+    if (href.startsWith('/app/customer/taleplerim') || href === '/talepler') {
+      return pathname?.startsWith('/app/customer/taleplerim') || pathname === '/talepler';
+    }
     if (exact) return pathname === href;
     return pathname?.startsWith(href) ?? false;
+  };
+
+  const handleTaleplerClick = (e: React.MouseEvent) => {
+    if (pathname === '/app/customer/taleplerim' || pathname === '/app/customer') {
+      const targetId = pathname === '/app/customer/taleplerim' ? 'customer-requests-content' : 'customer-dashboard-content';
+      const el = document.getElementById(targetId);
+      if (el) {
+        e.preventDefault();
+        const navOffset = 75;
+        const elementPosition = el.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - navOffset;
+        window.scrollTo({
+          top: Math.max(0, offsetPosition),
+          behavior: 'smooth'
+        });
+      }
+    }
   };
 
   const navItemClass = (active: boolean) =>
@@ -80,10 +116,17 @@ export const MobileCustomerNav: React.FC = () => {
 
         {/* Right 2 items */}
         {RIGHT_ITEMS.map((item) => {
+          const isTalepler = item.label === 'Talepler';
+          const href = isTalepler ? taleplerHref : item.href;
           const Icon = item.icon;
-          const active = isActive(item.href, item.exact);
+          const active = isActive(href, item.exact);
           return (
-            <Link key={item.href} href={item.href} className={navItemClass(active)}>
+            <Link
+              key={item.href}
+              href={href}
+              onClick={isTalepler ? handleTaleplerClick : undefined}
+              className={navItemClass(active)}
+            >
               <Icon className="w-5 h-5" strokeWidth={active ? 2.5 : 2} />
               <span className="text-[10px] leading-none">{item.label}</span>
             </Link>

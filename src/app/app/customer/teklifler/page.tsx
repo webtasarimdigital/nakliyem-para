@@ -271,7 +271,7 @@ function CustomerOffersContent() {
             <CustomerSidebar activeTab="offers" />
           </div>
 
-          <div className="lg:col-span-9 space-y-6">
+          <div id="customer-offers-content" className="lg:col-span-9 space-y-6 scroll-mt-20">
 
             {/* Header + Request Switcher */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

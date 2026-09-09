@@ -145,7 +145,7 @@ function CustomerMessagesContent() {
             <CustomerSidebar activeTab="messages" />
           </div>
 
-          <main className="lg:col-span-9 space-y-6">
+          <main id="customer-messages-content" className="lg:col-span-9 space-y-6 scroll-mt-20">
             
             {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">

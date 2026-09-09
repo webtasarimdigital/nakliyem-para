@@ -91,6 +91,26 @@ export default function CustomerDashboard() {
     };
   }, [authUser]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hasHash = window.location.hash.includes('customer-dashboard-content');
+    if (hasHash) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('customer-dashboard-content');
+        if (el) {
+          const navOffset = 75;
+          const elementPosition = el.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - navOffset;
+          window.scrollTo({
+            top: Math.max(0, offsetPosition),
+            behavior: 'smooth'
+          });
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   // User display info
   const displayName = currentUser?.fullName || (currentUser as any)?.name || (currentUser?.email ? currentUser.email.split('@')[0] : 'Değerli Müşterimiz');
   const nameParts = displayName.trim().split(' ');
@@ -136,7 +156,7 @@ export default function CustomerDashboard() {
           </div>
 
           {/* 2. CENTER CONTENT: TALEPLERİM (Col 6/12) */}
-          <main className="lg:col-span-6 space-y-5">
+          <main id="customer-dashboard-content" className="lg:col-span-6 space-y-5 scroll-mt-20">
             
             {/* Page Title */}
             <div className="flex items-center justify-between">

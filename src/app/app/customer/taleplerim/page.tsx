@@ -85,6 +85,29 @@ export default function CustomerRequestsPage() {
     };
   }, [authUser]);
 
+  // Mobilde doğrudan talepler alanına yumuşak kaydırma
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isMobile = window.innerWidth < 1024;
+    const hasHash = window.location.hash.includes('customer-requests-content') || window.location.hash.includes('talepler');
+
+    if (isMobile || hasHash) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById('customer-requests-content');
+        if (el) {
+          const navOffset = 75;
+          const elementPosition = el.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - navOffset;
+          window.scrollTo({
+            top: Math.max(0, offsetPosition),
+            behavior: 'smooth'
+          });
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   const isUserRequest = (r: MovingRequest, u: any) => {
     if (!u) return false;
     if (u.id && (r.customerId === u.id || (r as any).userId === u.id)) return true;
@@ -133,7 +156,7 @@ export default function CustomerRequestsPage() {
           </div>
 
           {/* 2. Center Content (Full Width beside Sidebar) */}
-          <main className="lg:col-span-9 space-y-5">
+          <main id="customer-requests-content" className="lg:col-span-9 space-y-5 scroll-mt-20">
             
             {/* Header + Tabs */}
             <div className="space-y-3">
