@@ -175,7 +175,7 @@ export default function HomePage() {
 
               {/* H1 - İç açıcı ferah tipografi */}
               <div className="space-y-3.5">
-                <h1 className="text-3xl sm:text-5xl lg:text-[3.25rem] font-extrabold leading-[1.2] sm:leading-[1.12] text-[#111E38] tracking-tight">
+                <h1 className="text-2xl sm:text-4xl lg:text-[2.6rem] font-extrabold leading-[1.22] sm:leading-[1.18] text-[#111E38] tracking-tight">
                   Taşınmanızı Planlayın,{' '}
                   <span className="text-[#F95700]">Teklifleri Tek Yerde</span>{' '}
                   Karşılaştırın.
