@@ -19,9 +19,13 @@ import {
   Eye,
   Flag,
   ChevronDown,
-  X
+  X,
+  Lock,
+  CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { db } from '@/lib/data/mock-db';
+import { IntentAuthModal } from '@/components/ui/IntentAuthModal';
 
 // Same listing data (in real app this would come from a shared store/API)
 const SAMPLE_LISTINGS = [
@@ -138,6 +142,47 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   const [messageText, setMessageText] = useState('Bu ilan hakkında bilgi alabilir miyim?');
   const [showFullGallery, setShowFullGallery] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalPurpose, setAuthModalPurpose] = useState<'MESSAGE' | 'PHONE'>('MESSAGE');
+
+  const currentUser = db.getCurrentUser();
+
+  const handleMessageClick = () => {
+    if (!currentUser) {
+      setAuthModalPurpose('MESSAGE');
+      setAuthModalOpen(true);
+      return;
+    }
+    const inputEl = document.getElementById('quick-message-input');
+    inputEl?.focus();
+  };
+
+  const handleShowPhoneClick = () => {
+    if (!currentUser) {
+      setAuthModalPurpose('PHONE');
+      setAuthModalOpen(true);
+      return;
+    }
+    setShowPhone(true);
+  };
+
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (!currentUser) {
+      e.target.blur();
+      setAuthModalPurpose('MESSAGE');
+      setAuthModalOpen(true);
+    }
+  };
+
+  const handleSendMessage = () => {
+    if (!currentUser) {
+      setAuthModalPurpose('MESSAGE');
+      setAuthModalOpen(true);
+      return;
+    }
+    if (!messageText.trim()) return;
+    setMessageSent(true);
+  };
 
   const handlePrevPhoto = () => {
     setActivePhoto(prev => prev === 0 ? listing.photos.length - 1 : prev - 1);
@@ -283,6 +328,85 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 <Eye className="w-3.5 h-3.5 text-slate-400" />
                 <span>{listing.viewCount} görüntülenme</span>
               </div>
+
+              {/* Communication Action Block (Mesaj, Numarayı Göster, Hızlı Mesaj) */}
+              <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
+                {/* 2 Buttons Row */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    onClick={handleMessageClick}
+                    className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm shadow-md shadow-orange-900/15 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Mesaj</span>
+                  </button>
+
+                  {showPhone ? (
+                    <a
+                      href={`tel:${listing.sellerPhone}`}
+                      className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm shadow-md active:scale-95 transition-all"
+                    >
+                      <Phone className="w-4 h-4" />
+                      <span className="truncate">{listing.sellerPhone}</span>
+                    </a>
+                  ) : (
+                    <button
+                      onClick={handleShowPhoneClick}
+                      className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-800 font-black text-sm shadow-xs active:scale-95 transition-all cursor-pointer"
+                    >
+                      <Phone className="w-4 h-4 text-slate-600" />
+                      <span>Numarayı Göster</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Quick Message Input Row */}
+                {messageSent ? (
+                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Mesajınız satıcıya başarıyla iletildi. En kısa sürede yanıt alacaksınız.</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="quick-message-input"
+                      type="text"
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      onFocus={handleInputFocus}
+                      placeholder="Bu ilan hakkında bilgi alabilir miyim?"
+                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#F95700] text-xs sm:text-sm font-medium bg-slate-50/50 focus:bg-white text-[#111E38] outline-hidden transition-all"
+                    />
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="font-black shrink-0 px-5 py-2.5 rounded-xl"
+                      onClick={handleSendMessage}
+                    >
+                      Gönder
+                    </Button>
+                  </div>
+                )}
+
+                {/* Unauthenticated Security Warning */}
+                {!currentUser && (
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-[11px] text-slate-600">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Lock className="w-3.5 h-3.5 text-slate-400" />
+                      Mesajlaşmak ve numarayı görmek için üye girişi gereklidir.
+                    </span>
+                    <button
+                      onClick={() => {
+                        setAuthModalPurpose('MESSAGE');
+                        setAuthModalOpen(true);
+                      }}
+                      className="text-[#F95700] font-black hover:underline cursor-pointer"
+                    >
+                      Giriş Yap
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Technical Specs Card */}
@@ -361,7 +485,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                     size="lg"
                     className="w-full font-black text-base shadow-md"
                     leftIcon={<Phone className="w-5 h-5" />}
-                    onClick={() => setShowPhone(true)}
+                    onClick={handleShowPhoneClick}
                   >
                     Numarayı Göster
                   </Button>
@@ -378,13 +502,15 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       type="text"
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
+                      onFocus={handleInputFocus}
+                      placeholder="Bu ilan hakkında bilgi alabilir miyim?"
                       className="flex-1 px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-xs sm:text-sm font-medium bg-white text-[#111E38]"
                     />
                     <Button
                       variant="primary"
                       size="sm"
                       className="font-black shrink-0 px-4"
-                      onClick={() => setMessageSent(true)}
+                      onClick={handleSendMessage}
                     >
                       Gönder
                     </Button>
@@ -476,6 +602,22 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       )}
+      {/* Auth Gate Modal for Unauthenticated Users */}
+      <IntentAuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        targetRole="CUSTOMER"
+        title={authModalPurpose === 'PHONE' ? "İletişim Numarasını Görmek İçin Giriş Yapın" : "İlan Sahibine Mesaj Göndermek İçin Giriş Yapın"}
+        subtitle={authModalPurpose === 'PHONE' ? "Satıcıyla doğrudan telefonla görüşmek ve detayları öğrenmek için lütfen hesabınıza giriş yapın veya ücretsiz üye olun." : "Satıcıyla pazarlık yapmak ve bilgi almak için lütfen giriş yapın veya kayıt olun."}
+        onSuccess={() => {
+          setAuthModalOpen(false);
+          if (authModalPurpose === 'PHONE') {
+            setShowPhone(true);
+          } else {
+            setMessageSent(true);
+          }
+        }}
+      />
     </div>
   );
 }

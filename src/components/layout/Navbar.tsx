@@ -378,13 +378,13 @@ export const Navbar: React.FC = () => {
                 )}
               </div>
 
-              {/* Kaydol with Orange background per user request */}
+              {/* Kayıt Ol with Orange background per user request */}
               <div className="relative" ref={registerDropdownRef}>
                 <button
                   onClick={() => { setRegisterDropdownOpen(!registerDropdownOpen); setLoginDropdownOpen(false); }}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white text-sm font-black transition-all shadow-md shadow-orange-900/20 cursor-pointer"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white text-[15px] font-black transition-all shadow-md shadow-orange-900/20 cursor-pointer"
                 >
-                  Kaydol <ChevronDown className="w-3.5 h-3.5 text-white/80" />
+                  Kayıt Ol <ChevronDown className="w-3.5 h-3.5 text-white/80" />
                 </button>
                 {registerDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-200 p-1.5 z-50 animate-fade-in space-y-1">
@@ -405,7 +405,7 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* ── MOBILE BAR (logo + hamburger only) ── */}
-      <div className="md:hidden flex items-center justify-between px-4 h-14">
+      <div className="md:hidden flex items-center justify-between px-4 h-16">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#F95700] to-[#E04D00] text-white flex items-center justify-center shadow-sm">
             <Truck className="w-5 h-5 stroke-[2.5]" />
@@ -415,11 +415,11 @@ export const Navbar: React.FC = () => {
           </span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {currentUser ? (
             <Link
               href={isCarrier ? '/app/carrier/profil' : '/app/customer/profil'}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-black text-[#111E38]"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-black text-[#111E38]"
             >
               <div className={`w-5 h-5 rounded-full ${isCarrier ? 'bg-[#111E38]' : 'bg-[#F95700]'} text-white flex items-center justify-center text-[10px]`}>
                 {avatarInitial}
@@ -427,8 +427,8 @@ export const Navbar: React.FC = () => {
               <span className="max-w-[70px] truncate">{displayName}</span>
             </Link>
           ) : (
-            <Link href="/kayit" className="px-3 py-1.5 rounded-xl bg-[#F95700] text-white text-xs font-black shadow-sm">
-              Kaydol
+            <Link href="/kayit" className="px-4 py-2 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white text-sm font-black shadow-md shadow-orange-900/15 tracking-wide active:scale-95 transition-all">
+              Kayıt Ol
             </Link>
           )}
 
@@ -487,7 +487,7 @@ export const Navbar: React.FC = () => {
                 <Button variant="outline" size="md" className="w-full font-black text-sm">Giriş Yap</Button>
               </Link>
               <Link href="/kayit" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="primary" size="md" className="w-full font-black text-sm">Kaydol</Button>
+                <Button variant="primary" size="md" className="w-full font-black text-sm">Kayıt Ol</Button>
               </Link>
             </div>
           ) : (
