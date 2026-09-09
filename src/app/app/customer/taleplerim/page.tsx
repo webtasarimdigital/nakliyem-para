@@ -66,24 +66,29 @@ export default function CustomerRequestsPage() {
 
   useEffect(() => {
     loadRequests();
-    const handleReload = () => {
-      loadRequests();
+
+    // Talepleri sadece gerçekten yeni talep/teklif eklenince yenile
+    const handleRequestReload = () => { loadRequests(); };
+
+    // Storage event yalnızca kullanıcı bilgisini günceller — loadRequests ÇAĞIRMAZ
+    const handleStorageAuthOnly = () => {
+      setCurrentUser(authUser || db.getCurrentUser());
     };
+
+    // Auth değişiminde kullanıcıyı güncelle
     const handleAuthChange = () => {
       setCurrentUser(authUser || db.getCurrentUser());
-      loadRequests();
     };
-    window.addEventListener('storage', handleReload);
-    window.addEventListener('storage', handleAuthChange);
+
+    window.addEventListener('storage', handleStorageAuthOnly);
     window.addEventListener('auth-changed', handleAuthChange);
-    window.addEventListener('request-added', handleReload);
-    window.addEventListener('offer-added', handleReload);
+    window.addEventListener('request-added', handleRequestReload);
+    window.addEventListener('offer-added', handleRequestReload);
     return () => {
-      window.removeEventListener('storage', handleReload);
-      window.removeEventListener('storage', handleAuthChange);
+      window.removeEventListener('storage', handleStorageAuthOnly);
       window.removeEventListener('auth-changed', handleAuthChange);
-      window.removeEventListener('request-added', handleReload);
-      window.removeEventListener('offer-added', handleReload);
+      window.removeEventListener('request-added', handleRequestReload);
+      window.removeEventListener('offer-added', handleRequestReload);
     };
   }, [authUser]);
 
