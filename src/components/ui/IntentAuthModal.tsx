@@ -57,6 +57,9 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
 
   const isCarrier = targetRole === 'CARRIER';
 
+  // Already registered state
+  const [alreadyRegistered, setAlreadyRegistered] = useState<string | null>(null);
+
   // 3 Dakikalık Geri Sayım Sayacı
   useEffect(() => {
     if (!isOpen || tab !== 'REGISTER' || registerStep !== 'OTP') return;
@@ -83,6 +86,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
     setOtpCode('');
     setErrorMessage('');
     setOtpSuccessMsg('');
+    setAlreadyRegistered(null);
     onClose();
   };
 
@@ -216,6 +220,12 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
 
       const data = await res.json();
 
+      if (res.status === 409 || data.error === 'ALREADY_REGISTERED') {
+        setAlreadyRegistered(email.trim().toLowerCase());
+        setIsLoading(false);
+        return;
+      }
+
       if (!res.ok || data.error) {
         setErrorMessage(data.error || 'Doğrulama kodu gönderilemedi.');
         setIsLoading(false);
@@ -320,7 +330,17 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
         });
 
         if (res.error) {
-          setErrorMessage(res.error);
+          if (
+            res.error.includes('already-in-use') ||
+            res.error.includes('already in use') ||
+            res.error.includes('zaten kullanımda') ||
+            res.error.includes('Bu e-posta')
+          ) {
+            setRegisterStep('FORM');
+            setAlreadyRegistered(email.trim().toLowerCase());
+          } else {
+            setErrorMessage(res.error);
+          }
           setIsLoading(false);
           return;
         }
@@ -517,6 +537,42 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
           </div>
         )}
 
+        {/* Already Registered Warning */}
+        {alreadyRegistered && (
+          <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 space-y-2">
+            <div className="flex items-center gap-2 text-amber-800 text-xs font-bold">
+              <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+              <span>Bu Hesap Zaten Kayıtlı!</span>
+            </div>
+            <p className="text-[11px] text-amber-700 font-medium leading-relaxed">
+              <strong>{alreadyRegistered}</strong> adresi ile kayıtlı bir hesap var. Giriş yapmak veya şifrenizi sıfırlamak için:
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setAlreadyRegistered(null);
+                  setTab('LOGIN');
+                  setEmail(alreadyRegistered);
+                }}
+                className="flex-1 py-1.5 px-3 rounded-lg bg-[#111E38] text-white text-[11px] font-bold hover:bg-[#1a2d52] transition-colors cursor-pointer"
+              >
+                Giriş Yap
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleModalClose();
+                  router.push(`/sifremi-unuttum?email=${encodeURIComponent(alreadyRegistered)}`);
+                }}
+                className="flex-1 py-1.5 px-3 rounded-lg bg-amber-100 text-amber-800 text-[11px] font-bold border border-amber-300 hover:bg-amber-200 transition-colors cursor-pointer"
+              >
+                Şifremi Sıfırla
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* OTP Success Alert */}
         {otpSuccessMsg && registerStep === 'OTP' && (
           <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-center gap-2">
@@ -570,9 +626,8 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
               isLoading={isLoading}
               disabled={otpCode.length !== 6 || timeLeft <= 0}
               className="w-full font-black text-xs py-3 shadow-md bg-[#F95700] hover:bg-[#E04F00]"
-              rightIcon={<ArrowRight className="w-4 h-4" />}
             >
-              {targetRole === 'CUSTOMER' ? 'Kodu Doğrula & Talebi Yayınla' : 'Kodu Doğrula & Kaydol'}
+              {isLoading ? 'İşleniyor...' : 'Doğrula ve Üye Ol'}
             </Button>
 
             <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
@@ -657,7 +712,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
-                Hızlı Üye Ol
+                Üye Ol
               </button>
               <button
                 type="button"
@@ -741,11 +796,12 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
                 size="md"
                 isLoading={isLoading}
                 className="w-full font-bold text-xs py-3 mt-2 shadow-md bg-[#F95700] hover:bg-[#E04F00]"
-                rightIcon={<ArrowRight className="w-4 h-4" />}
               >
-                {tab === 'REGISTER' 
-                  ? 'Onay Kodu Gönder & Devam Et'
-                  : 'Giriş Yap ve Devam Et'
+                {isLoading
+                  ? 'İşleniyor...'
+                  : tab === 'REGISTER'
+                  ? 'Üye Ol'
+                  : 'Giriş Yap'
                 }
               </Button>
 
