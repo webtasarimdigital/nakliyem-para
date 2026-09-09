@@ -21,7 +21,8 @@ import {
   ChevronDown,
   X,
   Lock,
-  CheckCircle2
+  CheckCircle2,
+  Send
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { db } from '@/lib/data/mock-db';
@@ -139,7 +140,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   const [activePhoto, setActivePhoto] = useState(0);
   const [showPhone, setShowPhone] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
-  const [messageText, setMessageText] = useState('Bu ilan hakkında bilgi alabilir miyim?');
+  const [messageText, setMessageText] = useState('');
   const [showFullGallery, setShowFullGallery] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -174,13 +175,14 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     }
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = (customText?: string) => {
     if (!currentUser) {
       setAuthModalPurpose('MESSAGE');
       setAuthModalOpen(true);
       return;
     }
-    if (!messageText.trim()) return;
+    const textToSend = typeof customText === 'string' ? customText : (messageText.trim() || 'Bu ilan hakkında bilgi alabilir miyim?');
+    if (!textToSend.trim()) return;
     setMessageSent(true);
   };
 
@@ -330,7 +332,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
               </div>
 
               {/* Communication Action Block (Mesaj, Numarayı Göster, Hızlı Mesaj) */}
-              <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
+              <div className="mt-4 pt-4 border-t border-slate-100 space-y-3.5">
                 {/* 2 Buttons Row */}
                 <div className="grid grid-cols-2 gap-2.5">
                   <button
@@ -338,7 +340,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                     className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm shadow-md shadow-orange-900/15 active:scale-95 transition-all cursor-pointer"
                   >
                     <MessageSquare className="w-4 h-4" />
-                    <span>Mesaj</span>
+                    <span>Mesaj Gönder</span>
                   </button>
 
                   {showPhone ? (
@@ -360,50 +362,80 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                   )}
                 </div>
 
-                {/* Quick Message Input Row */}
+                {/* Clear & Distinct Message Composer Card */}
                 {messageSent ? (
-                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Mesajınız satıcıya başarıyla iletildi. En kısa sürede yanıt alacaksınız.</span>
+                  <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2.5 shadow-xs animate-fade-in">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                    <div>
+                      <p className="font-black text-emerald-950">Mesajınız Satıcıya İletildi!</p>
+                      <p className="text-[11px] text-emerald-700 font-medium">Satıcı yanıtladığında bildirimleriniz ve mesajlarım bölümünde görüntülenecektir.</p>
+                    </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="quick-message-input"
-                      type="text"
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                      onFocus={handleInputFocus}
-                      placeholder="Bu ilan hakkında bilgi alabilir miyim?"
-                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-[#F95700] text-xs sm:text-sm font-medium bg-slate-50/50 focus:bg-white text-[#111E38] outline-hidden transition-all"
-                    />
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="font-black shrink-0 px-5 py-2.5 rounded-xl"
-                      onClick={handleSendMessage}
-                    >
-                      Gönder
-                    </Button>
-                  </div>
-                )}
+                  <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 space-y-2.5 shadow-2xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-[#111E38] flex items-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5 text-[#F95700]" />
+                        Satıcıya Mesaj Gönder
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded-full border border-slate-200/60">
+                        Hızlı İletişim
+                      </span>
+                    </div>
 
-                {/* Unauthenticated Security Warning */}
-                {!currentUser && (
-                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-[11px] text-slate-600">
-                    <span className="flex items-center gap-1.5 font-medium">
-                      <Lock className="w-3.5 h-3.5 text-slate-400" />
-                      Mesajlaşmak ve numarayı görmek için üye girişi gereklidir.
-                    </span>
-                    <button
-                      onClick={() => {
-                        setAuthModalPurpose('MESSAGE');
-                        setAuthModalOpen(true);
-                      }}
-                      className="text-[#F95700] font-black hover:underline cursor-pointer"
-                    >
-                      Giriş Yap
-                    </button>
+                    {/* Quick Question Chips */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        'Bu ilan hakkında bilgi alabilir miyim?',
+                        'Fiyatta pazarlık payı var mı?',
+                        'Araç başında inceleyebilir miyiz?'
+                      ].map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => {
+                            setMessageText(preset);
+                            if (!currentUser) {
+                              setAuthModalPurpose('MESSAGE');
+                              setAuthModalOpen(true);
+                            } else {
+                              const inputEl = document.getElementById('quick-message-input');
+                              inputEl?.focus();
+                            }
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-white hover:bg-orange-50 hover:text-[#F95700] hover:border-orange-200 border border-slate-200 text-[11px] font-medium text-slate-600 transition-all cursor-pointer text-left shadow-2xs"
+                        >
+                          {preset}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Styled Input Box with Integrated Send Button */}
+                    <div className="relative flex items-center">
+                      <input
+                        id="quick-message-input"
+                        type="text"
+                        value={messageText}
+                        onChange={(e) => setMessageText(e.target.value)}
+                        onFocus={handleInputFocus}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleSendMessage();
+                          }
+                        }}
+                        placeholder="Satıcıya iletmek istediğiniz mesajınızı yazın..."
+                        className="w-full pl-3.5 pr-24 py-2.5 rounded-xl border border-slate-200 focus:border-[#F95700] focus:ring-2 focus:ring-orange-100 text-xs sm:text-sm font-medium bg-white text-[#111E38] outline-hidden transition-all placeholder:text-slate-400 shadow-2xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleSendMessage()}
+                        className="absolute right-1 top-1 bottom-1 px-3.5 rounded-lg bg-[#F95700] hover:bg-[#E04D00] text-white text-xs font-black flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Gönder</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -497,23 +529,37 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                     ✓ Mesajınız gönderildi, satıcı en kısa sürede yanıtlayacak.
                   </div>
                 ) : (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                      onFocus={handleInputFocus}
-                      placeholder="Bu ilan hakkında bilgi alabilir miyim?"
-                      className="flex-1 px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-[#F95700] text-xs sm:text-sm font-medium bg-white text-[#111E38]"
-                    />
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="font-black shrink-0 px-4"
-                      onClick={handleSendMessage}
-                    >
-                      Gönder
-                    </Button>
+                  <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-[#111E38] flex items-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5 text-[#F95700]" />
+                        Satıcıya Mesaj Gönder
+                      </span>
+                    </div>
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={messageText}
+                        onChange={(e) => setMessageText(e.target.value)}
+                        onFocus={handleInputFocus}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleSendMessage();
+                          }
+                        }}
+                        placeholder="Mesajınızı yazın..."
+                        className="w-full pl-3 pr-20 py-2.5 rounded-xl border border-slate-200 focus:border-[#F95700] text-xs font-medium bg-white text-[#111E38] outline-hidden placeholder:text-slate-400"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleSendMessage()}
+                        className="absolute right-1 top-1 bottom-1 px-3 rounded-lg bg-[#F95700] hover:bg-[#E04D00] text-white text-xs font-black flex items-center gap-1 transition-all shadow-xs cursor-pointer active:scale-95"
+                      >
+                        <Send className="w-3 h-3" />
+                        <span>Gönder</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
