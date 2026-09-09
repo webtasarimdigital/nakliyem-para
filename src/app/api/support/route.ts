@@ -93,6 +93,7 @@ ${message}
             user: smtpUser,
             pass: smtpPass,
           },
+          tls: { rejectUnauthorized: false },
         });
 
         await transporter.sendMail({

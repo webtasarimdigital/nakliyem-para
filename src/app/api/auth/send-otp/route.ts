@@ -146,6 +146,7 @@ ${ADMIN_EMAIL}
           port: Number(process.env.SMTP_PORT) || 465,
           secure: Number(process.env.SMTP_PORT) === 465 || !process.env.SMTP_PORT,
           auth: { user: smtpUser, pass: smtpPass },
+          tls: { rejectUnauthorized: false },
         });
 
         await transporter.sendMail({
