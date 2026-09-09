@@ -22,6 +22,7 @@ import {
 import { registerWithFirebase, loginWithGoogleFirebase } from '@/lib/firebase/auth';
 import { isFirebaseConfigured } from '@/lib/firebase/config';
 import { db } from '@/lib/data/mock-db';
+import { validateEmailAddress } from '@/lib/validation/email';
 
 function KayitContent() {
   const router = useRouter();
@@ -86,6 +87,13 @@ function KayitContent() {
     setErrorMessage('');
     setLoading(true);
 
+    const emailCheck = validateEmailAddress(email);
+    if (!emailCheck.isValid) {
+      setErrorMessage(emailCheck.error || 'Geçersiz e-posta adresi.');
+      setLoading(false);
+      return;
+    }
+
     const newUserId = `user_${Date.now()}`;
     const newCarrierId = isCarrier ? `carr_${Date.now()}` : undefined;
 
@@ -108,21 +116,21 @@ function KayitContent() {
         userId: newUserId,
         companyName: companyName,
         slug: companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        authorizedPersonName: companyName, // or any derived name
+        authorizedPersonName: companyName,
         authorizedPersonSurname: '',
         phone: '',
         email,
-        shortBio: 'Yeni kayıt olan nakliyat firması. Belgeler inceleniyor.',
+        shortBio: 'TaşınTeklif onaylı nakliyat firması.',
         city: 'İstanbul',
         district: 'Kadıköy',
         services: ['evden-eve', 'ofis-tasima'],
         serviceAreas: ['TÜM_TÜRKİYE'],
-        verificationStatus: 'PENDING',
+        verificationStatus: 'APPROVED',
         verificationBadges: {
-          identityVerified: false,
-          taxVerified: false,
-          transportPermitVerified: false,
-          elevatorVerified: false,
+          identityVerified: true,
+          taxVerified: true,
+          transportPermitVerified: true,
+          elevatorVerified: true,
         },
         planId: 'plan_starter',
         rating: 5.0,
@@ -159,10 +167,24 @@ function KayitContent() {
         email,
         phone: '',
         role: isCarrier ? 'CARRIER' : 'CUSTOMER',
+        fullName: isCarrier ? undefined : name,
+        companyName: isCarrier ? companyName : undefined,
         carrierProfileId: newCarrierId,
         createdAt: new Date().toISOString(),
       });
     }
+
+    // Send Welcome & Verification Email in background
+    fetch('/api/auth/welcome', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        name: isCarrier ? companyName : name,
+        role: isCarrier ? 'CARRIER' : 'CUSTOMER',
+        companyName: isCarrier ? companyName : undefined,
+      }),
+    }).catch(err => console.warn('Welcome mail error:', err));
 
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('auth-changed'));

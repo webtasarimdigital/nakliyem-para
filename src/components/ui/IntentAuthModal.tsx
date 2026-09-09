@@ -43,6 +43,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
           email: `${phone.replace(/\s/g, '')}@musteri.com`,
           phone: phone || '0535 000 00 00',
           role: 'CUSTOMER',
+          fullName: name || 'Değerli Müşterimiz',
           customerProfileId: `cust_${Date.now()}`,
           createdAt: new Date().toISOString()
         });
@@ -52,9 +53,14 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
           email: `${phone.replace(/\s/g, '')}@nakliyeci.com`,
           phone: phone || '0532 000 00 00',
           role: 'CARRIER',
+          companyName: name || 'TaşınTeklif Nakliyat',
           carrierProfileId: 'carr_bogazici',
           createdAt: new Date().toISOString()
         });
+      }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth-changed'));
       }
 
       setIsLoading(false);

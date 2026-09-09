@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   PlusCircle, 
@@ -9,12 +9,12 @@ import {
   ArrowRight, 
   FileText, 
   CheckCircle2, 
-  Building,
-  Sofa,
-  Box,
+  Building, 
+  Sofa, 
+  Box, 
   Truck, 
-  Star,
-  MessageSquare
+  Star, 
+  MessageSquare 
 } from 'lucide-react';
 import { CustomerSidebar } from '@/components/layout/CustomerSidebar';
 import { LiveOfferChatModal } from '@/components/ui/LiveOfferChatModal';
@@ -23,12 +23,26 @@ import { db } from '@/lib/data/mock-db';
 export default function CustomerRequestsPage() {
   const [tab, setTab] = useState<'ALL' | 'ACTIVE' | 'ASSIGNED' | 'CLOSED'>('ALL');
   const currentUser = db.getCurrentUser();
-  const allRequests = db.getRequests();
+  const [allRequests, setAllRequests] = useState(() => db.getRequests());
+
+  useEffect(() => {
+    const handleReload = () => {
+      setAllRequests(db.getRequests());
+    };
+    window.addEventListener('storage', handleReload);
+    window.addEventListener('request-added', handleReload);
+    window.addEventListener('offer-added', handleReload);
+    return () => {
+      window.removeEventListener('storage', handleReload);
+      window.removeEventListener('request-added', handleReload);
+      window.removeEventListener('offer-added', handleReload);
+    };
+  }, []);
 
   const customerRequests = allRequests.filter(
-    r => r.customerId === currentUser?.id || r.id === 'req_26093'
+    r => (currentUser?.id && r.customerId === currentUser.id) || r.id === 'req_26093'
   );
-  const baseRequests = customerRequests.length > 0 ? customerRequests : allRequests.slice(0, 3);
+  const baseRequests = customerRequests.length > 0 ? customerRequests : allRequests;
 
   const filteredRequests = baseRequests.filter(r => {
     if (tab === 'ALL') return true;
@@ -109,7 +123,7 @@ export default function CustomerRequestsPage() {
               <div className="space-y-4">
                 {filteredRequests.map((req) => {
                   const reqOffers = db.getOffersForRequest(req.id);
-                  const offerCount = reqOffers.length > 0 ? reqOffers.length : 2;
+                  const offerCount = reqOffers.length;
                   const isAssigned = req.status === 'ASSIGNED' || req.id === 'req_26093';
 
                   return (
@@ -204,14 +218,25 @@ export default function CustomerRequestsPage() {
 
                       {/* Bottom Action Row (Image Exact: Green 'Teklif var' + Gray 'İş Verildi' + Chat Button) */}
                       <div className="flex items-center gap-2.5 pt-2 flex-wrap">
-                        <Link
-                          href="/app/customer/teklifler"
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 text-xs font-black hover:bg-emerald-100 transition-colors shadow-2xs"
-                        >
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>{offerCount} Teklif var</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </Link>
+                        {offerCount > 0 ? (
+                          <Link
+                            href={`/app/customer/teklifler?reqId=${req.id}`}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 text-xs font-black hover:bg-emerald-100 transition-colors shadow-2xs"
+                          >
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>{offerCount} Teklif var</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/app/customer/teklifler?reqId=${req.id}`}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-orange-200 bg-orange-50 text-[#F95700] text-xs font-black hover:bg-orange-100 transition-colors shadow-2xs"
+                          >
+                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                            <span>Teklif Bekleniyor</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </Link>
+                        )}
 
                         <button
                           type="button"

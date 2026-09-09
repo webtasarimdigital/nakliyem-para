@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -28,8 +28,22 @@ import { db } from '@/lib/data/mock-db';
 export default function CustomerDashboard() {
   const router = useRouter();
   const currentUser = db.getCurrentUser();
-  const allRequests = db.getRequests();
+  const [allRequests, setAllRequests] = useState(() => db.getRequests());
   const offers = db.getOffers();
+
+  useEffect(() => {
+    const handleReload = () => {
+      setAllRequests(db.getRequests());
+    };
+    window.addEventListener('storage', handleReload);
+    window.addEventListener('request-added', handleReload);
+    window.addEventListener('offer-added', handleReload);
+    return () => {
+      window.removeEventListener('storage', handleReload);
+      window.removeEventListener('request-added', handleReload);
+      window.removeEventListener('offer-added', handleReload);
+    };
+  }, []);
 
   // User display info
   const displayName = currentUser?.fullName || (currentUser as any)?.name || 'Hakan Yavaş';
@@ -44,7 +58,7 @@ export default function CustomerDashboard() {
 
   // Filter requests belonging to this customer, or fallback to the rich seed request if new
   const customerRequests = allRequests.filter(
-    r => r.customerId === currentUser?.id || r.id === 'req_26093'
+    r => (currentUser?.id && r.customerId === currentUser.id) || r.id === 'req_26093'
   );
   const displayRequests = customerRequests.length > 0 ? customerRequests : allRequests.slice(0, 2);
   const [liveChatOpen, setLiveChatOpen] = useState(false);
@@ -88,7 +102,7 @@ export default function CustomerDashboard() {
               <div className="space-y-4">
                 {displayRequests.map((req) => {
                   const reqOffers = db.getOffersForRequest(req.id);
-                  const offerCount = reqOffers.length > 0 ? reqOffers.length : 2;
+                  const offerCount = reqOffers.length;
                   const isAssigned = req.status === 'ASSIGNED' || req.id === 'req_26093';
 
                   return (
@@ -183,14 +197,25 @@ export default function CustomerDashboard() {
 
                       {/* Bottom Action Row (Image Exact: Green 'Teklif var' + Gray 'İş Verildi' + Chat Button) */}
                       <div className="flex items-center gap-2.5 pt-2 flex-wrap">
-                        <Link
-                          href="/app/customer/teklifler"
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 text-xs font-black hover:bg-emerald-100 transition-colors shadow-2xs"
-                        >
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>{offerCount} Teklif var</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </Link>
+                        {offerCount > 0 ? (
+                          <Link
+                            href={`/app/customer/teklifler?reqId=${req.id}`}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 text-xs font-black hover:bg-emerald-100 transition-colors shadow-2xs"
+                          >
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>{offerCount} Teklif var</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/app/customer/teklifler?reqId=${req.id}`}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-orange-200 bg-orange-50 text-[#F95700] text-xs font-black hover:bg-orange-100 transition-colors shadow-2xs"
+                          >
+                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                            <span>Teklif Bekleniyor</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </Link>
+                        )}
 
                         <button
                           type="button"

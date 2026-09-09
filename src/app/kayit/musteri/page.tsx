@@ -18,14 +18,28 @@ export default function CustomerRegisterPage() {
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanName = `${firstName} ${lastName}`.trim() || 'Değerli Müşterimiz';
     db.setCurrentUser({
       id: `user_cust_${Date.now()}`,
       email: email || `${phone}@musteri.com`,
+      fullName: cleanName,
       phone,
       role: 'CUSTOMER',
       customerProfileId: `cust_${Date.now()}`,
       createdAt: new Date().toISOString()
     });
+
+    if (email) {
+      fetch('/api/auth/welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name: cleanName, role: 'CUSTOMER' }),
+      }).catch(err => console.warn(err));
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-changed'));
+    }
     setIsSuccess(true);
   };
 

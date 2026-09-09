@@ -86,6 +86,7 @@ export interface User {
   city?: string;
   carrierProfileId?: string;
   customerProfileId?: string;
+  emailVerified?: boolean;
   createdAt: string;
 }
 

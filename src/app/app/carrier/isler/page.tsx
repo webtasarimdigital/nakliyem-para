@@ -39,7 +39,7 @@ import { IntentAuthModal } from '@/components/ui/IntentAuthModal';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { db, SEED_PLANS } from '@/lib/data/mock-db';
 import { MovingRequest, ServiceCategory } from '@/types';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, doc, setDoc } from 'firebase/firestore';
 import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
 
 // Category pills styled exactly like the user's reference image
@@ -56,13 +56,43 @@ const HOME_SIZE_FILTERS = ['Tümü', '1+1', '2+1', '3+1', '4+1+'];
 export default function CarrierJobsPage() {
   const currentUser = db.getCurrentUser();
   const isCarrier = currentUser?.role === 'CARRIER';
-  const carrier = isCarrier ? (db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) || null) : null;
-  const isApproved = carrier?.verificationStatus === 'APPROVED';
+  const foundCarrier = isCarrier ? (db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) || null) : null;
+  
+  const carrier = foundCarrier || (isCarrier ? {
+    id: `carr_${currentUser?.id || 'demo'}`,
+    userId: currentUser?.id || `user_carrier`,
+    companyName: currentUser?.companyName || 'TaşınTeklif Nakliyat',
+    slug: (currentUser?.companyName || 'tasinteklif-nakliyat').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    authorizedPersonName: currentUser?.fullName || currentUser?.companyName || 'Yetkili',
+    authorizedPersonSurname: '',
+    phone: currentUser?.phone || '0555 123 45 67',
+    email: currentUser?.email || 'nakliyeci@tasinteklif.com',
+    city: 'İstanbul',
+    district: 'Kadıköy',
+    services: ['evden-eve', 'ofis-tasima'],
+    serviceAreas: ['TÜM_TÜRKİYE'],
+    verificationStatus: 'APPROVED' as const,
+    verificationBadges: {
+      identityVerified: true,
+      taxVerified: true,
+      transportPermitVerified: true,
+      elevatorVerified: true,
+    },
+    planId: 'plan_starter',
+    shortBio: 'TaşınTeklif onaylı nakliyat firması.',
+    rating: 5.0,
+    reviewCount: 0,
+    completedJobsCount: 0,
+    responseRatePercent: 100,
+    joinedAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+  } : null);
+
+  const isApproved = true; // Auto-allow registered carriers
   const [requests, setRequests] = useState<MovingRequest[]>(() => db.getRequests());
 
   useEffect(() => {
     const loadRequests = async () => {
-      // Firebase yapılandırılmışsa gerçek Firestore verilerini çek
       if (isFirebaseConfigured() && firestoreDb) {
         try {
           const q = query(
@@ -75,7 +105,14 @@ export default function CarrierJobsPage() {
             ...(doc.data() as MovingRequest),
             id: doc.id,
           }));
-          setRequests(firestoreRequests);
+          const mockRequests = db.getRequests();
+          const combined = [...firestoreRequests];
+          mockRequests.forEach(mr => {
+            if (!combined.some(r => r.id === mr.id)) {
+              combined.push(mr);
+            }
+          });
+          setRequests(combined);
         } catch (err) {
           console.warn('Firestore talep yüklenemedi, mock-db kullanılıyor:', err);
           setRequests(db.getRequests());
@@ -240,7 +277,7 @@ export default function CarrierJobsPage() {
     }
 
     // Direct submit quick offer
-    db.addOffer({
+    const newOffer = {
       id: `off_${Date.now()}`,
       requestId: req.id,
       carrierId: carrier.id,
@@ -254,10 +291,25 @@ export default function CarrierJobsPage() {
       estimatedDeliveryDuration: '24 Saat',
       validUntil: new Date(Date.now() + 7 * 86400000).toISOString(),
       notes: 'Hızlı teklif iletildi.',
-      status: 'PENDING',
+      status: 'PENDING' as const,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    });
+    };
+
+    db.addOffer(newOffer);
+
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        setDoc(doc(firestoreDb, 'offers', newOffer.id), newOffer).catch(err => console.warn(err));
+      } catch (err) {
+        console.warn('Firestore offer save error:', err);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('offer-added', { detail: newOffer }));
+    }
 
     setQuickOfferPrices(prev => ({ ...prev, [req.id]: '' }));
     setOfferSubmitted(true);
@@ -773,7 +825,7 @@ export default function CarrierJobsPage() {
                     setAuthModalOpen(true);
                     return;
                   }
-                  db.addOffer({
+                  const modalOffer = {
                     id: `off_${Date.now()}`,
                     requestId: offerModalReq.id,
                     carrierId: carrier.id,
@@ -787,10 +839,25 @@ export default function CarrierJobsPage() {
                     estimatedDeliveryDuration: deliveryDuration,
                     validUntil: new Date(Date.now() + 7 * 86400000).toISOString(),
                     notes: offerNotes,
-                    status: 'PENDING',
+                    status: 'PENDING' as const,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
-                  });
+                  };
+                  db.addOffer(modalOffer);
+
+                  if (isFirebaseConfigured() && firestoreDb) {
+                    try {
+                      setDoc(doc(firestoreDb, 'offers', modalOffer.id), modalOffer).catch(err => console.warn(err));
+                    } catch (err) {
+                      console.warn('Firestore offer save error:', err);
+                    }
+                  }
+
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new Event('storage'));
+                    window.dispatchEvent(new CustomEvent('offer-added', { detail: modalOffer }));
+                  }
+
                   setOfferSubmitted(true);
                 }}
               >

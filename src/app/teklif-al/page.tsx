@@ -31,6 +31,8 @@ import { RouteDisplay } from '@/components/ui/RouteDisplay';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { db } from '@/lib/data/mock-db';
 import { MovingRequest, ServiceCategory } from '@/types';
+import { doc, setDoc } from 'firebase/firestore';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
 
 // Room item checklist definitions
 const ROOM_ITEMS: Record<string, string[]> = {
@@ -192,6 +194,16 @@ function RequestWizardContent() {
     };
 
     db.addRequest(newRequest);
+
+    // Also persist to Firestore if Firebase configured
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        await setDoc(doc(firestoreDb, 'requests', newRequest.id), newRequest);
+      } catch (err) {
+        console.warn('Firestore request save error:', err);
+      }
+    }
+
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('storage'));
       window.dispatchEvent(new CustomEvent('request-added', { detail: newRequest }));
