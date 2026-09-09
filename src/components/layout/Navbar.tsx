@@ -24,10 +24,12 @@ import {
   MapPin,
   Megaphone,
   Share2,
-  Sparkles
+  Sparkles,
+  Headphones
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { db } from '@/lib/data/mock-db';
+import { openSupportChat } from '@/components/ui/SupportChatWidget';
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
@@ -483,6 +485,30 @@ export const Navbar: React.FC = () => {
                 {link.label}
               </Link>
             ))}
+
+            {/* Bize Yazın & Canlı Destek Menü Öğesi */}
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                openSupportChat();
+              }}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-orange-50/80 hover:bg-orange-100 border border-orange-200/80 text-[#111E38] transition-all text-left mt-2 shadow-xs cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-[#F95700] text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <Headphones className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-black text-[#111E38]">Bize Yazın & Yardım</div>
+                  <div className="text-[10px] text-slate-500 font-semibold">Sıkça Sorulan Sorular & Canlı Destek</div>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Çevrimiçi
+              </span>
+            </button>
           </nav>
 
           {!currentUser ? (
