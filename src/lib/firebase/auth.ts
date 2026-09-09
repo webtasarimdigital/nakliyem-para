@@ -147,18 +147,10 @@ export async function logoutFirebase(): Promise<void> {
  */
 export async function loginWithGoogleFirebase(targetRole: UserRole = 'CUSTOMER'): Promise<{ user: User | null; error: string | null }> {
   if (!isFirebaseConfigured() || !auth || !db) {
-    // Firebase yapılandırılmamışsa kesintisiz mock Google girişi sağla
-    const mockGoogleUser: User = {
-      id: `google_${Date.now()}`,
-      email: targetRole === 'CARRIER' ? 'nakliyeci.google@gmail.com' : 'musteri.google@gmail.com',
-      phone: '0532 555 1967',
-      role: targetRole,
-      fullName: targetRole === 'CARRIER' ? 'Kemal Taşdemir' : 'Google Kullanıcısı',
-      companyName: targetRole === 'CARRIER' ? 'Doğrulanmış Ekspres Nakliyat' : undefined,
-      carrierProfileId: targetRole === 'CARRIER' ? 'c1' : undefined,
-      createdAt: new Date().toISOString(),
+    return {
+      user: null,
+      error: 'Firebase yapılandırması bulunamadı. Lütfen Vercel veya sunucu ortam değişkenlerini (Environment Variables) kontrol edin.',
     };
-    return { user: mockGoogleUser, error: null };
   }
 
   try {
@@ -201,6 +193,9 @@ export async function loginWithGoogleFirebase(targetRole: UserRole = 'CUSTOMER')
     }
     if (err.code === 'auth/operation-not-allowed') {
       return { user: null, error: 'Firebase konsolunda Google Giriş Sağlayıcısı henüz etkinleştirilmemiş.' };
+    }
+    if (err.code === 'auth/unauthorized-domain') {
+      return { user: null, error: 'Bu domain Firebase Yetkili Alan Adları (Authorized Domains) listesinde kayıtlı değil. Lütfen Firebase Console > Authentication > Settings > Authorized Domains kısmına alan adınızı ekleyin.' };
     }
     return { user: null, error: err.message || 'Google ile giriş başarısız oldu.' };
   }
