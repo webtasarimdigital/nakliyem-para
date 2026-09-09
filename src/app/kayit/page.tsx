@@ -337,7 +337,18 @@ function KayitContent() {
         });
 
         if (error) {
-          setErrorMessage(error);
+          // Firebase'den "e-posta zaten kullanımda" hatası gelirse alreadyRegistered göster
+          if (
+            error.includes('already-in-use') ||
+            error.includes('already in use') ||
+            error.includes('zaten kullanımda') ||
+            error.includes('Bu e-posta')
+          ) {
+            setStep('FORM');
+            setAlreadyRegistered(email.trim().toLowerCase());
+          } else {
+            setErrorMessage(error);
+          }
           setLoading(false);
           return;
         }

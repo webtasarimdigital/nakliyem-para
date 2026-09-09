@@ -3,7 +3,8 @@ import nodemailer from 'nodemailer';
 import { validateEmailAddress } from '@/lib/validation/email';
 import { generateNumericOtp, saveOtp } from '@/lib/auth/otp-store';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+import { fetchSignInMethodsForEmail } from 'firebase/auth';
+import { db as firestoreDb, auth as firebaseAuth, isFirebaseConfigured } from '@/lib/firebase/config';
 
 const ADMIN_EMAIL = 'tasinteklif@gmail.com';
 
@@ -30,9 +31,28 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Check if user already exists in Firestore 'users' collection
-    if (isFirebaseConfigured() && firestoreDb) {
+    // Check if user already exists — check BOTH Firebase Auth AND Firestore
+    if (isFirebaseConfigured() && firestoreDb && firebaseAuth) {
       try {
+        // 1a. Firebase Auth kontrolü (Google, email/şifre vs. HEPSİNİ yakalar)
+        const signInMethods = await fetchSignInMethodsForEmail(firebaseAuth, normalizedEmail);
+        if (signInMethods && signInMethods.length > 0) {
+          return NextResponse.json(
+            {
+              error: 'ALREADY_REGISTERED',
+              message: 'Bu e-posta adresi ile zaten kayıtlı bir hesap bulunmaktadır.',
+              email: normalizedEmail,
+            },
+            { status: 409 }
+          );
+        }
+      } catch (authErr: any) {
+        // fetchSignInMethodsForEmail hata verirse sessizce geç, Firestore kontrolüne dön
+        console.warn('Firebase Auth email check warning:', authErr?.message);
+      }
+
+      try {
+        // 1b. Firestore users koleksiyonu kontrolü (ek güvence)
         const existingUsers = await getDocs(
           query(collection(firestoreDb, 'users'), where('email', '==', normalizedEmail))
         );
