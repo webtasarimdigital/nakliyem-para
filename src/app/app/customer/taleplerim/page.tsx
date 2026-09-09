@@ -156,7 +156,7 @@ export default function CustomerRequestsPage() {
       closedReason: 'İş Verildi'
     });
 
-    // 3. Update Firestore if configured
+    // 3. Update Firestore if configured (event dispatch YOK — loadRequests tetiklenirse mock-db'deki eski ACTIVE veri geri gelir)
     if (isFirebaseConfigured() && firestoreDb) {
       try {
         await updateFirestoreRequest(reqId, {
@@ -166,12 +166,6 @@ export default function CustomerRequestsPage() {
       } catch (err) {
         console.warn('Firestore kapatma hatası:', err);
       }
-    }
-
-    // 4. Global events
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('request-added'));
-      window.dispatchEvent(new Event('storage'));
     }
   };
 
@@ -183,6 +177,7 @@ export default function CustomerRequestsPage() {
       closedReason: undefined
     });
 
+    // Firestore'a yaz (event dispatch YOK)
     if (isFirebaseConfigured() && firestoreDb) {
       try {
         await updateFirestoreRequest(reqId, {
@@ -192,11 +187,6 @@ export default function CustomerRequestsPage() {
       } catch (err) {
         console.warn('Firestore açma hatası:', err);
       }
-    }
-
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('request-added'));
-      window.dispatchEvent(new Event('storage'));
     }
   };
 

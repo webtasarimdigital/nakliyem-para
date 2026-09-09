@@ -76,11 +76,6 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
       }
     }
 
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('request-added'));
-      window.dispatchEvent(new Event('storage'));
-    }
-
     setCloseModalOpen(false);
     router.refresh();
   };
@@ -100,11 +95,6 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
       } catch (err) {
         console.warn('Firestore açma hatası:', err);
       }
-    }
-
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('request-added'));
-      window.dispatchEvent(new Event('storage'));
     }
 
     router.refresh();

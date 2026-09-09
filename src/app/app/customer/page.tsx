@@ -147,12 +147,14 @@ export default function CustomerDashboard() {
 
   // İş Verildi diyerek talebi kapatma işlemi
   const handleCloseRequestAsGiven = async (reqId: string) => {
+    // Önce local state'i güncelle (UI anında tepki versin)
     setAllRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'CLOSED' as const, closedReason: 'İş Verildi' } : r));
+    // mock-db'yi güncelle
     db.updateRequest(reqId, {
       status: 'CLOSED',
       closedReason: 'İş Verildi'
     });
-
+    // Firestore'a yaz (event dispatch YOK — loadRequests tetiklenirse mock-db'deki eski ACTIVE veri geri gelir)
     if (isFirebaseConfigured() && firestoreDb) {
       try {
         await updateFirestoreRequest(reqId, {
@@ -163,21 +165,18 @@ export default function CustomerDashboard() {
         console.warn('Firestore kapatma hatası:', err);
       }
     }
-
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('request-added'));
-      window.dispatchEvent(new Event('storage'));
-    }
   };
 
   // Talebi tekrar yayına alma
   const handleReopenRequest = async (reqId: string) => {
+    // Önce local state'i güncelle
     setAllRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'ACTIVE' as const, closedReason: undefined } : r));
+    // mock-db'yi güncelle
     db.updateRequest(reqId, {
       status: 'ACTIVE',
       closedReason: undefined
     });
-
+    // Firestore'a yaz (event dispatch YOK)
     if (isFirebaseConfigured() && firestoreDb) {
       try {
         await updateFirestoreRequest(reqId, {
@@ -187,11 +186,6 @@ export default function CustomerDashboard() {
       } catch (err) {
         console.warn('Firestore açma hatası:', err);
       }
-    }
-
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event('request-added'));
-      window.dispatchEvent(new Event('storage'));
     }
   };
 
