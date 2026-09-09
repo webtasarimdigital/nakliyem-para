@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { validateEmailAddress } from '@/lib/validation/email';
 import { generateNumericOtp, saveOtp } from '@/lib/auth/otp-store';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
 
 const ADMIN_EMAIL = 'tasinteklif@gmail.com';
 
@@ -24,6 +26,29 @@ export async function POST(req: NextRequest) {
         { error: emailCheck.error || 'Geçersiz veya geçici bir e-posta adresi girdiniz.' },
         { status: 400 }
       );
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check if user already exists in Firestore 'users' collection
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        const existingUsers = await getDocs(
+          query(collection(firestoreDb, 'users'), where('email', '==', normalizedEmail))
+        );
+        if (!existingUsers.empty) {
+          return NextResponse.json(
+            {
+              error: 'ALREADY_REGISTERED',
+              message: 'Bu e-posta adresi ile zaten kayıtlı bir hesap bulunmaktadır.',
+              email: normalizedEmail,
+            },
+            { status: 409 }
+          );
+        }
+      } catch (err) {
+        console.warn('Firestore existing user check warning:', err);
+      }
     }
 
     // 2. Generate 6-digit code and save with 3-minute expiry
@@ -162,9 +187,12 @@ ${ADMIN_EMAIL}
 
     return NextResponse.json({
       success: true,
-      message: 'Doğrulama kodu e-posta adresinize gönderildi. Lütfen gelen kutunuzu (ve spam klasörünü) kontrol ediniz.',
+      message: emailSent
+        ? 'Doğrulama kodu e-posta adresinize gönderildi. Lütfen gelen kutunuzu (ve spam klasörünü) kontrol ediniz.'
+        : 'E-posta servisi yapılandırılmadığı için doğrulama kodunuz ekranda hazırlanmıştır.',
       expiresIn: 180, // 3 minutes in seconds
       emailSent,
+      code: !emailSent ? verificationCode : undefined,
     });
   } catch (error: any) {
     console.error('Send OTP error:', error);

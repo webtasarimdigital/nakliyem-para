@@ -34,7 +34,14 @@ function GirisContent() {
     }
   }, [urlRole]);
 
-  const [email, setEmail] = useState('');
+  const urlEmail = searchParams.get('email') || '';
+  const [email, setEmail] = useState(urlEmail);
+
+  useEffect(() => {
+    const pEmail = searchParams.get('email');
+    if (pEmail) setEmail(pEmail);
+  }, [searchParams]);
+
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

@@ -18,6 +18,7 @@ import {
   Clock,
   Briefcase,
   AlertCircle,
+  AlertTriangle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { registerWithFirebase, loginWithGoogleFirebase } from '@/lib/firebase/auth';
@@ -47,6 +48,7 @@ function KayitContent() {
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [alreadyRegistered, setAlreadyRegistered] = useState<string | null>(null);
 
   // Carrier specific
   const [companyName, setCompanyName] = useState('');
@@ -54,6 +56,7 @@ function KayitContent() {
   // ── OTP Email Doğrulama Durumu (3 Dakika Süreli) ──
   const [step, setStep] = useState<'FORM' | 'OTP'>('FORM');
   const [otpCode, setOtpCode] = useState('');
+  const [devOtpCode, setDevOtpCode] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(180); // 3 dakika = 180 saniye
   const [resendCooldown, setResendCooldown] = useState(0);
   const [otpSuccessMsg, setOtpSuccessMsg] = useState('');
@@ -143,6 +146,15 @@ function KayitContent() {
       return;
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Fast local check if user exists
+    const localUser = db.getUserByEmail(cleanEmail) || db.getRegisteredUserByEmail(cleanEmail);
+    if (localUser) {
+      setAlreadyRegistered(cleanEmail);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -151,7 +163,7 @@ function KayitContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: email.trim(),
+          email: cleanEmail,
           name: isCarrier ? companyName.trim() : name.trim(),
           role: isCarrier ? 'CARRIER' : 'CUSTOMER',
           companyName: isCarrier ? companyName.trim() : undefined,
@@ -160,10 +172,22 @@ function KayitContent() {
 
       const data = await res.json();
 
+      if (res.status === 409 || data.error === 'ALREADY_REGISTERED') {
+        setAlreadyRegistered(cleanEmail);
+        setLoading(false);
+        return;
+      }
+
       if (!res.ok || data.error) {
         setErrorMessage(data.error || 'Doğrulama kodu gönderilemedi.');
         setLoading(false);
         return;
+      }
+
+      if (!data.emailSent && data.code) {
+        setDevOtpCode(data.code);
+      } else {
+        setDevOtpCode(null);
       }
 
       setStep('OTP');
@@ -186,11 +210,12 @@ function KayitContent() {
     setOtpSuccessMsg('');
 
     try {
+      const cleanEmail = email.trim().toLowerCase();
       const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: email.trim(),
+          email: cleanEmail,
           name: isCarrier ? companyName.trim() : name.trim(),
           role: isCarrier ? 'CARRIER' : 'CUSTOMER',
           companyName: isCarrier ? companyName.trim() : undefined,
@@ -202,9 +227,12 @@ function KayitContent() {
       if (!res.ok || data.error) {
         setErrorMessage(data.error || 'Yeni kod gönderilemedi.');
       } else {
+        if (!data.emailSent && data.code) {
+          setDevOtpCode(data.code);
+        }
         setTimeLeft(180); // Süreyi 3 dakikaya sıfırla
         setResendCooldown(60);
-        setOtpSuccessMsg('Yeni doğrulama kodu e-postanıza gönderildi.');
+        setOtpSuccessMsg(data.message || 'Yeni doğrulama kodu e-postanıza gönderildi.');
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Bağlantı hatası oluştu.');
@@ -537,6 +565,28 @@ function KayitContent() {
                   </div>
                 )}
 
+                {/* Test / Geliştirme Doğrulama Kodu (SMTP henüz ayarlanmadıysa kullanıcı mağdur olmasın) */}
+                {devOtpCode && (
+                  <div className="p-3.5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-slate-800 space-y-1.5 animate-fade-in shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-black uppercase text-amber-800 tracking-wider">Test Doğrulama Kodu</span>
+                      <button
+                        type="button"
+                        onClick={() => setOtpCode(devOtpCode)}
+                        className="text-[11px] font-black text-amber-950 bg-amber-200 hover:bg-amber-300 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                      >
+                        Kodu Doldur ➔
+                      </button>
+                    </div>
+                    <div className="text-xl font-black text-slate-900 font-mono tracking-widest text-center py-0.5">
+                      {devOtpCode}
+                    </div>
+                    <p className="text-[10px] text-amber-700 text-center font-medium">
+                      (SMTP sunucu ayarı henüz tanımlanmadığı için test kodunuz ekranda hazırlanmıştır)
+                    </p>
+                  </div>
+                )}
+
                 {/* OTP Giriş Formu */}
                 <form onSubmit={handleVerifyAndRegister} className="space-y-4">
                   <div>
@@ -654,14 +704,42 @@ function KayitContent() {
 
                 {/* Form */}
                 <form onSubmit={handleInitiateRegister} className="space-y-4">
-                  {errorMessage && (
+                  {alreadyRegistered ? (
+                    <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-slate-800 space-y-3 animate-fade-in shadow-xs">
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+                          <AlertTriangle className="w-5 h-5 text-amber-700" />
+                        </div>
+                        <div>
+                          <h4 className="font-black text-sm text-[#111E38]">Bu Hesap Zaten Kayıtlı!</h4>
+                          <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                            <strong className="text-slate-900 font-bold">{alreadyRegistered}</strong> e-posta adresiyle daha önce hesap oluşturulmuş. Giriş yapmak veya şifrenizi sıfırlamak ister misiniz?
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 pt-1">
+                        <Link
+                          href={`/giris?email=${encodeURIComponent(alreadyRegistered)}`}
+                          className="flex-1 text-center py-2.5 px-3 rounded-xl bg-[#111E38] hover:bg-[#1b2a4a] text-white text-xs font-black shadow-sm transition-all"
+                        >
+                          Giriş Yap
+                        </Link>
+                        <Link
+                          href={`/sifremi-unuttum?email=${encodeURIComponent(alreadyRegistered)}`}
+                          className="flex-1 text-center py-2.5 px-3 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white text-xs font-black shadow-sm transition-all"
+                        >
+                          Şifremi Sıfırla
+                        </Link>
+                      </div>
+                    </div>
+                  ) : errorMessage ? (
                     <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium space-y-2">
                       <div className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                         <span>{errorMessage}</span>
                       </div>
                     </div>
-                  )}
+                  ) : null}
 
                   {/* Single Column Inputs for mobile */}
                   <div className="space-y-3">
@@ -711,7 +789,11 @@ function KayitContent() {
                         <input
                           type="email"
                           value={email}
-                          onChange={e => setEmail(e.target.value)}
+                          onChange={e => {
+                            setEmail(e.target.value);
+                            if (alreadyRegistered) setAlreadyRegistered(null);
+                            if (errorMessage) setErrorMessage('');
+                          }}
                           placeholder="ornek@mail.com"
                           required
                           className="w-full border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"

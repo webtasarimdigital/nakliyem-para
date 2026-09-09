@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Phone,
   Lock,
@@ -23,13 +23,20 @@ import {
 import { db } from '@/lib/data/mock-db';
 import { sendPasswordResetFirebase } from '@/lib/firebase/auth';
 
-export default function SifremiUnuttumPage() {
+function SifremiUnuttumContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlEmail = searchParams.get('email') || '';
 
   // Method: 'EMAIL' | 'PHONE'
   const [method, setMethod] = useState<'EMAIL' | 'PHONE'>('EMAIL');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(urlEmail);
   const [emailSent, setEmailSent] = useState(false);
+
+  useEffect(() => {
+    const p = searchParams.get('email');
+    if (p) setEmail(p);
+  }, [searchParams]);
 
   // Steps: 'PHONE' | 'OTP' | 'NEW_PASSWORD' | 'SUCCESS'
   const [step, setStep] = useState<'PHONE' | 'OTP' | 'NEW_PASSWORD' | 'SUCCESS'>('PHONE');
@@ -486,5 +493,13 @@ export default function SifremiUnuttumPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function SifremiUnuttumPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center"><div className="w-8 h-8 border-3 border-[#F95700] border-t-transparent rounded-full animate-spin" /></div>}>
+      <SifremiUnuttumContent />
+    </Suspense>
   );
 }
