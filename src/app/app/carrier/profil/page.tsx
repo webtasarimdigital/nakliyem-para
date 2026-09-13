@@ -257,7 +257,7 @@ export default function CarrierProfileEditorPage() {
         title,
         fileName: file.name,
         fileUrl: (base64Data as string) || '',
-        status: 'APPROVED',
+        status: 'PENDING',
         uploadedAt: new Date().toISOString()
       });
 
@@ -268,14 +268,14 @@ export default function CarrierProfileEditorPage() {
       const hasTax = updatedDocs.some(d => d.type === 'TAX_CERTIFICATE');
 
       if (hasIdentity && hasTax) {
-        db.updateCarrier(carrier.id, { verificationStatus: 'APPROVED' });
-        const updatedCarrier = db.getCarrierById(carrier.id) || { ...carrier, verificationStatus: 'APPROVED' };
+        db.updateCarrier(carrier.id, { verificationStatus: 'PENDING' });
+        const updatedCarrier = db.getCarrierById(carrier.id) || { ...carrier, verificationStatus: 'PENDING' };
         setCarrier(updatedCarrier);
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('auth-changed'));
           window.dispatchEvent(new Event('storage'));
         }
-        showNotification('Tebrikler! Hem Kimlik hem Vergi Levhası belgeniz başarıyla yüklendi. Profiliniz ONAYLANDI ve teklif verme kilidiniz açıldı!');
+        showNotification('Belgeleriniz başarıyla yüklendi ve yönetici ekibimizin incelemesine alındı. En kısa sürede admin onayı verilecek ve teklif verme yetkiniz açılacaktır.');
       } else {
         const missing = !hasIdentity ? 'Yetkili Kimlik Belgesi' : 'Vergi Levhası';
         showNotification(`${title} başarıyla yüklendi. Profilinizin onaylanması ve teklif verebilmeniz için lütfen ${missing} belgesini de yükleyiniz.`);

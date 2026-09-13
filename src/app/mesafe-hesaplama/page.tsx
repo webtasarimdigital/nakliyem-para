@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { TURKEY_CITIES, calculateDistance } from '@/lib/data/turkey-geo';
+import { PublicPageWithSidebar } from '@/components/layout/PublicPageWithSidebar';
 
 // Approximate price multiplier per km based on home size
 const HOME_SIZE_RATES: Record<string, { baseMin: number; baseMax: number; perKm: number; label: string }> = {
@@ -55,6 +56,7 @@ export default function MesafeHesaplamaPage() {
   const totalDirectCost = totalFuelCost + totalStaffCost + totalHighwayTolls;
 
   return (
+    <PublicPageWithSidebar>
     <div className="min-h-screen bg-[#F8FAFC] py-8 sm:py-12">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         
@@ -248,5 +250,6 @@ export default function MesafeHesaplamaPage() {
         </div>
       </div>
     </div>
+    </PublicPageWithSidebar>
   );
 }

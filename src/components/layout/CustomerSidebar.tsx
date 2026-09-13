@@ -49,14 +49,22 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
       }
     }
 
-    const combined = [...firestoreReqs];
+    const map = new Map<string, MovingRequest>();
+    firestoreReqs.forEach(fr => map.set(fr.id, fr));
     localReqs.forEach(lr => {
-      if (!combined.some(r => r.id === lr.id)) {
-        combined.push(lr);
+      const existing = map.get(lr.id);
+      if (!existing) {
+        map.set(lr.id, lr);
+      } else {
+        const localTime = new Date(lr.updatedAt || lr.createdAt || 0).getTime();
+        const firestoreTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
+        if (localTime >= firestoreTime || lr.status === 'CLOSED' || lr.status === 'ASSIGNED') {
+          map.set(lr.id, { ...existing, ...lr });
+        }
       }
     });
 
-    setRequests(combined);
+    setRequests(Array.from(map.values()));
     setOffers(db.getOffers());
   };
 

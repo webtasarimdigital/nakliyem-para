@@ -157,15 +157,19 @@ function KayitContent() {
 
     const cleanEmail = email.trim().toLowerCase();
 
+    setLoading(true);
+
     // Fast local check if user exists
     const localUser = db.getUserByEmail(cleanEmail) || db.getRegisteredUserByEmail(cleanEmail);
     if (localUser) {
       setAlreadyRegistered(cleanEmail);
       sendPasswordResetFirebase(cleanEmail).catch(console.warn);
+      setLoading(false);
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 100, behavior: 'smooth' });
+      }
       return;
     }
-
-    setLoading(true);
 
     // Pre-check if email already exists in Firebase Auth (Google login or previous signup)
     if (isFirebaseConfigured()) {
@@ -176,6 +180,9 @@ function KayitContent() {
           // Automatically trigger password reset email per user request
           await sendPasswordResetFirebase(cleanEmail).catch(console.warn);
           setLoading(false);
+          if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 100, behavior: 'smooth' });
+          }
           return;
         }
       } catch (checkErr) {
@@ -202,6 +209,9 @@ function KayitContent() {
         setAlreadyRegistered(cleanEmail);
         await sendPasswordResetFirebase(cleanEmail).catch(console.warn);
         setLoading(false);
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 100, behavior: 'smooth' });
+        }
         return;
       }
 
@@ -862,22 +872,6 @@ function KayitContent() {
                             setEmail(e.target.value);
                             if (alreadyRegistered) setAlreadyRegistered(null);
                             if (errorMessage) setErrorMessage('');
-                          }}
-                          onBlur={async () => {
-                            const clean = email.trim().toLowerCase();
-                            if (clean && clean.includes('@') && clean.includes('.')) {
-                              const localUser = db.getUserByEmail(clean) || db.getRegisteredUserByEmail(clean);
-                              if (localUser) {
-                                setAlreadyRegistered(clean);
-                                sendPasswordResetFirebase(clean).catch(console.warn);
-                                return;
-                              }
-                              const isReg = await checkEmailAlreadyRegistered(clean);
-                              if (isReg) {
-                                setAlreadyRegistered(clean);
-                                sendPasswordResetFirebase(clean).catch(console.warn);
-                              }
-                            }
                           }}
                           placeholder="ornek@mail.com"
                           required

@@ -42,7 +42,8 @@ import { db, SEED_PLANS } from '@/lib/data/mock-db';
 import { MovingRequest, ServiceCategory } from '@/types';
 import { collection, getDocs, query, where, orderBy, doc, setDoc } from 'firebase/firestore';
 import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
-import { sendNotificationEmail } from '@/lib/services/notification-service';
+import { sendNotificationEmail, shouldSendCarrierFirstOfferEmail } from '@/lib/services/notification-service';
+import { formatOfferInputOnType, parseOfferInput } from '@/lib/utils/offer-format';
 
 // Category pills styled exactly like the user's reference image
 const CATEGORY_TABS = [
@@ -166,7 +167,9 @@ export default function CarrierJobsPage() {
   // Günlük ücretsiz teklif kontrolü (Başlangıç paketinde günde 3 teklif)
   const isFreeOrStarterPlan = !carrier?.planId || carrier.planId === 'plan_starter' || carrier.planId === 'free';
   const todayStr = new Date().toISOString().slice(0, 10);
-  const todayOffersCount = myCarrierOffers.filter(o => o.createdAt && o.createdAt.startsWith(todayStr)).length;
+  // Duplicate'leri temizle (aynı id birden fazla kez sayılmasın)
+  const uniqueCarrierOffers = Array.from(new Map(myCarrierOffers.map(o => [o.id, o])).values());
+  const todayOffersCount = uniqueCarrierOffers.filter(o => o.createdAt && o.createdAt.startsWith(todayStr)).length;
   const isDailyLimitReached = Boolean(carrier && isFreeOrStarterPlan && todayOffersCount >= 3);
 
   const canCreateOffer = Boolean(carrier && isApproved && !isDailyLimitReached && (!carrierPlan || (carrierPlan.features.offerCreate && (carrierPlan.features.monthlyOfferLimit === 'unlimited' || carrierOffersCount < carrierPlan.features.monthlyOfferLimit))));
@@ -343,20 +346,29 @@ export default function CarrierJobsPage() {
       return;
     }
 
-    const price = quickOfferPrices[req.id];
-    if (!price || parseFloat(price) <= 0) {
+    const rawInput = quickOfferPrices[req.id] || '';
+    if (!rawInput.trim()) {
       setOfferModalReq(req);
+      setOfferPrice('');
+      setOfferNotes('');
+      return;
+    }
+
+    const parsed = parseOfferInput(rawInput);
+    if (!parsed.hasExplicitPrice || parsed.price <= 0) {
+      setOfferModalReq(req);
+      setOfferNotes(rawInput.trim());
       setOfferPrice('');
       return;
     }
 
-    // Direct submit quick offer
+    // Direct submit quick offer with parsed price and carrier's custom text note
     const newOffer = {
       id: `off_${Date.now()}`,
       requestId: req.id,
       carrierId: carrier.id,
       carrier,
-      price: parseFloat(price),
+      price: parsed.price,
       isVatIncluded: true,
       isPackagingIncluded: req.packagingPreference === 'CARRIER_PACKS',
       isMobileElevatorIncluded: req.originRequiresMobileElevator || req.destinationRequiresMobileElevator,
@@ -364,31 +376,39 @@ export default function CarrierJobsPage() {
       isInsuranceIncluded: req.extraServices.includes('insured'),
       estimatedDeliveryDuration: '24 Saat',
       validUntil: new Date(Date.now() + 7 * 86400000).toISOString(),
-      notes: 'Hızlı teklif iletildi.',
+      notes: parsed.note,
       status: 'PENDING' as const,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
-    db.addOffer(newOffer);
+    // Bu firmanın bu ilan için daha önce teklif verip vermediğini kontrol et
+    const existingOffers = db.getOffersForRequest(req.id);
+    const existingForCarrier = existingOffers.filter(o => o.carrierId === carrier.id);
+    const isFirstOfferForThisCarrier = shouldSendCarrierFirstOfferEmail(req.id, carrier.id, existingForCarrier.length);
 
-    // Send email notification to customer
-    try {
-      const customerUser = db.getUsers().find((u: any) => u.id === req.customerId);
-      const targetEmail = req.customerEmail || customerUser?.email || 'omerfaruksaycan@gmail.com';
-      if (targetEmail) {
-        sendNotificationEmail({
-          type: 'NEW_OFFER',
-          to: targetEmail,
-          recipientName: req.customerName || customerUser?.fullName || 'Müşterimiz',
-          carrierName: carrier.companyName,
-          price: newOffer.price,
-          routeText: `${req.originCity} / ${req.originDistrict} → ${req.destinationCity} / ${req.destinationDistrict}`,
-          requestId: req.requestCode || req.id,
-        });
+    db.addOffer(newOffer, req);
+
+    // YALNIZCA bu firmanın bu ilandaki İLK TEKLİFİNDE e-posta bildirimi gönder
+    if (isFirstOfferForThisCarrier) {
+      try {
+        const customerUser = db.getUsers().find((u: any) => u.id === req.customerId);
+        const targetEmail = req.customerEmail || customerUser?.email || 'omerfaruksaycan@gmail.com';
+        if (targetEmail) {
+          sendNotificationEmail({
+            type: 'NEW_OFFER',
+            to: targetEmail,
+            recipientName: req.customerName || customerUser?.fullName || 'Müşterimiz',
+            carrierName: carrier.companyName,
+            price: newOffer.price,
+            routeText: `${req.originCity} / ${req.originDistrict} → ${req.destinationCity} / ${req.destinationDistrict}`,
+            requestId: req.requestCode || req.id,
+            messagePreview: newOffer.notes,
+          });
+        }
+      } catch (emailErr) {
+        console.warn('Teklif bildirim e-postası gönderilemedi:', emailErr);
       }
-    } catch (emailErr) {
-      console.warn('Teklif bildirim e-postası gönderilemedi:', emailErr);
     }
 
     if (isFirebaseConfigured() && firestoreDb) {
@@ -520,19 +540,34 @@ export default function CarrierJobsPage() {
 
         {/* Unverified Warning Banner (Spec requirement) */}
         {isCarrier && !isApproved && (
-          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-3 shadow-xs">
-            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <h4 className="font-bold text-sm text-amber-900">
-                ⚠️ Onaysız Profil — Henüz firmamız tarafından doğrulanmış profil değilsiniz
-              </h4>
-              <p className="text-xs text-amber-800 font-medium leading-relaxed">
-                Yüklediğiniz kimlik ve vergi levhası evraklarınız inceleme aşamasındadır. <strong>12 saat içinde onay &amp; red durumunuz verilecektir.</strong> Talepleri inceleyebilirsiniz; ancak teklif verme ve iletişim haklarınız onay verildikten sonra açılacaktır.
-              </p>
-              <Link href="/app/carrier/profil" className="inline-block pt-1 text-xs font-bold text-[#F95700] hover:underline">
-                Belgelerimi Görüntüle / Yeni Evrak Yükle →
-              </Link>
+          <div className="mb-6 rounded-2xl bg-gradient-to-r from-amber-50 via-amber-100/60 to-orange-50 border-2 border-amber-300 p-5 sm:p-6 shadow-sm text-amber-950 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                <Clock className="w-5 h-5 animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-950 font-black text-xs border border-amber-300 uppercase tracking-wide">
+                    Doğrulamasız Üye
+                  </span>
+                  <span className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping inline-block" />
+                    Yönetici Onayı Bekleniyor
+                  </span>
+                </div>
+                <h4 className="font-black text-base text-[#0A1128]">
+                  Firmanızın belgeleri incelenmektedir, en kısa sürede onay verilecektir ve teklif verebileceksiniz.
+                </h4>
+                <p className="text-xs text-slate-700 font-medium leading-relaxed">
+                  Güvenli nakliyat standartlarımız gereğince belgeleriniz yönetici kontrolündedir. Admin panelden onay verildiğinde bu uyarı kalkacak ve ilanlara teklif verme yetkiniz aktifleşecektir.
+                </p>
+              </div>
             </div>
+            <Link href="/app/carrier/profil" className="shrink-0 md:self-center">
+              <Button variant="outline" size="sm" className="font-bold text-xs bg-white border-amber-300 text-amber-950 hover:bg-amber-100/60 shadow-xs h-9">
+                Belgeleri Yönet →
+              </Button>
+            </Link>
           </div>
         )}
 
@@ -791,23 +826,31 @@ export default function CarrierJobsPage() {
 
                     if (existingOffer) {
                       return (
-                        <div className="flex items-center justify-between p-3 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-2xs">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                            <span className="text-xs font-black text-emerald-950">
-                              Teklifiniz İletildi: <strong className="text-emerald-700">{existingOffer.price.toLocaleString('tr-TR')} TL</strong>
-                            </span>
+                        <div className="p-3 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-2xs">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                              <span className="text-xs font-black text-emerald-950">
+                                Teklifiniz İletildi: <strong className="text-emerald-700">{existingOffer.price.toLocaleString('tr-TR')} TL</strong>
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOfferModalReq(req);
+                                setOfferPrice(existingOffer.price.toString());
+                                setOfferNotes(existingOffer.notes || '');
+                              }}
+                              className="text-xs font-black text-[#F95700] hover:underline cursor-pointer ml-2 shrink-0"
+                            >
+                              Teklifi Düzenle →
+                            </button>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setOfferModalReq(req);
-                              setOfferPrice(existingOffer.price.toString());
-                            }}
-                            className="text-xs font-black text-[#F95700] hover:underline cursor-pointer ml-2 shrink-0"
-                          >
-                            Teklifi Düzenle →
-                          </button>
+                          {existingOffer.notes && existingOffer.notes !== 'Hızlı teklif iletildi.' && (
+                            <p className="text-[11px] font-medium text-emerald-800 italic mt-1 truncate">
+                              &ldquo;{existingOffer.notes}&rdquo;
+                            </p>
+                          )}
                         </div>
                       );
                     }
@@ -820,10 +863,13 @@ export default function CarrierJobsPage() {
                         <input
                           type="text"
                           value={quickOfferPrices[req.id] || ''}
-                          onChange={e => setQuickOfferPrices({ ...quickOfferPrices, [req.id]: e.target.value })}
+                          onChange={e => {
+                            const formatted = formatOfferInputOnType(e.target.value);
+                            setQuickOfferPrices(prev => ({ ...prev, [req.id]: formatted }));
+                          }}
                           onFocus={(e) => handleInputInteraction(req.id, e)}
                           onClick={(e) => handleInputInteraction(req.id, e)}
-                          placeholder="Hemen teklifinizi yazın"
+                          placeholder="Hemen teklifinizi yazın (Örn: 50.000 veya 50 bin tl)"
                           className="flex-1 px-4 py-3 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 border border-slate-200 rounded-xl focus:border-[#FFC000] focus:ring-1 focus:ring-[#FFC000] focus:outline-none bg-white shadow-2xs"
                         />
                         <button
@@ -946,10 +992,10 @@ export default function CarrierJobsPage() {
             <div>
               <label className="block text-xs font-black text-[#111E38] uppercase tracking-wider mb-1.5">Teklif Fiyatı (TL) *</label>
               <input
-                type="number"
+                type="text"
                 value={offerPrice}
-                onChange={e => setOfferPrice(e.target.value)}
-                placeholder="24500"
+                onChange={e => setOfferPrice(formatOfferInputOnType(e.target.value))}
+                placeholder="Örn: 24.500 veya 50000"
                 className="w-full border-2 border-slate-200 rounded-2xl px-4 py-3 text-lg font-black text-[#F95700] focus:border-[#F95700] focus:outline-none"
               />
             </div>
@@ -962,7 +1008,7 @@ export default function CarrierJobsPage() {
                 variant="primary"
                 size="md"
                 className="flex-1 font-black"
-                disabled={!offerPrice || parseFloat(offerPrice) <= 0}
+                disabled={!offerPrice || parseOfferInput(offerPrice).price <= 0}
                 onClick={() => {
                   if (!currentUser || currentUser.role !== 'CARRIER' || !carrier) {
                     setAuthActionPayload({ reqId: offerModalReq.id, type: 'OFFER' });
@@ -971,11 +1017,11 @@ export default function CarrierJobsPage() {
                   }
                   if (!isApproved) {
                     setPlanModalData({
-                      title: '⚠️ Onaysız Profil — Teklif Verme Kilitli',
-                      subtitle: 'TaşınTeklif güvencesi kapsamında müşterilere teklif verebilmek için firmanızın Kimlik ve Vergi Levhası belgelerini yüklemeniz zorunludur.',
-                      limitBadge: 'Belgeler Eksik / Onay Bekliyor',
+                      title: '⏳ Doğrulamasız Üye — Teklif Verme Kilitli',
+                      subtitle: 'Firmanızın belgeleri incelenmektedir, en kısa sürede onay verilecektir ve teklif verebileceksiniz. Güvenli taşımacılık gereği yönetici ekibimiz belgeleri inceledikten sonra teklif verme yetkiniz anında açılacaktır.',
+                      limitBadge: 'Belgeler İnceleniyor (Onay Bekleniyor)',
                       actionLink: '/app/carrier/profil',
-                      actionText: 'Evrakları Yükle (Profile Git)'
+                      actionText: 'Belgeleri Gör (Profile Git)'
                     });
                     setPlanModalOpen(true);
                     return;
@@ -991,12 +1037,13 @@ export default function CarrierJobsPage() {
                     setPlanModalOpen(true);
                     return;
                   }
+                  const parsedModal = parseOfferInput(offerPrice);
                   const modalOffer = {
                     id: `off_${Date.now()}`,
                     requestId: offerModalReq.id,
                     carrierId: carrier.id,
                     carrier,
-                    price: parseFloat(offerPrice),
+                    price: parsedModal.price,
                     isVatIncluded: vatIncluded,
                     isPackagingIncluded: packIncluded,
                     isMobileElevatorIncluded: elevatorIncluded,
@@ -1004,30 +1051,39 @@ export default function CarrierJobsPage() {
                     isInsuranceIncluded: insuranceIncluded,
                     estimatedDeliveryDuration: deliveryDuration,
                     validUntil: new Date(Date.now() + 7 * 86400000).toISOString(),
-                    notes: offerNotes,
+                    notes: offerNotes || parsedModal.note,
                     status: 'PENDING' as const,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                   };
-                  db.addOffer(modalOffer);
 
-                  // Send email notification to customer
-                  try {
-                    const customerUser = db.getUsers().find((u: any) => u.id === offerModalReq.customerId);
-                    const targetEmail = offerModalReq.customerEmail || customerUser?.email || 'omerfaruksaycan@gmail.com';
-                    if (targetEmail) {
-                      sendNotificationEmail({
-                        type: 'NEW_OFFER',
-                        to: targetEmail,
-                        recipientName: offerModalReq.customerName || customerUser?.fullName || 'Müşterimiz',
-                        carrierName: carrier.companyName,
-                        price: modalOffer.price,
-                        routeText: `${offerModalReq.originCity} / ${offerModalReq.originDistrict} → ${offerModalReq.destinationCity} / ${offerModalReq.destinationDistrict}`,
-                        requestId: offerModalReq.requestCode || offerModalReq.id,
-                      });
+                  // Bu firmanın bu ilan için daha önce teklif verip vermediğini kontrol et
+                  const existingOffers = db.getOffersForRequest(offerModalReq.id);
+                  const existingForCarrier = existingOffers.filter(o => o.carrierId === carrier.id);
+                  const isFirstOfferForThisCarrier = shouldSendCarrierFirstOfferEmail(offerModalReq.id, carrier.id, existingForCarrier.length);
+
+                  db.addOffer(modalOffer, offerModalReq);
+
+                  // YALNIZCA bu firmanın bu ilandaki İLK TEKLİFİNDE e-posta bildirimi gönder
+                  if (isFirstOfferForThisCarrier) {
+                    try {
+                      const customerUser = db.getUsers().find((u: any) => u.id === offerModalReq.customerId);
+                      const targetEmail = offerModalReq.customerEmail || customerUser?.email || 'omerfaruksaycan@gmail.com';
+                      if (targetEmail) {
+                        sendNotificationEmail({
+                          type: 'NEW_OFFER',
+                          to: targetEmail,
+                          recipientName: offerModalReq.customerName || customerUser?.fullName || 'Müşterimiz',
+                          carrierName: carrier.companyName,
+                          price: modalOffer.price,
+                          routeText: `${offerModalReq.originCity} / ${offerModalReq.originDistrict} → ${offerModalReq.destinationCity} / ${offerModalReq.destinationDistrict}`,
+                          requestId: offerModalReq.requestCode || offerModalReq.id,
+                          messagePreview: modalOffer.notes,
+                        });
+                      }
+                    } catch (emailErr) {
+                      console.warn('Teklif bildirim e-postası gönderilemedi:', emailErr);
                     }
-                  } catch (emailErr) {
-                    console.warn('Teklif bildirim e-postası gönderilemedi:', emailErr);
                   }
 
                   if (isFirebaseConfigured() && firestoreDb) {

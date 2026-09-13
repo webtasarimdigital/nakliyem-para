@@ -28,11 +28,15 @@ import { ReviewForm } from '@/components/ui/ReviewForm';
 import { db } from '@/lib/data/mock-db';
 import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
 import { updateFirestoreRequest } from '@/lib/firebase/firestore';
+import { MovingRequest } from '@/types';
 
 export default function CustomerRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const resolvedParams = use(params);
-  const req = db.getRequestById(resolvedParams.id) || db.getRequests()[0];
+  const [request, setRequest] = useState<MovingRequest | undefined>(() => 
+    db.getRequestById(resolvedParams.id) || db.getRequests()[0]
+  );
+  const req = request;
   const offers = db.getOffersForRequest(req?.id || '');
 
   const [closeModalOpen, setCloseModalOpen] = useState(false);
@@ -63,6 +67,8 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
     const isAgreement = closeReason.includes('anlaştım') || closeReason.includes('buldum') || closeReason === 'İş Verildi';
     const targetStatus = isAgreement ? 'ASSIGNED' : 'CLOSED';
 
+    setRequest((prev: MovingRequest | undefined) => prev ? { ...prev, status: targetStatus, closedReason: closeReason } : prev);
+
     db.updateRequest(req.id, {
       status: targetStatus,
       closedReason: closeReason
@@ -84,6 +90,8 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
   };
 
   const handleReopenRequest = async () => {
+    setRequest((prev: MovingRequest | undefined) => prev ? { ...prev, status: 'ACTIVE', closedReason: undefined } : prev);
+
     db.updateRequest(req.id, {
       status: 'ACTIVE',
       closedReason: undefined
@@ -215,7 +223,7 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
                 <span className="px-3 py-1.5 rounded-lg bg-blue-50 text-[#0B3B8F] font-semibold border border-blue-100">
                   {req.packagingPreference === 'CARRIER_PACKS' ? 'Firma Paketlesin' : req.packagingPreference === 'BOTH_OFFERS' ? 'İkisi İçin de Teklif' : 'Kendim Paketlerim'}
                 </span>
-                {req.extraServices.map(ext => (
+                {req.extraServices?.map((ext: string) => (
                   <span key={ext} className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-medium">
                     {ext === 'disassembly_assembly' ? 'Mobilya Sökme & Montaj' : ext === 'insured' ? 'Nakliyat Sigortası' : ext}
                   </span>
@@ -238,7 +246,7 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
               <div>
                 <h3 className="text-xs font-bold text-[#0A1128] uppercase tracking-wider mb-2">Eşya Fotoğrafları ({req.photos.length})</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {req.photos.map((url, idx) => (
+                  {req.photos.map((url: string, idx: number) => (
                     <div key={idx} className="aspect-video rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
                       <img src={url} alt={`Fotoğraf ${idx + 1}`} className="w-full h-full object-cover" />
                     </div>

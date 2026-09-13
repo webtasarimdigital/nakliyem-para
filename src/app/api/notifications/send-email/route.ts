@@ -35,9 +35,10 @@ export async function POST(req: Request) {
 
     if (type === 'NEW_OFFER') {
       subject = `🚚 Yeni Nakliyat Teklifi: ${carrierName || 'Onaylı Nakliyeci'} — ${price ? `${Number(price).toLocaleString('tr-TR')} TL` : 'Teklif Verildi'}`;
-      const offersUrl = `${actionUrlBase}/app/customer/teklifler${requestId ? `?reqId=${requestId}` : ''}`;
+      const redirectPath = `/app/customer/teklifler${requestId ? `?reqId=${requestId}` : ''}`;
+      const offersUrl = `${actionUrlBase}/giris?redirect=${encodeURIComponent(redirectPath)}`;
 
-      textContent = `Sayın ${recipientName || 'Müşterimiz'},\n\n${carrierName || 'Bir nakliyat firması'} taşıma talebinize ${price ? `${Number(price).toLocaleString('tr-TR')} TL` : ''} fiyat teklifi verdi.\n\nGüzergah: ${routeText || 'Talebiniz'}\n\nTeklifi incelemek ve firmayla görüşmek için: ${offersUrl}\n\nTaşınTeklif Destek Ekibi`;
+      textContent = `Sayın ${recipientName || 'Müşterimiz'},\n\n${carrierName || 'Bir nakliyat firması'} taşıma talebinize ${price ? `${Number(price).toLocaleString('tr-TR')} TL` : ''} fiyat teklifi verdi.${messagePreview && messagePreview !== 'Hızlı teklif iletildi.' ? `\n\nFirma Notu: "${messagePreview}"` : ''}\n\nGüzergah: ${routeText || 'Talebiniz'}\n\nTeklifi incelemek ve firmayla görüşmek için: ${offersUrl}\n\nTaşınTeklif Destek Ekibi`;
 
       htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden;">
@@ -61,6 +62,11 @@ export async function POST(req: Request) {
                 <tr>
                   <td style="color: #64748b; padding: 6px 0;">Teklif Tutarı:</td>
                   <td style="color: #F95700; font-weight: 900; font-size: 18px; text-align: right;">${Number(price).toLocaleString('tr-TR')} TL</td>
+                </tr>` : ''}
+                ${messagePreview && messagePreview !== 'Hızlı teklif iletildi.' ? `
+                <tr>
+                  <td style="color: #64748b; padding: 6px 0;">Firma Notu / Mesajı:</td>
+                  <td style="color: #0f172a; font-weight: 600; font-style: italic; text-align: right;">&quot;${messagePreview}&quot;</td>
                 </tr>` : ''}
                 ${routeText ? `
                 <tr>

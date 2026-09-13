@@ -18,18 +18,32 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { db } from '@/lib/data/mock-db';
 import { CarrierDocument, CarrierProfile } from '@/types';
+import { updateFirestoreCarrier } from '@/lib/firebase/firestore';
 
 export default function AdminVerificationConsolePage() {
   const [showDemoData, setShowDemoData] = useState(false);
   const [carriers, setCarriers] = useState(showDemoData ? db.getCarriers() : db.getRealCarriers());
   const [documents, setDocuments] = useState(showDemoData ? db.getDocuments() : db.getRealDocuments());
 
-  // Re-sync when showDemoData changes
+  // Re-sync when showDemoData changes or target carrier in URL
   React.useEffect(() => {
     const carrs = showDemoData ? db.getCarriers() : db.getRealCarriers();
     const docs = showDemoData ? db.getDocuments() : db.getRealDocuments();
     setCarriers(carrs);
     setDocuments(docs);
+
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetCarrierId = urlParams.get('carrierId');
+      if (targetCarrierId) {
+        const targeted = carrs.find(c => c.id === targetCarrierId);
+        if (targeted) {
+          setSelectedCarrier(targeted);
+          return;
+        }
+      }
+    }
+
     const pending = carrs.filter(c => c.verificationStatus === 'PENDING');
     setSelectedCarrier(pending[0] || carrs[0] || null);
   }, [showDemoData]);
@@ -54,20 +68,37 @@ export default function AdminVerificationConsolePage() {
     setDocuments(showDemoData ? db.getDocuments() : db.getRealDocuments());
   };
 
-  const handleOverallApprove = () => {
+  const handleOverallApprove = async () => {
     if (!selectedCarrier) return;
+    const badges = {
+      identityVerified: true,
+      taxVerified: true,
+      transportPermitVerified: true,
+      elevatorVerified: !!selectedCarrier.elevatorSpec?.hasElevator
+    };
+
     db.updateCarrier(selectedCarrier.id, {
       verificationStatus: 'APPROVED',
-      verificationBadges: {
-        identityVerified: true,
-        taxVerified: true,
-        transportPermitVerified: true,
-        elevatorVerified: !!selectedCarrier.elevatorSpec?.hasElevator
-      }
+      verificationBadges: badges
     });
 
     // Update all carrier docs to approved
     carrierDocs.forEach(d => db.updateDocumentStatus(d.id, 'APPROVED'));
+
+    // Sync to Firestore
+    try {
+      await updateFirestoreCarrier(selectedCarrier.id, {
+        verificationStatus: 'APPROVED',
+        verificationBadges: badges
+      });
+    } catch (e) {
+      console.warn('Firestore carrier update failed:', e);
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('auth-changed'));
+    }
 
     const updatedCarriers = showDemoData ? db.getCarriers() : db.getRealCarriers();
     setCarriers(updatedCarriers);
@@ -76,11 +107,24 @@ export default function AdminVerificationConsolePage() {
     setTimeout(() => setSuccessNotice(null), 4000);
   };
 
-  const handleOverallReject = () => {
+  const handleOverallReject = async () => {
     if (!selectedCarrier) return;
     db.updateCarrier(selectedCarrier.id, {
       verificationStatus: 'REJECTED'
     });
+
+    try {
+      await updateFirestoreCarrier(selectedCarrier.id, {
+        verificationStatus: 'REJECTED'
+      });
+    } catch (e) {
+      console.warn('Firestore carrier update failed:', e);
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('auth-changed'));
+    }
 
     const updatedCarriers = showDemoData ? db.getCarriers() : db.getRealCarriers();
     setCarriers(updatedCarriers);

@@ -35,7 +35,7 @@ function CustomerMessagesContent() {
 
   const { user: authUser } = useAuth();
   const currentUser = authUser || db.getCurrentUser();
-  const userId = currentUser?.id || (currentUser as any)?.uid || '';
+  const userId = currentUser?.id || (currentUser as any)?.uid || currentUser?.email || '';
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<string>('');
@@ -44,39 +44,95 @@ function CustomerMessagesContent() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load conversations for the current user
-  useEffect(() => {
-    if (!userId) {
-      setConversations([]);
-      setActiveConvId('');
-      setMessages([]);
-      return;
-    }
+  const loadUserConversations = () => {
     const all = db.getConversations();
-    const userConvs = all.filter(c =>
-      c.participantIds.includes(userId) ||
-      (currentUser?.email && c.participantIds.includes(currentUser.email)) ||
-      (c.participantNames && Object.keys(c.participantNames).includes(userId))
-    );
+
+    // Find all requests belonging to the current customer
+    const userRequests = db.getRequests().filter(r => {
+      if (!currentUser) return true;
+      if (currentUser.id && (r.customerId === currentUser.id || (r as any).userId === currentUser.id)) return true;
+      if ((currentUser as any).uid && (r.customerId === (currentUser as any).uid || (r as any).userId === (currentUser as any).uid)) return true;
+      if (currentUser.email && r.customerEmail && r.customerEmail.toLowerCase() === currentUser.email.toLowerCase()) return true;
+      if (currentUser.phone && r.customerPhone && r.customerPhone.replace(/\D/g, '').slice(-10) === currentUser.phone.replace(/\D/g, '').slice(-10)) return true;
+      return false;
+    });
+    const userReqIds = new Set(userRequests.map(r => r.id));
+
+    const matchesUser = (c: Conversation) => {
+      if (!currentUser && userReqIds.size === 0) return true;
+      const parts = c.participantIds || [];
+      if (userId && parts.includes(userId)) return true;
+      if (currentUser?.id && parts.includes(currentUser.id)) return true;
+      if ((currentUser as any)?.uid && parts.includes((currentUser as any).uid)) return true;
+      if (currentUser?.email && parts.some(p => p && p.toLowerCase() === currentUser.email.toLowerCase())) return true;
+      if (currentUser?.phone && parts.some(p => p && p.replace(/\D/g, '').slice(-10) === currentUser.phone.replace(/\D/g, '').slice(-10))) return true;
+      if (c.contextId && userReqIds.has(c.contextId)) return true;
+      if (c.participantNames && userId && Object.keys(c.participantNames).includes(userId)) return true;
+      return false;
+    };
+
+    const userConvs = all.filter(matchesUser);
     setConversations(userConvs);
+
     if (userConvs.length > 0) {
-      const initialId = targetConvId && userConvs.some(c => c.id === targetConvId)
-        ? targetConvId
-        : userConvs[0].id;
-      setActiveConvId(initialId);
-      setMessages(db.getMessages(initialId));
-      db.markConversationAsRead(initialId, userId);
+      setActiveConvId(prev => {
+        if (targetConvId && userConvs.some(c => c.id === targetConvId)) return targetConvId;
+        if (prev && userConvs.some(c => c.id === prev)) return prev;
+        return userConvs[0].id;
+      });
     } else {
       setActiveConvId('');
       setMessages([]);
     }
+
+    // Sync from server API to bridge cross-browser / incognito testing
+    const queryEmail = currentUser?.email ? encodeURIComponent(currentUser.email) : '';
+    const queryId = userId ? encodeURIComponent(userId) : '';
+    fetch(`/api/conversations?userId=${queryId}&email=${queryEmail}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.conversations) && data.conversations.length > 0) {
+          db.bulkMergeConversations(data.conversations);
+          if (Array.isArray(data.messages) && data.messages.length > 0) {
+            db.bulkMergeMessages(data.messages);
+          }
+
+          const merged = db.getConversations();
+          const userConvsUpdated = merged.filter(matchesUser);
+          setConversations(userConvsUpdated);
+          if (userConvsUpdated.length > 0) {
+            setActiveConvId(prev => {
+              if (targetConvId && userConvsUpdated.some(c => c.id === targetConvId)) return targetConvId;
+              if (prev && userConvsUpdated.some(c => c.id === prev)) return prev;
+              return userConvsUpdated[0].id;
+            });
+          }
+        }
+      })
+      .catch(err => console.warn('Conversations fetch error:', err));
+  };
+
+  useEffect(() => {
+    loadUserConversations();
+
+    const handleUpdate = () => loadUserConversations();
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('offer-added', handleUpdate);
+    window.addEventListener('auth-changed', handleUpdate);
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('offer-added', handleUpdate);
+      window.removeEventListener('auth-changed', handleUpdate);
+    };
   }, [targetConvId, userId, currentUser?.email]);
 
   // Load messages when activeConvId changes
   useEffect(() => {
-    if (activeConvId && userId) {
+    if (activeConvId) {
       setMessages(db.getMessages(activeConvId));
-      db.markConversationAsRead(activeConvId, userId);
+      if (userId) {
+        db.markConversationAsRead(activeConvId, userId);
+      }
     }
   }, [activeConvId, userId]);
 

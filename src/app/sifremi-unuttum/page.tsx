@@ -21,7 +21,11 @@ import {
   Mail
 } from 'lucide-react';
 import { db } from '@/lib/data/mock-db';
-import { sendPasswordResetFirebase } from '@/lib/firebase/auth';
+import { 
+  sendPasswordResetFirebase, 
+  verifyResetCodeFirebase, 
+  confirmPasswordResetFirebase 
+} from '@/lib/firebase/auth';
 
 function SifremiUnuttumContent() {
   const router = useRouter();
@@ -33,10 +37,29 @@ function SifremiUnuttumContent() {
   const [email, setEmail] = useState(urlEmail);
   const [emailSent, setEmailSent] = useState(false);
 
+  const oobCode = searchParams.get('oobCode');
+  const mode = searchParams.get('mode');
+
   useEffect(() => {
     const p = searchParams.get('email');
     if (p) setEmail(p);
   }, [searchParams]);
+
+  // Handle direct Firebase reset link navigation (?oobCode=...&mode=resetPassword)
+  useEffect(() => {
+    if (oobCode && (mode === 'resetPassword' || !mode)) {
+      setLoading(true);
+      verifyResetCodeFirebase(oobCode).then(res => {
+        setLoading(false);
+        if (res.success && res.email) {
+          setEmail(res.email);
+          setStep('NEW_PASSWORD');
+        } else {
+          setError(res.error || 'Şifre sıfırlama bağlantısının süresi dolmuş veya geçersiz.');
+        }
+      });
+    }
+  }, [oobCode, mode]);
 
   // Steps: 'PHONE' | 'OTP' | 'NEW_PASSWORD' | 'SUCCESS'
   const [step, setStep] = useState<'PHONE' | 'OTP' | 'NEW_PASSWORD' | 'SUCCESS'>('PHONE');
@@ -104,7 +127,7 @@ function SifremiUnuttumContent() {
   };
 
   // 3. Step: Set New Password, Update DB & Auto-Login
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -119,37 +142,53 @@ function SifremiUnuttumContent() {
     }
 
     setLoading(true);
+
+    if (oobCode) {
+      const fbRes = await confirmPasswordResetFirebase(oobCode, newPassword);
+      if (!fbRes.success) {
+        setLoading(false);
+        setError(fbRes.error || 'Şifre güncellenemedi. Lütfen tekrar deneyin.');
+        return;
+      }
+    }
+
+    const lookupKey = phone || email;
+    if (lookupKey) {
+      db.updateUserPassword(lookupKey, newPassword);
+    }
+
+    const existing = (phone ? db.getUserByPhone(phone) : null) || 
+      (email ? db.getRegisteredUserByEmail(email) || db.getUserByEmail(email) : null);
+
+    const userRole = (existing?.role || 'CUSTOMER') as 'CUSTOMER' | 'CARRIER';
+    const sessionUser = {
+      id: existing?.id || (userRole === 'CARRIER' ? `carr_${Date.now()}` : `cust_${Date.now()}`),
+      email: existing?.email || email || (userRole === 'CARRIER' ? 'info@firma.com' : 'kullanici@gmail.com'),
+      phone: existing?.phone || phone || '',
+      role: userRole,
+      fullName: existing?.fullName || (userRole === 'CUSTOMER' ? 'Kullanıcı' : undefined),
+      companyName: existing?.companyName || (userRole === 'CARRIER' ? 'Nakliyat Firması' : undefined),
+      carrierProfileId: userRole === 'CARRIER' ? (existing?.carrierId || (existing as any)?.carrierProfileId) : undefined,
+      createdAt: existing?.createdAt || new Date().toISOString()
+    };
+
+    // Set user session automatically
+    db.setCurrentUser(sessionUser);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-changed'));
+    }
+
+    setLoading(false);
+    setStep('SUCCESS');
+
+    // Seamless redirect straight to the user dashboard
     setTimeout(() => {
-      db.updateUserPassword(phone, newPassword);
-
-      const existing = db.getUserByPhone(phone) || db.getRegisteredUserByEmail(phone);
-      const userRole = (existing?.role || 'CARRIER') as 'CUSTOMER' | 'CARRIER';
-      const sessionUser = {
-        id: existing?.id || (userRole === 'CARRIER' ? `carr_${Date.now()}` : `cust_${Date.now()}`),
-        email: existing?.email || (userRole === 'CARRIER' ? 'info@firma.com' : 'kullanici@gmail.com'),
-        phone,
-        role: userRole,
-        fullName: existing?.fullName || (userRole === 'CUSTOMER' ? 'Kullanıcı' : undefined),
-        companyName: existing?.companyName || (userRole === 'CARRIER' ? 'Nakliyat Firması' : undefined),
-        carrierProfileId: userRole === 'CARRIER' ? (existing?.carrierId || (existing as any)?.carrierProfileId) : undefined,
-        createdAt: existing?.createdAt || new Date().toISOString()
-      };
-
-      // Set user session automatically
-      db.setCurrentUser(sessionUser);
-
-      setLoading(false);
-      setStep('SUCCESS');
-
-      // Seamless redirect straight to the user dashboard
-      setTimeout(() => {
-        if (userRole === 'CARRIER') {
-          router.push('/app/carrier');
-        } else {
-          router.push('/app/customer');
-        }
-      }, 1200);
-    }, 600);
+      if (userRole === 'CARRIER') {
+        router.push('/app/carrier');
+      } else {
+        router.push('/app/customer');
+      }
+    }, 1200);
   };
 
   return (
@@ -227,24 +266,38 @@ function SifremiUnuttumContent() {
               <Link href="/" className="inline-block group hover:scale-105 transition-transform">
                 <img src="/images/logo.png" alt="TaşınTeklif" className="h-16 sm:h-20 w-auto object-contain mx-auto" />
               </Link>
-              <h1 className="text-2xl font-black text-[#111E38] tracking-tight">Şifremi Unuttum</h1>
+              <h1 className="text-2xl font-black text-[#111E38] tracking-tight">
+                {step === 'NEW_PASSWORD'
+                  ? 'Yeni Şifre Belirleyin'
+                  : step === 'SUCCESS'
+                  ? 'Şifreniz Güncellendi'
+                  : 'Şifremi Unuttum'}
+              </h1>
               <p className="text-sm text-slate-500 font-medium">
-                {method === 'EMAIL'
+                {step === 'NEW_PASSWORD'
+                  ? 'Hesabınız için yeni ve güvenli bir şifre belirleyiniz.'
+                  : step === 'SUCCESS'
+                  ? 'Şifreniz yenilendi, yönlendiriliyorsunuz...'
+                  : step === 'OTP'
+                  ? 'Telefonunuza gelen 6 haneli kodu giriniz.'
+                  : method === 'EMAIL'
                   ? emailSent
                     ? 'E-posta adresinize bağlantı gönderildi.'
                     : 'Hesabınızı kurtarmak için e-postanızı girin.'
-                  : step === 'PHONE'
-                  ? 'Telefon numaranızı girerek onay kodu talep edin.'
-                  : step === 'OTP'
-                  ? 'Telefonunuza gelen 6 haneli kodu giriniz.'
-                  : step === 'NEW_PASSWORD'
-                  ? 'Yeni güvenli şifrenizi belirleyiniz.'
-                  : 'Şifreniz yenilendi, giriş yapılıyor...'}
+                  : 'Telefon numaranızı girerek onay kodu talep edin.'}
               </p>
             </div>
 
+            {/* Verification Loading for direct oobCode link */}
+            {loading && oobCode && step === 'PHONE' && (
+              <div className="py-12 text-center space-y-3">
+                <div className="w-10 h-10 border-3 border-[#F95700] border-t-transparent rounded-full animate-spin mx-auto" />
+                <p className="text-xs font-bold text-slate-600">Şifre sıfırlama bağlantısı doğrulanıyor...</p>
+              </div>
+            )}
+
             {/* Method Tabs (Only on initial step) */}
-            {step === 'PHONE' && !emailSent && (
+            {step === 'PHONE' && !emailSent && !(loading && oobCode) && (
               <div className="flex p-1 bg-slate-100 rounded-full mb-4">
                 <button
                   type="button"
@@ -282,7 +335,7 @@ function SifremiUnuttumContent() {
             )}
 
             {/* ── EMAIL METHOD FLOW ── */}
-            {method === 'EMAIL' && (
+            {method === 'EMAIL' && step === 'PHONE' && !(loading && oobCode) && (
               emailSent ? (
                 <div className="space-y-4 text-center py-2">
                   <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 mx-auto flex items-center justify-center shadow-xs">
@@ -416,6 +469,12 @@ function SifremiUnuttumContent() {
             {/* ── STEP 3: NEW PASSWORD ── */}
             {step === 'NEW_PASSWORD' && (
               <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                {email && (
+                  <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs font-bold flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span>{email} hesabı için yeni şifrenizi belirliyorsunuz.</span>
+                  </div>
+                )}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                     Yeni Şifreniz

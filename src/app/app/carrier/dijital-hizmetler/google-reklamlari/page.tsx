@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -24,7 +24,8 @@ import {
   Target,
   BarChart3,
   Percent,
-  Coins
+  Coins,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { CarrierDigitalSidebar } from '@/components/layout/CarrierDigitalSidebar';
@@ -32,81 +33,84 @@ import { db } from '@/lib/data/mock-db';
 
 const PACKAGES = [
   {
-    name: "Başlangıç Ads Yönetimi",
-    desc: "Düşük bütçeyle aynı gün telefonunun çalmasını isteyenler",
-    price: "750 TL",
-    period: "/ ay (yönetim)",
+    name: 'Başlangıç Ads Yönetimi',
+    desc: 'Düşük bütçeyle aynı gün telefonunun çalmasını isteyenler',
+    price: '750 TL',
+    period: '/ ay (yönetim)',
     isFeatured: false,
     badge: null,
     features: [
-      "Google Ads Kurumsal Hesap Kurulumu",
-      "1 Şehir / 10 Hedef Arama Grubu",
-      "450+ Negatif Kelime Filtresi (Gereksiz Tıklama Yok)",
-      "Tıkla-Ara (Call-Only) Mobil Kampanya",
-      "Haftalık Harcama & Arama Özeti"
+      'Google Ads Kurumsal Hesap Kurulumu',
+      '1 Şehir / 10 Hedef Arama Grubu',
+      '450+ Negatif Kelime Filtresi (Gereksiz Tıklama Yok)',
+      'Tıkla-Ara (Call-Only) Mobil Kampanya',
+      'Haftalık Harcama & Arama Özeti'
     ]
   },
   {
-    name: "Profesyonel Ads Yönetimi",
-    desc: "Haftanın her günü düzenli ev ve ofis taşıma bağlayan firmalar",
-    price: "1.500 TL",
-    period: "/ ay (yönetim)",
+    name: 'Profesyonel Ads Yönetimi',
+    desc: 'Haftanın her günü düzenli ev ve ofis taşıma bağlayan firmalar',
+    price: '1.500 TL',
+    period: '/ ay (yönetim)',
     isFeatured: true,
-    badge: "EN ÇOK TERCİH EDİLEN",
+    badge: 'EN ÇOK TERCİH EDİLEN',
     features: [
-      "Gelişmiş Tıklama Başı Maliyet Düşürme (Kalite Puanı 10/10)",
-      "Şehirlerarası Rota Hedeflemesi (Boş Dönüş Yakalama)",
-      "Dönüşüm Takibi (WhatsApp & Telefon Aramaları)",
-      "A/B Reklam Metin Testleri & Tıklama Artırıcılar",
-      "Sahte Tıklama & Rakip IP Engelleme Koruması",
-      "Bütçe İsrafını Önleme Garantisi"
+      'Gelişmiş Tıklama Başı Maliyet Düşürme (Kalite Puanı 10/10)',
+      'Şehirlerarası Rota Hedeflemesi (Boş Dönüş Yakalama)',
+      'Dönüşüm Takibi (WhatsApp & Telefon Aramaları)',
+      'A/B Reklam Metin Testleri & Tıklama Artırıcılar',
+      'Rakip Analizi & Konum Bazlı Negatifleme',
+      'Haftalık Canlı Performans & Bütçe Raporu'
     ]
   },
   {
-    name: "Filo & VIP Ads Yönetimi",
-    desc: "Yüksek bütçeli, çok araçlı büyük nakliyat ve lojistik filoları",
-    price: "2.500 TL",
-    period: "/ ay (yönetim)",
+    name: 'Kurumsal & Filo Büyüme',
+    desc: 'Çoklu araç filosu olan ve günlük 10+ ev taşıma hedefleyen kurumsal firmalar',
+    price: '2.750 TL',
+    period: '/ ay (yönetim)',
     isFeatured: false,
-    badge: "MAKSİMUM HACİM",
+    badge: 'FİLOLAR İÇİN',
     features: [
-      "Sınırsız Şehir & Güzergah Kampanya Yönetimi",
-      "Yapay Zeka Destekli Akıllı Teklif Stratejisi",
-      "Gün İçi Saat Bazlı Bütçe Optimizasyonu",
-      "Öncelikli 7/24 Google Ads Hesap Uzmanı",
-      "Anlık Çağrı Kayıtları & ROI Analiz Raporu"
+      'Tüm Türkiye Geneli ve Çoklu Şehir Kampanyaları',
+      'Dönüş Seferleri / Boş Kamyon Özel Kampanyası',
+      'Google Haritalar Reklamları (Promoted Pins) Entegrasyonu',
+      '7/24 Kampanya İzleme & Anlık Tıklama Koruması',
+      'Özel Dijital Pazarlama Danışmanı & Günlük Raporlama'
     ]
   }
 ];
 
 const FAQS = [
   {
-    q: "Reklam bütçesini kime ödüyorum?",
-    a: "Reklam bütçenizi doğrudan kendi kredi kartınızla Google'a ödersiniz. Biz yalnızca profesyonel hesap kurulumu, negatif kelime filtrelemesi ve bütçenizin israf olmadan en çok müşteriye dönüşmesi için aylık yönetim hizmeti sunarız."
+    q: 'Google Ads reklam bütçesini kime ödüyorum?',
+    a: 'Reklam bütçenizi (tıklama başı ücretleri) doğrudan kendi kredi kartınızla Google fatura sistemine ödersiniz. Biz yalnızca profesyonel hesap kurulumu, negatif kelime yönetimi ve maliyet düşürme danışmanlık hizmeti sunarız.'
   },
   {
-    q: "Reklamlarım ne zaman başlar ve telefonum ne zaman çalar?",
-    a: "Hesap kurulumu tamamlandıktan sonra aynı gün (ortalama 2-3 saat içinde) reklamlarınız Google'da en tepede çıkmaya başlar ve ilk telefon çağrılarınızı almaya başlarsınız."
+    q: 'Gereksiz tıklamaları ve bütçemin boşa gitmesini nasıl engelliyorsunuz?',
+    a: 'Taşımacılık sektöründe hazırladığımız 450+ özel negatif anahtar kelime havuzu sayesinde "nakliye iş ilanları", "nakliye oyunu", "nakliyat kamyonu fiyatı" gibi iş getirmeyecek tüm aramaları engelliyoruz. Reklamınız sadece gerçekten evini veya ofisini taşıtmak isteyenlere görünür.'
   },
   {
-    q: "Rakiplerim reklamıma bilerek tıklayıp bütçemi bitirebilir mi?",
-    a: "Hayır. Google'ın gelişmiş sahte tıklama (click fraud) koruma algoritmalarının yanı sıra, şüpheli rakip IP adreslerini reklam hedeflemesinden hariç tutarak bütçenizi koruma altına alıyoruz."
+    q: 'Reklamlarım ne kadar sürede yayına girer?',
+    a: 'Hesap kurulumu, anahtar kelime eşleşmeleri ve Tıkla-Ara uzantıları aynı gün ortalama 2-3 saat içinde tamamlanır ve Google onayından sonra aynı gün telefonlarınız çalmaya başlar.'
   },
   {
-    q: "Negatif anahtar kelime neden bu kadar önemlidir?",
-    a: "'Nakliye iş ilanları', 'nakliyat kamyonu oyunu', 'bedava nakliye' gibi nakliyatla ilgisiz veya iş arayan kişilerin aramalarını engelleyerek bütçenizin tek bir kuruşunun dahi boşa gitmesini önlüyoruz."
+    q: 'Teklif başı maliyetleri nasıl düşürüyorsunuz?',
+    a: 'Google reklamlarında kalite puanınız 10 üzerinden ne kadar yüksek olursa, tıklama başına rakiplerinizden %50 daha az ödersiniz. Reklam metni, açılış sayfası ve arama niyeti tam eşleştirilerek en düşük maliyetle en yüksek çağrı sayısı elde edilir.'
   }
 ];
 
-export default function GoogleReklamlariPage() {
+export default function GoogleAdsServicePage() {
   const router = useRouter();
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
     const user = db.getCurrentUser();
-    if (!user || user.role !== 'CARRIER') {
+    if (!user) {
       router.push('/giris?role=nakliyeci');
+      return;
     }
+    setCurrentUser(user);
   }, [router]);
 
   return (
@@ -122,8 +126,8 @@ export default function GoogleReklamlariPage() {
 
         {/* Page Header */}
         <div className="mb-8">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-xs font-bold mb-2">
-            <Megaphone className="w-3.5 h-3.5 text-purple-600" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#FFF3EE] text-[#C23E00] border border-[#F95700]/30 text-xs font-bold mb-2">
+            <Megaphone className="w-3.5 h-3.5 text-[#F95700]" />
             <span>Google Ads Nakliyat Reklam Yönetimi</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
@@ -145,39 +149,39 @@ export default function GoogleReklamlariPage() {
           {/* Sağ Ana İçerik */}
           <div className="lg:col-span-8 space-y-8">
             
-            {/* ── BÖLÜM 1: GOOGLE ADS SPONSORLU 1. SIRA MOCKUP ── */}
-            <div className="bg-gradient-to-br from-[#1E1B4B] via-[#312E81] to-[#1E1B4B] rounded-3xl p-5 sm:p-8 text-white shadow-xl relative overflow-hidden border border-slate-800">
+            {/* BÖLÜM 1: GOOGLE ADS SPONSORLU 1. SIRA MOCKUP (TEMİZ BEYAZ KART - ARKA PLAN MAVİLİĞİ VE MOR KALDIRILDI) */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 text-slate-800 shadow-sm border border-slate-200 space-y-6">
               
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 relative z-10">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-400/20 text-purple-300 border border-purple-400/30 text-[11px] font-bold">
-                    <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold">
+                    <span className="w-2 h-2 rounded-full bg-[#F95700] animate-pulse" />
                     Canlı Sponsorlu Reklam Simülasyonu
                   </span>
-                  <h2 className="text-lg sm:text-2xl font-black mt-2 text-white">
+                  <h2 className="text-lg sm:text-2xl font-black mt-2 text-[#0A1128]">
                     Arama Yapanın Karşısına İlk Çıkan Siz Olun
                   </h2>
-                  <p className="text-xs text-slate-300 mt-0.5">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     "Acil nakliye", "evden eve taşıma" arayanlar doğrudan 'Hemen Ara' butonuna basarak size ulaşır.
                   </p>
                 </div>
 
-                <div className="hidden sm:flex items-center gap-1.5 bg-purple-400/10 border border-purple-400/30 px-3 py-1.5 rounded-xl text-xs font-bold text-purple-300">
-                  <Flame className="w-4 h-4 text-orange-400" />
+                <div className="hidden sm:flex items-center gap-1.5 bg-orange-50 border border-orange-200 text-[#C23E00] px-3 py-1.5 rounded-xl text-xs font-bold">
+                  <Flame className="w-4 h-4 text-[#F95700]" />
                   <span>Aynı Gün Çağrı Garantisi</span>
                 </div>
               </div>
 
               {/* Google Ads Mockup Card */}
-              <div className="w-full max-w-2xl mx-auto rounded-2xl bg-white text-slate-800 shadow-2xl overflow-hidden border border-slate-300">
+              <div className="w-full max-w-2xl mx-auto rounded-2xl bg-white text-slate-800 shadow-md overflow-hidden border border-slate-200">
                 
                 {/* Search Bar */}
-                <div className="p-3.5 bg-white border-b border-slate-200 flex items-center justify-between gap-3">
-                  <div className="flex-1 bg-slate-50 border border-slate-300 rounded-full px-4 py-2 flex items-center gap-2.5 shadow-2xs">
+                <div className="p-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between gap-3">
+                  <div className="flex-1 bg-white border border-slate-300 rounded-full px-4 py-2 flex items-center gap-2.5 shadow-xs">
                     <Search className="w-4 h-4 text-[#4285F4]" />
                     <span className="text-xs sm:text-sm font-bold text-slate-800">acil nakliye kamyonet istanbul ankara</span>
                   </div>
-                  <span className="text-[10px] text-purple-600 font-bold bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200 hidden sm:inline">
+                  <span className="text-[10px] text-[#F95700] font-bold bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-200 hidden sm:inline">
                     En Çok Kazandıran Kelime
                   </span>
                 </div>
@@ -186,7 +190,7 @@ export default function GoogleReklamlariPage() {
                 <div className="p-4 sm:p-5 space-y-4">
                   
                   {/* 1. SIRA: SPONSORLU REKLAM KUTUSU (ÖNE ÇIKARILMIŞ) */}
-                  <div className="rounded-2xl border-2 border-purple-600 bg-purple-50/30 p-4 sm:p-5 shadow-sm relative space-y-3">
+                  <div className="rounded-2xl border-2 border-[#F95700] bg-orange-50/20 p-4 sm:p-5 shadow-sm relative space-y-3">
                     
                     {/* Sponsorlu Rozeti & Kalite Puanı */}
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -194,7 +198,7 @@ export default function GoogleReklamlariPage() {
                         <span className="font-black text-[11px] text-slate-900 uppercase tracking-wider bg-slate-200 px-2 py-0.5 rounded">
                           Sponsorlu
                         </span>
-                        <span className="text-xs font-bold text-purple-900">
+                        <span className="text-xs font-bold text-slate-800">
                           1. Sıra Reklamı
                         </span>
                       </div>
@@ -226,7 +230,7 @@ export default function GoogleReklamlariPage() {
                     </div>
 
                     {/* Doğrudan Arama Uzantısı (Call Asset) */}
-                    <div className="p-3 bg-white rounded-xl border border-purple-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
+                    <div className="p-3 bg-white rounded-xl border border-orange-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
                           <PhoneCall className="w-4 h-4" />
@@ -245,17 +249,17 @@ export default function GoogleReklamlariPage() {
 
                     {/* Performans Özeti Şeridi */}
                     <div className="grid grid-cols-3 gap-2 pt-2 text-center text-[10px] font-bold">
-                      <div className="bg-white p-1.5 rounded-lg border border-purple-100">
+                      <div className="bg-white p-2 rounded-lg border border-slate-200">
                         <span className="text-slate-400 block">Tıklama Başı Maliyet</span>
                         <strong className="text-emerald-700 text-xs">4.20 TL (Çok Düşük)</strong>
                       </div>
-                      <div className="bg-white p-1.5 rounded-lg border border-purple-100">
+                      <div className="bg-white p-2 rounded-lg border border-slate-200">
                         <span className="text-slate-400 block">Arama Oranı</span>
-                        <strong className="text-purple-900 text-xs">%22.4 Doğrudan Çağrı</strong>
+                        <strong className="text-slate-800 text-xs">%22.4 Doğrudan Çağrı</strong>
                       </div>
-                      <div className="bg-white p-1.5 rounded-lg border border-purple-100">
+                      <div className="bg-white p-2 rounded-lg border border-slate-200">
                         <span className="text-slate-400 block">ROI (Getiri)</span>
-                        <strong className="text-orange-600 text-xs">39 Kat Ciro</strong>
+                        <strong className="text-[#F95700] text-xs">39 Kat Ciro</strong>
                       </div>
                     </div>
 
@@ -276,95 +280,89 @@ export default function GoogleReklamlariPage() {
               </div>
 
               {/* Alt Metrikler */}
-              <div className="mt-6 pt-4 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              <div className="pt-4 border-t border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                 <div>
-                  <span className="text-base sm:text-lg font-black text-emerald-400">450+</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Negatif Kelime Koruması</span>
+                  <span className="text-base sm:text-lg font-black text-emerald-600">450+</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">Negatif Kelime Koruması</span>
                 </div>
                 <div>
                   <span className="text-base sm:text-lg font-black text-[#F95700]">2 Saat</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Yayına Alınma Süresi</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">Yayına Alınma Süresi</span>
                 </div>
                 <div>
-                  <span className="text-base sm:text-lg font-black text-blue-400">10 / 10</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Hedeflenen Kalite Puanı</span>
+                  <span className="text-base sm:text-lg font-black text-blue-600">10 / 10</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">Hedeflenen Kalite Puanı</span>
                 </div>
                 <div>
-                  <span className="text-base sm:text-lg font-black text-amber-400">Tıkla-Ara</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Doğrudan Çağrı Odaklı</span>
+                  <span className="text-base sm:text-lg font-black text-amber-600">Tıkla-Ara</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">Doğrudan Çağrı Odaklı</span>
                 </div>
               </div>
 
             </div>
 
-            {/* ── BÖLÜM 2: ÖNCESİ / SONRASI KARŞILAŞTIRMASI ── */}
+            {/* BÖLÜM 2: ARTILARI VE EKSİLERİ (HİZMET ANALİZİ) */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
               <div>
-                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">İş Hacminizdeki Değişim</span>
+                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Şeffaf Hizmet Analizi</span>
                 <h3 className="text-lg sm:text-2xl font-black text-[#0A1128] mt-1">
-                  Öncesi vs. Profesyonel Ads Yönetimi Sonrası
+                  Google Ads Hizmetinin Artıları ve Dikkat Edilmesi Gerekenler
                 </h3>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  Google'a para dökmek değil, harcanan her 1 liranın 15 lira nakliye işi getirmesini sağlamak esastır.
+                  Hangi durumlarda Google Ads en kârlı çözümdür, nerede dikkatli bütçe yönetimi gerekir?
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 
-                {/* ÖNCESİ */}
-                <div className="rounded-2xl bg-red-50/70 border-2 border-red-200/80 p-5 space-y-4">
-                  <div className="flex items-center gap-2 text-red-700 font-bold text-sm border-b border-red-200 pb-2.5">
-                    <div className="w-6 h-6 rounded-full bg-red-200/80 flex items-center justify-center text-red-700 font-black text-xs">
-                      ✕
-                    </div>
-                    <span>Acemi / Kendi Başına Verilen Reklam</span>
-                  </div>
-
-                  <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span>'Nakliye iş ilanları', 'nakliyat kamyonu' gibi alakasız aramalar bütçeyi 2 saatte tüketir.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span>Düşük kalite puanı yüzünden her bir tıklamaya 15 - 20 TL fahiş ücret ödenir.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span>Gece yarısı gereksiz tıklamalara para gider, gündüz müşteri arayacak bütçe kalmaz.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span><strong>Sonuç:</strong> 1.500 TL bütçe harcanır, bağlanan iş: 0 veya 1.</span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* SONRASI */}
-                <div className="rounded-2xl bg-emerald-50/70 border-2 border-emerald-300 p-5 space-y-4 shadow-xs">
-                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm border-b border-emerald-200 pb-2.5">
+                {/* ARTILARI */}
+                <div className="rounded-2xl bg-emerald-50/50 border border-emerald-200 p-5 space-y-3">
+                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm border-b border-emerald-200/80 pb-2.5">
                     <div className="w-6 h-6 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-800 font-black text-xs">
                       ✓
                     </div>
-                    <span>TaşınTeklif ile Profesyonel Ads Sonrası</span>
+                    <span>Güçlü Yanları (Artıları)</span>
                   </div>
-
                   <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>450+ sektörel negatif kelime ile sadece cebinde nakliye parası olan müşteri tıklar.</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>Anında Sonuç:</strong> Reklam açıldığı gün telefonunuz çalmaya başlar, bekleme süresi yoktur.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>10/10 Kalite puanıyla rakipler 15 TL öderken siz 4 TL'ye 1. sıradan çağrı alırsınız.</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>Nokta Atışı Talep:</strong> "Hemen nakliye kamyonet" gibi acil ihtiyaç sahiplerine doğrudan ulaşır.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>Yalnızca araçlarınızın boş olduğu güzergahlarda (Örn: İstanbul-Ankara dönüş) reklam yanar.</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>Konum ve Saat Kontrolü:</strong> Reklamlarınızı sadece boş aracınızın olduğu güzergahta ve çalışma saatlerinizde açabilirsiniz.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span><strong>Sonuç:</strong> 1.500 TL bütçe ile 35.000 TL - 50.000 TL nakliye işi kapatılır!</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>Ölçülebilir Ciro:</strong> Harcanan her 1 TL'nin kaç telefon araması ve kaç taşınma işine dönüştüğü anlık izlenir.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* DİKKAT EDİLMESİ GEREKENLER (EKSİLERİ) */}
+                <div className="rounded-2xl bg-amber-50/50 border border-amber-200 p-5 space-y-3">
+                  <div className="flex items-center gap-2 text-amber-900 font-bold text-sm border-b border-amber-200/80 pb-2.5">
+                    <div className="w-6 h-6 rounded-full bg-amber-200 flex items-center justify-center text-amber-900 font-black text-xs">
+                      !
+                    </div>
+                    <span>Dikkat Edilmesi Gerekenler (Eksileri)</span>
+                  </div>
+                  <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span><strong>Sürekli Bütçe Gerektirir:</strong> Reklam bütçeniz bittiği anda sponsorlu sıradan düşersiniz (kalıcı değildir).</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span><strong>Acemi Yönetimde Yüksek Maliyet:</strong> Negatif kelime filtresi yapılmazsa bütçe 2 saatte alakasız aramalara tükenir.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span><strong>Web Sitesi Kalitesi Önemlidir:</strong> Reklama tıklayan müşteri sitenizi güvenilir bulmazsa aramadan çıkar (bu yüzden SEO & Web Sitesi ile desteklenmelidir).</span>
                     </li>
                   </ul>
                 </div>
@@ -372,81 +370,38 @@ export default function GoogleReklamlariPage() {
               </div>
             </div>
 
-            {/* ── BÖLÜM 3: ADS YÖNETİMİNDE NELER YAPIYORUZ? (4 TEMEL GÜÇ) ── */}
-            <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
-              <h3 className="text-lg font-black text-[#0A1128]">Bütçenizi Nasıl 39 Kat Ciroya Dönüştürüyoruz?</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
-                  <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">
-                    1
-                  </div>
-                  <h4 className="font-bold text-xs sm:text-sm text-[#0A1128]">Negatif Kelime Zırhı</h4>
-                  <p className="text-xs text-slate-500 font-normal">
-                    İş arayanlar, fiyat araştırması yapanlar veya konuyla ilgisiz tıklamalar peşinen engellenir.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
-                    2
-                  </div>
-                  <h4 className="font-bold text-xs sm:text-sm text-[#0A1128]">Tıkla-Ara (Call-Only) Odaklılık</h4>
-                  <p className="text-xs text-slate-500 font-normal">
-                    Kullanıcı reklama dokunduğu an direkt cep telefonunuz aranır; araya web sitesi bile girmeden sıcak teklif bağlanır.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
-                  <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
-                    3
-                  </div>
-                  <h4 className="font-bold text-xs sm:text-sm text-[#0A1128]">Boş Dönüş Rota Hedeflemesi</h4>
-                  <p className="text-xs text-slate-500 font-normal">
-                    Kamyonunuz İzmir'e boş gitmesin diye tam yola çıkacağınız saatlerde İzmir yönü arayanlara reklam gösterilir.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
-                  <div className="w-7 h-7 rounded-lg bg-orange-100 text-[#F95700] flex items-center justify-center font-bold text-xs">
-                    4
-                  </div>
-                  <h4 className="font-bold text-xs sm:text-sm text-[#0A1128]">Haftalık Şeffaf Arama Raporu</h4>
-                  <p className="text-xs text-slate-500 font-normal">
-                    Hangi müşterinin ne arayarak sizi aradığını ve kaç kuruş harcandığını kalem kalem gösteren net rapor.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* ── BÖLÜM 4: PAKETLER & FİYATLANDIRMA ── */}
-            <div className="space-y-4">
+            {/* BÖLÜM 3: PAKETLER VE FİYATLANDIRMA */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
               <div>
-                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Şeffaf Fiyatlar</span>
+                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Şeffaf Yönetim Paketleri</span>
                 <h3 className="text-lg sm:text-2xl font-black text-[#0A1128] mt-1">
-                  Google Ads Yönetim Paketleri
+                  Firmanız İçin En Uygun Ads Paketini Seçin
                 </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Gizli ücret yok, taahhüt yok. İstediğiniz ay durdurun veya bütçenizi büyütün.
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {PACKAGES.map((pkg, idx) => (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {PACKAGES.map((pkg, i) => (
                   <div 
-                    key={idx}
-                    className={`rounded-3xl p-5 sm:p-6 transition-all flex flex-col justify-between border-2 ${
-                      pkg.isFeatured
-                        ? 'bg-white border-[#F95700] shadow-md relative'
-                        : 'bg-white border-slate-200 shadow-xs hover:border-slate-300'
+                    key={i} 
+                    className={`rounded-2xl p-5 sm:p-6 border transition-all flex flex-col justify-between ${
+                      pkg.isFeatured 
+                        ? 'border-2 border-[#F95700] bg-orange-50/20 shadow-md relative' 
+                        : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >
                     {pkg.badge && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#F95700] text-white text-[10px] font-black uppercase tracking-wider shadow-xs">
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F95700] text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">
                         {pkg.badge}
-                      </div>
+                      </span>
                     )}
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div>
-                        <h3 className="font-black text-base text-[#0A1128]">{pkg.name}</h3>
-                        <p className="text-xs text-slate-400 font-medium mt-0.5">{pkg.desc}</p>
+                        <h4 className="font-black text-base text-[#0A1128]">{pkg.name}</h4>
+                        <p className="text-xs text-slate-500 mt-1 min-h-[36px]">{pkg.desc}</p>
                       </div>
 
                       <div className="pt-2 border-t border-slate-100">
@@ -466,7 +421,7 @@ export default function GoogleReklamlariPage() {
 
                     <div className="pt-6">
                       <a 
-                        href={`https://wa.me/908503080000?text=Merhaba,%20${encodeURIComponent(pkg.name)}%20Ads%20paketi%20hakkında%20bilgi%20almak%20istiyorum.`}
+                        href={`https://wa.me/908503080000?text=${encodeURIComponent(`Merhaba, ${pkg.name} Ads paketi hakkında bilgi almak istiyorum.`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block w-full"
@@ -485,7 +440,7 @@ export default function GoogleReklamlariPage() {
               </div>
             </div>
 
-            {/* ── BÖLÜM 5: SIKÇA SORULAN SORULAR (SSS) ── */}
+            {/* BÖLÜM 4: SSS */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
               <h3 className="text-lg font-black text-[#0A1128]">Sıkça Sorulan Sorular</h3>
               <div className="space-y-2.5 pt-2">
@@ -512,7 +467,7 @@ export default function GoogleReklamlariPage() {
               </div>
             </div>
 
-            {/* ── BÖLÜM 6: DOĞRUDAN İLETİŞİM & WHATSAPP ÇAĞRISI ── */}
+            {/* BÖLÜM 5: WHATSAPP ÇAĞRISI */}
             <div className="bg-[#0A1128] text-white rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
               <div className="space-y-2 text-center sm:text-left relative z-10">
                 <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Ücretsiz Reklam Bütçe Analizi</span>

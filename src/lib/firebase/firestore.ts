@@ -42,11 +42,15 @@ export async function getFirestoreRequests(): Promise<MovingRequest[]> {
 }
 
 export async function updateFirestoreRequest(id: string, updates: Partial<MovingRequest>): Promise<void> {
-  if (!isFirebaseConfigured()) return;
-  await updateDoc(doc(db, 'requests', id), {
-    ...updates,
-    updatedAt: serverTimestamp(),
-  });
+  if (!isFirebaseConfigured() || !db) return;
+  try {
+    await setDoc(doc(db, 'requests', id), {
+      ...updates,
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+  } catch (err) {
+    console.warn('updateFirestoreRequest error:', err);
+  }
 }
 
 // ─── OFFERS (TEKLİFLER) ───────────────────────────────────────
@@ -130,6 +134,18 @@ export async function getFirestoreUsers(): Promise<User[]> {
   } catch (err) {
     console.warn('Failed to fetch Firestore users:', err);
     return [];
+  }
+}
+
+export async function updateFirestoreCarrier(carrierId: string, updates: Partial<CarrierProfile>): Promise<void> {
+  if (!isFirebaseConfigured() || !db) return;
+  try {
+    await updateDoc(doc(db, 'carriers', carrierId), {
+      ...updates,
+      updatedAt: serverTimestamp(),
+    });
+  } catch (err) {
+    console.warn('Failed to update Firestore carrier:', err);
   }
 }
 

@@ -331,151 +331,593 @@ export const SEED_REGISTERED_USERS: RegisteredUserRecord[] = [
   }
 ];
 
-// Seed Requests — Platform canlıya çıktığında vitrini ve nakliyeci panelini dolu gösteren gerçekçi talepler
-export const SEED_REQUESTS: MovingRequest[] = [
-  {
-    id: 'req_1',
-    requestCode: '#26368',
-    customerId: 'cust_ahmet',
-    customerName: 'Ahmet T.',
-    customerPhone: '0534 812 45 90',
-    allowPhoneCall: true,
-    serviceCategory: 'EVDEN_EVE',
-    originCity: 'Bursa',
-    originDistrict: 'Yıldırım',
-    destinationCity: 'Bursa',
-    destinationDistrict: 'Yıldırım',
-    homeSize: '3+1',
-    movingDate: '30 Eylül 2026',
-    isDateFlexible: false,
-    originFloor: 3,
-    originHasElevator: false,
-    originHasFreightElevator: false,
-    originRequiresMobileElevator: false,
-    originTruckAccess: true,
-    destinationFloor: 1,
-    destinationHasElevator: false,
-    destinationHasFreightElevator: false,
-    destinationRequiresMobileElevator: false,
-    destinationTruckAccess: true,
-    packagingPreference: 'CARRIER_PACKS',
-    extraServices: ['disassembly_assembly'],
-    photos: ['/mock-photos/living_room_bursa.jpg'],
-    notes: 'Mobilyaların söküm ve montajı yapılacak, beyaz eşyalar patpat naylonla sarılmalı.',
-    status: 'ACTIVE',
-    offersCount: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    isSeed: true
-  },
-  {
-    id: 'req_2',
-    requestCode: '#38491',
-    customerId: 'cust_selim',
-    customerName: 'Selim K.',
-    customerPhone: '0532 418 63 21',
-    allowPhoneCall: true,
-    serviceCategory: 'EVDEN_EVE',
-    originCity: 'İstanbul',
-    originDistrict: 'Kadıköy',
-    destinationCity: 'Ankara',
-    destinationDistrict: 'Çankaya',
-    homeSize: '3+1',
-    movingDate: '18 Ekim 2026',
-    isDateFlexible: true,
-    flexibleDays: 3,
-    originFloor: 3,
-    originHasElevator: true,
-    originHasFreightElevator: false,
-    originRequiresMobileElevator: false,
-    originTruckAccess: true,
-    destinationFloor: 4,
-    destinationHasElevator: true,
-    destinationHasFreightElevator: false,
-    destinationRequiresMobileElevator: false,
-    destinationTruckAccess: true,
-    packagingPreference: 'CARRIER_PACKS',
-    extraServices: ['disassembly_assembly', 'white_goods_connection', 'insured'],
-    photos: ['/mock-photos/moving_room_1.jpg'],
-    notes: 'Mobilyaların söküm ve montajı yapılacak, beyaz eşyalar patpat naylonla sarılmalı. İki bina da asansörlü.',
-    status: 'ACTIVE',
-    offersCount: 0,
-    createdAt: new Date(Date.now() - 3600000 * 3).toISOString(),
-    updatedAt: new Date().toISOString(),
-    isSeed: true
-  },
-  {
-    id: 'req_3',
-    requestCode: '#49102',
-    customerId: 'cust_busra',
-    customerName: 'Büşra T.',
-    customerPhone: '0544 671 90 84',
-    allowPhoneCall: true,
-    serviceCategory: 'EVDEN_EVE',
-    originCity: 'İzmir',
-    originDistrict: 'Karşıyaka',
-    destinationCity: 'Bursa',
-    destinationDistrict: 'Nilüfer',
-    homeSize: '2+1',
-    movingDate: '22 Ekim 2026',
-    isDateFlexible: false,
-    originFloor: 2,
-    originHasElevator: true,
-    originHasFreightElevator: false,
-    originRequiresMobileElevator: false,
-    originTruckAccess: true,
-    destinationFloor: 1,
-    destinationHasElevator: false,
-    destinationHasFreightElevator: false,
-    destinationRequiresMobileElevator: false,
-    destinationTruckAccess: true,
-    packagingPreference: 'BOTH_OFFERS',
-    extraServices: ['disassembly_assembly', 'insured'],
-    photos: ['https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=600&auto=format&fit=crop&q=80'],
-    notes: 'Kırılacak eşyalar tarafımızdan kolilendi. Gardırop ve yatak odası mobilyaları demonte edilip kurulacak.',
-    status: 'ACTIVE',
-    offersCount: 0,
-    createdAt: new Date(Date.now() - 3600000 * 7).toISOString(),
-    updatedAt: new Date().toISOString(),
-    isSeed: true
-  },
-  {
-    id: 'req_4',
-    requestCode: '#51283',
-    customerId: 'cust_murat',
-    customerName: 'Murat Y.',
-    customerPhone: '0535 892 14 77',
-    allowPhoneCall: true,
-    serviceCategory: 'OFIS_TASIMA',
-    originCity: 'İstanbul',
-    originDistrict: 'Şişli',
-    destinationCity: 'İstanbul',
-    destinationDistrict: 'Ataşehir',
-    homeSize: 'office_small',
-    movingDate: '25 Ekim 2026',
-    isDateFlexible: true,
-    flexibleDays: 2,
-    originFloor: 5,
-    originHasElevator: true,
-    originHasFreightElevator: true,
-    originRequiresMobileElevator: false,
-    originTruckAccess: true,
-    destinationFloor: 2,
-    destinationHasElevator: true,
-    destinationHasFreightElevator: true,
-    destinationRequiresMobileElevator: false,
-    destinationTruckAccess: true,
-    packagingPreference: 'CARRIER_PACKS',
-    extraServices: ['disassembly_assembly'],
-    photos: ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80'],
-    notes: '12 çalışma masası, dosya dolapları ve ofis koltukları. Hafta sonu taşınması gerekmektedir.',
-    status: 'ACTIVE',
-    offersCount: 0,
-    createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
-    updatedAt: new Date().toISOString(),
-    isSeed: true
-  }
-];
+function formatTurkishDate(ms: number): string {
+  const d = new Date(ms);
+  const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+export function getDynamicSeedRequests(): MovingRequest[] {
+  const now = Date.now();
+  const HOUR = 3600 * 1000;
+  const DAY = 24 * HOUR;
+
+  return [
+    {
+      id: 'req_seed_1',
+      requestCode: '#64192',
+      customerId: 'cust_selin',
+      customerName: 'Selin K.',
+      customerPhone: '0532 641 28 90',
+      allowPhoneCall: true,
+      serviceCategory: 'EVDEN_EVE',
+      originCity: 'İstanbul',
+      originDistrict: 'Kadıköy',
+      destinationCity: 'Ankara',
+      destinationDistrict: 'Çankaya',
+      homeSize: '3+1',
+      movingDate: formatTurkishDate(now + 3 * DAY),
+      isDateFlexible: true,
+      flexibleDays: 2,
+      originFloor: 3,
+      originHasElevator: true,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: false,
+      originTruckAccess: true,
+      destinationFloor: 2,
+      destinationHasElevator: true,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'CARRIER_PACKS',
+      extraServices: ['disassembly_assembly', 'white_goods_connection', 'insured'],
+      photos: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Mobilyaların söküm ve montajı yapılacak, 6 kapılı gardırop ve köşe koltuk takımı var. Beyaz eşyalar patpat naylonla sarılmalı.',
+      status: 'ACTIVE',
+      offersCount: 1,
+      createdAt: new Date(now - 38 * 60 * 1000).toISOString(), // 38 dk önce (BUGÜN)
+      updatedAt: new Date(now - 38 * 60 * 1000).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_2',
+      requestCode: '#64188',
+      customerId: 'cust_baris',
+      customerName: 'Barış E.',
+      customerPhone: '0542 819 33 45',
+      allowPhoneCall: true,
+      serviceCategory: 'PARCA_ESYA',
+      originCity: 'İstanbul',
+      originDistrict: 'Beşiktaş',
+      destinationCity: 'İzmir',
+      destinationDistrict: 'Bornova',
+      homeSize: '1+1',
+      movingDate: formatTurkishDate(now + 4 * DAY),
+      isDateFlexible: true,
+      flexibleDays: 3,
+      originFloor: 1,
+      originHasElevator: false,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: false,
+      originTruckAccess: true,
+      destinationFloor: 0,
+      destinationHasElevator: false,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'CUSTOMER_PACKS',
+      extraServices: ['insured'],
+      photos: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Öğrenci evimi taşıyorum. Sadece L koltuk, buzdolabı, çamaşır makinesi, çalışma masası ve 6 koli var. Kamyonda boş yer varsa parsiyel olarak da gidebilir.',
+      status: 'ACTIVE',
+      offersCount: 0,
+      createdAt: new Date(now - 140 * 60 * 1000).toISOString(), // 2.3 saat önce (BUGÜN)
+      updatedAt: new Date(now - 140 * 60 * 1000).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_3',
+      requestCode: '#64175',
+      customerId: 'cust_nilgun',
+      customerName: 'Nilgün D.',
+      customerPhone: '0533 502 91 18',
+      allowPhoneCall: true,
+      serviceCategory: 'EVDEN_EVE',
+      originCity: 'İstanbul',
+      originDistrict: 'Bakırköy',
+      destinationCity: 'İstanbul',
+      destinationDistrict: 'Maltepe',
+      homeSize: '2+1',
+      movingDate: formatTurkishDate(now + 2 * DAY),
+      isDateFlexible: false,
+      originFloor: 4,
+      originHasElevator: false,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: true,
+      originTruckAccess: true,
+      destinationFloor: 3,
+      destinationHasElevator: true,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'BOTH_OFFERS',
+      extraServices: ['disassembly_assembly', 'insured'],
+      photos: ['https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Bakırköy Ataköy\'deki evimiz 4. katta ve merdiven dar olduğu için dış cephe asansörü gereklidir. Maltepe\'de asansör var.',
+      status: 'ACTIVE',
+      offersCount: 2,
+      createdAt: new Date(now - 310 * 60 * 1000).toISOString(), // 5 saat önce (BUGÜN)
+      updatedAt: new Date(now - 310 * 60 * 1000).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_4',
+      requestCode: '#64160',
+      customerId: 'cust_erdem',
+      customerName: 'Erdem T.',
+      customerPhone: '0535 774 12 63',
+      allowPhoneCall: true,
+      serviceCategory: 'EVDEN_EVE',
+      originCity: 'Bursa',
+      originDistrict: 'Nilüfer',
+      destinationCity: 'Antalya',
+      destinationDistrict: 'Muratpaşa',
+      homeSize: '3+1',
+      movingDate: formatTurkishDate(now + 6 * DAY),
+      isDateFlexible: true,
+      flexibleDays: 2,
+      originFloor: 2,
+      originHasElevator: true,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: false,
+      originTruckAccess: true,
+      destinationFloor: 5,
+      destinationHasElevator: true,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'CARRIER_PACKS',
+      extraServices: ['disassembly_assembly', 'white_goods_connection', 'insured'],
+      photos: ['https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Tayin nedeniyle Bursa\'dan Antalya\'ya taşınıyoruz. Koşu bandı ve 80 kg çelik para kasası da taşınacak. Faturaya uygun kurumsal teklif rica ederiz.',
+      status: 'ACTIVE',
+      offersCount: 1,
+      createdAt: new Date(now - 19 * HOUR).toISOString(), // DÜN
+      updatedAt: new Date(now - 19 * HOUR).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_5',
+      requestCode: '#64142',
+      customerId: 'cust_ayse',
+      customerName: 'Ayşe V. (Ofis)',
+      customerPhone: '0530 488 65 20',
+      allowPhoneCall: true,
+      serviceCategory: 'OFIS_TASIMA',
+      originCity: 'İstanbul',
+      originDistrict: 'Şişli',
+      destinationCity: 'İstanbul',
+      destinationDistrict: 'Ataşehir',
+      homeSize: 'office_small',
+      movingDate: formatTurkishDate(now + 5 * DAY),
+      isDateFlexible: false,
+      originFloor: 5,
+      originHasElevator: true,
+      originHasFreightElevator: true,
+      originRequiresMobileElevator: false,
+      originTruckAccess: true,
+      destinationFloor: 2,
+      destinationHasElevator: true,
+      destinationHasFreightElevator: true,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'CARRIER_PACKS',
+      extraServices: ['disassembly_assembly', 'insured'],
+      photos: ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Mali müşavirlik büromuz hafta sonu taşınmalı, Pazartesi mesai başlayacak. 8 çalışma masası, 2 arşiv dolabı, toplantı masası ve 15 koli evrak.',
+      status: 'ACTIVE',
+      offersCount: 2,
+      createdAt: new Date(now - 25 * HOUR).toISOString(), // DÜN
+      updatedAt: new Date(now - 25 * HOUR).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_6',
+      requestCode: '#64130',
+      customerId: 'cust_kemal',
+      customerName: 'Kemal S.',
+      customerPhone: '0544 219 80 71',
+      allowPhoneCall: true,
+      serviceCategory: 'EVDEN_EVE',
+      originCity: 'İzmir',
+      originDistrict: 'Karşıyaka',
+      destinationCity: 'İzmir',
+      destinationDistrict: 'Urla',
+      homeSize: '2+1',
+      movingDate: formatTurkishDate(now + 4 * DAY),
+      isDateFlexible: true,
+      flexibleDays: 2,
+      originFloor: 3,
+      originHasElevator: true,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: false,
+      originTruckAccess: true,
+      destinationFloor: 0,
+      destinationHasElevator: false,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'CARRIER_PACKS',
+      extraServices: ['disassembly_assembly', 'insured'],
+      photos: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Bostanlı\'daki daireden Urla\'daki bahçeli müstakil eve taşınma. Bahçe mobilyaları, barbekü ve saksı bitkileri de mevcuttur.',
+      status: 'ACTIVE',
+      offersCount: 1,
+      createdAt: new Date(now - 31 * HOUR).toISOString(), // DÜN
+      updatedAt: new Date(now - 31 * HOUR).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_7',
+      requestCode: '#64115',
+      customerId: 'cust_meltem',
+      customerName: 'Doç. Dr. Meltem U.',
+      customerPhone: '0532 991 43 12',
+      allowPhoneCall: true,
+      serviceCategory: 'EVDEN_EVE',
+      originCity: 'Ankara',
+      originDistrict: 'Çankaya',
+      destinationCity: 'Ankara',
+      destinationDistrict: 'Gölbaşı',
+      homeSize: '4+1',
+      movingDate: formatTurkishDate(now + 7 * DAY),
+      isDateFlexible: false,
+      originFloor: 1,
+      originHasElevator: false,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: false,
+      originTruckAccess: true,
+      destinationFloor: 0,
+      destinationHasElevator: false,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'CARRIER_PACKS',
+      extraServices: ['disassembly_assembly', 'white_goods_connection', 'insured'],
+      photos: ['https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Evimizde duvar piyanosu bulunmaktadır. Profesyonel taşıyıcı ekip ve nakliyat sigortası şarttır. Salon takımı masif ahşaptır.',
+      status: 'ACTIVE',
+      offersCount: 3,
+      createdAt: new Date(now - 46 * HOUR).toISOString(), // 2 gün önce
+      updatedAt: new Date(now - 46 * HOUR).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_8',
+      requestCode: '#64098',
+      customerId: 'cust_gizem',
+      customerName: 'Gizem & Can A.',
+      customerPhone: '0538 610 52 87',
+      allowPhoneCall: true,
+      serviceCategory: 'EVDEN_EVE',
+      originCity: 'Kocaeli',
+      originDistrict: 'İzmit',
+      destinationCity: 'Muğla',
+      destinationDistrict: 'Bodrum',
+      homeSize: '2+1',
+      movingDate: formatTurkishDate(now + 8 * DAY),
+      isDateFlexible: true,
+      flexibleDays: 3,
+      originFloor: 0,
+      originHasElevator: false,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: false,
+      originTruckAccess: true,
+      destinationFloor: 1,
+      destinationHasElevator: false,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'CARRIER_PACKS',
+      extraServices: ['disassembly_assembly', 'insured'],
+      photos: ['https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Yeni evlendik, eşyaların tamamı sıfır ambalajlı çeyiz eşyasıdır. Mobilyaların montajı Bodrum\'daki evde yapılacaktır.',
+      status: 'ACTIVE',
+      offersCount: 1,
+      createdAt: new Date(now - 55 * HOUR).toISOString(), // 2 gün önce
+      updatedAt: new Date(now - 55 * HOUR).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_9',
+      requestCode: '#64082',
+      customerId: 'cust_deniz',
+      customerName: 'Deniz O.',
+      customerPhone: '0541 332 79 04',
+      allowPhoneCall: true,
+      serviceCategory: 'PARCA_ESYA',
+      originCity: 'Eskişehir',
+      originDistrict: 'Tepebaşı',
+      destinationCity: 'İstanbul',
+      destinationDistrict: 'Kadıköy',
+      homeSize: '1+0',
+      movingDate: formatTurkishDate(now + 9 * DAY),
+      isDateFlexible: true,
+      flexibleDays: 4,
+      originFloor: 2,
+      originHasElevator: false,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: false,
+      originTruckAccess: true,
+      destinationFloor: 3,
+      destinationHasElevator: true,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'CUSTOMER_PACKS',
+      extraServices: [],
+      photos: ['https://images.unsplash.com/photo-1540518614846-7ede433c4ef0?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Baza yatak, mini buzdolabı ve 5 koli kitap/kıyafet. Küçük araç veya parsiyel taşıma yeterlidir.',
+      status: 'ACTIVE',
+      offersCount: 0,
+      createdAt: new Date(now - 73 * HOUR).toISOString(), // 3 gün önce
+      updatedAt: new Date(now - 73 * HOUR).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_10',
+      requestCode: '#64065',
+      customerId: 'cust_serdar',
+      customerName: 'Serdar H.',
+      customerPhone: '0536 415 88 32',
+      allowPhoneCall: true,
+      serviceCategory: 'EVDEN_EVE',
+      originCity: 'Antalya',
+      originDistrict: 'Konyaaltı',
+      destinationCity: 'Antalya',
+      destinationDistrict: 'Kepez',
+      homeSize: '3+1',
+      movingDate: formatTurkishDate(now + 6 * DAY),
+      isDateFlexible: false,
+      originFloor: 6,
+      originHasElevator: false,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: true,
+      originTruckAccess: true,
+      destinationFloor: 3,
+      destinationHasElevator: true,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'BOTH_OFFERS',
+      extraServices: ['disassembly_assembly', 'white_goods_connection'],
+      photos: ['https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Konyaaltı\'ndaki site bina asansöründen eşya taşınmasına kesinlikle izin vermiyor. Dış cephe modüler asansörü şarttır.',
+      status: 'ACTIVE',
+      offersCount: 2,
+      createdAt: new Date(now - 81 * HOUR).toISOString(), // 3 gün önce
+      updatedAt: new Date(now - 81 * HOUR).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_11',
+      requestCode: '#64049',
+      customerId: 'cust_mustafa',
+      customerName: 'Mustafa Ç.',
+      customerPhone: '0537 804 19 55',
+      allowPhoneCall: true,
+      serviceCategory: 'EVDEN_EVE',
+      originCity: 'İstanbul',
+      originDistrict: 'Pendik',
+      destinationCity: 'Trabzon',
+      destinationDistrict: 'Ortahisar',
+      homeSize: '2+1',
+      movingDate: formatTurkishDate(now + 12 * DAY),
+      isDateFlexible: true,
+      flexibleDays: 3,
+      originFloor: 4,
+      originHasElevator: true,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: false,
+      originTruckAccess: true,
+      destinationFloor: 2,
+      destinationHasElevator: true,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'CARRIER_PACKS',
+      extraServices: ['disassembly_assembly', 'insured'],
+      photos: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Memur tayini nedeniyle İstanbul\'dan Trabzon\'a nakliye. Çift şoförlü araç ve resmi fatura zorunludur.',
+      status: 'ACTIVE',
+      offersCount: 1,
+      createdAt: new Date(now - 97 * HOUR).toISOString(), // 4 gün önce
+      updatedAt: new Date(now - 97 * HOUR).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_12',
+      requestCode: '#64031',
+      customerId: 'cust_fatma',
+      customerName: 'Fatma B.',
+      customerPhone: '0543 912 60 48',
+      allowPhoneCall: true,
+      serviceCategory: 'EVDEN_EVE',
+      originCity: 'İstanbul',
+      originDistrict: 'Ümraniye',
+      destinationCity: 'İstanbul',
+      destinationDistrict: 'Üsküdar',
+      homeSize: '2+1',
+      movingDate: formatTurkishDate(now + 5 * DAY),
+      isDateFlexible: true,
+      flexibleDays: 2,
+      originFloor: 2,
+      originHasElevator: true,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: false,
+      originTruckAccess: true,
+      destinationFloor: 1,
+      destinationHasElevator: false,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'CARRIER_PACKS',
+      extraServices: ['disassembly_assembly'],
+      photos: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Mesafe 7 km civarı. Kısa mesafe olduğu için aynı gün öğleden önce başlayıp bitirilmesini rica ediyoruz.',
+      status: 'ACTIVE',
+      offersCount: 3,
+      createdAt: new Date(now - 108 * HOUR).toISOString(), // 4 gün önce
+      updatedAt: new Date(now - 108 * HOUR).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_13',
+      requestCode: '#64018',
+      customerId: 'cust_zafer',
+      customerName: 'Zafer G.',
+      customerPhone: '0533 118 72 90',
+      allowPhoneCall: true,
+      serviceCategory: 'EVDEN_EVE',
+      originCity: 'Aydın',
+      originDistrict: 'Didim',
+      destinationCity: 'Ankara',
+      destinationDistrict: 'Etimesgut',
+      homeSize: '3+1',
+      movingDate: formatTurkishDate(now + 14 * DAY),
+      isDateFlexible: true,
+      flexibleDays: 3,
+      originFloor: 0,
+      originHasElevator: false,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: false,
+      originTruckAccess: true,
+      destinationFloor: 7,
+      destinationHasElevator: true,
+      destinationHasFreightElevator: true,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'BOTH_OFFERS',
+      extraServices: ['disassembly_assembly', 'white_goods_connection', 'insured'],
+      photos: ['https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Didim\'deki yazlığı tamamen Ankara\'ya taşıyoruz. Beyaz eşyalar ve bahçe salıncağı da var.',
+      status: 'ACTIVE',
+      offersCount: 1,
+      createdAt: new Date(now - 122 * HOUR).toISOString(), // 5 gün önce
+      updatedAt: new Date(now - 122 * HOUR).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_14',
+      requestCode: '#64005',
+      customerId: 'cust_aliriza',
+      customerName: 'Ali Rıza K.',
+      customerPhone: '0542 703 41 66',
+      allowPhoneCall: true,
+      serviceCategory: 'EVDEN_EVE',
+      originCity: 'Adana',
+      originDistrict: 'Seyhan',
+      destinationCity: 'Mersin',
+      destinationDistrict: 'Mezitli',
+      homeSize: '2+1',
+      movingDate: formatTurkishDate(now + 7 * DAY),
+      isDateFlexible: true,
+      flexibleDays: 2,
+      originFloor: 3,
+      originHasElevator: false,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: false,
+      originTruckAccess: true,
+      destinationFloor: 4,
+      destinationHasElevator: true,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'CARRIER_PACKS',
+      extraServices: ['disassembly_assembly'],
+      photos: ['https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Adana - Mersin arası taşınma. Mobilyalar demonte edilip kurulacak. Güvenilir ve tecrübeli ekip arıyoruz.',
+      status: 'ACTIVE',
+      offersCount: 2,
+      createdAt: new Date(now - 135 * HOUR).toISOString(), // 5 gün önce
+      updatedAt: new Date(now - 135 * HOUR).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_15',
+      requestCode: '#63988',
+      customerId: 'cust_burak',
+      customerName: 'Burak Y.',
+      customerPhone: '0531 490 22 17',
+      allowPhoneCall: true,
+      serviceCategory: 'EVDEN_EVE',
+      originCity: 'Balıkesir',
+      originDistrict: 'Ayvalık',
+      destinationCity: 'İstanbul',
+      destinationDistrict: 'Kadıköy',
+      homeSize: '2+1',
+      movingDate: formatTurkishDate(now + 10 * DAY),
+      isDateFlexible: true,
+      flexibleDays: 3,
+      originFloor: 1,
+      originHasElevator: false,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: false,
+      originTruckAccess: true,
+      destinationFloor: 3,
+      destinationHasElevator: true,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'CUSTOMER_PACKS',
+      extraServices: ['insured'],
+      photos: ['https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Yazlık dönüşü. Koliler hazırlandı, mobilya olarak sadece salon koltukları ve TV sehpası var.',
+      status: 'ACTIVE',
+      offersCount: 1,
+      createdAt: new Date(now - 147 * HOUR).toISOString(), // 6 gün önce
+      updatedAt: new Date(now - 147 * HOUR).toISOString(),
+      isSeed: true
+    },
+    {
+      id: 'req_seed_16',
+      requestCode: '#63972',
+      customerId: 'cust_hande',
+      customerName: 'Hande T.',
+      customerPhone: '0539 881 74 23',
+      allowPhoneCall: true,
+      serviceCategory: 'EVDEN_EVE',
+      originCity: 'Kayseri',
+      originDistrict: 'Melikgazi',
+      destinationCity: 'Ankara',
+      destinationDistrict: 'Yenimahalle',
+      homeSize: '3+1',
+      movingDate: formatTurkishDate(now + 15 * DAY),
+      isDateFlexible: false,
+      originFloor: 4,
+      originHasElevator: true,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: false,
+      originTruckAccess: true,
+      destinationFloor: 2,
+      destinationHasElevator: true,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: 'CARRIER_PACKS',
+      extraServices: ['disassembly_assembly', 'white_goods_connection', 'insured'],
+      photos: ['https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=600&auto=format&fit=crop&q=80'],
+      notes: 'Kayseri - Ankara nakliyesi. Mobilyaların söküm ve montajı dahil. Eşyalar temiz ve özenle taşınmalıdır.',
+      status: 'ACTIVE',
+      offersCount: 0,
+      createdAt: new Date(now - 160 * HOUR).toISOString(), // 6 gün önce
+      updatedAt: new Date(now - 160 * HOUR).toISOString(),
+      isSeed: true
+    }
+  ];
+}
+
+export const SEED_REQUESTS: MovingRequest[] = getDynamicSeedRequests();
 
 // Seed Offers — Canlıda nakliyecilerin boş form görmesi ve teklif vermeye yönlendirilmesi için boş başlar
 export const SEED_OFFERS: Offer[] = [];
@@ -1021,12 +1463,33 @@ class MockDatabase {
 
   // Requests
   getRequests(): MovingRequest[] {
-    const list = this.getItem<MovingRequest[]>('requests', SEED_REQUESTS);
-    if (list.length > 0 && list[0].requestCode === '#38491') {
-      this.setItem('requests', SEED_REQUESTS);
-      return SEED_REQUESTS;
-    }
-    return list;
+    const list = this.getItem<MovingRequest[]>('requests', []);
+    // Real customer requests created by actual users (where !r.isSeed)
+    const realUserReqs = list.filter(r => !r.isSeed);
+    
+    // Dynamic seeds pool with fresh relative dates
+    const seeds = getDynamicSeedRequests();
+    
+    // Preserve any updates made to seeds (e.g. status closed or assigned)
+    const userSeedMap = new Map<string, Partial<MovingRequest>>();
+    list.filter(r => r.isSeed).forEach(sr => userSeedMap.set(sr.id, sr));
+
+    const mergedSeeds = seeds.map(s => {
+      const existing = userSeedMap.get(s.id);
+      if (existing) {
+        return {
+          ...s,
+          status: existing.status || s.status,
+          closedReason: existing.closedReason,
+          offersCount: existing.offersCount !== undefined ? existing.offersCount : s.offersCount
+        };
+      }
+      return s;
+    });
+
+    return [...realUserReqs, ...mergedSeeds].sort(
+      (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+    );
   }
 
   getRequestById(id: string): MovingRequest | undefined {
@@ -1043,6 +1506,82 @@ class MockDatabase {
     this.setItem('requests', list);
   }
 
+  generateRandomMockRequest(): MovingRequest {
+    const now = Date.now();
+    const citiesAndDistricts = [
+      { city: 'İstanbul', dist: 'Kadıköy', destCity: 'Ankara', destDist: 'Çankaya' },
+      { city: 'İstanbul', dist: 'Beşiktaş', destCity: 'İzmir', destDist: 'Karşıyaka' },
+      { city: 'İstanbul', dist: 'Bakırköy', destCity: 'İstanbul', destDist: 'Maltepe' },
+      { city: 'İstanbul', dist: 'Sarıyer', destCity: 'Muğla', destDist: 'Bodrum' },
+      { city: 'Ankara', dist: 'Çankaya', destCity: 'İstanbul', destDist: 'Ataşehir' },
+      { city: 'İzmir', dist: 'Bornova', destCity: 'Bursa', destDist: 'Nilüfer' },
+      { city: 'Bursa', dist: 'Nilüfer', destCity: 'Antalya', destDist: 'Muratpaşa' },
+      { city: 'Antalya', dist: 'Konyaaltı', destCity: 'İstanbul', destDist: 'Pendik' },
+      { city: 'Kocaeli', dist: 'İzmit', destCity: 'İzmir', destDist: 'Çiğli' },
+      { city: 'Eskişehir', dist: 'Tepebaşı', destCity: 'Ankara', destDist: 'Yenimahalle' },
+    ];
+    const names = ['Tolga M.', 'Ezgi S.', 'Hakan V.', 'Ceren D.', 'Kaan R.', 'Tuğçe K.', 'Volkan A.', 'Gözde B.', 'Koray T.', 'Seda N.'];
+    const notesPool = [
+      'Salon takımı, gardırop ve beyaz eşyalar taşınacak. Mobilya montajı fiyata dahil olmalıdır.',
+      'Kırılacak cam eşyalar ve mutfak tarafımızca kolilendi. Kaba mobilyaların sarılması rica olunur.',
+      'Evimizde dış cephe asansörü kurulması gerekiyor, bina içi taşımaya izin verilmiyor.',
+      'Yeni taşınacağımız ev zemin kat, eşyaların çizilmeden özenle yerleştirilmesini istiyoruz.',
+      'Ofis masaları ve dosya dolapları taşınacak. Hafta sonu tamamlanması tercihimizdir.',
+      'Öğrenci evimizi taşıyoruz, sadece büyük eşyalar ve birkaç koli var. Uygun teklif bekliyoruz.',
+      'Memur tayini nedeniyle taşınıyoruz. Kurumsal sözleşme ve k1 yetki belgesi şarttır.',
+      'Eşyaların tamamı çift kat havalı naylonla sarılmalıdır, hassas mobilyalarımız var.'
+    ];
+    const sizes = ['1+1', '2+1', '3+1', '2+1', '3+1', '4+1'];
+    
+    const pair = citiesAndDistricts[Math.floor(Math.random() * citiesAndDistricts.length)];
+    const name = names[Math.floor(Math.random() * names.length)];
+    const note = notesPool[Math.floor(Math.random() * notesPool.length)];
+    const size = sizes[Math.floor(Math.random() * sizes.length)];
+    const randomCode = `#${Math.floor(10000 + Math.random() * 89999)}`;
+    const randomDays = Math.floor(2 + Math.random() * 8);
+
+    const newReq: MovingRequest = {
+      id: `req_mock_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      requestCode: randomCode,
+      customerId: `cust_mock_${Date.now()}`,
+      customerName: name,
+      customerPhone: `053${Math.floor(2 + Math.random() * 7)} ${Math.floor(100 + Math.random() * 899)} ${Math.floor(10 + Math.random() * 89)} ${Math.floor(10 + Math.random() * 89)}`,
+      allowPhoneCall: true,
+      serviceCategory: size.includes('office') ? 'OFIS_TASIMA' : 'EVDEN_EVE',
+      originCity: pair.city,
+      originDistrict: pair.dist,
+      destinationCity: pair.destCity,
+      destinationDistrict: pair.destDist,
+      homeSize: size,
+      movingDate: formatTurkishDate(now + randomDays * 86400000),
+      isDateFlexible: true,
+      flexibleDays: 2,
+      originFloor: Math.floor(1 + Math.random() * 4),
+      originHasElevator: Math.random() > 0.4,
+      originHasFreightElevator: false,
+      originRequiresMobileElevator: Math.random() > 0.7,
+      originTruckAccess: true,
+      destinationFloor: Math.floor(1 + Math.random() * 4),
+      destinationHasElevator: Math.random() > 0.3,
+      destinationHasFreightElevator: false,
+      destinationRequiresMobileElevator: false,
+      destinationTruckAccess: true,
+      packagingPreference: Math.random() > 0.5 ? 'CARRIER_PACKS' : 'CUSTOMER_PACKS',
+      extraServices: ['disassembly_assembly', 'insured'],
+      photos: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80'],
+      notes: note,
+      status: 'ACTIVE',
+      offersCount: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isSeed: false
+    };
+
+    const currentList = this.getItem<MovingRequest[]>('requests', []);
+    this.setItem('requests', [newReq, ...currentList]);
+    return newReq;
+  }
+
   // Offers
   getOffers(): Offer[] {
     return this.getItem<Offer[]>('offers', SEED_OFFERS).filter(o => o.id !== 'off_1' && o.id !== 'off_2');
@@ -1057,43 +1596,88 @@ class MockDatabase {
     return this.getOffers().filter(o => o.carrierId === carrierId);
   }
 
-  addOffer(offer: Offer): void {
-    const list = [offer, ...this.getOffers()];
+  addOffer(offer: Offer, requestContext?: MovingRequest): void {
+    const list = [offer, ...this.getOffers().filter(o => o.id !== offer.id)];
     this.setItem('offers', list);
 
-    // Increment request offers count
-    const req = this.getRequestById(offer.requestId);
-    if (req) {
-      this.updateRequest(req.id, { offersCount: req.offersCount + 1 });
+    // Request context resolution
+    let req = requestContext || this.getRequestById(offer.requestId);
+    if (!req && typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('tasinteklif_requests');
+        if (raw) {
+          const allReqs: MovingRequest[] = JSON.parse(raw);
+          req = allReqs.find(r => r.id === offer.requestId || r.requestCode === offer.requestId);
+        }
+      } catch {}
     }
 
-    // Auto-create chat & message to customer (Image media_1788383028254)
-    const customerId = req?.customerId || 'user_cust_1';
+    // If request is available, ensure it is persisted with updated offersCount
+    if (requestContext) {
+      const currentReqs = this.getRequests();
+      const existingReqIndex = currentReqs.findIndex(r => r.id === requestContext.id);
+      const updatedReq = {
+        ...requestContext,
+        offersCount: (requestContext.offersCount || 0) + 1,
+        updatedAt: new Date().toISOString()
+      };
+      if (existingReqIndex >= 0) {
+        currentReqs[existingReqIndex] = updatedReq;
+        this.setItem('requests', currentReqs);
+      } else {
+        this.setItem('requests', [updatedReq, ...currentReqs]);
+      }
+      req = updatedReq;
+    } else if (req) {
+      this.updateRequest(req.id, { offersCount: (req.offersCount || 0) + 1 });
+    }
+
+    // Auto-create chat & message to customer
+    const customerId = req?.customerId || (req as any)?.userId || 'user_cust_1';
+    const customerEmail = req?.customerEmail || '';
+    const customerPhone = req?.customerPhone || '';
+    const customerName = req?.customerName || 'Müşteri';
+
     const carrier = this.getCarriers().find(c => c.id === offer.carrierId) || offer.carrier;
     const carrierUserId = carrier?.userId || `user_${offer.carrierId}`;
     const carrierName = carrier?.companyName || 'Nakliye Firması';
 
+    // Build comprehensive participant IDs to ensure matching on ANY browser / auth method
+    const participantIds = Array.from(new Set([
+      customerId,
+      carrierUserId,
+      carrier?.id,
+      offer.carrierId,
+      customerEmail,
+      customerEmail.toLowerCase(),
+      customerPhone
+    ].filter(Boolean))) as string[];
+
     const conversations = this.getConversations();
     let conv = conversations.find(c => 
       c.contextId === offer.requestId && 
-      c.participantIds.includes(carrierUserId)
+      (c.participantIds.includes(carrierUserId) || c.participantIds.includes(carrier?.id || '') || c.participantIds.includes(offer.carrierId))
     );
 
     const now = new Date().toISOString();
-    const timeStr = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    const carrierNoteText = offer.notes && offer.notes !== 'Hızlı teklif iletildi.'
+      ? offer.notes
+      : `${offer.price.toLocaleString('tr-TR')} TL teklif gönderdim`;
 
     if (!conv) {
       conv = {
         id: `conv_${Date.now()}`,
-        participantIds: [customerId, carrierUserId],
+        participantIds,
         participantNames: {
-          [customerId]: req?.customerName || 'Müşteri',
-          [carrierUserId]: carrierName
+          [customerId]: customerName,
+          [carrierUserId]: carrierName,
+          ...(customerEmail ? { [customerEmail]: customerName } : {}),
+          ...(customerPhone ? { [customerPhone]: customerName } : {})
         },
         contextType: 'REQUEST',
         contextId: offer.requestId,
         contextTitle: `${req?.requestCode || ''} · ${req?.originDistrict || req?.originCity || ''} → ${req?.destinationDistrict || req?.destinationCity || ''}`,
-        lastMessage: `${offer.price.toLocaleString('tr-TR')} TL teklif gönderdim`,
+        lastMessage: carrierNoteText,
         lastMessageAt: now,
         unreadCounts: {
           [customerId]: 1,
@@ -1102,6 +1686,15 @@ class MockDatabase {
         createdAt: now
       };
       this.setItem('conversations', [conv, ...conversations]);
+    } else {
+      conv.participantIds = Array.from(new Set([...conv.participantIds, ...participantIds]));
+      conv.lastMessage = carrierNoteText;
+      conv.lastMessageAt = now;
+      conv.unreadCounts = {
+        ...(conv.unreadCounts || {}),
+        [customerId]: ((conv.unreadCounts?.[customerId] || 0) + 1)
+      };
+      this.setItem('conversations', conversations.map(c => c.id === conv!.id ? conv! : c));
     }
 
     const offerCardMsg: ConversationMessage = {
@@ -1110,7 +1703,7 @@ class MockDatabase {
       senderId: carrierUserId,
       senderName: carrierName,
       senderRole: 'CARRIER',
-      content: `${req?.requestCode || ''} · ${req?.originDistrict || ''}, ${req?.originCity || ''} → ${req?.destinationDistrict || ''}, ${req?.destinationCity || ''}\n· Evden Eve Nakliyat · ${offer.price.toLocaleString('tr-TR')} TL teklif`,
+      content: `${req?.requestCode || ''} · ${req?.originDistrict || ''}, ${req?.originCity || ''} → ${req?.destinationDistrict || ''}, ${req?.destinationCity || ''}\n· Evden Eve Nakliyat · ${offer.price.toLocaleString('tr-TR')} TL teklif${offer.notes && offer.notes !== 'Hızlı teklif iletildi.' ? `\n· Firma Notu: "${offer.notes}"` : ''}`,
       isOfferCard: true,
       offerData: {
         price: offer.price,
@@ -1126,11 +1719,26 @@ class MockDatabase {
       senderId: carrierUserId,
       senderName: carrierName,
       senderRole: 'CARRIER',
-      content: `${offer.price.toLocaleString('tr-TR')} TL teklif gönderdim`,
+      content: carrierNoteText,
       createdAt: new Date(Date.now() + 1000).toISOString()
     };
 
     this.setItem('messages', [...this.getAllMessages(), offerCardMsg, textMsg]);
+
+    // Background sync to server API so all browsers, incognito windows, and tabs receive this offer & chat!
+    if (typeof window !== 'undefined') {
+      fetch('/api/offers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          offer,
+          request: req,
+          conversation: conv,
+          messages: [offerCardMsg, textMsg]
+        })
+      }).catch(err => console.warn('Offers API background sync error:', err));
+    }
+
   }
 
   updateOffer(id: string, updates: Partial<Offer>): void {
@@ -1196,6 +1804,28 @@ class MockDatabase {
   updateDefterPost(id: string, updates: Partial<DefterPost>): void {
     const list = this.getDefterPosts().map(p => p.id === id ? { ...p, ...updates } : p);
     this.setItem('defter_posts', list);
+  }
+
+  // Public bulk update helpers (used for cross-browser API sync)
+  bulkMergeConversations(newConvs: Conversation[]): void {
+    const current = this.getConversations();
+    const map = new Map<string, Conversation>();
+    current.forEach(c => map.set(c.id, c));
+    newConvs.forEach(nc => {
+      const existing = map.get(nc.id);
+      if (!existing || new Date(nc.lastMessageAt || 0) >= new Date(existing.lastMessageAt || 0)) {
+        map.set(nc.id, nc);
+      }
+    });
+    this.setItem('conversations', Array.from(map.values()));
+  }
+
+  bulkMergeMessages(newMsgs: ConversationMessage[]): void {
+    const existing = this.getAllMessages();
+    const map = new Map<string, ConversationMessage>();
+    existing.forEach(m => map.set(m.id, m));
+    newMsgs.forEach(m => map.set(m.id, m));
+    this.setItem('messages', Array.from(map.values()));
   }
 
   // Alarms

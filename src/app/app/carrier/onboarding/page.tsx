@@ -12,13 +12,16 @@ import {
   ArrowRight, 
   ArrowLeft,
   ShieldCheck,
-  Edit3
+  Edit3,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FileUploader } from '@/components/ui/FileUploader';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { db } from '@/lib/data/mock-db';
 import { CarrierProfile } from '@/types';
+import { validateTCKimlik } from '@/lib/validation/tckn';
 
 export default function CarrierOnboardingPage() {
   const router = useRouter();
@@ -58,6 +61,53 @@ export default function CarrierOnboardingPage() {
   const [identityFiles, setIdentityFiles] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const handleNextStep = () => {
+    setErrorMessage('');
+
+    if (step === 1) {
+      const cleanPhone = phone.trim().replace(/\D/g, '');
+      if (cleanPhone.length < 10) {
+        setErrorMessage('Lütfen geçerli bir cep telefonu numarası giriniz (En az 10 hane).');
+        return;
+      }
+    }
+
+    if (step === 2) {
+      if (!companyName.trim()) {
+        setErrorMessage('Lütfen firma ticari unvanınızı giriniz.');
+        return;
+      }
+    }
+
+    if (step === 3) {
+      const tcResult = validateTCKimlik(tcKimlik);
+      if (!tcResult.isValid) {
+        setErrorMessage(tcResult.error || 'Lütfen geçerli bir TC Kimlik Numarası giriniz.');
+        return;
+      }
+      if (!birthDate) {
+        setErrorMessage('Lütfen yetkili doğum tarihini giriniz.');
+        return;
+      }
+    }
+
+    if (step === 4) {
+      if (services.length === 0) {
+        setErrorMessage('Lütfen sunduğunuz nakliyat hizmetlerinden en az birini seçiniz.');
+        return;
+      }
+    }
+
+    if (step === 5) {
+      if (serviceAreas.length === 0) {
+        setErrorMessage('Lütfen hizmet verdiğiniz en az bir ili seçiniz.');
+        return;
+      }
+    }
+
+    setStep(step + 1);
+  };
+
   const handleComplete = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
@@ -65,6 +115,13 @@ export default function CarrierOnboardingPage() {
     if (!companyName.trim()) {
       setStep(2);
       setErrorMessage('Lütfen firma ticari unvanınızı giriniz.');
+      return;
+    }
+
+    const tcResult = validateTCKimlik(tcKimlik);
+    if (!tcResult.isValid) {
+      setStep(3);
+      setErrorMessage(tcResult.error || 'Lütfen geçerli bir TC Kimlik Numarası giriniz.');
       return;
     }
 
@@ -88,12 +145,12 @@ export default function CarrierOnboardingPage() {
       district: district || 'Merkez',
       services: services.length > 0 ? services : ['evden-eve'],
       serviceAreas: serviceAreas.length > 0 ? serviceAreas : ['TÜM_TÜRKİYE'],
-      verificationStatus: hasBothDocs ? 'APPROVED' : 'PENDING',
+      verificationStatus: 'PENDING',
       verificationBadges: {
-        identityVerified: identityFiles.length > 0,
-        taxVerified: taxCertFiles.length > 0,
+        identityVerified: false,
+        taxVerified: false,
         transportPermitVerified: false,
-        elevatorVerified: hasMobileElevator
+        elevatorVerified: false
       },
       elevatorSpec: hasMobileElevator ? {
         hasElevator: true,
@@ -113,7 +170,7 @@ export default function CarrierOnboardingPage() {
     // Save to mock-db
     db.addCarrier(newCarrier);
 
-    // Save documents if uploaded
+    // Save documents if uploaded - All set to PENDING for admin review
     if (taxCertFiles.length > 0) {
       db.addDocument({
         id: `doc_tax_${Date.now()}`,
@@ -122,7 +179,7 @@ export default function CarrierOnboardingPage() {
         title: 'Vergi Levhası',
         fileName: taxCertFiles[0].split('/').pop() || 'vergi_levhasi.pdf',
         fileUrl: taxCertFiles[0],
-        status: hasBothDocs ? 'APPROVED' : 'PENDING',
+        status: 'PENDING',
         uploadedAt: new Date().toISOString()
       });
     }
@@ -135,7 +192,7 @@ export default function CarrierOnboardingPage() {
         title: 'Yetkili Kimlik Belgesi',
         fileName: identityFiles[0].split('/').pop() || 'kimlik.jpg',
         fileUrl: identityFiles[0],
-        status: hasBothDocs ? 'APPROVED' : 'PENDING',
+        status: 'PENDING',
         uploadedAt: new Date().toISOString()
       });
     }
@@ -166,7 +223,7 @@ export default function CarrierOnboardingPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
       {/* Step Header */}
       <div className="mb-8">
-        <span className="text-xs font-bold text-[#146EF5] uppercase tracking-wider block mb-1">
+        <span className="text-xs font-black text-[#111E38] uppercase tracking-wider block mb-1">
           Nakliyeci Firma Onboarding
         </span>
         <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">
@@ -185,8 +242,8 @@ export default function CarrierOnboardingPage() {
           ].map((s) => (
             <div
               key={s.id}
-              className={`h-1.5 rounded-full transition-colors ${
-                step >= s.id ? 'bg-[#146EF5]' : 'bg-slate-200'
+              className={`h-2 rounded-full transition-all duration-300 ${
+                step >= s.id ? 'bg-[#111E38]' : 'bg-slate-200'
               }`}
             />
           ))}
@@ -281,24 +338,61 @@ export default function CarrierOnboardingPage() {
           <div className="space-y-4 text-xs sm:text-sm">
             <h2 className="text-lg font-bold text-[#0A1128]">3. Yetkili Kimlik Doğrulama</h2>
             <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-100 text-xs text-slate-600">
-              🔒 Bu bilgiler asla müşterilere veya arama motorlarına açık olarak gösterilmez; yalnızca firma doğrulaması için kullanılır.
+              🔒 Bu bilgiler asla müşterilere veya arama motorlarına açık olarak gösterilmez; yalnızca resmi firma doğrulaması için kullanılır.
             </div>
             <div>
-              <label className="block font-bold text-slate-700 mb-1">TC Kimlik Numarası</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block font-bold text-slate-700">TC Kimlik Numarası *</label>
+                {tcKimlik.length === 11 && (
+                  <span className={`text-[11px] font-bold flex items-center gap-1 ${
+                    validateTCKimlik(tcKimlik).isValid ? 'text-emerald-600' : 'text-red-600'
+                  }`}>
+                    {validateTCKimlik(tcKimlik).isValid ? (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Geçerli T.C. Kimlik</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>{validateTCKimlik(tcKimlik).error}</span>
+                      </>
+                    )}
+                  </span>
+                )}
+              </div>
               <input
                 type="text"
+                inputMode="numeric"
                 maxLength={11}
                 value={tcKimlik}
-                onChange={(e) => setTcKimlik(e.target.value)}
-                className="w-full p-3 rounded-xl border border-slate-300 font-semibold"
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 11);
+                  setTcKimlik(val);
+                  if (errorMessage) setErrorMessage('');
+                }}
+                placeholder="11 haneli T.C. Kimlik Numaranız"
+                className={`w-full p-3 rounded-xl border font-semibold tracking-wider transition-colors ${
+                  tcKimlik.length === 11
+                    ? validateTCKimlik(tcKimlik).isValid
+                      ? 'border-emerald-500 bg-emerald-50/20 text-slate-900'
+                      : 'border-red-400 bg-red-50/20 text-slate-900'
+                    : 'border-slate-300'
+                }`}
               />
+              <span className="text-[11px] text-slate-400 font-medium mt-1 block">
+                11 haneli olmalı, 0 ile başlayamaz ve son rakamı tek sayı olamaz.
+              </span>
             </div>
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Doğum Tarihi</label>
+              <label className="block font-bold text-slate-700 mb-1">Doğum Tarihi *</label>
               <input
                 type="date"
                 value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
+                onChange={(e) => {
+                  setBirthDate(e.target.value);
+                  if (errorMessage) setErrorMessage('');
+                }}
                 className="w-full p-3 rounded-xl border border-slate-300 font-semibold"
               />
             </div>
@@ -325,21 +419,21 @@ export default function CarrierOnboardingPage() {
                       if (e.target.checked) setServices([...services, s.id]);
                       else setServices(services.filter(item => item !== s.id));
                     }}
-                    className="w-4 h-4 text-[#146EF5]"
+                    className="w-4 h-4 accent-[#111E38]"
                   />
                   <span className="font-semibold text-slate-800">{s.label}</span>
                 </label>
               ))}
             </div>
 
-            {/* Mobile Elevator Spec (Spec Item 12) */}
-            <div className="p-4 rounded-xl border-2 border-blue-200 bg-[#EAF3FF]/40 space-y-3 mt-4">
-              <label className="flex items-center gap-2 cursor-pointer font-bold text-[#0A1128]">
+            {/* Mobile Elevator Spec */}
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/80 space-y-3 mt-4">
+              <label className="flex items-center gap-2.5 cursor-pointer font-bold text-[#0A1128]">
                 <input
                   type="checkbox"
                   checked={hasMobileElevator}
                   onChange={(e) => setHasMobileElevator(e.target.checked)}
-                  className="w-5 h-5 text-[#146EF5]"
+                  className="w-5 h-5 accent-[#111E38]"
                 />
                 <span>Kendi bünyemizde Mobil Asansör Hizmeti Veriyoruz</span>
               </label>
@@ -377,7 +471,7 @@ export default function CarrierOnboardingPage() {
                       if (e.target.checked) setServiceAreas([...serviceAreas, c.name]);
                       else setServiceAreas(serviceAreas.filter(item => item !== c.name));
                     }}
-                    className="w-4 h-4 text-[#146EF5]"
+                    className="w-4 h-4 accent-[#111E38]"
                   />
                   <span>{c.name}</span>
                 </label>
@@ -424,7 +518,7 @@ export default function CarrierOnboardingPage() {
         )}
 
         {/* Stepper Navigation */}
-        <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between">
+        <div className="mt-8 pt-5 border-t border-slate-200 flex items-center justify-between gap-4">
           {step > 1 ? (
             <Button
               type="button"
@@ -432,6 +526,7 @@ export default function CarrierOnboardingPage() {
               size="md"
               onClick={() => setStep(step - 1)}
               leftIcon={<ArrowLeft className="w-4 h-4" />}
+              className="min-w-[130px] font-bold text-sm h-11"
             >
               Geri
             </Button>
@@ -441,9 +536,10 @@ export default function CarrierOnboardingPage() {
             <Button
               type="button"
               variant="primary"
-              size="lg"
-              onClick={() => setStep(step + 1)}
+              size="md"
+              onClick={handleNextStep}
               rightIcon={<ArrowRight className="w-4 h-4" />}
+              className="min-w-[130px] font-bold text-sm h-11"
             >
               Devam Et
             </Button>
@@ -451,9 +547,10 @@ export default function CarrierOnboardingPage() {
             <Button
               type="button"
               variant="primary"
-              size="lg"
+              size="md"
               onClick={handleComplete}
               rightIcon={<ShieldCheck className="w-4 h-4" />}
+              className="font-bold text-sm h-11 px-6"
             >
               Başvuruyu Tamamla & Gönder
             </Button>

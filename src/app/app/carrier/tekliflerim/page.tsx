@@ -32,7 +32,16 @@ export default function CarrierOffersTrackerPage() {
     }
     setCarrier(activeCarrier);
     if (activeCarrier) {
-      setOffers(db.getOffersForCarrier(activeCarrier.id));
+      const rawOffers = db.getOffersForCarrier(activeCarrier.id);
+      const map = new Map<string, Offer>();
+      rawOffers.forEach(o => {
+        const key = o.requestId || o.id;
+        const existing = map.get(key);
+        if (!existing || new Date(o.createdAt || 0).getTime() >= new Date(existing.createdAt || 0).getTime()) {
+          map.set(key, o);
+        }
+      });
+      setOffers(Array.from(map.values()));
     }
   }, []);
 
@@ -163,22 +172,35 @@ export default function CarrierOffersTrackerPage() {
 
                   <div className="flex items-center gap-2 flex-wrap">
                     {off.status === 'PENDING' && (
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleWithdraw(off.id)}
-                        className="text-xs font-bold text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                        className="h-9 min-h-[36px] text-xs font-bold border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 shadow-2xs"
+                        leftIcon={<RotateCcw className="w-3.5 h-3.5 text-rose-500" />}
                       >
                         Geri Çek
-                      </button>
+                      </Button>
                     )}
                     <Link href={`/app/carrier/mesajlar`}>
-                      <Button variant="outline" size="sm" leftIcon={<MessageSquare className="w-3.5 h-3.5" />}>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-9 min-h-[36px] text-xs font-bold border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 shadow-2xs"
+                        leftIcon={<MessageSquare className="w-3.5 h-3.5 text-slate-500" />}
+                      >
                         Mesaj
                       </Button>
                     </Link>
                     {req && (
                       <Link href={`/app/carrier/isler/${req.id}`}>
-                        <Button variant="primary" size="sm">
+                        <Button 
+                          variant="primary" 
+                          size="sm" 
+                          className="h-9 min-h-[36px] text-xs font-black shadow-sm"
+                          rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+                        >
                           İşi Gör
                         </Button>
                       </Link>

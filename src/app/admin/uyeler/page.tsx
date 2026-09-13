@@ -22,7 +22,7 @@ import {
   Check
 } from 'lucide-react';
 import { db, isSeedCarrier, isSeedUser, isSeedRequest } from '@/lib/data/mock-db';
-import { getFirestoreUsers, getFirestoreCarriers } from '@/lib/firebase/firestore';
+import { getFirestoreUsers, getFirestoreCarriers, updateFirestoreCarrier } from '@/lib/firebase/firestore';
 import { User, CarrierProfile } from '@/types';
 
 const PLAN_LABELS: Record<string, string> = {
@@ -116,6 +116,44 @@ export default function UyelerPage() {
       setNotice('Tüm fake ve tohum veriler başarıyla temizlendi. Artık yalnızca gerçek üyeler listeleniyor.');
       setTimeout(() => setNotice(null), 5000);
     }
+  };
+
+  // Quick Approve Carrier
+  const handleQuickApproveCarrier = async (carrierId: string, companyName: string) => {
+    if (!confirm(`"${companyName}" firmasını onaylayarak teklif verme ve sistem erişim yetkisini açmak istiyor musunuz?`)) return;
+
+    const badges = {
+      identityVerified: true,
+      taxVerified: true,
+      transportPermitVerified: true,
+      elevatorVerified: false
+    };
+
+    db.updateCarrier(carrierId, {
+      verificationStatus: 'APPROVED',
+      verificationBadges: badges
+    });
+
+    const docs = db.getDocumentsForCarrier(carrierId);
+    docs.forEach(d => db.updateDocumentStatus(d.id, 'APPROVED'));
+
+    try {
+      await updateFirestoreCarrier(carrierId, {
+        verificationStatus: 'APPROVED',
+        verificationBadges: badges
+      });
+    } catch (e) {
+      console.warn('Firestore carrier update error:', e);
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('auth-changed'));
+    }
+
+    setNotice(`"${companyName}" firması başarıyla onaylandı. Teklif verme kilidi açıldı.`);
+    setTimeout(() => setNotice(null), 4000);
+    setRefreshKey(k => k + 1);
   };
 
   // Build unified Customers list
@@ -546,11 +584,20 @@ export default function UyelerPage() {
                         </td>
                         <td className="px-5 py-4 text-right">
                           {carrier.verificationStatus === 'PENDING' ? (
-                            <Link href="/admin/dogrulamalar">
-                              <span className="inline-block px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-black text-xs transition-colors shadow-xs">
-                                Evrak İncele
-                              </span>
-                            </Link>
+                            <div className="flex items-center justify-end gap-2">
+                              <Link href={`/admin/dogrulamalar?carrierId=${carrier.id}`}>
+                                <span className="inline-block px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-black text-xs transition-colors shadow-xs">
+                                  Evrak İncele
+                                </span>
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => handleQuickApproveCarrier(carrier.id, carrier.companyName)}
+                                className="inline-block px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition-colors shadow-xs cursor-pointer"
+                              >
+                                Onayla
+                              </button>
+                            </div>
                           ) : carrier.slug ? (
                             <Link href={`/firma/${carrier.slug}`} target="_blank">
                               <span className="inline-block text-xs font-bold text-slate-500 hover:text-[#0A1128] transition-colors">

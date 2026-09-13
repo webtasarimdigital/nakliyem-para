@@ -69,6 +69,26 @@ export default function NakliyeciDefteriPage() {
 
   const [posts, setPosts] = useState<DefterPost[]>(() => db.getDefterPosts());
 
+  // Sayfa yüklenince server'dan defter postlarını çek ve merge et
+  useEffect(() => {
+    fetch('/api/defter-posts')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.posts) && data.posts.length > 0) {
+          setPosts(prev => {
+            const merged = [...data.posts, ...prev];
+            const seen = new Set<string>();
+            return merged.filter(p => {
+              if (seen.has(p.id)) return false;
+              seen.add(p.id);
+              return true;
+            }).sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+          });
+        }
+      })
+      .catch(() => {/* server yoksa sadece localStorage */});
+  }, []);
+
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [filterOrigin, setFilterOrigin] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -173,6 +193,12 @@ export default function NakliyeciDefteriPage() {
     };
 
     db.addDefterPost(newPost);
+    // Server'a da kaydet
+    fetch('/api/defter-posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ post: newPost })
+    }).catch(() => {/* server yoksa sessizce devam */});
     setPosts([newPost, ...db.getDefterPosts()]);
     setInlineContent('');
     setPublishSuccess(true);

@@ -67,15 +67,16 @@ function GirisContent() {
             window.dispatchEvent(new Event('auth-changed'));
           }
         }
+        const redirectTo = searchParams.get('redirect');
         if (res.user?.role === 'CARRIER' || tab === 'nakliyeci') {
           const existingCarrier = db.getCarriers().find(c => c.userId === res.user?.id || c.id === res.user?.carrierProfileId);
           if (!existingCarrier || !existingCarrier.isProfileCompleted || !existingCarrier.companyName) {
             router.push('/app/carrier/onboarding');
           } else {
-            router.push('/app/carrier');
+            router.push(redirectTo || '/app/carrier');
           }
         } else {
-          router.push('/app/customer');
+          router.push(redirectTo || '/app/customer');
         }
       }
     } else {
@@ -98,15 +99,16 @@ function GirisContent() {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('auth-changed'));
         }
+        const redirectTo = searchParams.get('redirect');
         if (userRole === 'CARRIER') {
           const existingCarrier = db.getCarriers().find(c => c.userId === user.id || c.id === user.carrierProfileId);
           if (!existingCarrier || !existingCarrier.isProfileCompleted || !existingCarrier.companyName) {
             router.push('/app/carrier/onboarding');
           } else {
-            router.push('/app/carrier');
+            router.push(redirectTo || '/app/carrier');
           }
         } else {
-          router.push('/app/customer');
+          router.push(redirectTo || '/app/customer');
         }
       }, 500);
     }
@@ -133,16 +135,17 @@ function GirisContent() {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('auth-changed'));
     }
+    const redirectTo = searchParams.get('redirect');
     // Yönlendirme kararını kullanıcının Firestore'daki gerçek rolüne göre al
     if (res.user.role === 'CARRIER') {
       const existingCarrier = db.getCarriers().find(c => c.userId === res.user?.id || c.id === res.user?.carrierProfileId);
       if (!existingCarrier || !existingCarrier.isProfileCompleted || !existingCarrier.companyName) {
         router.push('/app/carrier/onboarding');
       } else {
-        router.push('/app/carrier');
+        router.push(redirectTo || '/app/carrier');
       }
     } else {
-      router.push('/app/customer');
+      router.push(redirectTo || '/app/customer');
     }
   };
 

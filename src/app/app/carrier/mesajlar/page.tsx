@@ -43,12 +43,24 @@ export default function CarrierMessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const carrierId = carrier?.userId || carrier?.id || '';
     const allConvs = db.getConversations();
-    setConversations(allConvs);
-    if (allConvs.length > 0) {
-      setActiveConvId(allConvs[0].id);
-      setMessages(db.getMessages(allConvs[0].id));
-      db.markConversationAsRead(allConvs[0].id, 'user_carr_1');
+    // Bu carrier'a ait konuşmaları filtrele
+    const myConvs = carrierId
+      ? allConvs.filter(c =>
+          c.participantIds.some(pid =>
+            pid === carrierId ||
+            pid === carrier?.id ||
+            pid === currentUser?.id ||
+            ((currentUser as any)?.uid && pid === (currentUser as any).uid)
+          )
+        )
+      : allConvs;
+    setConversations(myConvs);
+    if (myConvs.length > 0) {
+      setActiveConvId(myConvs[0].id);
+      setMessages(db.getMessages(myConvs[0].id));
+      db.markConversationAsRead(myConvs[0].id, carrierId || 'user_carr_1');
     }
   }, []);
 
@@ -80,6 +92,13 @@ export default function CarrierMessagesPage() {
       senderRole: 'CARRIER',
       content: inputMessage.trim()
     });
+
+    // Server'a da sync et
+    fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversationId: activeConvId, message: newMsg })
+    }).catch(() => {/* server yoksa sessizce devam */});
 
     setMessages(prev => [...prev, newMsg]);
     setInputMessage('');
@@ -123,19 +142,31 @@ export default function CarrierMessagesPage() {
 
       {/* Unverified Warning Banner (Spec requirement) */}
       {!isApproved && (
-        <div className="mb-6 p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-900 flex items-start gap-3 shadow-xs">
-          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <h4 className="font-black text-sm text-amber-900">
-              ⚠️ Onaysız Profil — Henüz firmamız tarafından doğrulanmış profil değilsiniz
-            </h4>
-            <p className="text-xs text-amber-800 font-medium leading-relaxed">
-              Yüklediğiniz kimlik ve vergi levhası belgeleriniz inceleme aşamasındadır. <strong>12 saat içinde onay & red durumunuz verilecektir.</strong> Güvenlik sebebiyle evrak onayınız tamamlanana kadar müşterilere doğrudan mesaj gönderemezsiniz.
-            </p>
-            <Link href="/app/carrier/profil" className="inline-block pt-1 text-xs font-black text-[#F95700] hover:underline">
-              Belgelerimi Görüntüle & Yeni Evrak Yükle →
-            </Link>
+        <div className="mb-6 rounded-2xl bg-gradient-to-r from-amber-50 via-amber-100/60 to-orange-50 border-2 border-amber-300 p-5 shadow-sm text-amber-950 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+              <Clock className="w-5 h-5 animate-pulse" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-950 font-black text-xs border border-amber-300 uppercase tracking-wide">
+                  Doğrulamasız Üye
+                </span>
+                <span className="text-xs font-bold text-amber-800">Yönetici Onayı Bekleniyor</span>
+              </div>
+              <h4 className="font-black text-base text-[#0A1128]">
+                Firmanızın belgeleri incelenmektedir, en kısa sürede onay verilecektir ve mesajlaşabileceksiniz.
+              </h4>
+              <p className="text-xs text-slate-700 font-medium leading-relaxed">
+                Platform güvenlik standartlarımız gereği admin panelinden onay verilene kadar mesajlaşma kilitlidir. Onay verildiğinde bu uyarı kalkacak ve sisteminiz açılacaktır.
+              </p>
+            </div>
           </div>
+          <Link href="/app/carrier/profil" className="shrink-0 md:self-center">
+            <Button variant="outline" size="sm" className="font-bold text-xs bg-white border-amber-300 text-amber-950 hover:bg-amber-100/60 shadow-xs h-9">
+              Belgeleri Yönet →
+            </Button>
+          </Link>
         </div>
       )}
 
@@ -154,6 +185,11 @@ export default function CarrierMessagesPage() {
           <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
             {conversations.map((conv) => {
               const isSelected = conv.id === activeConvId;
+              // Carrier olmayan participant'ın adını bul
+              const carrierId = carrier?.userId || carrier?.id || 'user_carr_1';
+              const customerEntry = Object.entries(conv.participantNames || {}).find(([uid]) => uid !== carrierId && uid !== carrier?.id);
+              const customerName = customerEntry ? customerEntry[1] : (conv.contextTitle || 'Müşteri');
+              const customerInitials = customerName.trim().split(/\s+/).map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() || 'MŞ';
               return (
                 <div
                   key={conv.id}
@@ -166,13 +202,13 @@ export default function CarrierMessagesPage() {
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-11 h-11 rounded-2xl bg-orange-100 text-[#C23E00] flex items-center justify-center font-black text-sm shrink-0">
-                      AY
+                      {customerInitials}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1 mb-0.5">
                         <h4 className="text-xs sm:text-sm font-black text-[#0A1128] truncate">
-                          Ahmet Yılmaz
+                          {customerName}
                         </h4>
                         <span className="text-[10px] text-slate-400 font-medium shrink-0">
                           {new Date(conv.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -201,17 +237,27 @@ export default function CarrierMessagesPage() {
             {/* Top Bar */}
             <div className="p-4 border-b border-slate-200 bg-white flex items-center justify-between gap-4 shadow-xs">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-11 h-11 rounded-2xl bg-orange-100 text-[#C23E00] flex items-center justify-center font-black text-base shrink-0">
-                  AY
-                </div>
-                <div className="min-w-0">
-                  <h3 className="font-black text-[#0A1128] text-sm sm:text-base truncate">
-                    Ahmet Yılmaz
-                  </h3>
-                  <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-                    <span>Talep: {activeConv.contextTitle}</span>
-                  </div>
-                </div>
+                {(() => {
+                  const carrierId = carrier?.userId || carrier?.id || 'user_carr_1';
+                  const customerEntry = Object.entries(activeConv.participantNames || {}).find(([uid]) => uid !== carrierId && uid !== carrier?.id);
+                  const customerName = customerEntry ? customerEntry[1] : (activeConv.contextTitle || 'Müşteri');
+                  const customerInitials = customerName.trim().split(/\s+/).map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() || 'MŞ';
+                  return (
+                    <>
+                      <div className="w-11 h-11 rounded-2xl bg-orange-100 text-[#C23E00] flex items-center justify-center font-black text-base shrink-0">
+                        {customerInitials}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-black text-[#0A1128] text-sm sm:text-base truncate">
+                          {customerName}
+                        </h3>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                          <span>Talep: {activeConv.contextTitle}</span>
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
 
               {(() => {
@@ -257,7 +303,7 @@ export default function CarrierMessagesPage() {
                     <div className="flex items-end gap-2 max-w-[85%] sm:max-w-[70%]">
                       {!isMe && (
                         <div className="w-7 h-7 rounded-xl bg-orange-100 text-[#C23E00] flex items-center justify-center text-[10px] font-black shrink-0 mb-1">
-                          AY
+                          {(msg.senderName || 'MŞ').trim().split(/\s+/).map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() || 'MŞ'}
                         </div>
                       )}
 

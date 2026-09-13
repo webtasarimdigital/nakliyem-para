@@ -29,7 +29,8 @@ import { Modal } from '@/components/ui/Modal';
 import { calculateDistance } from '@/lib/data/turkey-geo';
 import { db } from '@/lib/data/mock-db';
 import { Offer } from '@/types';
-import { sendNotificationEmail } from '@/lib/services/notification-service';
+import { sendNotificationEmail, shouldSendCarrierFirstOfferEmail } from '@/lib/services/notification-service';
+import { formatOfferInputOnType, parseOfferInput } from '@/lib/utils/offer-format';
 
 export default function CarrierJobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -47,12 +48,21 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
   const isApproved = Boolean(carrier && carrier.verificationStatus === 'APPROVED' && hasTaxDoc && hasIdDoc);
 
   // Günlük Teklif Kotası & Mevcut Teklif Kontrolü
+  const carrierSub = carrier ? db.getCarrierSubscription(carrier.id) : null;
+  const carrierPlan = carrier ? db.getPlanById(carrierSub?.planId || carrier.planId) : null;
   const isFreeOrStarterPlan = !carrier?.planId || carrier.planId === 'plan_starter' || carrier.planId === 'trial' || carrier.planId === 'free';
   const [activeOffers, setActiveOffers] = useState<Offer[]>(() => carrier ? db.getOffersForCarrier(carrier.id) : []);
   const existingOffer = activeOffers.find(o => o.requestId === req.id && o.status !== 'WITHDRAWN');
 
+  // Müşteri Telefon Görme Yetkisi (Gümüş / Altın Paket veya Kabul Edilmiş Teklif)
+  const canViewPhone = Boolean(
+    (carrier && isApproved && carrierPlan?.features?.customerPhoneAccess === true) ||
+    existingOffer?.status === 'ACCEPTED'
+  );
+
   const todayStr = new Date().toISOString().slice(0, 10);
-  const todayOffersCount = activeOffers.filter(o => o.createdAt && o.createdAt.startsWith(todayStr) && o.status !== 'WITHDRAWN').length;
+  const uniqueActiveOffers = Array.from(new Map(activeOffers.map(o => [o.id, o])).values());
+  const todayOffersCount = uniqueActiveOffers.filter(o => o.createdAt && o.createdAt.startsWith(todayStr) && o.status !== 'WITHDRAWN').length;
   const isDailyLimitReached = Boolean(carrier && isFreeOrStarterPlan && todayOffersCount >= 3);
 
   const handleWithdrawOffer = (offerId: string) => {
@@ -94,11 +104,13 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
 
     if (!isApproved) {
       setWarningModalData({
-        title: '⚠️ Onaysız Profil — Teklif Verme Kilitli',
-        subtitle: 'TaşınTeklif güvencesi kapsamında müşterilere teklif verebilmek için firmanızın Kimlik ve Vergi Levhası belgelerini yüklemeniz zorunludur.',
-        limitBadge: 'Belgeler Eksik / Onay Bekliyor',
+        title: '⏳ Doğrulamasız Üye — Teklif Verme Kilitli',
+        subtitle: hasTaxDoc && hasIdDoc
+          ? 'Firmanızın belgeleri incelenmektedir, en kısa sürede onay verilecektir ve teklif verebileceksiniz. Güvenli taşımacılık standartlarımız gereği belgeleriniz yönetici kontrolündedir. Onay verildiğinde teklif verme yetkiniz hemen açılacaktır.'
+          : 'TaşınTeklif güvencesi kapsamında müşterilere teklif verebilmek için firmanızın Kimlik ve Vergi Levhası belgelerini yüklemeniz zorunludur.',
+        limitBadge: hasTaxDoc && hasIdDoc ? 'Belgeler İnceleniyor (Onay Bekleniyor)' : 'Belgeler Eksik',
         actionLink: '/app/carrier/profil',
-        actionText: 'Evrakları Yükle (Profile Git)'
+        actionText: hasTaxDoc && hasIdDoc ? 'Evraklarımı Gör' : 'Evrakları Yükle (Profile Git)'
       });
       setWarningModalOpen(true);
       return;
@@ -119,12 +131,18 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
     setIsSubmitting(true);
 
     setTimeout(() => {
+      // Bu firmanın bu ilan (talep) için daha önce teklif verip vermediğini kontrol et
+      const existingOffers = db.getOffersForRequest(req.id);
+      const existingForCarrier = existingOffers.filter(o => o.carrierId === carrier.id);
+      const isFirstOfferForThisCarrier = shouldSendCarrierFirstOfferEmail(req.id, carrier.id, existingForCarrier.length);
+
+      const parsed = parseOfferInput(price);
       const newOffer: Offer = {
         id: `off_${Date.now()}`,
         requestId: req.id,
         carrierId: carrier.id,
         carrier,
-        price: Number(price) || 20000,
+        price: parsed.price || 20000,
         isVatIncluded,
         isPackagingIncluded,
         isMobileElevatorIncluded,
@@ -132,25 +150,42 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
         isInsuranceIncluded,
         estimatedDeliveryDuration: deliveryDuration,
         validUntil: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
-        notes: notes || 'Profesyonel ve sigortalı taşımacılık teklifimizdir.',
+        notes: notes || parsed.note || 'Profesyonel ve sigortalı taşımacılık teklifimizdir.',
         status: 'PENDING',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
 
-      db.addOffer(newOffer);
+      db.addOffer(newOffer, req);
       setActiveOffers(prev => [newOffer, ...prev]);
 
-      sendNotificationEmail({
-        type: 'NEW_OFFER',
-        to: req.customerEmail || 'musteri@tasinteklif.com',
-        customerName: req.customerName,
-        carrierName: carrier.companyName,
-        price: newOffer.price,
-        routeText: `${req.originCity} (${req.originDistrict}) → ${req.destinationCity} (${req.destinationDistrict})`,
-        movingDate: req.movingDate,
-        requestId: req.requestCode || req.id,
-      });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new CustomEvent('offer-added', { detail: newOffer }));
+      }
+
+      // YALNIZCA bu firmanın bu ilandaki İLK TEKLİFİNDE bildirim e-postası gönder
+      if (isFirstOfferForThisCarrier) {
+        try {
+          const customerUser = db.getUsers().find((u: any) => u.id === req.customerId);
+          const targetEmail = req.customerEmail || customerUser?.email || 'omerfaruksaycan@gmail.com';
+          if (targetEmail) {
+            sendNotificationEmail({
+              type: 'NEW_OFFER',
+              to: targetEmail,
+              recipientName: req.customerName || customerUser?.fullName || 'Müşterimiz',
+              carrierName: carrier.companyName,
+              price: newOffer.price,
+              routeText: `${req.originCity} (${req.originDistrict}) → ${req.destinationCity} (${req.destinationDistrict})`,
+              movingDate: req.movingDate,
+              requestId: req.requestCode || req.id,
+              messagePreview: newOffer.notes,
+            });
+          }
+        } catch (emailErr) {
+          console.warn('Teklif bildirim e-postası gönderilemedi:', emailErr);
+        }
+      }
 
       setIsSubmitting(false);
       setSuccessModalOpen(true);
@@ -270,9 +305,9 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
             )}
 
             {/* Customer Phone Access Card (Spec Item 71) */}
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-4">
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700">
+                <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-700 shrink-0">
                   <Phone className="w-5 h-5" />
                 </div>
                 <div>
@@ -281,14 +316,47 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
                 </div>
               </div>
 
-              {revealedPhone ? (
-                <a href={`tel:${req.customerPhone}`} className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
-                  {req.customerPhone}
-                </a>
+              {canViewPhone ? (
+                revealedPhone ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-emerald-800 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200 tracking-wider">
+                      {req.customerPhone}
+                    </span>
+                    <a href={`tel:${req.customerPhone}`}>
+                      <button className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer transition-colors">
+                        <Phone className="w-3.5 h-3.5" />
+                        <span>Hemen Ara</span>
+                      </button>
+                    </a>
+                  </div>
+                ) : (
+                  <Button variant="secondary" size="sm" onClick={() => setRevealedPhone(true)}>
+                    Telefonu Gör
+                  </Button>
+                )
               ) : (
-                <Button variant="secondary" size="sm" onClick={() => setRevealedPhone(true)}>
-                  Telefonu Gör
-                </Button>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-2 rounded-xl border border-slate-200 tracking-wider">
+                    {req.customerPhone ? `${req.customerPhone.slice(0, 4)} ${req.customerPhone.slice(4, 7)} ** **` : '0532 418 ** **'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setWarningModalData({
+                        title: '🔒 Müşteri Telefonu Başlangıç Paketinde Gizlidir',
+                        subtitle: 'Müşterilerin doğrudan cep telefonu numarasını görmek ve teklif kabul edilmeden önce doğrudan arayabilmek için Gümüş veya Altın üyelik paketine sahip olmanız gerekmektedir. Mevcut paketinizle müşteriye güvenli mesaj gönderebilir veya doğrudan teklif verebilirsiniz.',
+                        limitBadge: 'Gümüş / Altın Paket Özelliği',
+                        actionLink: '/app/carrier/abonelik',
+                        actionText: 'Paketleri İncele & Yükselt →'
+                      });
+                      setWarningModalOpen(true);
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer transition-colors"
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Numarayı Aç</span>
+                  </button>
+                </div>
               )}
             </div>
 
@@ -385,16 +453,35 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
                 <span className="text-xs text-slate-400">30 saniyede hazırla</span>
               </div>
 
+              {!isApproved && (
+                <div className="p-3.5 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 text-amber-950 space-y-1.5 shadow-2xs">
+                  <div className="flex items-center gap-1.5">
+                    <span className="px-2 py-0.5 rounded-md bg-amber-200 text-amber-950 font-black text-[10px] uppercase border border-amber-300">
+                      Doğrulamasız Üye
+                    </span>
+                    <span className="text-[11px] font-black text-amber-900">
+                      Onay Bekleniyor
+                    </span>
+                  </div>
+                  <p className="text-xs font-bold text-[#0A1128] leading-snug">
+                    Firmanızın belgeleri incelenmektedir, en kısa sürede onay verilecektir ve teklif verebileceksiniz.
+                  </p>
+                  <p className="text-[11px] text-slate-600 font-medium">
+                    Admin onayının ardından teklif verme kilidiniz otomatik olarak açılacaktır.
+                  </p>
+                </div>
+              )}
+
               <form onSubmit={handleSubmitOffer} className="space-y-4 text-xs">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Toplam Fiyat (TL)</label>
                   <div className="relative">
                     <input
-                      type="number"
+                      type="text"
                       required
                       value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                      placeholder="Örn: 24500"
+                      onChange={(e) => setPrice(formatOfferInputOnType(e.target.value))}
+                      placeholder="Örn: 24.500 veya 50000"
                       className="w-full px-3.5 py-3 rounded-xl border border-slate-300 font-black text-lg text-[#0A1128] focus:ring-2 focus:ring-[#146EF5]"
                     />
                     <span className="absolute right-3.5 top-3.5 font-bold text-slate-400">TL</span>
@@ -479,13 +566,13 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
                   />
                 </div>
 
-                <div className="flex items-center gap-2 pt-1">
-                  <Link href="/app/carrier/isler" className="flex-1">
+                <div className="grid grid-cols-2 gap-2.5 pt-2">
+                  <Link href="/app/carrier/isler" className="w-full">
                     <Button
                       type="button"
                       variant="outline"
-                      size="lg"
-                      className="w-full font-bold text-xs"
+                      size="md"
+                      className="w-full font-bold text-xs h-11"
                     >
                       Vazgeç
                     </Button>
@@ -493,11 +580,11 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
                   <Button
                     type="submit"
                     variant="primary"
-                    size="lg"
-                    className="flex-[2] font-bold shadow-md text-xs"
+                    size="md"
+                    className={`w-full font-black text-xs h-11 shadow-sm ${!isApproved ? 'bg-amber-600 hover:bg-amber-700 text-white' : ''}`}
                     isLoading={isSubmitting}
                   >
-                    Teklifi Müşteriye Gönder
+                    {!isApproved ? 'Teklif Ver (Onay Bekliyor)' : 'Teklifi Gönder'}
                   </Button>
                 </div>
               </form>
@@ -518,7 +605,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
           </div>
 
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-            <span className="text-2xl font-black text-[#0A1128] block">{Number(price).toLocaleString('tr-TR')} TL</span>
+            <span className="text-2xl font-black text-[#0A1128] block">{parseOfferInput(price).price.toLocaleString('tr-TR')} TL</span>
             <span className="text-xs text-slate-500">
               {isPackagingIncluded ? 'Paketleme Dahil' : 'Paketlemesiz'} • {deliveryDuration}
             </span>

@@ -53,23 +53,26 @@ export default function AdminDashboardPage() {
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
+  const [showDemoData, setShowDemoData] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [notice, setNotice] = useState<string | null>(null);
 
   React.useEffect(() => {
-    if (typeof window !== 'undefined' && localStorage.getItem('admin_token_active') === 'true') {
-      setIsAuthenticated(true);
-    }
     fetch('/api/admin/login')
       .then(res => res.json())
       .then(data => {
         if (data.authenticated) {
           setIsAuthenticated(true);
           localStorage.setItem('admin_token_active', 'true');
-        } else if (localStorage.getItem('admin_token_active') !== 'true') {
+        } else {
           setIsAuthenticated(false);
+          localStorage.removeItem('admin_token_active');
         }
       })
       .catch(() => {
-        if (localStorage.getItem('admin_token_active') !== 'true') {
+        if (typeof window !== 'undefined' && localStorage.getItem('admin_token_active') === 'true') {
+          setIsAuthenticated(true);
+        } else {
           setIsAuthenticated(false);
         }
       });
@@ -91,6 +94,10 @@ export default function AdminDashboardPage() {
       if (res.ok && data.success) {
         localStorage.setItem('admin_token_active', 'true');
         setIsAuthenticated(true);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('storage'));
+          window.dispatchEvent(new Event('auth-changed'));
+        }
       } else {
         setLoginError(data.error || 'Kullanıcı adı veya şifre hatalı.');
       }
@@ -177,10 +184,6 @@ export default function AdminDashboardPage() {
       </div>
     );
   }
-
-  const [showDemoData, setShowDemoData] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [notice, setNotice] = useState<string | null>(null);
 
   const carriers = showDemoData ? db.getCarriers() : db.getRealCarriers();
   const requests = showDemoData ? db.getRequests() : db.getRealRequests();
@@ -287,7 +290,20 @@ export default function AdminDashboardPage() {
               Bugün {new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => {
+                const newReq = db.generateRandomMockRequest();
+                setRefreshKey(k => k + 1);
+                setNotice(`✅ Yeni gerçekçi taşıma ilanı eklendi: ${newReq.originCity} → ${newReq.destinationCity} (${newReq.requestCode})`);
+                setTimeout(() => setNotice(null), 5000);
+              }}
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-black transition-colors shadow-xs cursor-pointer"
+              title="Sisteme nakliyecilerin teklif verebileceği yeni gerçekçi bir ilan ekler"
+            >
+              <span>🎲</span>
+              <span>Yeni İlan Ekle (+1 Fake Talep)</span>
+            </button>
             <Link href="/admin/uyeler">
               <button className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:border-[#F95700] hover:text-[#F95700] transition-colors">
                 <Users className="w-3.5 h-3.5" /> Üye Yönetimi

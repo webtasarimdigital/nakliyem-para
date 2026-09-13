@@ -101,7 +101,8 @@ export default function CarrierDashboard() {
   }
 
   const requests = db.getRequests().filter(r => r.status === 'ACTIVE');
-  const myOffers = db.getOffersForCarrier(carrier.id);
+  const rawMyOffers = db.getOffersForCarrier(carrier.id);
+  const myOffers = Array.from(new Map(rawMyOffers.map(o => [o.id, o])).values());
   const defterPosts = db.getDefterPosts().filter(p => p.carrierId === carrier.id);
   const alarms = db.getAlarmsForCarrier(carrier.id);
 
@@ -117,9 +118,10 @@ export default function CarrierDashboard() {
 
   // Günlük teklif kotası (Başlangıç paketinde günde 3 teklif)
   const todayStr = new Date().toISOString().slice(0, 10);
-  const carrierOffersToday = myOffers.filter(o => o.createdAt && o.createdAt.startsWith(todayStr)).length;
+  const todayActiveOffers = myOffers.filter(o => o.createdAt && o.createdAt.startsWith(todayStr) && o.status !== 'WITHDRAWN');
+  const uniqueRequestsOfferedToday = new Set(todayActiveOffers.map(o => o.requestId)).size;
   const dailyFreeLimit = 3;
-  const remainingFreeOffers = isStarter ? Math.max(0, dailyFreeLimit - carrierOffersToday) : 'Sınırsız';
+  const remainingFreeOffers = isStarter ? Math.max(0, dailyFreeLimit - uniqueRequestsOfferedToday) : 'Sınırsız';
 
   // Matched requests with scores
   const matchedRequests = requests.map(req => {
@@ -127,7 +129,7 @@ export default function CarrierDashboard() {
     return { ...req, matchScore: match.score, matchReasons: match.reasons };
   }).sort((a, b) => b.matchScore - a.matchScore);
 
-  const pendingOffers = myOffers.filter(o => o.status === 'PENDING');
+  const pendingOffers = Array.from(new Map(myOffers.filter(o => o.status === 'PENDING').map(o => [o.requestId || o.id, o])).values());
   const acceptedOffers = myOffers.filter(o => o.status === 'ACCEPTED');
 
   return (
@@ -146,8 +148,9 @@ export default function CarrierDashboard() {
               {isApproved ? (
                 <Badge variant="verified" size="sm" />
               ) : (
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-black border border-amber-200">
-                  ⏳ Evrak Eksik / Onay Bekliyor
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-950 text-[11px] font-black border border-amber-300 flex items-center gap-1.5 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  Doğrulamasız Üye (Onay Bekleniyor)
                 </span>
               )}
             </div>
@@ -170,34 +173,59 @@ export default function CarrierDashboard() {
           </div>
         </div>
 
-        {/* ── ONAYSIZ / EKSİK EVRAK UYARI BANNERI ──────────────────────── */}
+        {/* ── DOĞRULAMASIZ ÜYE / ONAY BEKLEYEN BANNER ──────────────────────── */}
         {!isApproved && (
-          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <h3 className="font-black text-sm text-amber-900">
-                  ⚠️ Onaysız Profil — Kimlik ve Vergi Levhası Yüklemeniz Gerekmektedir
-                </h3>
-                <p className="text-xs text-amber-800 font-medium leading-relaxed">
-                  TaşınTeklif güvencesi kapsamında ilanlara teklif verebilmek için vergi levhası ve yetkili kimlik belgenizi yüklemeniz zorunludur.
-                </p>
-                <div className="flex items-center gap-3 pt-1 text-xs font-bold">
-                  <span className={hasTaxDoc ? 'text-emerald-700' : 'text-red-600'}>
-                    {hasTaxDoc ? '✓ Vergi Levhası Yüklendi' : '✗ Vergi Levhası Eksik'}
-                  </span>
-                  <span>•</span>
-                  <span className={hasIdDoc ? 'text-emerald-700' : 'text-red-600'}>
-                    {hasIdDoc ? '✓ Kimlik Belgesi Yüklendi' : '✗ Kimlik Belgesi Eksik'}
-                  </span>
+          <div className="mb-6 rounded-2xl bg-gradient-to-r from-amber-50 via-amber-100/60 to-orange-50 border-2 border-amber-300 p-5 sm:p-6 shadow-sm text-amber-950">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-start gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                  <Clock className="w-6 h-6 animate-pulse" />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-950 font-black text-xs border border-amber-300 uppercase tracking-wide">
+                      Doğrulamasız Üye
+                    </span>
+                    <span className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping inline-block" />
+                      Yönetici Onayı Bekleniyor
+                    </span>
+                  </div>
+
+                  <h3 className="text-base sm:text-lg font-black text-[#0A1128]">
+                    {hasTaxDoc && hasIdDoc
+                      ? 'Firmanızın belgeleri incelenmektedir, en kısa sürede onay verilecektir ve teklif verebileceksiniz.'
+                      : 'Firmanızın belgeleri incelenmektedir — Lütfen eksik evraklarınızı tamamlayınız.'}
+                  </h3>
+
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                    {hasTaxDoc && hasIdDoc
+                      ? 'Kimlik ve vergi levhası belgeleriniz yönetici ekibimize iletilmiştir. Platform güvenlik standartlarımız gereğince belgeleriniz incelendikten sonra (genellikle 2 saat içinde) hesabınız onaylanacak ve tüm ilanlara teklif verme yetkiniz açılacaktır.'
+                      : 'Müşterilerimize güvenilir hizmet sunabilmek amacıyla ilanlara teklif verebilmek için vergi levhası ve yetkili kimlik belgenizi yüklemeniz gerekmektedir.'}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-3 pt-1.5 text-xs font-bold">
+                    <span className={hasTaxDoc ? 'text-emerald-800 bg-emerald-100/90 px-2.5 py-1 rounded-lg border border-emerald-300 flex items-center gap-1' : 'text-amber-900 bg-amber-200/70 px-2.5 py-1 rounded-lg border border-amber-300 flex items-center gap-1'}>
+                      {hasTaxDoc ? '✓ Vergi Levhası Yüklendi' : '⏳ Vergi Levhası Eksik'}
+                    </span>
+                    <span className={hasIdDoc ? 'text-emerald-800 bg-emerald-100/90 px-2.5 py-1 rounded-lg border border-emerald-300 flex items-center gap-1' : 'text-amber-900 bg-amber-200/70 px-2.5 py-1 rounded-lg border border-amber-300 flex items-center gap-1'}>
+                      {hasIdDoc ? '✓ Kimlik Belgesi Yüklendi' : '⏳ Kimlik Belgesi Eksik'}
+                    </span>
+                    <span className="text-slate-500 text-[11px] font-medium">
+                      (Admin panelden onay verildiğinde bu uyarı otomatik olarak kalkacaktır)
+                    </span>
+                  </div>
                 </div>
               </div>
+
+              <div className="flex items-center gap-2 shrink-0 md:self-center">
+                <Link href="/app/carrier/profil">
+                  <Button variant="outline" size="sm" className="font-bold text-xs bg-white border-amber-300 text-amber-950 hover:bg-amber-100/60 shadow-xs h-10">
+                    Evrakları İncele / Güncelle →
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <Link href="/app/carrier/profil" className="shrink-0">
-              <Button variant="primary" size="sm" className="font-black text-xs">
-                Evrakları Yükle →
-              </Button>
-            </Link>
           </div>
         )}
 
@@ -210,7 +238,7 @@ export default function CarrierDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { label: 'Yeni Eşleşen İş', value: matchedRequests.length, color: 'text-[#F95700]', bg: 'bg-orange-50', border: 'border-orange-200', href: '/app/carrier/isler' },
-                { label: 'Günlük Kalan Teklif', value: isStarter ? `${remainingFreeOffers}/3` : 'Sınırsız', color: isStarter && remainingFreeOffers === 0 ? 'text-red-600' : 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', href: isStarter && remainingFreeOffers === 0 ? '/paketler' : '/app/carrier/isler' },
+                { label: 'Bugün Kalan Teklif', value: isStarter ? `${remainingFreeOffers}/3 Hak` : 'Sınırsız', color: isStarter && remainingFreeOffers === 0 ? 'text-red-600' : 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', href: isStarter && remainingFreeOffers === 0 ? '/paketler' : '/app/carrier/isler' },
                 { label: 'Bekleyen Teklifim', value: pendingOffers.length, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', href: '/app/carrier/tekliflerim' },
                 { label: 'Kazanılan İş', value: acceptedOffers.length, color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', href: '/app/carrier/tekliflerim' },
               ].map((card, i) => (
@@ -442,7 +470,7 @@ export default function CarrierDashboard() {
               <div className="space-y-1 mb-4">
                 {isStarter ? (
                   <p className="text-xs text-slate-300 font-medium">
-                    Günlük 3 ücretsiz teklif hakkı ({carrierOffersToday}/3 kullanıldı)
+                    Günlük 3 ücretsiz teklif hakkı ({uniqueRequestsOfferedToday}/3 kullanıldı)
                   </p>
                 ) : (
                   <p className="text-xs text-slate-300 font-medium">

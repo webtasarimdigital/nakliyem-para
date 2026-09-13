@@ -38,11 +38,32 @@ export default function AdminRootLayout({
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [isAdminAuth, setIsAdminAuth] = useState<boolean | null>(null);
 
-  // If on login page, don't show admin navbar
-  if (pathname === '/admin/giris') {
-    return <>{children}</>;
-  }
+  useEffect(() => {
+    const checkAuth = () => {
+      if (typeof window !== 'undefined' && localStorage.getItem('admin_token_active') === 'true') {
+        setIsAdminAuth(true);
+      }
+      fetch('/api/admin/login')
+        .then(res => res.json())
+        .then(data => {
+          setIsAdminAuth(Boolean(data.authenticated));
+          if (data.authenticated) {
+            localStorage.setItem('admin_token_active', 'true');
+          } else {
+            localStorage.removeItem('admin_token_active');
+          }
+        })
+        .catch(() => {
+          setIsAdminAuth(localStorage.getItem('admin_token_active') === 'true');
+        });
+    };
+
+    checkAuth();
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, [pathname]);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -53,9 +74,16 @@ export default function AdminRootLayout({
       // ignore
     } finally {
       setLoggingOut(false);
-      router.push('/admin/giris');
+      setIsAdminAuth(false);
+      router.push('/admin');
+      router.refresh();
     }
   };
+
+  // If on login page or unauthenticated on /admin, don't show admin navbar
+  if (pathname === '/admin/giris' || (pathname === '/admin' && !isAdminAuth)) {
+    return <>{children}</>;
+  }
 
   const isActive = (item: typeof NAV_ITEMS[0]) => {
     if (item.exact) return pathname === item.href;

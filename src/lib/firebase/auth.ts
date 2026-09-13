@@ -6,6 +6,9 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   sendPasswordResetEmail,
+  verifyPasswordResetCode,
+  confirmPasswordReset,
+  ActionCodeSettings,
   sendEmailVerification,
   User as FirebaseUser 
 } from 'firebase/auth';
@@ -205,20 +208,65 @@ export async function loginWithGoogleFirebase(targetRole: UserRole = 'CUSTOMER')
 }
 
 /**
- * Send Password Reset Email via Firebase
+ * Send Password Reset Email via Firebase with custom return URL
  */
 export async function sendPasswordResetFirebase(email: string): Promise<{ success: boolean; error: string | null }> {
   if (!isFirebaseConfigured() || !auth) {
     return { success: true, error: null };
   }
 
+  const cleanEmail = email.trim().toLowerCase();
+
   try {
-    await sendPasswordResetEmail(auth, email);
+    const actionCodeSettings: ActionCodeSettings = {
+      url: 'https://tasinteklif.com/sifremi-unuttum',
+      handleCodeInApp: false,
+    };
+    await sendPasswordResetEmail(auth, cleanEmail, actionCodeSettings);
     return { success: true, error: null };
   } catch (err: any) {
-    let message = 'Şifre sıfırlama e-postası gönderilemedi.';
-    if (err.code === 'auth/user-not-found') message = 'Bu e-posta adresine kayıtlı bir kullanıcı bulunamadı.';
-    if (err.code === 'auth/invalid-email') message = 'Geçerli bir e-posta adresi giriniz.';
+    // If actionCodeSettings fails (e.g. domain not yet whitelisted in Firebase Console), fallback to default
+    try {
+      await sendPasswordResetEmail(auth, cleanEmail);
+      return { success: true, error: null };
+    } catch (fallbackErr: any) {
+      let message = 'Şifre sıfırlama e-postası gönderilemedi.';
+      if (fallbackErr.code === 'auth/user-not-found') message = 'Bu e-posta adresine kayıtlı bir kullanıcı bulunamadı.';
+      if (fallbackErr.code === 'auth/invalid-email') message = 'Geçerli bir e-posta adresi giriniz.';
+      return { success: false, error: message };
+    }
+  }
+}
+
+/**
+ * Verify a Firebase password reset oobCode and return the associated email
+ */
+export async function verifyResetCodeFirebase(oobCode: string): Promise<{ success: boolean; email?: string; error?: string }> {
+  if (!isFirebaseConfigured() || !auth) {
+    return { success: false, error: 'Firebase yapılandırılmamış.' };
+  }
+  try {
+    const email = await verifyPasswordResetCode(auth, oobCode);
+    return { success: true, email };
+  } catch (err: any) {
+    return { success: false, error: 'Şifre sıfırlama bağlantısının süresi dolmuş veya geçersiz.' };
+  }
+}
+
+/**
+ * Confirm and save the new password using the Firebase oobCode
+ */
+export async function confirmPasswordResetFirebase(oobCode: string, newPassword: string): Promise<{ success: boolean; error?: string }> {
+  if (!isFirebaseConfigured() || !auth) {
+    return { success: false, error: 'Firebase yapılandırılmamış.' };
+  }
+  try {
+    await confirmPasswordReset(auth, oobCode, newPassword);
+    return { success: true };
+  } catch (err: any) {
+    let message = 'Şifre güncellenemedi. Lütfen tekrar deneyin.';
+    if (err.code === 'auth/weak-password') message = 'Şifreniz en az 6 karakter olmalıdır.';
+    if (err.code === 'auth/expired-action-code') message = 'Şifre sıfırlama bağlantısının süresi dolmuş veya zaten kullanılmış.';
     return { success: false, error: message };
   }
 }

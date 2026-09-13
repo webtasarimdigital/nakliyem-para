@@ -45,23 +45,15 @@ export function LiveOfferChatModal({
       id: 'm1',
       sender: 'CARRIER',
       type: 'OFFER_CARD',
-      content: `${requestId} · Esenler, İstanbul → Bakırköy, İstanbul\n· Evden Eve Nakliyat · ${offerPrice.toLocaleString('tr-TR')} TL teklif`,
-      time: '20:54'
+      content: `${requestId} · ${carrierName}\n· ${offerPrice.toLocaleString('tr-TR')} TL fiyat teklifi verildi`,
+      time: 'Yeni'
     },
     {
       id: 'm2',
       sender: 'CARRIER',
       type: 'TEXT',
-      content: `${offerPrice.toLocaleString('tr-TR')} TL teklif gönderdim`,
-      time: '20:54'
-    },
-    {
-      id: 'm3',
-      sender: 'CARRIER',
-      type: 'IMAGE',
-      content: '',
-      mediaUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&auto=format&fit=crop&q=80',
-      time: '20:55'
+      content: `Merhaba, talebiniz için ${offerPrice.toLocaleString('tr-TR')} TL teklifimizi ilettik. Sorularınız olursa buradan dilediğiniz an yazabilirsiniz.`,
+      time: 'Yeni'
     }
   ]);
 

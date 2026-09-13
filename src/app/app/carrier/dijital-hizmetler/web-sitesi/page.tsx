@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -24,7 +24,9 @@ import {
   Award,
   Layers,
   Search,
-  ExternalLink
+  ExternalLink,
+  Globe,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { CarrierDigitalSidebar } from '@/components/layout/CarrierDigitalSidebar';
@@ -32,84 +34,87 @@ import { db } from '@/lib/data/mock-db';
 
 const PACKAGES = [
   {
-    name: "Başlangıç Web",
-    desc: "Bireysel ve küçük ölçekli nakliyeciler için",
+    name: "Başlangıç Web Sitesi",
+    desc: "Bireysel ve küçük ölçekli nakliyeciler için kurumsal vitrin",
     price: "3.500 TL",
     period: "tek seferlik",
     isFeatured: false,
     badge: null,
     features: [
-      "5 Sayfa Özel Nakliyat Tasarımı",
-      ".com / .com.tr Alan Adı (1 Yıl Dahil)",
+      "5 Temel Sayfa (Ana Sayfa, Hakkımızda, Hizmetler, Filo, İletişim)",
+      ".com veya .com.tr Alan Adı (1 Yıl Ücretsiz Dahil)",
       "Yüksek Hızlı SSL Korumalı Hosting",
-      "WhatsApp & Tek Tıkla Ara Butonları",
-      "Mobil, Tablet & Masaüstü %100 Uyum",
-      "Temel Google Harita Entegrasyonu"
+      "WhatsApp & Tek Tıkla Ara Çağrı Butonları",
+      "Mobil, Tablet & Masaüstü %100 Uyumlu Tasarım",
+      "Google Harita ve İşletme Konumu Entegrasyonu"
     ]
   },
   {
-    name: "Profesyonel Web",
-    desc: "Şehirlerarası & evden eve çalışan nakliyat firmaları için",
+    name: "Profesyonel SEO Nakliyat Sitesi",
+    desc: "İlçe aramalarından doğrudan müşteri toplamak isteyen nakliyat firmaları",
     price: "6.500 TL",
     period: "tek seferlik",
     isFeatured: true,
     badge: "EN ÇOK TERCİH EDİLEN",
     features: [
-      "10 Sayfa Genişletilmiş Kurumsal Tasarım",
-      "Müşteri Canlı Fiyat Hesaplama Formu",
-      "İl & İlçe Nakliyat Rota Sayfaları",
-      "Google SEO & Hız Optimizasyonu (PageSpeed 98+)",
-      "Kurumsal E-Posta Hesapları (info@firmaniz.com)",
-      "Müşteri Yorumları & Araç Filosu Galerisi",
-      "1 Yıl Ücretsiz Teknik Destek & Yedekleme"
+      "39 İlçe İçin Özel SEO Uyumlu URL İç Sayfaları (örn: /kadikoy-nakliyat)",
+      "Şehirlerarası Rota Sayfaları (İstanbul - Ankara, İzmir vb.)",
+      "Canlı Nakliyat Fiyat Hesaplama Modülü (Oda ve Mesafe Bazlı)",
+      "0.8 Saniye Ultra Hızlı Açılış (Google Core Web Vitals 100/100)",
+      "Google Schema Taşımacılık İşletme Zengin Sonuç Yapısı",
+      "Sınırsız Araç ve Referans Fotoğrafı Ekleme Paneli",
+      "1 Yıllık Kurumsal Hosting, SSL ve 5 Adet Kurumsal E-posta"
     ]
   },
   {
-    name: "Kurumsal VIP Filo",
-    desc: "Büyük filolar ve bölgesinde lider lojistik markaları",
+    name: "Kurumsal Filo & Lojistik Portalı",
+    desc: "Çok şubeli, geniş araç filolu ve Türkiye geneli çalışan kurumsal lojistik firmaları",
     price: "12.000 TL",
     period: "tek seferlik",
     isFeatured: false,
-    badge: "ÖZEL ÇÖZÜM",
+    badge: "FİLOLAR İÇİN",
     features: [
-      "Sınırsız Sayfa & Dinamik Blog Yönetimi",
-      "81 İl ve Yoğun Güzergah İniş Sayfaları (Landing Pages)",
-      "Gelişmiş Teklif Takip & SMS Bildirim Paneli",
-      "Google Ads & Harita Reklam Altyapısı",
-      "Özel Tanıtım Videosu & Drone Çekimi Entegrasyonu",
-      "Öncelikli 7/24 VIP Danışman"
+      "81 İl ve Tüm İlçeler İçin Dinamik SEO URL Sayfa Mimarisi",
+      "Online Talep Toplama & Canlı Teklif Verme Altyapısı",
+      "Gelişmiş Çoklu Şube ve Garaj Konumları Haritası",
+      "Özel Müşteri Yorum & Güven Doğrulama Modülü",
+      "Google Ads ve Meta Piksel Tam Dönüşüm Takip Entegrasyonu",
+      "Öncelikli 7/24 Teknik Destek & Yedekleme Garantisi"
     ]
   }
 ];
 
 const FAQS = [
   {
-    q: "Web sitem ne kadar sürede tamamlanır ve yayına alınır?",
-    a: "Firma bilgilerinizi ve fotoğraflarınızı aldıktan sonra ortalama 3 iş günü içinde siteniz tasarımı, alan adı ve sunucu kurulumu tamamlanarak canlıya alınır."
+    q: "Sitem ne kadar sürede tamamlanıp teslim edilir?",
+    a: "Alan adı kaydı, SSL kurulumu, 39 ilçe SEO sayfaları ve içerikler ortalama 3 ila 5 iş günü içinde eksiksiz olarak yayına alınır. WhatsApp ve telefon numaralarınız test edilerek teslim edilir."
   },
   {
-    q: "Siteden gelen müşteri talepleri nereye düşer?",
-    a: "Sitedeki 'Hemen Ara' ve 'WhatsApp ile Teklif Al' butonları doğrudan yetkili cep telefonunuza yönlendirilir. Ayrıca siteden teklif formu dolduran müşterilerin bilgileri anında e-postanıza ve WhatsApp'ınıza iletilir; aracı komisyonu olmadan görüşürsünüz."
+    q: "Web sitem Google'da ilçe aramalarında nasıl çıkar?",
+    a: "Siteniz sadece ana sayfadan ibaret olmaz; her ilçe ve güzergah için özel optimize edilmiş URL'ler oluşturulur (örn: /kadikoy-evden-eve-nakliyat, /ankara-sehirlerarasi-nakliyat). Google botları bu sayfaları indekslediğinde, o ilçeden arayan müşteriler doğrudan sizin sayfanıza ulaşır."
   },
   {
-    q: "Domain (alan adı) ve hosting için her yıl fahiş ücret öder miyim?",
-    a: "Hayır. İlk yıl domain, yüksek hızlı bulut hosting ve SSL sertifikası tamamen ücretsizdir. 2. yıldan itibaren sadece standart yıllık sunucu ve alan adı yenileme maliyeti alınır, gizli masraf yoktur."
+    q: "Telefonumdan web sitesindeki yazıları veya araç resimlerini değiştirebilir miyim?",
+    a: "Evet. Size vereceğimiz son derece kolay Türkçe yönetim panelinden yeni araçlarınızın fotoğraflarını, telefon numaranızı ve referanslarınızı 1 dakikada güncelleyebilirsiniz."
   },
   {
-    q: "Kendi araç fotoğraflarımı ve logomu ekleyebilir miyim?",
-    a: "Kesinlikle! Kendi araç filonuzu, asansörlü taşıma sisteminizi, ambalajlama fotoğraflarınızı ve logonuzu profesyonelce yerleştiriyoruz. Eğer logonuz yoksa modern bir nakliyat logosunu da hediye olarak hazırlıyoruz."
+    q: "Alan adı ve hosting için her yıl ek ücret ödeyecek miyim?",
+    a: "İlk 1 yıl boyunca .com/.com.tr alan adı, yüksek hızlı bulut hosting ve kurumsal e-postalarınız pakete dahildir. Sonraki yıllarda sadece yıllık standart yenileme bedeli uygulanır, sürpriz ücret çıkmaz."
   }
 ];
 
-export default function SubServicePage() {
+export default function WebSitesiServicePage() {
   const router = useRouter();
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
     const user = db.getCurrentUser();
-    if (!user || user.role !== 'CARRIER') {
+    if (!user) {
       router.push('/giris?role=nakliyeci');
+      return;
     }
+    setCurrentUser(user);
   }, [router]);
 
   return (
@@ -125,15 +130,15 @@ export default function SubServicePage() {
 
         {/* Page Header */}
         <div className="mb-8">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-50 text-[#F95700] border border-orange-200 text-xs font-bold mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Nakliyecilere Özel Dönüşüm Odaklı Web Çözümleri</span>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold mb-2">
+            <Globe className="w-3.5 h-3.5 text-blue-600" />
+            <span>Nakliyat Web Sitesi Hizmeti (İç Sayfa URL SEO Uyumlu)</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
-            Nakliyat Firmanıza Özel Profesyonel Web Sitesi
+            Firmanıza Özel Web Sitesi: İlçe URL Mimarisiyle Donatılmış Satış Makinesi
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1 max-w-3xl leading-relaxed">
-            Google uyumlu, telefon trafiği çeken, 1 saniyede açılan ve müşterinin doğrudan cep telefonunuzu aramasını sağlayan anahtar teslim nakliye sitesi.
+            Sadece bir kartvizit değil; Google'da her ilçe aramasında ilk sayfalarda çıkan, mobil cihazlarda tek tıkla arama ve WhatsApp teklifi getiren anahtar teslim nakliyat sitesi.
           </p>
         </div>
 
@@ -148,257 +153,272 @@ export default function SubServicePage() {
           {/* Sağ Ana İçerik */}
           <div className="lg:col-span-8 space-y-8">
             
-            {/* ── BÖLÜM 1: BİLGİSAYAR & MOBİL EKRANI CANLI MOCKUP ── */}
-            <div className="bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A] rounded-3xl p-5 sm:p-8 text-white shadow-xl relative overflow-hidden border border-slate-800">
+            {/* BÖLÜM 1: BİLGİSAYAR & MOBİL EKRANI CANLI MOCKUP (TEMİZ BEYAZ KART) */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 text-slate-800 shadow-sm border border-slate-200 space-y-6">
               
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 relative z-10">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    Canlı Örnek Şablon
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Canlı Örnek Tasarım & Cihaz Uyumu
                   </span>
-                  <h2 className="text-lg sm:text-2xl font-black mt-2 text-white">
-                    Müşterilerinizin Göreceği Modern Deneyim
+                  <h2 className="text-lg sm:text-2xl font-black mt-2 text-[#0A1128]">
+                    Masaüstü Bilgisayar & Akıllı Telefon Görünümü
                   </h2>
-                  <p className="text-xs text-slate-300 mt-0.5">
-                    Masaüstünde kurumsal güven, telefonda tek tıkla arama & WhatsApp teklifi.
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Masaüstünde kurumsal güven veren tasarım, telefonda tek tıkla arama ve WhatsApp teklifi.
                   </p>
                 </div>
 
-                <div className="hidden sm:flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-200">
-                  <Laptop className="w-4 h-4 text-orange-400" />
-                  <span>Desktop + Mobil Uyumlu</span>
+                <div className="hidden sm:flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700">
+                  <Laptop className="w-4 h-4 text-[#F95700]" />
+                  <span>Desktop + Mobil %100 Uyumlu</span>
                 </div>
               </div>
 
-              {/* Mockup Canvas */}
-              <div className="relative pt-2 pb-4">
+              {/* BİLGİSAYAR + TELEFON ÇİFT CİHAZ MOCKUP ALANI */}
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-center">
                 
-                {/* 1. MASAÜSTÜ EKRANI (LAPTOP BROWSER) */}
-                <div className="w-full max-w-2xl mx-auto rounded-2xl bg-[#1E293B] border border-slate-700 shadow-2xl overflow-hidden">
+                {/* 1. MASAÜSTÜ BİLGİSAYAR MOCKUP (8/12) */}
+                <div className="xl:col-span-8 rounded-2xl bg-white border border-slate-300 shadow-lg overflow-hidden">
                   
-                  {/* Browser Window Header */}
-                  <div className="bg-slate-800/90 px-4 py-2.5 border-b border-slate-700 flex items-center justify-between gap-2">
+                  {/* Laptop Screen Top Header */}
+                  <div className="bg-slate-800 px-4 py-2 border-b border-slate-700 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block" />
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
                     </div>
 
                     {/* Address Bar */}
-                    <div className="flex-1 max-w-sm bg-slate-900/90 rounded-lg px-3 py-1 flex items-center gap-2 text-[11px] text-slate-300 font-mono border border-slate-700/60 mx-auto">
+                    <div className="flex-1 max-w-xs bg-slate-900 rounded-lg px-3 py-1 flex items-center gap-1.5 text-[11px] text-slate-300 font-mono border border-slate-700 mx-auto truncate">
                       <Lock className="w-3 h-3 text-emerald-400 shrink-0" />
                       <span className="text-emerald-400 font-semibold">https://</span>
-                      <span className="truncate text-slate-200 font-semibold">www.yildiznakliyat.com.tr</span>
+                      <span className="text-white font-bold truncate">www.yildiznakliyat.com.tr</span>
                     </div>
 
-                    <div className="text-[10px] text-slate-400 font-semibold hidden sm:block">
-                      ⚡ 0.7s
-                    </div>
+                    <span className="text-[10px] text-emerald-400 font-bold hidden sm:inline">⚡ 0.7 sn Hızlı</span>
                   </div>
 
-                  {/* Browser Body / Web Site İçeriği */}
-                  <div className="bg-white text-slate-800 p-4 sm:p-6 space-y-4">
+                  {/* Web Sitesi İçeriği */}
+                  <div className="p-4 sm:p-5 bg-white space-y-3.5">
                     
                     {/* Site Header */}
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-[#111E38] text-[#F95700] flex items-center justify-center font-black text-sm">
-                          Y
+                        <div className="w-8 h-8 rounded-xl bg-[#0A1128] text-[#F95700] flex items-center justify-center font-black text-sm shadow-xs">
+                          YN
                         </div>
                         <div>
-                          <div className="font-black text-xs sm:text-sm text-[#111E38] leading-tight">YILDIZ NAKLİYAT</div>
-                          <div className="text-[9px] text-slate-400 font-semibold">Şehirlerarası & Evden Eve</div>
+                          <span className="font-black text-xs sm:text-sm text-[#0A1128] block leading-tight">YILDIZ NAKLİYAT</span>
+                          <span className="text-[9px] text-slate-400 font-semibold">Evden Eve & Şehirlerarası</span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <div className="hidden sm:flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
+                        <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold text-slate-700 bg-slate-50 px-2 py-1 rounded-md border border-slate-200">
                           <PhoneCall className="w-3 h-3 text-[#F95700]" />
-                          <span>0850 308 XX XX</span>
-                        </div>
-                        <div className="text-[10px] font-bold bg-emerald-500 text-white px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-xs">
+                          0850 308 XX XX
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-emerald-600 px-2 py-1 rounded-md shadow-xs">
                           <MessageCircle className="w-3 h-3" />
-                          <span>WhatsApp</span>
-                        </div>
+                          WhatsApp
+                        </span>
                       </div>
                     </div>
 
-                    {/* Site Hero Banner */}
-                    <div className="rounded-xl bg-gradient-to-r from-[#111E38] to-[#1E3A8A] text-white p-4 sm:p-5 relative overflow-hidden">
-                      <div className="relative z-10 max-w-sm space-y-2">
-                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-300 text-[10px] font-bold">
-                          ★ 4.9 Puan · 420+ Memnun Taşıma
-                        </div>
-                        <h3 className="text-sm sm:text-lg font-black text-white leading-tight">
+                    {/* Hero Section */}
+                    <div className="rounded-xl bg-gradient-to-r from-[#0A1128] via-[#16213e] to-[#0A1128] text-white p-4 relative overflow-hidden">
+                      <div className="relative z-10 max-w-xs space-y-1.5">
+                        <span className="inline-block px-2 py-0.5 rounded bg-[#F95700]/20 text-[#F95700] text-[9px] font-black border border-[#F95700]/30">
+                          ★ 4.9 Puan · K3 Yetki Belgeli
+                        </span>
+                        <h4 className="text-xs sm:text-sm font-black text-white leading-snug">
                           İstanbul Evden Eve Nakliyat & Asansörlü Taşıma
-                        </h3>
-                        <p className="text-[11px] text-slate-200 leading-snug">
-                          K3 Yetki Belgeli, sigortalı ve marangozlu taşımacılıkta 15 yıllık tecrübe.
+                        </h4>
+                        <p className="text-[10px] text-slate-300 leading-tight">
+                          Marangozlu söküm-montaj, sigortalı taşıma ve çift kat ambalajlama garantisi.
                         </p>
-
-                        <div className="flex items-center gap-2 pt-1">
-                          <span className="bg-[#F95700] text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-sm">
-                            Fiyat Hesapla
+                        <div className="pt-1 flex items-center gap-2">
+                          <span className="bg-[#F95700] text-white text-[10px] font-bold px-2.5 py-1 rounded-lg">
+                            Fiyat Hesapla →
                           </span>
-                          <span className="text-[10px] text-slate-300 font-medium">
-                            Sabit Fiyat Garantisi
-                          </span>
+                          <span className="text-[9px] text-slate-300 font-medium">Sabit Fiyat</span>
                         </div>
                       </div>
-
-                      {/* Dekoratif Kamyon İkonu */}
-                      <div className="absolute right-2 -bottom-2 text-white/10 hidden sm:block pointer-events-none">
-                        <Truck className="w-32 h-32" />
+                      <div className="absolute right-2 -bottom-2 text-white/10 pointer-events-none hidden sm:block">
+                        <Truck className="w-24 h-24" />
                       </div>
                     </div>
 
-                    {/* Site Hızlı Hesaplama Kutucuğu */}
-                    <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 grid grid-cols-3 gap-2 text-center text-[11px]">
-                      <div className="bg-white p-2 rounded-lg border border-slate-100 shadow-2xs">
-                        <span className="text-[10px] text-slate-400 block font-medium">Nereden</span>
-                        <strong className="text-slate-800 text-xs font-bold">Kadıköy</strong>
+                    {/* SEO İç Sayfa URL Yapısı Gösterimi (Kullanıcı İsteği) */}
+                    <div className="rounded-xl bg-slate-50 p-3 border border-slate-200 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black text-slate-600 uppercase tracking-wider">
+                          🔗 Google SEO Uyumlu İç Sayfa URL Mimarisi
+                        </span>
+                        <span className="text-[9px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                          Otomatik İlçe Sayfaları
+                        </span>
                       </div>
-                      <div className="bg-white p-2 rounded-lg border border-slate-100 shadow-2xs">
-                        <span className="text-[10px] text-slate-400 block font-medium">Nereye</span>
-                        <strong className="text-slate-800 text-xs font-bold">İzmir</strong>
-                      </div>
-                      <div className="bg-white p-2 rounded-lg border border-slate-100 shadow-2xs">
-                        <span className="text-[10px] text-slate-400 block font-medium">Oda Sayısı</span>
-                        <strong className="text-[#F95700] text-xs font-bold">3+1 Daire</strong>
+                      <div className="flex flex-wrap gap-1.5 text-[10px] font-mono">
+                        <span className="bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-700">/kadikoy-evden-eve-nakliyat</span>
+                        <span className="bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-700">/besiktas-nakliyat</span>
+                        <span className="bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-700">/sehirlerarasi-nakliyat</span>
+                        <span className="bg-white px-2 py-0.5 rounded border border-slate-200 text-[#F95700] font-bold">+36 İlçe URL</span>
                       </div>
                     </div>
 
                   </div>
                 </div>
 
-                {/* 2. MOBİL EKRANI (OVERLAPPING IPHONE MOCKUP) */}
-                <div className="absolute -bottom-2 sm:-bottom-4 -right-1 sm:right-6 w-44 sm:w-56 rounded-3xl bg-[#090D16] p-2 border-2 border-slate-600 shadow-2xl z-20">
-                  {/* Phone Notch */}
-                  <div className="w-20 h-3 bg-slate-800 rounded-full mx-auto mb-1.5" />
-                  
-                  {/* Phone Screen Content */}
-                  <div className="bg-white rounded-2xl p-2.5 space-y-2 text-slate-800 overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
-                      <span className="font-black text-[10px] text-[#111E38]">YILDIZ NAKLİYAT</span>
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                    </div>
+                {/* 2. AKILLI TELEFON (SMARTPHONE) MOCKUP (4/12) */}
+                <div className="xl:col-span-4 max-w-[260px] mx-auto w-full rounded-[32px] bg-slate-900 p-2.5 shadow-2xl border-4 border-slate-800 relative">
+                  {/* Telefon Çentiği / Dynamic Island */}
+                  <div className="w-16 h-3.5 bg-slate-800 rounded-full mx-auto mb-2 flex items-center justify-center">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-700" />
+                  </div>
 
-                    <div className="bg-blue-900 text-white rounded-lg p-2 text-center space-y-1">
-                      <div className="text-[9px] font-bold text-orange-300">İstanbul Nakliyat</div>
-                      <div className="text-[10px] font-black leading-tight">Asansörlü & Sigortalı</div>
-                    </div>
-
-                    {/* Sabit Arama Butonları */}
-                    <div className="space-y-1 pt-1">
-                      <div className="w-full bg-[#F95700] text-white py-1.5 px-2 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 shadow-xs">
-                        <PhoneCall className="w-2.5 h-2.5" />
-                        <span>Hemen Ara: 0850...</span>
+                  {/* Telefon Ekranı */}
+                  <div className="bg-white rounded-[22px] overflow-hidden text-slate-800 text-[11px] flex flex-col justify-between h-[360px] border border-slate-200">
+                    
+                    {/* Mobil Header */}
+                    <div className="p-2.5 bg-[#0A1128] text-white flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-5 h-5 rounded-md bg-[#F95700] text-white font-black text-[10px] flex items-center justify-center">Y</span>
+                        <span className="font-bold text-[10px]">Yıldız Nakliyat</span>
                       </div>
-                      <div className="w-full bg-emerald-500 text-white py-1.5 px-2 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 shadow-xs">
-                        <MessageCircle className="w-2.5 h-2.5" />
-                        <span>WhatsApp Teklif</span>
+                      <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.5 rounded">Açık 7/24</span>
+                    </div>
+
+                    {/* Mobil İçerik */}
+                    <div className="p-2.5 space-y-2 flex-1 overflow-hidden">
+                      <div className="rounded-lg bg-orange-50 border border-orange-200 p-2 text-center space-y-0.5">
+                        <span className="text-[9px] font-black text-[#C23E00] uppercase block">Hızlı Fiyat Teklifi</span>
+                        <strong className="text-[11px] text-[#0A1128] block">30 Dakikada Kapınızda</strong>
+                      </div>
+
+                      <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-1 text-[10px]">
+                        <div className="flex justify-between text-slate-500">
+                          <span>K3 Yetki Belgesi:</span>
+                          <strong className="text-emerald-700">Var ✓</strong>
+                        </div>
+                        <div className="flex justify-between text-slate-500">
+                          <span>Asansörlü Taşıma:</span>
+                          <strong className="text-slate-800">15. Kata Kadar</strong>
+                        </div>
+                        <div className="flex justify-between text-slate-500">
+                          <span>Sigortalı Nakliyat:</span>
+                          <strong className="text-slate-800">Tam Kapsam</strong>
+                        </div>
+                      </div>
+
+                      <div className="text-[9px] text-center text-slate-400 font-medium">
+                        ornek.com.tr mobil deneyimi
                       </div>
                     </div>
 
-                    <div className="text-center pt-1 border-t border-slate-100">
-                      <span className="text-[8px] font-bold text-slate-400">⚡ Google Hızı: 99/100</span>
+                    {/* Mobil Yapışkan Çağrı Butonları (En Çok İş Getiren Kısım) */}
+                    <div className="p-2 bg-slate-50 border-t border-slate-200 grid grid-cols-2 gap-1.5">
+                      <div className="bg-[#F95700] text-white py-2 px-1 rounded-lg text-center font-black text-[10px] flex items-center justify-center gap-1 shadow-xs">
+                        <PhoneCall className="w-3 h-3" />
+                        <span>Hemen Ara</span>
+                      </div>
+                      <div className="bg-emerald-600 text-white py-2 px-1 rounded-lg text-center font-black text-[10px] flex items-center justify-center gap-1 shadow-xs">
+                        <MessageCircle className="w-3 h-3" />
+                        <span>WhatsApp</span>
+                      </div>
                     </div>
+
                   </div>
                 </div>
 
               </div>
 
-              {/* Alt Bilgi Şeridi */}
-              <div className="mt-6 pt-4 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              {/* Alt Metrikler */}
+              <div className="pt-4 border-t border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                 <div>
-                  <span className="text-base sm:text-lg font-black text-emerald-400">0.8 sn</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Açılış Hızı</span>
+                  <span className="text-base sm:text-lg font-black text-emerald-600">%100</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">Mobil & Tablet Uyumu</span>
                 </div>
                 <div>
-                  <span className="text-base sm:text-lg font-black text-[#F95700]">%100</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Mobil Uyumlu</span>
+                  <span className="text-base sm:text-lg font-black text-[#F95700]">3-5 Gün</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">Teslim & Yayına Alma</span>
                 </div>
                 <div>
-                  <span className="text-base sm:text-lg font-black text-blue-400">0 Komisyon</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Doğrudan Çağrı</span>
+                  <span className="text-base sm:text-lg font-black text-blue-600">39 İlçe URL</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">SEO İç Sayfa Mimarisi</span>
                 </div>
                 <div>
-                  <span className="text-base sm:text-lg font-black text-amber-400">SSL + Domain</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">1 Yıl Dahil</span>
+                  <span className="text-base sm:text-lg font-black text-amber-600">Ücretsiz SSL</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">1 Yıl Hosting Dahil</span>
                 </div>
               </div>
 
             </div>
 
-            {/* ── BÖLÜM 2: ÖNCESİ / SONRASI KARŞILAŞTIRMASI ── */}
+            {/* BÖLÜM 2: ARTILARI VE EKSİLERİ (HİZMET ANALİZİ) */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
               <div>
-                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Gerçek Farkı Görün</span>
+                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Şeffaf Karşılaştırma</span>
                 <h3 className="text-lg sm:text-2xl font-black text-[#0A1128] mt-1">
-                  Öncesi vs. TaşınTeklif Web Sitesi Sonrası
+                  Özel Nakliyat Sitesi ile Sıradan Şablonların Karşılaştırması (Artıları / Eksikleri)
                 </h3>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  Web sitesi sadece bir kartvizit değildir; firmanızın en çok müşteri getiren 7/24 satış temsilcisidir.
+                  Neden sıradan bir web sitesi iş getirmezken, sektöre özel iç sayfa mimarili site telefonları çaldırır?
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 
-                {/* ÖNCESİ (KÖTÜ SENARYO) */}
-                <div className="rounded-2xl bg-red-50/70 border-2 border-red-200/80 p-5 space-y-4">
-                  <div className="flex items-center gap-2 text-red-700 font-bold text-sm border-b border-red-200 pb-2.5">
-                    <div className="w-6 h-6 rounded-full bg-red-200/80 flex items-center justify-center text-red-700 font-black text-xs">
-                      ✕
-                    </div>
-                    <span>Web Sitesi Olmayan / Eski Siteli Firma</span>
-                  </div>
-
-                  <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span>Müşteri adınızı Google'da arayınca bulamaz, korsan nakliyeci sanarak vazgeçer.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span>Fiyat kıran aracı komisyonculara ve spotçulara mecbur kalırsınız.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span>Kendi araç filonuzu, asansörünüzü ve referanslarınızı gösteremezsiniz.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span><strong>Aylık doğrudan müşteri:</strong> Yalnızca 1 - 3 eş-dost referansı.</span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* SONRASI (BAŞARILI SENARYO) */}
-                <div className="rounded-2xl bg-emerald-50/70 border-2 border-emerald-300 p-5 space-y-4 shadow-xs">
-                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm border-b border-emerald-200 pb-2.5">
+                {/* ARTILARI */}
+                <div className="rounded-2xl bg-emerald-50/50 border border-emerald-200 p-5 space-y-3">
+                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm border-b border-emerald-200/80 pb-2.5">
                     <div className="w-6 h-6 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-800 font-black text-xs">
                       ✓
                     </div>
-                    <span>TaşınTeklif ile Profesyonel Web Sitesi</span>
+                    <span>Firmanıza Özel Nakliyat Sitemiz (Artıları)</span>
                   </div>
-
                   <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>Google'da .com alan adınızla en üst düzey kurumsal güven oluşturursunuz.</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>İç Sayfa URL Mimarisi:</strong> /kadikoy-nakliyat, /besiktas-nakliyat gibi her ilçe için ayrı sayfa sayesinde Google aramalarından doğrudan müşteri çeker.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>Aracı komisyonu ödemeden müşteriler doğrudan WhatsApp'ınıza ve telefonunuza düşer.</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>0.8 sn Ultra Hızlı Açılış:</strong> Mobil cihazlarda beklemeden açılır; müşteri kaçmadan tek tıkla arama yapar.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>Fiyat hesaplayıcı ile müşteri ortalama bütçesini bilerek sizi arar, pazarlık kısalır.</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>WhatsApp & Çağrı Dönüşüm Odaklı:</strong> Sayfanın her yerinde hazır hesaplama ve arama butonlarıyla gelen ziyaretçiyi işe çevirir.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span><strong>Aylık doğrudan müşteri:</strong> 25 - 45+ doğrudan ve karlı taşıma işi!</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>Kurumsal Prestij & Güven:</strong> K3 yetki belgesi, sigorta sertifikaları ve müşteri yorumlarıyla kurumsal kimliğinizi güçlendirir.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* EKSİLERİ / SIRADAN SİTELERİN HATALARI */}
+                <div className="rounded-2xl bg-amber-50/50 border border-amber-200 p-5 space-y-3">
+                  <div className="flex items-center gap-2 text-amber-900 font-bold text-sm border-b border-amber-200/80 pb-2.5">
+                    <div className="w-6 h-6 rounded-full bg-amber-200 flex items-center justify-center text-amber-900 font-black text-xs">
+                      !
+                    </div>
+                    <span>Sıradan / Hazır Şablon Sitelerin Hataları (Eksileri)</span>
+                  </div>
+                  <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span><strong>Tek Sayfadır, İlçe Aramalarında Çıkmaz:</strong> İç sayfaları olmadığı için Google ilçe aramalarında sitenizi indekslemez ve göstermez.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span><strong>Yavaş Açılır (4-6 sn):</strong> Ağır hazır WordPress temaları telefonda geç açıldığı için müşteri beklemeden siteyi terk eder.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span><strong>Dönüşüm Araçları Eksiktir:</strong> Fiyat hesaplama veya WhatsApp hızlı teklif butonu bulunmadığından giren ziyaretçi telefon etmez.</span>
                     </li>
                   </ul>
                 </div>
@@ -406,77 +426,38 @@ export default function SubServicePage() {
               </div>
             </div>
 
-            {/* ── BÖLÜM 3: NASIL ÇALIŞIR? (3 GÜNLÜK SÜREÇ) ── */}
+            {/* BÖLÜM 3: PAKETLER VE FİYATLANDIRMA */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
               <div>
-                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Hızlı & Zahmetsiz</span>
+                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Şeffaf Web Paketleri</span>
                 <h3 className="text-lg sm:text-2xl font-black text-[#0A1128] mt-1">
-                  3 Günde Sitenizi Nasıl Canlıya Alıyoruz?
+                  Firmanıza En Uygun Web Sitesi Paketini Seçin
                 </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Tüm paketlerde ilk yıl alan adı, hosting, SSL ve teknik destek dahildir.
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2 relative">
-                  <div className="w-8 h-8 rounded-xl bg-[#111E38] text-white flex items-center justify-center font-black text-sm">
-                    1
-                  </div>
-                  <h4 className="font-bold text-sm text-[#0A1128]">Bilgileri Alıyoruz</h4>
-                  <p className="text-xs text-slate-500 font-normal leading-relaxed">
-                    Firmanızın adı, iletişim numaralarınız ve varsa araç fotoğraflarınızı WhatsApp üzerinden alıyoruz.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2 relative">
-                  <div className="w-8 h-8 rounded-xl bg-[#F95700] text-white flex items-center justify-center font-black text-sm">
-                    2
-                  </div>
-                  <h4 className="font-bold text-sm text-[#0A1128]">Tasarım & Kurulum</h4>
-                  <p className="text-xs text-slate-500 font-normal leading-relaxed">
-                    Özel nakliyat şablonunuzu, fiyat hesaplayıcıyı, rotaları ve SEO altyapısını eksiksiz hazırlıyoruz.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2 relative">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm">
-                    3
-                  </div>
-                  <h4 className="font-bold text-sm text-[#0A1128]">Yayın & Çağrı Başlasın</h4>
-                  <p className="text-xs text-slate-500 font-normal leading-relaxed">
-                    Domain ve SSL ayarlarını yaparak sitenizi canlıya alıyoruz; Google Haritalar kaydınıza bağlıyoruz.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* ── BÖLÜM 4: PAKETLER & FİYATLANDIRMA ── */}
-            <div className="space-y-4">
-              <div>
-                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Şeffaf Fiyatlar</span>
-                <h3 className="text-lg sm:text-2xl font-black text-[#0A1128] mt-1">
-                  İhtiyacınıza Uygun Web Sitesi Paketi
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {PACKAGES.map((pkg, idx) => (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {PACKAGES.map((pkg, i) => (
                   <div 
-                    key={idx}
-                    className={`rounded-3xl p-5 sm:p-6 transition-all flex flex-col justify-between border-2 ${
-                      pkg.isFeatured
-                        ? 'bg-white border-[#F95700] shadow-md relative'
-                        : 'bg-white border-slate-200 shadow-xs hover:border-slate-300'
+                    key={i} 
+                    className={`rounded-2xl p-5 sm:p-6 border transition-all flex flex-col justify-between ${
+                      pkg.isFeatured 
+                        ? 'border-2 border-[#F95700] bg-orange-50/20 shadow-md relative' 
+                        : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >
                     {pkg.badge && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#F95700] text-white text-[10px] font-black uppercase tracking-wider shadow-xs">
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F95700] text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">
                         {pkg.badge}
-                      </div>
+                      </span>
                     )}
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div>
-                        <h3 className="font-black text-base text-[#0A1128]">{pkg.name}</h3>
-                        <p className="text-xs text-slate-400 font-medium mt-0.5">{pkg.desc}</p>
+                        <h4 className="font-black text-base text-[#0A1128]">{pkg.name}</h4>
+                        <p className="text-xs text-slate-500 mt-1 min-h-[36px]">{pkg.desc}</p>
                       </div>
 
                       <div className="pt-2 border-t border-slate-100">
@@ -496,7 +477,7 @@ export default function SubServicePage() {
 
                     <div className="pt-6">
                       <a 
-                        href={`https://wa.me/908503080000?text=Merhaba,%20${encodeURIComponent(pkg.name)}%20web%20sitesi%20paketi%20hakkında%20bilgi%20almak%20istiyorum.`}
+                        href={`https://wa.me/908503080000?text=${encodeURIComponent(`Merhaba, ${pkg.name} web sitesi paketi hakkında örnek demo ve bilgi almak istiyorum.`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block w-full"
@@ -515,7 +496,7 @@ export default function SubServicePage() {
               </div>
             </div>
 
-            {/* ── BÖLÜM 5: SIKÇA SORULAN SORULAR (SSS) ── */}
+            {/* BÖLÜM 4: SSS */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
               <h3 className="text-lg font-black text-[#0A1128]">Sıkça Sorulan Sorular</h3>
               <div className="space-y-2.5 pt-2">
@@ -542,17 +523,17 @@ export default function SubServicePage() {
               </div>
             </div>
 
-            {/* ── BÖLÜM 6: DOĞRUDAN İLETİŞİM & WHATSAPP ÇAĞRISI ── */}
+            {/* BÖLÜM 5: WHATSAPP ÇAĞRISI */}
             <div className="bg-[#0A1128] text-white rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
               <div className="space-y-2 text-center sm:text-left relative z-10">
-                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Ücretsiz Ön Danışmanlık</span>
-                <h3 className="text-xl font-black text-white">Sitenizi Birlikte Planlayalım</h3>
+                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Canlı Demo İncelemesi</span>
+                <h3 className="text-xl font-black text-white">Firmanıza Özel Web Sitenizi Hazırlayalım</h3>
                 <p className="text-xs text-slate-300 font-normal max-w-md">
-                  Firmanız için en uygun alan adını ve şablonu belirleyelim, aynı gün çalışmaya başlayalım.
+                  Firmanızın adına hazır örnek şablonu ve ilçe SEO mimarisini hemen WhatsApp'tan gönderelim.
                 </p>
               </div>
               <a 
-                href="https://wa.me/908503080000?text=Merhaba,%20web%20sitesi%20hizmeti%20hakkında%20danışmanlık%20almak%20istiyorum." 
+                href="https://wa.me/908503080000?text=Merhaba,%20nakliyat%20web%20sitesi%20demolarını%20görmek%20istiyorum." 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="shrink-0 relative z-10"

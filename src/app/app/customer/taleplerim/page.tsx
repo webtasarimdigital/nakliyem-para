@@ -15,7 +15,8 @@ import {
   Truck, 
   Star, 
   MessageSquare,
-  RotateCcw
+  RotateCcw,
+  XCircle
 } from 'lucide-react';
 import { CustomerSidebar } from '@/components/layout/CustomerSidebar';
 import { LiveOfferChatModal } from '@/components/ui/LiveOfferChatModal';
@@ -30,7 +31,9 @@ export default function CustomerRequestsPage() {
   const { user: authUser } = useAuth();
   const [tab, setTab] = useState<'ALL' | 'ACTIVE' | 'ASSIGNED' | 'CLOSED'>('ALL');
   const [currentUser, setCurrentUser] = useState(() => authUser || db.getCurrentUser());
-  const [allRequests, setAllRequests] = useState<MovingRequest[]>(() => db.getRequests());
+  const [allRequests, setAllRequests] = useState<MovingRequest[]>(() => 
+    db.getRequests().sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+  );
 
   const loadRequests = async () => {
     let localReqs = db.getRequests();
@@ -48,14 +51,26 @@ export default function CustomerRequestsPage() {
       }
     }
 
-    const combined = [...firestoreReqs];
+    const map = new Map<string, MovingRequest>();
+    firestoreReqs.forEach(fr => map.set(fr.id, fr));
     localReqs.forEach(lr => {
-      if (!combined.some(r => r.id === lr.id)) {
-        combined.push(lr);
+      const existing = map.get(lr.id);
+      if (!existing) {
+        map.set(lr.id, lr);
+      } else {
+        const localTime = new Date(lr.updatedAt || lr.createdAt || 0).getTime();
+        const firestoreTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
+        if (localTime >= firestoreTime || lr.status === 'CLOSED' || lr.status === 'ASSIGNED') {
+          map.set(lr.id, { ...existing, ...lr });
+        }
       }
     });
 
-    setAllRequests(combined);
+    const sorted = Array.from(map.values()).sort(
+      (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+    );
+
+    setAllRequests(sorted);
   };
 
   useEffect(() => {
@@ -125,7 +140,9 @@ export default function CustomerRequestsPage() {
     return false;
   };
 
-  const customerRequests = allRequests.filter(r => isUserRequest(r, currentUser));
+  const customerRequests = allRequests
+    .filter(r => isUserRequest(r, currentUser))
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
   const baseRequests = customerRequests;
 
   const filteredRequests = baseRequests.filter(r => {
@@ -155,6 +172,25 @@ export default function CustomerRequestsPage() {
     requestId: '#26093',
     price: 25000
   });
+
+  // Talebi Kapatma işlemi (İptal / İhtiyaç kalmadı)
+  const handleCloseRequestDirect = async (reqId: string) => {
+    setAllRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'CLOSED' as const, closedReason: 'Talebi kapattım' } : r));
+    db.updateRequest(reqId, {
+      status: 'CLOSED',
+      closedReason: 'Talebi kapattım'
+    });
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        await updateFirestoreRequest(reqId, {
+          status: 'CLOSED',
+          closedReason: 'Talebi kapattım'
+        });
+      } catch (err) {
+        console.warn('Firestore kapatma hatası:', err);
+      }
+    }
+  };
 
   // İş Verildi diyerek talebi Anlaşıldı olarak işaretleme işlemi
   const handleCloseRequestAsGiven = async (reqId: string) => {
@@ -402,24 +438,36 @@ export default function CustomerRequestsPage() {
                               </Link>
                             )}
 
+                            {offerCount > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const offers = db.getOffersForRequest(req.id);
+                                  const firstOffer = offers[0];
+                                  const carrier = firstOffer ? db.getCarrierById(firstOffer.carrierId) : null;
+                                  setChatData({
+                                    carrierName: carrier?.companyName || firstOffer?.carrier?.companyName || 'Teklif Veren Firma',
+                                    carrierSlug: carrier?.slug || '',
+                                    requestId: req.requestCode || '#26093',
+                                    price: firstOffer?.price || 25000
+                                  });
+                                  setLiveChatOpen(true);
+                                }}
+                                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-orange-200 bg-orange-50 hover:bg-orange-100 text-[#F95700] text-xs font-black transition-colors shadow-2xs cursor-pointer"
+                              >
+                                <MessageSquare className="w-3.5 h-3.5" />
+                                <span>Teklif Mesajı ({offerCount})</span>
+                              </button>
+                            )}
+
                             <button
                               type="button"
-                              onClick={() => {
-                                const offers = db.getOffersForRequest(req.id);
-                                const firstOffer = offers[0];
-                                const carrier = firstOffer ? db.getCarrierById(firstOffer.carrierId) : null;
-                                setChatData({
-                                  carrierName: carrier?.companyName || firstOffer?.carrier?.companyName || 'Teklif Veren Firma',
-                                  carrierSlug: carrier?.slug || '',
-                                  requestId: req.requestCode || '#26093',
-                                  price: firstOffer?.price || 25000
-                                });
-                                setLiveChatOpen(true);
-                              }}
-                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-orange-200 bg-orange-50 hover:bg-orange-100 text-[#F95700] text-xs font-black transition-colors shadow-2xs cursor-pointer"
+                              onClick={() => handleCloseRequestDirect(req.id)}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
+                              title="Talebi iptal et veya kapat"
                             >
-                              <MessageSquare className="w-3.5 h-3.5" />
-                              <span>Teklif Mesajı (1 Yeni)</span>
+                              <XCircle className="w-3.5 h-3.5 text-red-500" />
+                              <span>Talebi Kapat</span>
                             </button>
 
                             <button
@@ -429,7 +477,7 @@ export default function CustomerRequestsPage() {
                               title="Talebi kapat ve iş verildi olarak işaretle"
                             >
                               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                              <span>İş Verildi</span>
+                              <span>İş Verildi / Talebi Kapat</span>
                             </button>
                           </>
                         )}

@@ -31,3 +31,46 @@ export async function sendNotificationEmail(options: SendNotificationOptions): P
     return false;
   }
 }
+
+/**
+ * Her bir ilan (requestId) için her firmanın (carrierId) YALNIZCA İLK TEKLİFİNDE bildirim maili gönderilmesini sağlar.
+ * - X firması İlan A için ilk teklifini verdiğinde: TRUE (Mail gönderilir)
+ * - Y firması İlan A için ilk teklifini verdiğinde: TRUE (Mail gönderilir)
+ * - X veya Y firması İlan A için teklifini güncellediğinde, yeni teklif attığında veya sohbet ettiğinde: FALSE (Mail gönderilmez)
+ * - Müşteri 2. ilanını (İlan B) açtığında ve X firması İlan B'ye ilk teklifini verdiğinde: TRUE (Yeni ilan olduğu için mail gönderilir)
+ */
+export function shouldSendCarrierFirstOfferEmail(
+  requestId: string,
+  carrierId: string,
+  existingOffersCountForThisCarrier: number = 0
+): boolean {
+  if (!requestId || !carrierId) return false;
+
+  // 1. Veritabanında bu ilana ait bu firmanın önceden verilmiş bir teklifi varsa mail atılmaz
+  if (existingOffersCountForThisCarrier > 0) {
+    return false;
+  }
+
+  // 2. Tarayıcı depolama kontrolü (aynı oturumda / sayfa yenilemelerinde mükerrer mailleri engeller)
+  if (typeof window !== 'undefined') {
+    const storageKey = 'tasinteklif_first_offers_notified_v1';
+    let registry: Record<string, boolean> = {};
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) registry = JSON.parse(raw);
+    } catch {}
+
+    const pairKey = `${requestId}___${carrierId}`;
+    if (registry[pairKey]) {
+      return false; // Bu firmanın bu ilanı için daha önce bildirim maili gönderilmiş
+    }
+
+    // İlk teklif olarak işaretle
+    registry[pairKey] = true;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(registry));
+    } catch {}
+  }
+
+  return true;
+}

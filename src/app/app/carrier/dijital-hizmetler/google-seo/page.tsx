@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { 
   CheckCircle2, 
@@ -12,18 +13,20 @@ import {
   Sparkles, 
   Zap, 
   HelpCircle,
-  Search,
   Check,
   X,
   ChevronDown,
   TrendingUp,
   Award,
-  Globe,
-  FileText,
+  Clock,
+  Search,
+  Target,
   BarChart3,
-  ExternalLink,
-  Flame,
-  ArrowUpRight
+  Globe,
+  Lock,
+  Layers,
+  AlertCircle,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { CarrierDigitalSidebar } from '@/components/layout/CarrierDigitalSidebar';
@@ -31,81 +34,84 @@ import { db } from '@/lib/data/mock-db';
 
 const PACKAGES = [
   {
-    name: "Temel Şehir SEO",
-    desc: "Kendi şehrindeki aramalarda 1. sayfaya çıkmak isteyenler",
-    price: "1.500 TL",
-    period: "/ aylık",
+    name: 'Yerel SEO Başlangıç',
+    desc: 'Kendi ilçesinde ve çevre ilçelerde 1. sayfaya çıkmak isteyen nakliyeciler',
+    price: '1.250 TL',
+    period: '/ ay',
     isFeatured: false,
     badge: null,
     features: [
-      "1 İl & 10 Hedef Anahtar Kelime",
-      "Sayfa İçi (On-Page) SEO & Hız Ayarı",
-      "Mobil Uyumluluk & Başlık Optimizasyonu",
-      "Google Search Console & Analitik Kurulumu",
-      "Aylık Şeffaf Sıralama Takip Raporu"
+      '1 Ana Şehir & 5 İlçe İç Sayfa SEO Yapılandırması',
+      'Google Arama Konsolu (Search Console) ve Analytics Kurulumu',
+      'Site İçi Başlık, Meta Açıklama & H1-H3 Etiket Optimizasyonu',
+      'Site Açılış Hızı Optimizasyonu (Mobil & Masaüstü)',
+      'Aylık Sıralama & Tıklama Takip Raporu'
     ]
   },
   {
-    name: "Bölgesel Lider SEO",
-    desc: "Şehirlerarası nakliyat ve yoğun rotalarda liderlik hedefleyenler",
-    price: "2.500 TL",
-    period: "/ aylık",
+    name: 'İl Geneli SEO Liderliği',
+    desc: 'Büyükşehirde (örn: İstanbul geneli) tüm ilçelerde 1. sayfayı hedefleyenler',
+    price: '2.500 TL',
+    period: '/ ay',
     isFeatured: true,
-    badge: "EN ÇOK TERCİH EDİLEN",
+    badge: 'EN ÇOK TERCİH EDİLEN',
     features: [
-      "25 Hedef Anahtar Kelime (İlçe İlçe)",
-      "Şehirlerarası Rota Sayfaları (Örn: İst-Ankara)",
-      "Sektörel Güçlü Nakliyat Backlink Çalışması",
-      "Rakip Analizi & Pozisyon Çalma Stratejisi",
-      "Haftalık Sıralama & Çağrı İlerleme Raporu",
-      "1. Sayfa Garantili İlerleme Takibi"
+      '39 İlçe İçin Özel URL & SEO Sayfaları (örn: /kadikoy-nakliyat)',
+      'Şehirlerarası Nakliyat Rota Sayfaları (Ankara, İzmir, Antalya vb.)',
+      'Google Schema Taşımacılık İşletme Zengin Sonuç İşaretlemesi',
+      'Yüksek Otoriteli Sektörel Tanıtım & Backlink Çalışması',
+      'Rakip Firma Sıralama Analizi & Boşluk Tespiti',
+      'Haftalık Anahtar Kelime Sıralama Raporu'
     ]
   },
   {
-    name: "Türkiye Geneli VIP SEO",
-    desc: "81 ilde lider nakliyat ve lojistik filoları için",
-    price: "4.500 TL",
-    period: "/ aylık",
+    name: 'Türkiye Geneli Kurumsal SEO',
+    desc: '81 ilde ve tüm anahtar kelimelerde zirveyi hedefleyen filo firmaları',
+    price: '4.500 TL',
+    period: '/ ay',
     isFeatured: false,
-    badge: "TAM HAKİMİYET",
+    badge: 'FİLOLAR İÇİN',
     features: [
-      "50+ Genişletilmiş Anahtar Kelime Grubu",
-      "Tüm Türkiye İlçe Bazlı İniş Sayfaları",
-      "Sektörel Blog & Makale Üretim Havuzu",
-      "Teknik SEO & Sunucu Yanıt Hızı Garantisi",
-      "Öncelikli 7/24 Özel SEO Uzmanı Danışmanlığı"
+      '81 İl x 3 Hizmet (Evden Eve, Parça Eşya, Ofis) Dinamik URL Havuzu',
+      'Hepsiburada/Sahibinden Kalitesinde SEO Mimarisi',
+      'Basın Bülteni ve Ulusal Haber Sitelerinden Otoriter Backlinkler',
+      'Özel SEO Uzmanı & Canlı Pozisyon Takip Paneli',
+      '7/24 Google Algoritma Güncelleme Koruması'
     ]
   }
 ];
 
 const FAQS = [
   {
-    q: "Google SEO ile Google Reklamları (Ads) arasındaki fark nedir?",
-    a: "Google Reklamlarında tıklama başına para ödersiniz ve bütçeniz bittiğinde reklamınız durur. Google SEO'da ise siteniz organik olarak 1. sıraya yerleşir; ayda 10.000 kişi de tıklasa Google'a tek kuruş tıklama ücreti ödemezsiniz. Müşteriler tamamen ücretsiz gelir."
+    q: 'Google SEO ile Google Ads (Reklamlar) arasındaki fark nedir?',
+    a: 'Google Ads ile sponsorlu sırada çıkıp her tıklamaya para ödersiniz ve bütçe bittiğinde reklam durur. Google SEO ise sitenizi organik olarak ilk sayfaya ve 1. sıraya taşır. Gelen yüzlerce telefon ve tıklama için Google\'a hiçbir ücret ödemezsiniz; trafik tamamen ücretsiz ve kalıcıdır.'
   },
   {
-    q: "Google'da 1. sayfaya çıkmam ne kadar zaman alır?",
-    a: "SEO kalıcı bir yatırımdır. Yerel ilçe kelimelerinde ilk 30-45 günde ciddi yükselişler başlar. 'İstanbul evden eve nakliyat' gibi ana rekabetçi kelimelerde ise 2 ila 3 ay içinde 1. sayfa ve zirve pozisyonları elde edilir."
+    q: '1. sayfaya veya ilk sıralara ne kadar sürede çıkarız?',
+    a: 'SEO bir maratondur. İlçe bazlı aramalarda (örn: /pendik-evden-eve-nakliyat) 3 ila 6 hafta içinde ilk sayfaya yükselme başlar. Ana kelimelerde (örn: /istanbul-nakliyat) zirveye yerleşmek düzenli çalışmayla genellikle 2-3 ayı bulur. Ancak çıkıldığında kalıcı müşteri akışı sağlar.'
   },
   {
-    q: "SEO çalışması durdurulursa sitem hemen geriye düşer mi?",
-    a: "Hayır. Reklam gibi anında yok olmaz; sitenize kazandırdığımız teknik altyapı, zengin içerik ve kaliteli bağlantılar uzun aylar boyunca sitenizi üst sıralarda tutmaya devam eder."
+    q: 'İç sayfa URL mimarisi neden önemlidir?',
+    a: 'Google aramalarında kullanıcılar sadece genel kelimeleri aramaz; "Kadıköy evden eve nakliyat", "Beşiktaş parça eşya taşıma", "İstanbul Ankara nakliyat" gibi özel aramalar yaparlar. Sitenizde her ilçe ve güzergah için özel optimize edilmiş URL sayfaları bulunduğunda, her aramada 1. sırada sadece siz çıkarsınız.'
   },
   {
-    q: "Hangi kelimelerde yükseleceğimi nasıl seçiyoruz?",
-    a: "Gerçekten müşteri getiren ve taşınmak isteyen insanların yazdığı kelimeleri analiz ediyoruz (Örn: 'Kadıköy evden eve nakliyat', 'İstanbul şehirlerarası nakliyat', 'asansörlü eşya taşıma'). Gereksiz aramalarla vakit kaybetmeyiz."
+    q: 'SEO çalışması bittiğinde sıralamam hemen düşer mi?',
+    a: 'Hayır. Organik SEO ile kazanılan pozisyonlar sağlam bir teknik temele ve içerik kalitesine dayandığı için hemen düşmez. Rakiplerin ataklarına karşı aylık hafif bakım ve takip önerilmekle birlikte, kalıcılığı reklamlara göre kat kat yüksektir.'
   }
 ];
 
-export default function GoogleSeoPage() {
+export default function GoogleSeoServicePage() {
   const router = useRouter();
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
     const user = db.getCurrentUser();
-    if (!user || user.role !== 'CARRIER') {
+    if (!user) {
       router.push('/giris?role=nakliyeci');
+      return;
     }
+    setCurrentUser(user);
   }, [router]);
 
   return (
@@ -123,7 +129,7 @@ export default function GoogleSeoPage() {
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold mb-2">
             <Search className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Google Organik Arama Liderliği</span>
+            <span>Google Organik Arama Liderliği & İç Sayfa SEO Mimarisi</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
             Google'da "İstanbul Nakliyat" Aramasında 1. Sayfa ve Zirve
@@ -144,216 +150,173 @@ export default function GoogleSeoPage() {
           {/* Sağ Ana İçerik */}
           <div className="lg:col-span-8 space-y-8">
             
-            {/* ── BÖLÜM 1: GOOGLE SERP CANLI ARAMA MOCKUP ── */}
-            <div className="bg-gradient-to-br from-[#0A192F] via-[#112240] to-[#0A192F] rounded-3xl p-5 sm:p-8 text-white shadow-xl relative overflow-hidden border border-slate-800">
+            {/* BÖLÜM 1: GERÇEK GOOGLE ARAMA EKRANI (TEMİZ BEYAZ KART - MAVİLİKLER KALDIRILDI) */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 text-slate-800 shadow-sm border border-slate-200 space-y-6">
               
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 relative z-10">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    Canlı Google Arama Simülasyonu
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Gerçek Google Arama Ekranı & Pozisyon Liderliği
                   </span>
-                  <h2 className="text-lg sm:text-2xl font-black mt-2 text-white">
-                    Google Organik Arama Sonuçlarında 1. Sıra
+                  <h2 className="text-lg sm:text-2xl font-black mt-2 text-[#0A1128]">
+                    Google Organik Arama Sonuçlarında Zirve Pozisyon
                   </h2>
-                  <p className="text-xs text-slate-300 mt-0.5">
-                    Müşterilerin en çok tıkladığı ve güvendiği 1. organik pozisyonda sizin siteniz yer alsın.
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Müşterilerin %78'i reklamlara değil, Google'ın güvendiği organik 1. sayfa sonuçlarına tıklar.
                   </p>
                 </div>
 
-                <div className="hidden sm:flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-300">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
-                  <span>Ücretsiz Tıklama Akışı</span>
+                <div className="hidden sm:flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1.5 rounded-xl text-xs font-bold">
+                  <TrendingUp className="w-4 h-4 text-emerald-600" />
+                  <span>Kalıcı ve Ücretsiz Ziyaretçi</span>
                 </div>
               </div>
 
-              {/* Google SERP Card Mockup */}
-              <div className="w-full max-w-2xl mx-auto rounded-2xl bg-white text-slate-800 shadow-2xl overflow-hidden border border-slate-300">
+              {/* Gerçek Google Search Ekranı (Browser Çerçevesinde) */}
+              <div className="w-full rounded-2xl bg-white text-slate-800 shadow-md overflow-hidden border border-slate-300">
                 
-                {/* Google Search Bar */}
-                <div className="p-3.5 bg-white border-b border-slate-200 flex items-center justify-between gap-3">
-                  <div className="flex-1 bg-slate-50 border border-slate-300 rounded-full px-4 py-2 flex items-center gap-2.5 shadow-2xs">
-                    <Search className="w-4 h-4 text-[#4285F4]" />
-                    <span className="text-xs sm:text-sm font-bold text-slate-800">istanbul evden eve nakliyat</span>
+                {/* Browser Tab & Address Bar Header */}
+                <div className="bg-slate-100 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-red-400 inline-block" />
+                    <span className="w-3 h-3 rounded-full bg-amber-400 inline-block" />
+                    <span className="w-3 h-3 rounded-full bg-emerald-400 inline-block" />
                   </div>
-                  <div className="text-[10px] text-slate-400 font-semibold hidden sm:inline">
-                    Yaklaşık 1.840.000 sonuç (0,31 sn)
+                  <div className="flex-1 max-w-md bg-white border border-slate-300 rounded-full px-4 py-1.5 text-xs text-slate-600 flex items-center gap-2 font-mono shadow-2xs mx-auto truncate">
+                    <Lock className="w-3 h-3 text-emerald-600 shrink-0" />
+                    <span className="text-slate-700 truncate">https://www.google.com/search?q=istanbul+nakliyat</span>
                   </div>
+                  <span className="text-[11px] font-bold text-slate-400 hidden sm:inline">Google SERP Canlı</span>
                 </div>
 
-                {/* SERP Sonuçları */}
-                <div className="p-4 sm:p-5 space-y-4">
-                  
-                  {/* 1. SIRA ORGANİK SONUÇ: SİZİN İŞLETME SİTESİ (VURGULANMIŞ) */}
-                  <div className="rounded-2xl border-2 border-emerald-500 bg-emerald-50/30 p-4 sm:p-5 shadow-sm relative space-y-2.5">
-                    
-                    {/* 1. Sıra Rozeti */}
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-black shadow-xs">
-                        <TrendingUp className="w-3 h-3" />
-                        <span>GOOGLE 1. SIRA (▲ +14 Pozisyon Yükseldi!)</span>
-                      </div>
-                      <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">
-                        Organik Lider
+                {/* Real Google Search Screenshot Image */}
+                <div className="relative w-full bg-slate-50 border-b border-slate-200">
+                  <img
+                    src="/images/google-search-nakliyat.png" 
+                    alt="İstanbul Nakliyat Google Arama 1. Sayfa Gerçek Ekran Görüntüsü" 
+                    className="w-full h-auto object-contain block max-h-[500px] mx-auto"
+                  />
+                </div>
+
+                {/* Ekran Altı Detay & Başarı İstatistiği */}
+                <div className="p-4 sm:p-5 bg-white space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800 text-xs font-black">
+                        ✓ 1. Sayfa Organik Pozisyon
+                      </span>
+                      <span className="text-xs font-bold text-slate-700">
+                        Arama Terimi: "istanbul nakliyat"
                       </span>
                     </div>
-
-                    {/* URL ve Breadcrumb */}
-                    <div className="flex items-center gap-2 text-xs">
-                      <div className="w-5 h-5 rounded-full bg-[#111E38] text-white flex items-center justify-center font-black text-[10px]">
-                        Y
-                      </div>
-                      <div>
-                        <span className="font-semibold text-slate-800 text-xs block leading-none">Yıldız Evden Eve Nakliyat</span>
-                        <span className="text-[11px] text-slate-400">https://www.yildiznakliyat.com.tr › istanbul-evden-eve-nakliyat</span>
-                      </div>
-                    </div>
-
-                    {/* Başlık (Mavi Google Linki) */}
-                    <div>
-                      <h3 className="text-sm sm:text-base font-bold text-[#1a0dab] hover:underline cursor-pointer leading-snug">
-                        İstanbul Evden Eve Nakliyat | Sigortalı & Asansörlü Taşıma
-                      </h3>
-                      <p className="text-xs text-slate-600 leading-relaxed mt-1">
-                        İstanbul'un 39 ilçesinde sigortalı, marangozlu ve asansörlü evden eve nakliyat. Sözleşmeli sabit fiyat garantisi, temiz ambalajlama ve profesyonel çelik kasalı araç filosu. Hemen arayın, ücretsiz fiyat teklifi alın!
-                      </p>
-                    </div>
-
-                    {/* Sitelinks (Google Alt Bağlantıları) */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-emerald-200/60">
-                      <div className="p-2 rounded-lg bg-white border border-emerald-100 text-center">
-                        <span className="text-[11px] font-bold text-[#1a0dab] block">Asansörlü Taşıma</span>
-                        <span className="text-[9px] text-slate-400">Yüksek katlara kolay</span>
-                      </div>
-                      <div className="p-2 rounded-lg bg-white border border-emerald-100 text-center">
-                        <span className="text-[11px] font-bold text-[#1a0dab] block">Şehirlerarası Rota</span>
-                        <span className="text-[9px] text-slate-400">81 ile günlük sefer</span>
-                      </div>
-                      <div className="p-2 rounded-lg bg-white border border-emerald-100 text-center">
-                        <span className="text-[11px] font-bold text-[#1a0dab] block">Fiyat Hesaplama</span>
-                        <span className="text-[9px] text-slate-400">Oda sayısına göre</span>
-                      </div>
-                      <div className="p-2 rounded-lg bg-white border border-emerald-100 text-center">
-                        <span className="text-[11px] font-bold text-[#1a0dab] block">Müşteri Yorumları</span>
-                        <span className="text-[9px] text-slate-400">★ 4.9 Puan (420+)</span>
-                      </div>
-                    </div>
-
-                    {/* Başarı İstatistiği */}
-                    <div className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 p-2 rounded-lg flex items-center justify-between mt-2">
-                      <span>📈 Bu pozisyonun getirdiği aylık ücretsiz ziyaretçi:</span>
-                      <strong className="text-emerald-950 font-black text-xs">3.450 Tekil Müşteri / Ay</strong>
-                    </div>
-
+                    <span className="text-xs font-semibold text-slate-500">
+                      Aylık Ortalama Aranma Hacmi: <strong>165.000+ Arama</strong>
+                    </span>
                   </div>
 
-                  {/* 2. SIRA: RAKİP SİTE (SOLUK) */}
-                  <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 opacity-50 space-y-1">
-                    <div className="text-[11px] text-slate-400">https://www.rakipnakliyat-a.com</div>
-                    <div className="text-xs font-bold text-slate-700">İstanbul Nakliyat Firmaları - Evden Eve</div>
-                    <div className="text-[11px] text-slate-500 line-clamp-1">Evden eve nakliye ve eşya taşıma hizmetleri için bizi arayın...</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-center">
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                      <span className="text-[11px] text-slate-500 block font-medium">Aylık Organik Çağrı</span>
+                      <strong className="text-emerald-700 text-sm sm:text-base font-black">450+ Doğrudan Telefon</strong>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                      <span className="text-[11px] text-slate-500 block font-medium">Tıklama Başı Maliyet</span>
+                      <strong className="text-slate-800 text-sm sm:text-base font-black">0 TL (Tamamen Ücretsiz)</strong>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                      <span className="text-[11px] text-slate-500 block font-medium">Kalıcılık Süresi</span>
+                      <strong className="text-[#F95700] text-sm sm:text-base font-black">Yıllarca 1. Sayfa</strong>
+                    </div>
                   </div>
-
-                  {/* 3. SIRA: RAKİP SİTE (SOLUK) */}
-                  <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 opacity-30 space-y-1">
-                    <div className="text-[11px] text-slate-400">https://www.rakipnakliyat-b.com</div>
-                    <div className="text-xs font-bold text-slate-700">En Uygun İstanbul Evden Eve Nakliye</div>
-                  </div>
-
                 </div>
 
               </div>
 
               {/* Alt Metrikler */}
-              <div className="mt-6 pt-4 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              <div className="pt-4 border-t border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                 <div>
-                  <span className="text-base sm:text-lg font-black text-emerald-400">0 TL</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Tıklama Ücreti</span>
+                  <span className="text-base sm:text-lg font-black text-emerald-600">%78</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">Organik Tercih Oranı</span>
                 </div>
                 <div>
-                  <span className="text-base sm:text-lg font-black text-[#F95700]">3.400+</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Aylık Organik Ziyaret</span>
+                  <span className="text-base sm:text-lg font-black text-[#F95700]">39 İlçe</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">SEO Uyumlu İç Sayfa URL</span>
                 </div>
                 <div>
-                  <span className="text-base sm:text-lg font-black text-blue-400">1. Sayfa</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Kalıcı Pozisyon</span>
+                  <span className="text-base sm:text-lg font-black text-blue-600">0.8 sn</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">Mobil Sayfa Açılış Hızı</span>
                 </div>
                 <div>
-                  <span className="text-base sm:text-lg font-black text-amber-400">39 İlçe</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Yerel İniş Sayfaları</span>
+                  <span className="text-base sm:text-lg font-black text-amber-600">Komisyonsuz</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">Tüm İşler Firmanıza Kalır</span>
                 </div>
               </div>
 
             </div>
 
-            {/* ── BÖLÜM 2: ÖNCESİ / SONRASI KARŞILAŞTIRMASI ── */}
+            {/* BÖLÜM 2: ARTILARI VE EKSİLERİ (HİZMET ANALİZİ) */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
               <div>
-                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">İş Hacminizdeki Değişim</span>
+                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Şeffaf Hizmet Analizi</span>
                 <h3 className="text-lg sm:text-2xl font-black text-[#0A1128] mt-1">
-                  Öncesi vs. Google SEO Sonrası
+                  Google SEO Hizmetinin Artıları ve Dikkat Edilmesi Gerekenler
                 </h3>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  Reklamlar bütçeniz bitince durur; SEO ise sitenizi kalıcı bir müşteri mıknatısına dönüştürür.
+                  Organik arama liderliğinin firmanıza sağlayacağı avantajlar ve bilinmesi gereken süreç dinamikleri.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 
-                {/* ÖNCESİ */}
-                <div className="rounded-2xl bg-red-50/70 border-2 border-red-200/80 p-5 space-y-4">
-                  <div className="flex items-center gap-2 text-red-700 font-bold text-sm border-b border-red-200 pb-2.5">
-                    <div className="w-6 h-6 rounded-full bg-red-200/80 flex items-center justify-center text-red-700 font-black text-xs">
-                      ✕
-                    </div>
-                    <span>SEO Çalışması Olmayan Firma</span>
-                  </div>
-
-                  <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span>Google'ın 4. veya 5. sayfasında kayıptır; müşterilerin %95'i ilk 3 sonuçtan sonra bakmaz.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span>Her bir iş için komisyonculara ve spotçulara %20 - %30 komisyon ödemek zorunda kalır.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span>Reklam bütçesi durdurulduğu gün telefonlar tamamen susar.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span><strong>Aylık organik müşteri:</strong> 0 - 1 tesadüfi arama.</span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* SONRASI */}
-                <div className="rounded-2xl bg-emerald-50/70 border-2 border-emerald-300 p-5 space-y-4 shadow-xs">
-                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm border-b border-emerald-200 pb-2.5">
+                {/* ARTILARI */}
+                <div className="rounded-2xl bg-emerald-50/50 border border-emerald-200 p-5 space-y-3">
+                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm border-b border-emerald-200/80 pb-2.5">
                     <div className="w-6 h-6 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-800 font-black text-xs">
                       ✓
                     </div>
-                    <span>TaşınTeklif ile 1. Sıra Google SEO Sonrası</span>
+                    <span>Güçlü Yanları (Artıları)</span>
                   </div>
-
                   <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>"İstanbul evden eve nakliyat", "Kadıköy nakliye" gibi en değerli aramalarda 1. sırada yer alır.</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>Tıklama Başı Maliyet Yok:</strong> Günde 1.000 kişi sitenize girse de Google'a 1 kuruş bile ödemezsiniz.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>Tıklama başı tek kuruş ödemeden, her gün Google'dan doğrudan arayan gerçek müşteriler gelir.</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>En Yüksek Müşteri Güveni:</strong> İnsanlar reklamlara şüpheyle yaklaşırken organik ilk sıradaki nakliyeciyi sektörün 1 numarası olarak görür.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>Komisyonsuz, kendi fiyatını kendi belirleyen ve aracısız çalışan lider firma imajı.</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>Kalıcı Dijital Değer:</strong> Reklam gibi bütçe bittiğinde kapanmaz; siteniz aylarca ilk sayfada kalarak düzenli iş getirmeye devam eder.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span><strong>Aylık organik müşteri:</strong> 35 - 75+ doğrudan ve yüksek karlı taşıma işi!</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>İlçe & Güzergah Hakimiyeti:</strong> Kadıköy'den Beşiktaş'a, Ankara seferinden İzmir'e yüzlerce farklı aramadan müşteri çeker.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* DİKKAT EDİLMESİ GEREKENLER (EKSİLERİ) */}
+                <div className="rounded-2xl bg-amber-50/50 border border-amber-200 p-5 space-y-3">
+                  <div className="flex items-center gap-2 text-amber-900 font-bold text-sm border-b border-amber-200/80 pb-2.5">
+                    <div className="w-6 h-6 rounded-full bg-amber-200 flex items-center justify-center text-amber-900 font-black text-xs">
+                      !
+                    </div>
+                    <span>Dikkat Edilmesi Gerekenler (Eksileri)</span>
+                  </div>
+                  <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span><strong>Zaman ve Sabır İster:</strong> Google algoritmalarının sitenizi tarayıp 1. sıraya oturtması genellikle 3-8 hafta sürer (ilk gün sonuç beklenemez).</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span><strong>Rakipler de Çalışır:</strong> İlk sayfadaki diğer nakliyat siteleri de rekabet ettiği için periyodik takip ve içerik güncellemesi gerekir.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span><strong>Teknik Altyapı Şarttır:</strong> Hızlı açılmayan, mobil uyumsuz veya SSL sertifikası olmayan amatör siteler SEO'da yükselemez.</span>
                     </li>
                   </ul>
                 </div>
@@ -361,81 +324,38 @@ export default function GoogleSeoPage() {
               </div>
             </div>
 
-            {/* ── BÖLÜM 3: SEO SÜRECİ & ÇALIŞMALARIMIZ ── */}
-            <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
-              <h3 className="text-lg font-black text-[#0A1128]">Nakliyeciler İçin Özel SEO Mimarisi</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
-                    1
-                  </div>
-                  <h4 className="font-bold text-xs sm:text-sm text-[#0A1128]">İlçe & Rota Sayfaları (Landing Pages)</h4>
-                  <p className="text-xs text-slate-500 font-normal">
-                    "Kadıköy Nakliyat", "Beşiktaş Evden Eve", "İstanbul - İzmir Nakliye" gibi onlarca özel rota sayfası açıyoruz.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
-                  <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
-                    2
-                  </div>
-                  <h4 className="font-bold text-xs sm:text-sm text-[#0A1128]">1 Saniyenin Altında Mobil Hız (Core Web Vitals)</h4>
-                  <p className="text-xs text-slate-500 font-normal">
-                    Google hız puanını 95 üzerine çıkararak sitenizin rakiplerinden daha hızlı indekslenmesini sağlıyoruz.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
-                  <div className="w-7 h-7 rounded-lg bg-orange-100 text-[#F95700] flex items-center justify-center font-bold text-xs">
-                    3
-                  </div>
-                  <h4 className="font-bold text-xs sm:text-sm text-[#0A1128]">Sektörel Güçlü Backlinkler</h4>
-                  <p className="text-xs text-slate-500 font-normal">
-                    Güvenilir nakliyat dizinleri ve haber portallarından sitenize otoriter bağlantılar kazandırıyoruz.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
-                  <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">
-                    4
-                  </div>
-                  <h4 className="font-bold text-xs sm:text-sm text-[#0A1128]">Haftalık Şeffaf Sıralama Raporu</h4>
-                  <p className="text-xs text-slate-500 font-normal">
-                    Kelimelerinizin her hafta kaçıncı sıraya çıktığını ve ne kadar organik çağrı aldığınızı raporluyoruz.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* ── BÖLÜM 4: PAKETLER & FİYATLANDIRMA ── */}
-            <div className="space-y-4">
+            {/* BÖLÜM 3: PAKETLER VE FİYATLANDIRMA */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
               <div>
-                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Şeffaf Fiyatlar</span>
+                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Şeffaf SEO Paketleri</span>
                 <h3 className="text-lg sm:text-2xl font-black text-[#0A1128] mt-1">
-                  Google SEO Paketleri
+                  Bölgenizde 1 Numaralı Nakliyeci Olun
                 </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  Her ay yüzlerce evden eve taşıma müşterisini doğrudan Google organik aramalardan kazanın.
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {PACKAGES.map((pkg, idx) => (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {PACKAGES.map((pkg, i) => (
                   <div 
-                    key={idx}
-                    className={`rounded-3xl p-5 sm:p-6 transition-all flex flex-col justify-between border-2 ${
-                      pkg.isFeatured
-                        ? 'bg-white border-[#F95700] shadow-md relative'
-                        : 'bg-white border-slate-200 shadow-xs hover:border-slate-300'
+                    key={i} 
+                    className={`rounded-2xl p-5 sm:p-6 border transition-all flex flex-col justify-between ${
+                      pkg.isFeatured 
+                        ? 'border-2 border-[#F95700] bg-orange-50/20 shadow-md relative' 
+                        : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >
                     {pkg.badge && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#F95700] text-white text-[10px] font-black uppercase tracking-wider shadow-xs">
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F95700] text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">
                         {pkg.badge}
-                      </div>
+                      </span>
                     )}
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div>
-                        <h3 className="font-black text-base text-[#0A1128]">{pkg.name}</h3>
-                        <p className="text-xs text-slate-400 font-medium mt-0.5">{pkg.desc}</p>
+                        <h4 className="font-black text-base text-[#0A1128]">{pkg.name}</h4>
+                        <p className="text-xs text-slate-500 mt-1 min-h-[36px]">{pkg.desc}</p>
                       </div>
 
                       <div className="pt-2 border-t border-slate-100">
@@ -455,7 +375,7 @@ export default function GoogleSeoPage() {
 
                     <div className="pt-6">
                       <a 
-                        href={`https://wa.me/908503080000?text=Merhaba,%20${encodeURIComponent(pkg.name)}%20SEO%20paketi%20hakkında%20bilgi%20almak%20istiyorum.`}
+                        href={`https://wa.me/908503080000?text=${encodeURIComponent(`Merhaba, ${pkg.name} SEO paketi hakkında bilgi ve analiz almak istiyorum.`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block w-full"
@@ -474,7 +394,7 @@ export default function GoogleSeoPage() {
               </div>
             </div>
 
-            {/* ── BÖLÜM 5: SIKÇA SORULAN SORULAR (SSS) ── */}
+            {/* BÖLÜM 4: SSS */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
               <h3 className="text-lg font-black text-[#0A1128]">Sıkça Sorulan Sorular</h3>
               <div className="space-y-2.5 pt-2">
@@ -501,17 +421,17 @@ export default function GoogleSeoPage() {
               </div>
             </div>
 
-            {/* ── BÖLÜM 6: DOĞRUDAN İLETİŞİM & WHATSAPP ÇAĞRISI ── */}
+            {/* BÖLÜM 5: WHATSAPP ÇAĞRISI */}
             <div className="bg-[#0A1128] text-white rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
               <div className="space-y-2 text-center sm:text-left relative z-10">
-                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Ücretsiz SEO Analizi</span>
-                <h3 className="text-xl font-black text-white">Sitenizi Birlikte İnceleyelim</h3>
+                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Ücretsiz Kelime & Sıralama Analizi</span>
+                <h3 className="text-xl font-black text-white">Sitenizin Google Sıralamasını Analiz Edelim</h3>
                 <p className="text-xs text-slate-300 font-normal max-w-md">
-                  Mevcut sitenizin Google sıralamalarını ve hangi kelimelerden müşteri kazanabileceğinizi ücretsiz çıkartalım.
+                  Mevcut web sitenizin veya bölgenizdeki anahtar kelimelerin potansiyelini birlikte inceleyelim.
                 </p>
               </div>
               <a 
-                href="https://wa.me/908503080000?text=Merhaba,%20Google%20SEO%20ücretsiz%20analiz%20için%20yazıyorum." 
+                href="https://wa.me/908503080000?text=Merhaba,%20Google%20SEO%20analizi%20için%20yazıyorum." 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="shrink-0 relative z-10"

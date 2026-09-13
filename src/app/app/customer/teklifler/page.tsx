@@ -55,7 +55,9 @@ function CustomerOffersContent() {
 
   const { user: authUser } = useAuth();
   const [currentUser, setCurrentUser] = useState(() => authUser || db.getCurrentUser());
-  const [requests, setRequests] = useState<MovingRequest[]>(() => db.getRequests());
+  const [requests, setRequests] = useState<MovingRequest[]>(() => 
+    db.getRequests().sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+  );
   const [selectedReqId, setSelectedReqId] = useState<string>(reqIdParam || '');
 
   const loadAllRequests = async () => {
@@ -74,14 +76,42 @@ function CustomerOffersContent() {
       }
     }
 
-    const combined = [...firestoreReqs];
+    const map = new Map<string, MovingRequest>();
+    firestoreReqs.forEach(fr => map.set(fr.id, fr));
     localReqs.forEach(lr => {
-      if (!combined.some(r => r.id === lr.id)) {
-        combined.push(lr);
+      const existing = map.get(lr.id);
+      if (!existing) {
+        map.set(lr.id, lr);
+      } else {
+        const localTime = new Date(lr.updatedAt || lr.createdAt || 0).getTime();
+        const firestoreTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
+        if (localTime >= firestoreTime || lr.status === 'CLOSED' || lr.status === 'ASSIGNED') {
+          map.set(lr.id, { ...existing, ...lr });
+        }
       }
     });
 
-    setRequests(combined);
+    // Server API sync to bridge cross-browser & incognito windows
+    try {
+      const apiRes = await fetch('/api/requests');
+      const apiData = await apiRes.json();
+      if (apiData.success && Array.isArray(apiData.requests)) {
+        apiData.requests.forEach((ar: MovingRequest) => {
+          const existing = map.get(ar.id);
+          if (!existing) {
+            map.set(ar.id, ar);
+          } else if ((ar.offersCount || 0) > (existing.offersCount || 0)) {
+            map.set(ar.id, { ...existing, offersCount: ar.offersCount });
+          }
+        });
+      }
+    } catch {}
+
+    const sorted = Array.from(map.values()).sort(
+      (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+    );
+
+    setRequests(sorted);
   };
 
   useEffect(() => {
@@ -129,8 +159,10 @@ function CustomerOffersContent() {
     return false;
   };
 
-  // Find customer's requests
-  const customerRequests = requests.filter(r => isUserRequest(r, currentUser));
+  // Find customer's requests (newest first)
+  const customerRequests = requests
+    .filter(r => isUserRequest(r, currentUser))
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
   // Determine which customer requests have offers
   const requestWithOffers = customerRequests.find(r => db.getOffersForRequest(r.id).length > 0);
