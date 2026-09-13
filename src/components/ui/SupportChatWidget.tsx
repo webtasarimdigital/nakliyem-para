@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { 
   X, 
   Send, 
@@ -17,9 +18,11 @@ import {
   ChevronUp,
   CheckCircle2,
   ArrowRight,
-  AlertCircle
+  AlertCircle,
+  Bot
 } from 'lucide-react';
 import { db } from '@/lib/data/mock-db';
+import { AssistantMessage, findBestAssistantResponse } from '@/lib/services/ai-assistant';
 
 interface FAQItem {
   id: string;
@@ -82,10 +85,52 @@ export const openSupportChat = () => {
 export const SupportChatWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [activeTab, setActiveTab] = useState<'FAQ' | 'EMAIL'>('FAQ');
+  const [activeTab, setActiveTab] = useState<'AI' | 'FAQ' | 'EMAIL'>('AI');
   const [selectedCategory, setSelectedCategory] = useState<'TÜMÜ' | 'MÜŞTERİ' | 'NAKLİYECİ' | 'GENEL'>('TÜMÜ');
   const [expandedFaqId, setExpandedFaqId] = useState<string | null>('faq_teklif_al');
   const [helpfulFeedback, setHelpfulFeedback] = useState<Record<string, 'yes' | 'no'>>({});
+
+  // AI Assistant Chat State
+  const [aiMessages, setAiMessages] = useState<AssistantMessage[]>([
+    {
+      id: 'welcome_1',
+      sender: 'bot',
+      text: 'Merhaba! Ben **TaşınTeklif Akıllı Asistanıyım.** 🤖\n\nPlatformumuz, fiyat teklifleri, nakliyeci üyelik paketleri, mobil asansör veya sigorta süreçleri hakkında her türlü sorunuzu anında yanıtlayabilirim. Size nasıl yardımcı olabilirim?',
+      timestamp: 'Şimdi',
+      suggestions: ['Nasıl teklif alırım?', 'Nakliyeci paketleri neler?', 'Mobil asansör nedir?', 'Komisyon alıyor musunuz?']
+    }
+  ]);
+  const [aiInput, setAiInput] = useState('');
+  const [aiIsTyping, setAiIsTyping] = useState(false);
+  const aiMessagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (activeTab === 'AI') {
+      aiMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [aiMessages, aiIsTyping, activeTab]);
+
+  const handleSendAiMessage = (queryText?: string) => {
+    const textToSend = (queryText || aiInput).trim();
+    if (!textToSend || aiIsTyping) return;
+
+    const userMsg: AssistantMessage = {
+      id: `user_${Date.now()}`,
+      sender: 'user',
+      text: textToSend,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setAiMessages(prev => [...prev, userMsg]);
+    setAiInput('');
+    setAiIsTyping(true);
+
+    setTimeout(() => {
+      const botResponse = findBestAssistantResponse(textToSend);
+      setAiMessages(prev => [...prev, botResponse]);
+      setAiIsTyping(false);
+    }, 600);
+  };
 
   // Email Form State
   const [name, setName] = useState('');
@@ -269,36 +314,195 @@ export const SupportChatWidget: React.FC = () => {
               </div>
             </div>
 
-            {/* Navigation Tabs: Soru-Cevap vs E-posta ile Sor */}
-            <div className="flex border-b border-slate-200 bg-slate-50 shrink-0">
+            {/* Navigation Tabs: Akıllı Asistan vs SSS vs E-posta */}
+            <div className="flex border-b border-slate-200 bg-slate-50 shrink-0 text-[11px] font-black">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('AI');
+                  setSendSuccess(false);
+                }}
+                className={`flex-1 py-2.5 border-b-2 flex items-center justify-center gap-1 transition-colors cursor-pointer ${
+                  activeTab === 'AI'
+                    ? 'border-[#F95700] text-[#F95700] bg-white'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Bot className="w-3.5 h-3.5" />
+                <span>Akıllı Asistan</span>
+                <span className="px-1.5 py-0.2 rounded-full bg-orange-100 text-[#F95700] text-[9px] font-black">AI</span>
+              </button>
               <button
                 type="button"
                 onClick={() => {
                   setActiveTab('FAQ');
                   setSendSuccess(false);
                 }}
-                className={`flex-1 py-2.5 text-xs font-black border-b-2 flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                className={`flex-1 py-2.5 border-b-2 flex items-center justify-center gap-1 transition-colors cursor-pointer ${
                   activeTab === 'FAQ'
                     ? 'border-[#F95700] text-[#F95700] bg-white'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <HelpCircle className="w-3.5 h-3.5" />
-                Otomatik Soru-Cevap
+                <span>SSS</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('EMAIL')}
-                className={`flex-1 py-2.5 text-xs font-black border-b-2 flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                className={`flex-1 py-2.5 border-b-2 flex items-center justify-center gap-1 transition-colors cursor-pointer ${
                   activeTab === 'EMAIL'
                     ? 'border-[#F95700] text-[#F95700] bg-white'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <Mail className="w-3.5 h-3.5" />
-                E-posta ile Bize Yazın
+                <span>Bize Yazın</span>
               </button>
             </div>
+
+            {/* ── TAB 0: AI SMART ASSISTANT ── */}
+            {activeTab === 'AI' && (
+              <div className="flex-1 flex flex-col min-h-0 bg-slate-50/70">
+                {/* Messages List */}
+                <div className="flex-1 p-3.5 overflow-y-auto space-y-3 scroll-smooth">
+                  
+                  {/* AI Badge Top Header */}
+                  <div className="p-2.5 bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl border border-orange-200/80 shadow-2xs flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-xl bg-[#F95700] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                        <Bot className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-[#0A1128] leading-tight">TaşınTeklif AI Destek</p>
+                        <p className="text-[10px] text-slate-500 font-medium leading-none mt-0.5">Ücretsiz · Anında Yanıt</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Çevrimiçi
+                    </span>
+                  </div>
+
+                  {/* Messages */}
+                  {aiMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} space-y-1.5`}
+                    >
+                      <div
+                        className={`max-w-[88%] rounded-2xl p-3.5 text-xs shadow-2xs ${
+                          msg.sender === 'user'
+                            ? 'bg-[#111E38] text-white rounded-tr-xs'
+                            : 'bg-white text-slate-800 border border-slate-200 rounded-tl-xs'
+                        }`}
+                      >
+                        {msg.sender === 'bot' ? (
+                          <div className="space-y-1.5 leading-relaxed">
+                            {msg.text.split('\n').map((line, lIdx) => {
+                              if (!line.trim()) return <div key={lIdx} className="h-1.5" />;
+                              const parts = line.split(/(\*\*.*?\*\*)/g);
+                              return (
+                                <p key={lIdx} className={line.startsWith('* ') ? 'pl-2 text-slate-700' : ''}>
+                                  {parts.map((p, pIdx) => {
+                                    if (p.startsWith('**') && p.endsWith('**')) {
+                                      return <strong key={pIdx} className="font-black text-[#0A1128]">{p.slice(2, -2)}</strong>;
+                                    }
+                                    return p;
+                                  })}
+                                </p>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="leading-relaxed font-medium">{msg.text}</p>
+                        )}
+
+                        {/* Action Link button */}
+                        {msg.actionLink && (
+                          <div className="mt-2.5 pt-2 border-t border-slate-100">
+                            {msg.actionLink.href === '#email-tab' ? (
+                              <button
+                                type="button"
+                                onClick={() => setActiveTab('EMAIL')}
+                                className="inline-flex items-center gap-1 text-[11px] font-black text-[#F95700] hover:underline cursor-pointer"
+                              >
+                                {msg.actionLink.text}
+                              </button>
+                            ) : (
+                              <Link
+                                href={msg.actionLink.href}
+                                className="inline-flex items-center gap-1 text-[11px] font-black text-[#F95700] hover:underline"
+                              >
+                                {msg.actionLink.text}
+                              </Link>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Bot Follow-up Suggestions Chips */}
+                      {msg.sender === 'bot' && msg.suggestions && msg.suggestions.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-1 pl-1">
+                          {msg.suggestions.map((sug, sIdx) => (
+                            <button
+                              key={sIdx}
+                              type="button"
+                              onClick={() => handleSendAiMessage(sug)}
+                              className="px-2.5 py-1 rounded-full bg-white hover:bg-orange-50 text-slate-600 hover:text-[#F95700] border border-slate-200 hover:border-orange-200 text-[10px] font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1"
+                            >
+                              <span>💬</span>
+                              <span>{sug}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      <span className="text-[9px] text-slate-400 px-1 font-medium">{msg.timestamp}</span>
+                    </div>
+                  ))}
+
+                  {/* Typing Indicator */}
+                  {aiIsTyping && (
+                    <div className="flex items-center gap-2 p-2.5 bg-white rounded-2xl border border-slate-200 shadow-2xs w-fit">
+                      <Sparkles className="w-3.5 h-3.5 text-[#F95700] animate-spin" />
+                      <span className="text-[11px] text-slate-500 font-medium">Asistan yanıtlıyor...</span>
+                      <div className="flex gap-1">
+                        <span className="w-1.5 h-1.5 bg-[#F95700] rounded-full animate-bounce" />
+                        <span className="w-1.5 h-1.5 bg-[#F95700] rounded-full animate-bounce [animation-delay:0.2s]" />
+                        <span className="w-1.5 h-1.5 bg-[#F95700] rounded-full animate-bounce [animation-delay:0.4s]" />
+                      </div>
+                    </div>
+                  )}
+
+                  <div ref={aiMessagesEndRef} />
+                </div>
+
+                {/* Input Bar */}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendAiMessage();
+                  }}
+                  className="p-2.5 bg-white border-t border-slate-200 flex items-center gap-2 shrink-0 shadow-xs"
+                >
+                  <input
+                    type="text"
+                    value={aiInput}
+                    onChange={(e) => setAiInput(e.target.value)}
+                    placeholder="Bir soru yazın (örn: paketler ne kadar?)..."
+                    className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:border-[#F95700] focus:outline-none bg-slate-50"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!aiInput.trim() || aiIsTyping}
+                    className="p-2 bg-[#F95700] hover:bg-[#E04D00] disabled:bg-slate-300 text-white rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed shrink-0"
+                    title="Gönder"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </form>
+              </div>
+            )}
 
             {/* ── TAB 1: FAQ / AUTOMATED ANSWERS ── */}
             {activeTab === 'FAQ' && (

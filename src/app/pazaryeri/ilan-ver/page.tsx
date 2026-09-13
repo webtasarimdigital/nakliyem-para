@@ -70,8 +70,8 @@ export default function IlanVerPage() {
     const u = db.getCurrentUser();
     setCurrentUser(u);
     if (u) {
-      const defaultName = u.fullName || (u as any).name || (u.role === 'CARRIER' ? 'Mahmut Nakliyat' : 'Ömer Faruk');
-      const defaultPhone = u.phone || '0532 555 00 00';
+      const defaultName = u.fullName || (u as any).name || (u.role === 'CARRIER' ? (u.companyName || 'Nakliyat Firması') : 'Kullanıcı');
+      const defaultPhone = u.phone || '';
       setForm(prev => ({
         ...prev,
         sellerName: prev.sellerName || defaultName,

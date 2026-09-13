@@ -19,7 +19,8 @@ import {
   Settings2,
   Check,
   X,
-  MoveRight
+  MoveRight,
+  ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -49,7 +50,7 @@ const INITIAL_EVENTS: CalendarEvent[] = [
     route: { origin: 'İstanbul, Kadıköy', dest: 'Ankara, Çankaya' },
     price: 24500,
     customerName: 'Ahmet Kaya',
-    customerPhone: '0532 111 22 33',
+    customerPhone: '0532 341 82 19',
     notes: 'Mobil asansör çıkışta gerekli. Paketleme dahil.',
     status: 'CONFIRMED'
   },
@@ -84,14 +85,24 @@ const INITIAL_EVENTS: CalendarEvent[] = [
     route: { origin: 'İstanbul, Kartal', dest: 'İstanbul, Kartal' },
     price: 3500,
     customerName: 'Demir Lojistik (Meslektaş)',
-    customerPhone: '0544 555 66 77',
+    customerPhone: '0544 628 41 93',
     notes: 'Operatörlü servis, 3 saatlik iş.',
     status: 'CONFIRMED'
   }
 ];
 
 export default function CarrierTakvimPage() {
-  const carrier = db.getCarriers()[0];
+  const [carrier, setCarrier] = useState<any>(null);
+
+  React.useEffect(() => {
+    const currentUser = db.getCurrentUser();
+    let activeCarrier = db.getCurrentCarrier();
+    if (!activeCarrier && currentUser) {
+      activeCarrier = db.getCarriers().find(c => c.userId === currentUser.id || c.id === currentUser.carrierProfileId) || null;
+    }
+    setCarrier(activeCarrier);
+  }, []);
+
   const [viewMode, setViewMode] = useState<'MONTH' | 'WEEK' | 'DAY'>('MONTH');
   const [selectedDate, setSelectedDate] = useState('2026-09-12');
   const [events, setEvents] = useState<CalendarEvent[]>(INITIAL_EVENTS);
@@ -178,13 +189,24 @@ export default function CarrierTakvimPage() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         
+        {/* Back to Operation Center */}
+        <div className="mb-6">
+          <Link
+            href="/app/carrier"
+            className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#F95700] bg-white hover:bg-orange-50/50 px-3.5 py-2 rounded-xl border border-slate-200 transition-all cursor-pointer shadow-2xs"
+          >
+            <ArrowLeft className="w-4 h-4 text-[#F95700]" />
+            <span>← Operasyon Merkezi&apos;ne Dön</span>
+          </Link>
+        </div>
+
         {/* Top Controls Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-black text-[#F95700] uppercase tracking-wider">Operasyon Yönetimi</span>
               <span className="text-slate-300">•</span>
-              <span className="text-xs font-bold text-slate-500">{carrier.companyName}</span>
+              <span className="text-xs font-bold text-slate-500">{carrier?.companyName || 'Firma Takvimi'}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">İş &amp; Operasyon Takvimi</h1>
           </div>

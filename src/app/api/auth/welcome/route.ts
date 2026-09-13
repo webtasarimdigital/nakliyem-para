@@ -145,7 +145,10 @@ ${ADMIN_EMAIL}
         });
 
         await transporter.sendMail({
-          from: process.env.SMTP_FROM || `"TaşınTeklif" <${smtpUser}>`,
+          from: {
+            name: 'TaşınTeklif',
+            address: process.env.SMTP_FROM || process.env.SMTP_USER || 'bilgi@tasinteklif.com',
+          },
           to: email,
           subject,
           text: textBody,

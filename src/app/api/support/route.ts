@@ -97,7 +97,10 @@ ${message}
         });
 
         await transporter.sendMail({
-          from: process.env.SMTP_FROM || `"TaşınTeklif Canlı Destek" <${smtpUser}>`,
+          from: {
+            name: 'TaşınTeklif Canlı Destek',
+            address: process.env.SMTP_FROM || process.env.SMTP_USER || 'bilgi@tasinteklif.com',
+          },
           to: ADMIN_EMAIL,
           replyTo: senderEmail !== 'Belirtilmedi' ? senderEmail : undefined,
           subject: emailSubject,

@@ -16,6 +16,7 @@ import {
   KeyRound,
   CheckCircle2,
   RefreshCw,
+  Phone,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { loginWithGoogleFirebase, loginWithFirebase, registerWithFirebase } from '@/lib/firebase/auth';
@@ -43,6 +44,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
   const [tab, setTab] = useState<'REGISTER' | 'LOGIN'>('REGISTER');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -193,6 +195,12 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
       return;
     }
 
+    const cleanPhone = phone.trim().replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length < 10) {
+      setErrorMessage('Lütfen geçerli bir cep telefonu numarası giriniz (Örn: 05XX XXX XX XX).');
+      return;
+    }
+
     const emailCheck = validateEmailAddress(email);
     if (!emailCheck.isValid) {
       setErrorMessage(emailCheck.error || 'Geçersiz e-posta adresi.');
@@ -324,6 +332,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
         const res = await registerWithFirebase({
           email,
           password,
+          phone: phone.trim(),
           role: targetRole,
           fullName: !isCarrier ? cleanName : undefined,
           companyName: isCarrier ? cleanName : undefined,
@@ -353,7 +362,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
         const newUser = {
           id: newUserId,
           email,
-          phone: '',
+          phone: phone.trim(),
           role: targetRole,
           fullName: !isCarrier ? cleanName : undefined,
           companyName: isCarrier ? cleanName : undefined,
@@ -375,7 +384,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
             slug: cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
             authorizedPersonName: cleanName,
             authorizedPersonSurname: '',
-            phone: '',
+            phone: phone.trim(),
             email,
             shortBio: 'TaşınTeklif onaylı nakliyat firması.',
             city: 'İstanbul',
@@ -627,7 +636,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
               disabled={otpCode.length !== 6 || timeLeft <= 0}
               className="w-full font-black text-xs py-3 shadow-md bg-[#F95700] hover:bg-[#E04F00]"
             >
-              {isLoading ? 'İşleniyor...' : 'Doğrula ve Üye Ol'}
+              {isLoading ? 'Doğrulanıyor...' : 'Doğrula ve Üye Ol'}
             </Button>
 
             <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
@@ -687,7 +696,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
                   />
                 </svg>
               )}
-              <span>{googleLoading ? 'Google Bağlanıyor...' : 'Google ile Giriş Yap'}</span>
+              <span>{googleLoading ? 'Giriş yapılıyor...' : 'Google ile Giriş Yap'}</span>
             </button>
 
             {/* Divider */}
@@ -753,6 +762,23 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
                 </div>
               )}
 
+              {tab === 'REGISTER' && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Cep Telefonu Numarası *</label>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="05XX XXX XX XX"
+                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:border-[#F95700] focus:outline-none"
+                    />
+                    <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">E-posta Adresiniz *</label>
                 <div className="relative">
@@ -798,7 +824,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
                 className="w-full font-bold text-xs py-3 mt-2 shadow-md bg-[#F95700] hover:bg-[#E04F00]"
               >
                 {isLoading
-                  ? 'İşleniyor...'
+                  ? (tab === 'REGISTER' ? 'Kayıt yapılıyor...' : 'Giriş yapılıyor...')
                   : tab === 'REGISTER'
                   ? 'Üye Ol'
                   : 'Giriş Yap'

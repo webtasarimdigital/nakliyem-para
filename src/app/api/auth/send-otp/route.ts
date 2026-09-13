@@ -31,43 +31,47 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Check if user already exists — check BOTH Firebase Auth AND Firestore
-    if (isFirebaseConfigured() && firestoreDb && firebaseAuth) {
+    // Check if user already exists in Firebase Auth (Google, Email/Password, etc.)
+    const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+    if (apiKey) {
       try {
-        // 1a. Firebase Auth kontrolü (Google, email/şifre vs. HEPSİNİ yakalar)
-        const signInMethods = await fetchSignInMethodsForEmail(firebaseAuth, normalizedEmail);
-        if (signInMethods && signInMethods.length > 0) {
-          return NextResponse.json(
-            {
-              error: 'ALREADY_REGISTERED',
-              message: 'Bu e-posta adresi ile zaten kayıtlı bir hesap bulunmaktadır.',
-              email: normalizedEmail,
-            },
-            { status: 409 }
-          );
+        const dummyPassword = `Chk_${Date.now()}_${Math.random().toString(36).slice(2)}!A1`;
+        const chkRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: normalizedEmail,
+            password: dummyPassword,
+            returnSecureToken: true,
+          }),
+        });
+        const chkData = await chkRes.json();
+        if (chkData.error) {
+          const msg = chkData.error.message;
+          const errors = chkData.error.errors || [];
+          if (
+            msg === 'EMAIL_EXISTS' ||
+            errors.some((e: any) => e.message === 'EMAIL_EXISTS' || e.reason === 'EMAIL_EXISTS')
+          ) {
+            return NextResponse.json(
+              {
+                error: 'ALREADY_REGISTERED',
+                message: 'Bu e-posta adresi ile zaten kayıtlı bir hesap bulunmaktadır.',
+                email: normalizedEmail,
+              },
+              { status: 409 }
+            );
+          }
+        } else if (chkData.idToken) {
+          // Clean up temporary user immediately
+          await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken: chkData.idToken }),
+          }).catch(() => {});
         }
-      } catch (authErr: any) {
-        // fetchSignInMethodsForEmail hata verirse sessizce geç, Firestore kontrolüne dön
-        console.warn('Firebase Auth email check warning:', authErr?.message);
-      }
-
-      try {
-        // 1b. Firestore users koleksiyonu kontrolü (ek güvence)
-        const existingUsers = await getDocs(
-          query(collection(firestoreDb, 'users'), where('email', '==', normalizedEmail))
-        );
-        if (!existingUsers.empty) {
-          return NextResponse.json(
-            {
-              error: 'ALREADY_REGISTERED',
-              message: 'Bu e-posta adresi ile zaten kayıtlı bir hesap bulunmaktadır.',
-              email: normalizedEmail,
-            },
-            { status: 409 }
-          );
-        }
-      } catch (err) {
-        console.warn('Firestore existing user check warning:', err);
+      } catch (checkErr) {
+        console.warn('Pre-check email in send-otp error:', checkErr);
       }
     }
 
@@ -170,7 +174,10 @@ ${ADMIN_EMAIL}
         });
 
         await transporter.sendMail({
-          from: process.env.SMTP_FROM || `"TaşınTeklif" <${smtpUser}>`,
+          from: {
+            name: 'TaşınTeklif',
+            address: process.env.SMTP_FROM || process.env.SMTP_USER || 'bilgi@tasinteklif.com',
+          },
           to: email,
           subject,
           text: textBody,

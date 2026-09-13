@@ -123,15 +123,15 @@ function SifremiUnuttumContent() {
       db.updateUserPassword(phone, newPassword);
 
       const existing = db.getUserByPhone(phone) || db.getRegisteredUserByEmail(phone);
-      const userRole = (existing?.role || 'CUSTOMER') as 'CUSTOMER' | 'CARRIER';
+      const userRole = (existing?.role || 'CARRIER') as 'CUSTOMER' | 'CARRIER';
       const sessionUser = {
-        id: existing?.id || (userRole === 'CARRIER' ? 'user_carr_1' : 'user_cust_1'),
-        email: existing?.email || (userRole === 'CARRIER' ? 'mahmut@nakliyat.com' : 'omer@gmail.com'),
+        id: existing?.id || (userRole === 'CARRIER' ? `carr_${Date.now()}` : `cust_${Date.now()}`),
+        email: existing?.email || (userRole === 'CARRIER' ? 'info@firma.com' : 'kullanici@gmail.com'),
         phone,
         role: userRole,
-        fullName: existing?.fullName || (userRole === 'CUSTOMER' ? 'Ömer Faruk' : undefined),
-        companyName: existing?.companyName || (userRole === 'CARRIER' ? 'Mahmut Nakliyat' : undefined),
-        carrierProfileId: userRole === 'CARRIER' ? (existing?.carrierId || 'c1') : undefined,
+        fullName: existing?.fullName || (userRole === 'CUSTOMER' ? 'Kullanıcı' : undefined),
+        companyName: existing?.companyName || (userRole === 'CARRIER' ? 'Nakliyat Firması' : undefined),
+        carrierProfileId: userRole === 'CARRIER' ? (existing?.carrierId || (existing as any)?.carrierProfileId) : undefined,
         createdAt: existing?.createdAt || new Date().toISOString()
       };
 
@@ -349,7 +349,7 @@ function SifremiUnuttumContent() {
                       type="tel"
                       value={phone}
                       onChange={e => setPhone(e.target.value)}
-                      placeholder="0532 555 00 00"
+                      placeholder="05xx xxx xx xx"
                       required
                       autoFocus
                       className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"

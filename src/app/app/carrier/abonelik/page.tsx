@@ -12,60 +12,104 @@ import {
   Zap,
   Clock
 } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { db } from '@/lib/data/mock-db';
-import { SubscriptionPlan } from '@/types';
+import { SubscriptionPlan, CarrierProfile, CarrierSubscription } from '@/types';
 
 export default function CarrierSubscriptionPage() {
-  const carrier = db.getCarriers()[0];
+  const [carrier, setCarrier] = React.useState<CarrierProfile | null>(null);
+  const [sub, setSub] = React.useState<CarrierSubscription | null>(null);
+  const [isLoaded, setIsLoaded] = React.useState(false);
   const plans = db.getPlans();
-  const [sub, setSub] = useState(db.getCarrierSubscription(carrier.id));
-  const currentPlan = plans.find(p => p.id === carrier.planId) || plans[2]; // Gold
+
+  React.useEffect(() => {
+    const currentUser = db.getCurrentUser();
+    let activeCarrier = db.getCurrentCarrier();
+    if (!activeCarrier && currentUser) {
+      activeCarrier = db.getCarriers().find(c => c.userId === currentUser.id || c.id === currentUser.carrierProfileId) || null;
+    }
+    setCarrier(activeCarrier);
+    if (activeCarrier) {
+      setSub(db.getCarrierSubscription(activeCarrier.id));
+    }
+    setIsLoaded(true);
+  }, []);
 
   const [selectedPlanForTrial, setSelectedPlanForTrial] = useState<SubscriptionPlan | null>(null);
-  const [cardNumber, setCardNumber] = useState('5421 8900 1234 5678');
-  const [cardExpiry, setCardExpiry] = useState('12/28');
-  const [cardCvc, setCardCvc] = useState('432');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvc, setCardCvc] = useState('');
   const [isActivating, setIsActivating] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
+  const currentPlan = carrier ? (plans.find(p => p.id === carrier.planId) || plans[0]) : plans[0];
+
   // Kalan gün hesabı
-  const periodEndDate = new Date(sub.currentPeriodEnd);
+  const periodEndDate = sub ? new Date(sub.currentPeriodEnd) : new Date();
   const now = new Date();
   const diffTime = periodEndDate.getTime() - now.getTime();
   const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
   const handleCancelSubscription = () => {
+    if (!carrier) return;
     const updated = db.cancelCarrierSubscription(carrier.id);
     setSub(updated);
     setCancelModalOpen(false);
   };
 
   const handleRenewSubscription = () => {
+    if (!carrier) return;
     const updated = db.renewCarrierSubscription(carrier.id);
     setSub(updated);
   };
 
   const handleStartTrial = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPlanForTrial) return;
+    if (!selectedPlanForTrial || !carrier) return;
 
     setIsActivating(true);
     setTimeout(() => {
       db.updateCarrier(carrier.id, { planId: selectedPlanForTrial.id });
-      const updated = db.renewCarrierSubscription(carrier.id);
-      setSub(updated);
+      const updatedSub = db.renewCarrierSubscription(carrier.id);
+      const updatedCarrier = db.getCarrierById(carrier.id) || { ...carrier, planId: selectedPlanForTrial.id };
+      setCarrier(updatedCarrier);
+      setSub(updatedSub);
       setIsActivating(false);
       setSelectedPlanForTrial(null);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth-changed'));
+        window.dispatchEvent(new Event('storage'));
+      }
     }, 800);
   };
 
-  const isCanceled = sub.status === 'CANCELED' || sub.cancelAtPeriodEnd;
+  const isCanceled = sub?.status === 'CANCELED' || sub?.cancelAtPeriodEnd;
+
+  if (!isLoaded || !carrier || !sub) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="w-8 h-8 border-4 border-[#F95700] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      {/* Back to Operation Center */}
+      <div className="mb-6">
+        <Link
+          href="/app/carrier"
+          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#F95700] bg-white hover:bg-orange-50/50 px-3.5 py-2 rounded-xl border border-slate-200 transition-all cursor-pointer shadow-2xs"
+        >
+          <ArrowLeft className="w-4 h-4 text-[#F95700]" />
+          <span>← Operasyon Merkezi&apos;ne Dön</span>
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
@@ -85,12 +129,21 @@ export default function CarrierSubscriptionPage() {
 
       {/* ACTIVE / CANCELED SUBSCRIPTION BANNER */}
       <div className={`bg-white rounded-2xl border-2 p-6 sm:p-8 mb-10 shadow-sm ${
-        isCanceled ? 'border-red-300 bg-red-50/20' : 'border-amber-300'
+        isCanceled ? 'border-red-300 bg-red-50/20' : currentPlan.id === 'plan_gold' ? 'border-amber-300' : currentPlan.id === 'plan_pro' ? 'border-blue-300' : 'border-slate-200'
       }`}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="gold" size="md" />
+              {currentPlan.id === 'plan_gold' ? (
+                <Badge variant="gold" size="md" />
+              ) : currentPlan.id === 'plan_pro' ? (
+                <Badge variant="pro" size="md" />
+              ) : (
+                <span className="text-xs font-black text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+                  Başlangıç (Ücretsiz)
+                </span>
+              )}
+
               {isCanceled ? (
                 <span className="text-xs font-black text-red-700 bg-red-100 px-2.5 py-0.5 rounded-full">
                   İptal Talebi Alındı
@@ -98,20 +151,26 @@ export default function CarrierSubscriptionPage() {
               ) : (
                 <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                  Aktif Abonelik
+                  Aktif Paket
                 </span>
               )}
-              <span className="text-xs font-bold text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-full">
-                {daysRemaining} Gün Kaldı
-              </span>
+              {currentPlan.priceMonthly > 0 && (
+                <span className="text-xs font-bold text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-full">
+                  {daysRemaining} Gün Kaldı
+                </span>
+              )}
             </div>
 
             <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
-              {currentPlan.name} Üyelik Paketi
+              {currentPlan.name} Paketi
             </h2>
 
             <p className="text-xs sm:text-sm text-slate-600">
-              {isCanceled ? (
+              {currentPlan.priceMonthly === 0 ? (
+                <>
+                  Ücretsiz Başlangıç paketindesiniz. Her gün <strong className="text-[#0A1128]">3 adet ücretsiz teklif verme hakkınız</strong> bulunmaktadır. Daha fazla teklif ve telefon erişimi için paket yükseltebilirsiniz.
+                </>
+              ) : isCanceled ? (
                 <>
                   Aboneliğiniz iptal edildi. Dönem sonuna (<strong className="text-[#0A1128]">{periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>) kadar tüm haklarınız geçerlidir. Otomatik yenilenmeyecektir.
                 </>
@@ -123,49 +182,59 @@ export default function CarrierSubscriptionPage() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0">
-            {isCanceled ? (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleRenewSubscription}
-                className="text-xs font-bold w-full sm:w-auto"
-              >
-                Aboneliği Yeniden Başlat
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCancelModalOpen(true)}
-                className="text-xs text-red-600 border-red-200 hover:bg-red-50 w-full sm:w-auto font-bold"
-              >
-                Aboneliği İptal Et
-              </Button>
-            )}
-          </div>
+          {currentPlan.priceMonthly > 0 && (
+            <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0">
+              {isCanceled ? (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleRenewSubscription}
+                  className="text-xs font-bold w-full sm:w-auto"
+                >
+                  Aboneliği Yeniden Başlat
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCancelModalOpen(true)}
+                  className="text-xs text-red-600 border-red-200 hover:bg-red-50 w-full sm:w-auto font-bold"
+                >
+                  Aboneliği İptal Et
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Dynamic Entitlements List (Spec Item 26-27) */}
+        {/* Dynamic Entitlements List */}
         <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
           <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
             <span className="text-slate-400 block mb-0.5">Teklif Verme Hakkı</span>
-            <span className="font-bold text-emerald-700">Sınırsız</span>
+            <span className="font-bold text-emerald-700">
+              {currentPlan.id === 'plan_starter' ? 'Günde 3 Adet Ücretsiz' : currentPlan.id === 'plan_pro' ? 'Aylık 100 Teklif' : 'Sınırsız Teklif'}
+            </span>
           </div>
 
           <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
             <span className="text-slate-400 block mb-0.5">Müşteri Telefon Erişimi</span>
-            <span className="font-bold text-emerald-700">✓ Açık</span>
+            <span className={`font-bold ${currentPlan.features.customerPhoneAccess ? 'text-emerald-700' : 'text-slate-400'}`}>
+              {currentPlan.features.customerPhoneAccess ? '✓ Açık' : 'Kapalı (Gold/Pro)'}
+            </span>
           </div>
 
           <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
             <span className="text-slate-400 block mb-0.5">Sponsor Reklamı</span>
-            <span className="font-bold text-amber-700">Ana Sayfa + Defter</span>
+            <span className={`font-bold ${currentPlan.id === 'plan_gold' ? 'text-amber-700' : 'text-slate-400'}`}>
+              {currentPlan.id === 'plan_gold' ? 'Ana Sayfa + Defter' : 'Yok (Gold ile Açık)'}
+            </span>
           </div>
 
           <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
             <span className="text-slate-400 block mb-0.5">Rota Alarm Limiti</span>
-            <span className="font-bold text-emerald-700">Sınırsız</span>
+            <span className="font-bold text-emerald-700">
+              {currentPlan.features.routeAlarmLimit === 'unlimited' ? 'Sınırsız' : `${currentPlan.features.routeAlarmLimit} Adet`}
+            </span>
           </div>
         </div>
       </div>

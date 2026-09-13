@@ -122,15 +122,38 @@ export default function NakliyeciDefteriPage() {
       return;
     }
 
-    // 4. İlanı yayınla
-    const carrierObj = db.getCarriers().find(c => c.userId === user.id || c.id === user.carrierProfileId) || db.getCarriers()[0];
+    const carrierObj = db.getCurrentCarrier() || db.getCarriers().find(c => c.userId === user.id || c.id === user.carrierProfileId);
+    const carrierId = carrierObj?.id || `carr_${user.id}`;
     const newPost: DefterPost = {
       id: `def_${Date.now()}`,
-      carrierId: carrierObj.id,
-      carrier: {
+      carrierId,
+      carrier: carrierObj ? {
         ...carrierObj,
         companyName: user.companyName || carrierObj.companyName,
         phone: user.phone || carrierObj.phone
+      } : {
+        id: carrierId,
+        userId: user.id,
+        companyName: user.companyName || 'Nakliye Firması',
+        slug: (user.companyName || 'nakliye-firmasi').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        authorizedPersonName: user.fullName || 'Firma Yetkilisi',
+        authorizedPersonSurname: '',
+        phone: user.phone || '',
+        email: user.email || '',
+        shortBio: `${user.companyName || 'Nakliye Firması'} profesyonel nakliyat hizmetleri.`,
+        city: user.city || 'İstanbul',
+        district: 'Merkez',
+        services: ['evden-eve'],
+        serviceAreas: ['TÜM_TÜRKİYE'],
+        verificationStatus: 'PENDING',
+        verificationBadges: { identityVerified: false, taxVerified: false, transportPermitVerified: false, elevatorVerified: false },
+        planId: 'trial',
+        rating: 5.0,
+        reviewCount: 0,
+        completedJobsCount: 0,
+        responseRatePercent: 100,
+        joinedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
       },
       category: 'EMPTY_VEHICLE',
       originCity: user.city || 'İstanbul',
@@ -493,7 +516,7 @@ export default function NakliyeciDefteriPage() {
                       >
                         <Phone className="w-3.5 h-3.5 text-[#F95700]" />
                         <span>
-                          {isPhoneRevealed ? (post.carrier.phone || '0532 555 00 00') : 'Numarayı Göster'}
+                          {isPhoneRevealed ? (post.carrier.phone || 'Numara Belirtilmedi') : 'Numarayı Göster'}
                         </span>
                       </button>
                     </div>

@@ -19,6 +19,7 @@ import { openSupportChat } from '@/components/ui/SupportChatWidget';
 import { Offer, MovingRequest } from '@/types';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+import { sendNotificationEmail } from '@/lib/services/notification-service';
 
 const CRITERIA = [
   { key: 'price', label: 'Fiyat', info: 'KDV dahil/hariç durumuna dikkat edin' },
@@ -130,8 +131,32 @@ function CustomerOffersContent() {
 
   // Find customer's requests
   const customerRequests = requests.filter(r => isUserRequest(r, currentUser));
-  const activeReq = (selectedReqId ? requests.find(r => (r.id === selectedReqId || r.requestCode === selectedReqId) && isUserRequest(r, currentUser)) : null)
+
+  // Determine which customer requests have offers
+  const requestWithOffers = customerRequests.find(r => db.getOffersForRequest(r.id).length > 0);
+
+  // If reqIdParam is provided in URL
+  const matchedParamReq = reqIdParam 
+    ? customerRequests.find(r => r.id === reqIdParam || r.requestCode === reqIdParam)
+    : null;
+
+  // If selectedReqId is in state
+  const matchedSelectedReq = selectedReqId 
+    ? customerRequests.find(r => r.id === selectedReqId || r.requestCode === selectedReqId)
+    : null;
+
+  // Active request logic:
+  // Prefer explicit URL param, then selectedReqId, but if no URL param was set and no selection made,
+  // automatically default to the request that actually has offers!
+  const activeReq = matchedParamReq
+    || matchedSelectedReq
+    || requestWithOffers
     || (customerRequests.length > 0 ? customerRequests[0] : null);
+
+  // Alert banner condition: Active request has 0 offers, but another customer request HAS offers!
+  const otherReqWithOffers = activeReq && db.getOffersForRequest(activeReq.id).length === 0
+    ? customerRequests.find(r => r.id !== activeReq.id && db.getOffersForRequest(r.id).length > 0)
+    : null;
 
   const [offers, setOffers] = useState<Offer[]>([]);
   const [sortBy, setSortBy] = useState<'price' | 'rating' | 'delivery'>('price');
@@ -195,33 +220,221 @@ function CustomerOffersContent() {
     if (!selectedOffer || !activeReq) return;
     db.acceptOffer(activeReq.id, selectedOffer.id);
     setSuccessOffer(selectedOffer);
+
+    // Send transactional email to carrier
+    try {
+      const carrierUser = db.getUsers().find((u: any) => u.id === selectedOffer.carrier.userId);
+      const targetCarrierEmail = carrierUser?.email || selectedOffer.carrier.email || 'omerfaruksaycan@gmail.com';
+      if (targetCarrierEmail) {
+        sendNotificationEmail({
+          type: 'OFFER_ACCEPTED',
+          to: targetCarrierEmail,
+          carrierName: selectedOffer.carrier.companyName,
+          customerName: activeReq.customerName || currentUser?.fullName || 'Müşteri',
+          customerPhone: activeReq.customerPhone || currentUser?.phone || 'Müşteri Paneli',
+          routeText: `${activeReq.originCity} / ${activeReq.originDistrict} → ${activeReq.destinationCity} / ${activeReq.destinationDistrict}`,
+          movingDate: activeReq.movingDate,
+          price: selectedOffer.price,
+          requestId: activeReq.requestCode || activeReq.id,
+        });
+      }
+    } catch (emailErr) {
+      console.warn('Teklif kabul e-postası gönderilemedi:', emailErr);
+    }
+
     setSelectedOffer(null);
   };
 
   if (successOffer) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4 py-12">
-        <div className="bg-white rounded-3xl border border-slate-200 p-10 sm:p-14 max-w-md w-full text-center shadow-xl">
-          <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-10 h-10 text-emerald-600" />
-          </div>
-          <h2 className="text-2xl font-black text-[#0A1128] mb-2">Firma Başarıyla Seçildi! 🎉</h2>
-          <p className="text-base font-black text-[#F95700] mb-1">{successOffer.carrier.companyName}</p>
-          <p className="text-3xl font-black text-[#0A1128] mb-4">{successOffer.price.toLocaleString('tr-TR')} TL</p>
-          <p className="text-slate-500 font-medium text-sm mb-8 leading-relaxed">
-            Firma yetkilisine anlaşma bilgisi iletildi. Yetkili sizinle telefon numaranız üzerinden iletişime geçecektir.
-          </p>
-          <div className="space-y-3">
-            <Link href="/app/customer">
-              <Button variant="primary" size="lg" className="w-full font-black">Taşınma Merkezime Git</Button>
-            </Link>
-            {successOffer.carrier.phone && (
-              <a href={`tel:${successOffer.carrier.phone}`} className="block">
-                <Button variant="navy" size="lg" className="w-full font-bold" leftIcon={<Phone className="w-4 h-4" />}>
-                  Firmayı Doğrudan Ara
-                </Button>
-              </a>
-            )}
+      <div className="min-h-screen bg-[#F8FAFC] py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+            <div className="lg:col-span-3">
+              <CustomerSidebar activeTab="offers" />
+            </div>
+            <div className="lg:col-span-9 space-y-6">
+              
+              {/* Success Banner */}
+              <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden">
+                <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+                      <CheckCircle2 className="w-8 h-8 text-white" />
+                    </div>
+                    <div>
+                      <span className="inline-block px-3 py-1 rounded-full bg-white/20 text-xs font-bold mb-2 tracking-wide uppercase">
+                        Anlaşma Sağlandı 🎉
+                      </span>
+                      <h2 className="text-2xl sm:text-3xl font-black leading-tight">
+                        Tebrikler! Nakliyat Firmanız Belirlendi
+                      </h2>
+                      <p className="text-emerald-100 text-xs sm:text-sm font-medium mt-1 max-w-xl leading-relaxed">
+                        {successOffer.carrier.companyName} yetkilisine taşıma detaylarınız ve anlaşma bildirimi iletildi.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2-Column Info Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Left Card: Seçilen Firma */}
+                <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-4">
+                      <span className="text-xs font-black uppercase tracking-wider text-slate-400">Anlaşılan Firma</span>
+                      <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-black border border-emerald-200 flex items-center gap-1">
+                        <ShieldCheck className="w-3.5 h-3.5" /> Onaylı Nakliyeci
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3.5 mb-4">
+                      <div className="w-14 h-14 rounded-2xl bg-[#0A1128] text-white flex items-center justify-center font-black text-xl shadow-xs">
+                        {successOffer.carrier.companyName.charAt(0)}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black text-[#0A1128]">{successOffer.carrier.companyName}</h3>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium mt-0.5">
+                          <span className="flex items-center gap-1 text-amber-500 font-bold">
+                            <Star className="w-3.5 h-3.5 fill-current" /> {successOffer.carrier.rating || 5.0}
+                          </span>
+                          <span>·</span>
+                          <span>{successOffer.carrier.city || 'İstanbul'}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium leading-relaxed mb-4">
+                      Firma yetkilisi taşınma saatini teyit etmek ve bina durumunu netleştirmek için kayıtlı numaranızdan sizinle iletişime geçecektir.
+                    </p>
+                  </div>
+
+                  {/* Carrier Contact Actions */}
+                  <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-2.5">
+                    {successOffer.carrier.phone ? (
+                      <a href={`tel:${successOffer.carrier.phone}`} className="w-full sm:w-auto flex-1">
+                        <Button variant="navy" size="md" className="w-full font-bold justify-center" leftIcon={<Phone className="w-4 h-4" />}>
+                          Firmayı Ara ({successOffer.carrier.phone})
+                        </Button>
+                      </a>
+                    ) : null}
+                    <Link href="/app/customer/mesajlar" className="w-full sm:w-auto">
+                      <Button variant="outline" size="md" className="w-full font-bold justify-center" leftIcon={<MessageSquare className="w-4 h-4" />}>
+                        Mesaj Yaz
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Right Card: Anlaşma & Hizmet Detayları */}
+                <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-4">
+                      <span className="text-xs font-black uppercase tracking-wider text-slate-400">Anlaşma Özeti</span>
+                      <span className="text-xs font-bold text-slate-500">{activeReq?.requestCode || '#TALEP'}</span>
+                    </div>
+
+                    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 mb-4">
+                      <div className="flex items-baseline justify-between mb-1">
+                        <span className="text-xs font-bold text-slate-500">Anlaşılan Tutar:</span>
+                        <span className="text-2xl sm:text-3xl font-black text-[#0A1128]">
+                          {successOffer.price.toLocaleString('tr-TR')} <span className="text-sm font-bold text-slate-500">TL</span>
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-emerald-700 font-bold text-right">
+                        {successOffer.isVatIncluded ? 'KDV Dahil Net Fiyat' : 'KDV Hariç Fiyat'}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2 text-xs font-semibold text-slate-700">
+                      <div className="flex items-center justify-between py-1 border-b border-slate-100">
+                        <span className="text-slate-500">Güzergah:</span>
+                        <span className="font-bold text-[#0A1128]">{activeReq ? `${activeReq.originCity} → ${activeReq.destinationCity}` : 'Şehir İçi'}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-1 border-b border-slate-100">
+                        <span className="text-slate-500">Taşınma Tarihi:</span>
+                        <span className="font-bold text-[#0A1128]">{activeReq?.movingDate || 'Belirtildi'}</span>
+                      </div>
+                      <div className="flex items-center justify-between py-1 border-b border-slate-100">
+                        <span className="text-slate-500">Paketleme Hizmeti:</span>
+                        <span className={successOffer.isPackagingIncluded ? 'text-emerald-700 font-bold' : 'text-slate-600'}>
+                          {successOffer.isPackagingIncluded ? '✓ Firma Paketleyecek' : 'Müşteri Paketleyecek'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between py-1 border-b border-slate-100">
+                        <span className="text-slate-500">Mobil Asansör:</span>
+                        <span className={successOffer.isMobileElevatorIncluded ? 'text-blue-700 font-bold' : 'text-slate-600'}>
+                          {successOffer.isMobileElevatorIncluded ? '✓ Dahil' : 'Merdivenden Taşınacak'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between py-1">
+                        <span className="text-slate-500">Eşya Sigortası:</span>
+                        <span className="text-purple-700 font-bold">✓ Emtia Güvencesi</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-400 font-medium">Ödeme doğrudan firmaya yapılacaktır</span>
+                    <span className="text-[11px] font-bold text-emerald-600">Ön Ödeme: 0 TL</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Next Steps Roadmap */}
+              <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs">
+                <h3 className="text-base font-black text-[#0A1128] mb-4 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#F95700]" />
+                  Şimdi Ne Olacak? Süreç Nasıl İlerliyor?
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div className="w-8 h-8 rounded-xl bg-orange-100 text-[#F95700] font-black text-sm flex items-center justify-center mb-2.5">
+                      1
+                    </div>
+                    <h4 className="text-xs font-black text-[#0A1128] mb-1">Firma Sizi Arayacak</h4>
+                    <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
+                      Yetkili kişi gün ve saati kesinleştirmek, bina girişini planlamak için arayacaktır.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 font-black text-sm flex items-center justify-center mb-2.5">
+                      2
+                    </div>
+                    <h4 className="text-xs font-black text-[#0A1128] mb-1">Taşıma Günü</h4>
+                    <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
+                      Uzman nakliye ekibi sözleşilen saatte gelir, mobilyaları demonte edip özenle yükler.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 font-black text-sm flex items-center justify-center mb-2.5">
+                      3
+                    </div>
+                    <h4 className="text-xs font-black text-[#0A1128] mb-1">Teslimat ve Ödeme</h4>
+                    <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
+                      Eşyalar yeni evinizde yerlerine kurulur. İşlem eksiksiz bittiğinde ödemeyi firmaya yaparsınız.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                  <Link href="/app/customer">
+                    <Button variant="primary" size="md" className="font-black">
+                      Taşınma Panelime Git →
+                    </Button>
+                  </Link>
+                  <button
+                    onClick={() => setSuccessOffer(null)}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                  >
+                    Teklif Sayfasına Geri Dön
+                  </button>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
       </div>
@@ -303,15 +516,47 @@ function CustomerOffersContent() {
                     }}
                     className="px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white text-slate-800 focus:border-[#F95700] focus:outline-none"
                   >
-                    {customerRequests.map(r => (
-                      <option key={r.id} value={r.id}>
-                        {r.requestCode || '#TALEP'} · {r.originCity} → {r.destinationCity} ({r.homeSize})
-                      </option>
-                    ))}
+                    {customerRequests.map(r => {
+                      const count = db.getOffersForRequest(r.id).length;
+                      return (
+                        <option key={r.id} value={r.id}>
+                          {r.requestCode || '#TALEP'} · {r.originCity} → {r.destinationCity} ({count > 0 ? `🔥 ${count} Teklif Alındı` : 'Teklif Bekleniyor'})
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
               )}
             </div>
+
+            {/* Alert if viewing request with 0 offers but another request has offers */}
+            {otherReqWithOffers && (
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-[#F95700]/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#F95700] text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm font-black text-[#0A1128]">
+                      Diğer ilanınıza ({otherReqWithOffers.requestCode || '#TALEP'}) yeni teklif geldi!
+                    </p>
+                    <p className="text-[11px] sm:text-xs text-slate-600 font-medium">
+                      {otherReqWithOffers.originCity} → {otherReqWithOffers.destinationCity} taşımanız için gelen teklifi inceleyebilirsiniz.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedReqId(otherReqWithOffers.id);
+                    router.push(`/app/customer/teklifler?reqId=${otherReqWithOffers.id}`);
+                  }}
+                  className="px-4 py-2 bg-[#F95700] hover:bg-orange-600 text-white rounded-xl text-xs font-black shrink-0 transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  Teklifi İncele →
+                </button>
+              </div>
+            )}
 
             {/* Request Summary Card */}
             {activeReq && (

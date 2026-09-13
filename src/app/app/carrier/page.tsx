@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   ArrowRight,
   MapPin,
@@ -66,20 +67,59 @@ function calcMatchScore(request: { originCity: string; destinationCity: string; 
 }
 
 export default function CarrierDashboard() {
-  const currentUser = db.getCurrentUser();
-  const carrier = db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) || db.getCarriers()[0];
-  const requests = db.getRequests().filter(r => r.status === 'ACTIVE');
-  const myOffers = db.getOffersForCarrier(carrier.id);
-  const defterPosts = db.getDefterPosts().filter(p => p.carrierId === carrier.id);
-  const alarms = db.getAlarmsForCarrier(carrier.id);
+  const router = useRouter();
+  const currentUser = typeof window !== 'undefined' ? db.getCurrentUser() : null;
+  const carrier = db.getCurrentCarrier() || (currentUser?.role === 'CARRIER' ? db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) : null);
 
-  const isApproved = carrier.verificationStatus === 'APPROVED';
+  useEffect(() => {
+    if (!currentUser) {
+      router.push('/giris?role=nakliyeci');
+      return;
+    }
+    if (currentUser.role !== 'CARRIER') {
+      router.push('/app/customer');
+      return;
+    }
+    if (!carrier || !carrier.isProfileCompleted || !carrier.companyName) {
+      router.push('/app/carrier/onboarding');
+      return;
+    }
+  }, [currentUser, carrier, router]);
 
   const [availabilityDays, setAvailabilityDays] = useState<Record<string, 'MUSAIT' | 'DOLU'>>({
     '2026-09-12': 'MUSAIT',
     '2026-09-14': 'DOLU',
     '2026-09-15': 'MUSAIT',
   });
+
+  if (!currentUser || !carrier) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#F95700] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const requests = db.getRequests().filter(r => r.status === 'ACTIVE');
+  const myOffers = db.getOffersForCarrier(carrier.id);
+  const defterPosts = db.getDefterPosts().filter(p => p.carrierId === carrier.id);
+  const alarms = db.getAlarmsForCarrier(carrier.id);
+
+  // Evrak ve Onay Kontrolü
+  const carrierDocs = db.getDocumentsForCarrier(carrier.id);
+  const hasTaxDoc = carrierDocs.some(d => d.type === 'TAX_CERTIFICATE') || carrier.verificationBadges.taxVerified;
+  const hasIdDoc = carrierDocs.some(d => d.type === 'IDENTITY') || carrier.verificationBadges.identityVerified;
+  const isApproved = carrier.verificationStatus === 'APPROVED' && hasTaxDoc && hasIdDoc;
+
+  const isGold = carrier.planId === 'plan_gold';
+  const isPro = carrier.planId === 'plan_pro';
+  const isStarter = !isGold && !isPro;
+
+  // Günlük teklif kotası (Başlangıç paketinde günde 3 teklif)
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const carrierOffersToday = myOffers.filter(o => o.createdAt && o.createdAt.startsWith(todayStr)).length;
+  const dailyFreeLimit = 3;
+  const remainingFreeOffers = isStarter ? Math.max(0, dailyFreeLimit - carrierOffersToday) : 'Sınırsız';
 
   // Matched requests with scores
   const matchedRequests = requests.map(req => {
@@ -90,8 +130,6 @@ export default function CarrierDashboard() {
   const pendingOffers = myOffers.filter(o => o.status === 'PENDING');
   const acceptedOffers = myOffers.filter(o => o.status === 'ACCEPTED');
 
-  const isPlanLimited = carrier.planId === 'free';
-
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
@@ -100,14 +138,16 @@ export default function CarrierDashboard() {
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
           <div>
             <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-0.5">Operasyon Merkezi</p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">{carrier.companyName}</h1>
-              {carrier.planId === 'plan_gold' && <Badge variant="gold" size="sm" />}
+              {isGold && <Badge variant="gold" size="sm" />}
+              {isPro && <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[11px] font-black border border-blue-200">Pro Üye</span>}
+              {isStarter && <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-black border border-slate-200">Başlangıç (Ücretsiz)</span>}
               {isApproved ? (
                 <Badge variant="verified" size="sm" />
               ) : (
                 <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-black border border-amber-200">
-                  ⏳ Onay Bekliyor
+                  ⏳ Evrak Eksik / Onay Bekliyor
                 </span>
               )}
             </div>
@@ -130,37 +170,32 @@ export default function CarrierDashboard() {
           </div>
         </div>
 
-        {/* ── ONSIZ PROFİL UYARI BANNERI ──────────────────────── */}
+        {/* ── ONAYSIZ / EKSİK EVRAK UYARI BANNERI ──────────────────────── */}
         {!isApproved && (
-          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-900 flex items-start gap-3 shadow-xs">
-            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <h3 className="font-black text-sm text-amber-900">
-                ⚠️ Onaysız Profil — Henüz firmamız tarafından doğrulanmış profil değilsiniz
-              </h3>
-              <p className="text-xs text-amber-800 font-medium leading-relaxed">
-                Yüklediğiniz kimlik ve vergi levhası evraklarınız inceleme aşamasındadır. <strong>12 saat içinde onay & red durumunuz verilecektir.</strong> Bu sürede gelen iş taleplerini ve rotaları inceleyebilirsiniz; ancak teklif verme ve müşterilerle mesajlaşma haklarınız onay verildikten sonra aktif olacaktır.
-              </p>
-              <Link href="/app/carrier/profil" className="inline-block pt-1 text-xs font-black text-[#F95700] hover:underline">
-                Belgelerimi Görüntüle / Yeni Evrak Yükle →
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* ── PLAN UYARI (ücretsiz plan) ─────────────────────── */}
-        {isPlanLimited && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
-              <div>
-                <p className="text-sm font-black text-amber-900">Ücretsiz Plandaşsınız</p>
-                <p className="text-xs text-amber-700 font-medium">Teklif vermek ve müşteri telefonu görmek için Pro veya Gold plana geçin.</p>
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <h3 className="font-black text-sm text-amber-900">
+                  ⚠️ Onaysız Profil — Kimlik ve Vergi Levhası Yüklemeniz Gerekmektedir
+                </h3>
+                <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                  TaşınTeklif güvencesi kapsamında ilanlara teklif verebilmek için vergi levhası ve yetkili kimlik belgenizi yüklemeniz zorunludur.
+                </p>
+                <div className="flex items-center gap-3 pt-1 text-xs font-bold">
+                  <span className={hasTaxDoc ? 'text-emerald-700' : 'text-red-600'}>
+                    {hasTaxDoc ? '✓ Vergi Levhası Yüklendi' : '✗ Vergi Levhası Eksik'}
+                  </span>
+                  <span>•</span>
+                  <span className={hasIdDoc ? 'text-emerald-700' : 'text-red-600'}>
+                    {hasIdDoc ? '✓ Kimlik Belgesi Yüklendi' : '✗ Kimlik Belgesi Eksik'}
+                  </span>
+                </div>
               </div>
             </div>
-            <Link href="/paketler">
-              <Button variant="primary" size="sm" className="font-black shrink-0">
-                Planı Yükselt
+            <Link href="/app/carrier/profil" className="shrink-0">
+              <Button variant="primary" size="sm" className="font-black text-xs">
+                Evrakları Yükle →
               </Button>
             </Link>
           </div>
@@ -175,14 +210,14 @@ export default function CarrierDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { label: 'Yeni Eşleşen İş', value: matchedRequests.length, color: 'text-[#F95700]', bg: 'bg-orange-50', border: 'border-orange-200', href: '/app/carrier/isler' },
+                { label: 'Günlük Kalan Teklif', value: isStarter ? `${remainingFreeOffers}/3` : 'Sınırsız', color: isStarter && remainingFreeOffers === 0 ? 'text-red-600' : 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', href: isStarter && remainingFreeOffers === 0 ? '/paketler' : '/app/carrier/isler' },
                 { label: 'Bekleyen Teklifim', value: pendingOffers.length, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', href: '/app/carrier/tekliflerim' },
                 { label: 'Kazanılan İş', value: acceptedOffers.length, color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', href: '/app/carrier/tekliflerim' },
-                { label: 'Aktif Alarm', value: alarms.length, color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', href: '/app/carrier/alarmlar' },
               ].map((card, i) => (
                 <Link key={i} href={card.href}
                   className={`${card.bg} border ${card.border} rounded-2xl p-4 hover:shadow-sm transition-all group`}>
                   <p className="text-xs font-bold text-slate-500 mb-1">{card.label}</p>
-                  <p className={`text-3xl font-black ${card.color}`}>{card.value}</p>
+                  <p className={`text-2xl sm:text-3xl font-black ${card.color}`}>{card.value}</p>
                   <p className={`text-[11px] font-bold ${card.color} mt-1 opacity-70 group-hover:opacity-100 transition-opacity`}>
                     Görüntüle →
                   </p>
@@ -204,7 +239,7 @@ export default function CarrierDashboard() {
 
               <div className="p-5 space-y-3">
                 {matchedRequests.slice(0, 3).map((req) => (
-                  <Link key={req.id} href={`/app/carrier/isler`}>
+                  <Link key={req.id} href={`/app/carrier/isler/${req.id}`}>
                     <div className="border border-slate-200 rounded-xl p-4 hover:border-[#F95700] hover:bg-orange-50/30 transition-all group cursor-pointer">
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex-1">
@@ -241,7 +276,7 @@ export default function CarrierDashboard() {
                         <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
                           <Calendar className="w-3.5 h-3.5" />{req.movingDate}
                         </span>
-                        <Button variant="primary" size="sm" className="font-black text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="primary" size="sm" className="font-black text-xs">
                           Teklif Ver
                         </Button>
                       </div>
@@ -401,15 +436,23 @@ export default function CarrierDashboard() {
                 <Zap className="w-4 h-4 text-[#F95700]" />
                 <span className="text-xs font-black text-slate-300 uppercase tracking-wider">Mevcut Plan</span>
               </div>
-              <p className="font-black text-base text-white capitalize mb-3">{carrier.planId.replace('plan_', '').toUpperCase()}</p>
+              <p className="font-black text-base text-white capitalize mb-2">
+                {isGold ? 'GOLD ÜYELİK' : isPro ? 'PRO ÜYELİK' : 'BAŞLANGIÇ (ÜCRETSİZ)'}
+              </p>
               <div className="space-y-1 mb-4">
-                {carrier.planId === 'free' && (
-                  <p className="text-xs text-slate-400 font-medium">Teklif ver, müşteri telefonu gör ve daha fazlası için yükseltin.</p>
+                {isStarter ? (
+                  <p className="text-xs text-slate-300 font-medium">
+                    Günlük 3 ücretsiz teklif hakkı ({carrierOffersToday}/3 kullanıldı)
+                  </p>
+                ) : (
+                  <p className="text-xs text-slate-300 font-medium">
+                    Sınırsız teklif verme ve öncelikli rota eşleşmesi aktif.
+                  </p>
                 )}
               </div>
               <Link href="/paketler">
                 <Button variant="primary" size="sm" className="font-black w-full">
-                  Planları Gör
+                  Planları Gör &amp; Yükselt
                 </Button>
               </Link>
             </div>

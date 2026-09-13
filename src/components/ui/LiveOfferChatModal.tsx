@@ -28,8 +28,8 @@ interface LiveOfferChatModalProps {
 export function LiveOfferChatModal({
   isOpen,
   onClose,
-  carrierName = 'SAYCANLAR NAKLİYAT',
-  carrierSlug = 'saycanlar-nakliyat',
+  carrierName = 'Nakliyat Firması',
+  carrierSlug = '',
   requestId = '#26093',
   offerPrice = 25000
 }: LiveOfferChatModalProps) {

@@ -1,46 +1,107 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  User, 
+  User as UserIcon, 
   Phone, 
   Mail, 
   Save, 
   Check, 
   ShieldCheck, 
-  LogOut 
+  LogOut,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { CustomerSidebar } from '@/components/layout/CustomerSidebar';
 import { db } from '@/lib/data/mock-db';
+import { useAuth } from '@/context/AuthContext';
+import { updateFirestoreUserProfile } from '@/lib/firebase/firestore';
+import { isFirebaseConfigured } from '@/lib/firebase/config';
 import { useRouter } from 'next/navigation';
 
 export default function CustomerProfilePage() {
   const router = useRouter();
-  const user = db.getCurrentUser();
-  const displayName = user?.fullName || (user as any)?.name || 'Hakan Yavaş';
-  const nameParts = displayName.trim().split(' ');
-  const [firstName, setFirstName] = useState(nameParts[0] || 'Hakan');
-  const [lastName, setLastName] = useState(nameParts.slice(1).join(' ') || 'Yavaş');
-  const [phone, setPhone] = useState(user?.phone || '0535 234 56 78');
-  const [email, setEmail] = useState(user?.email || 'hakan@example.com');
-  const [saved, setSaved] = useState(false);
+  const { user: authUser, logout } = useAuth();
+  const [currentUser, setCurrentUser] = useState(() => authUser || db.getCurrentUser());
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (user) {
-      db.setCurrentUser({
-        ...user,
-        fullName: `${firstName} ${lastName}`.trim(),
-        phone,
-        email
-      });
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Sync fields with user data
+  useEffect(() => {
+    const u = authUser || db.getCurrentUser();
+    if (u) {
+      setCurrentUser(u);
+      const fullName = u.fullName || (u as any).name || '';
+      const nameParts = fullName.trim().split(' ');
+      setFirstName(nameParts[0] || '');
+      setLastName(nameParts.slice(1).join(' ') || '');
+      setPhone(u.phone || '');
+      setEmail(u.email || '');
     }
+  }, [authUser]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSaved(false);
+
+    const cleanPhone = phone.trim().replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length < 10) {
+      setErrorMessage('Lütfen geçerli bir cep telefonu numarası giriniz (Örn: 05XX XXX XX XX).');
+      return;
+    }
+
+    setLoading(true);
+
+    const fullName = `${firstName} ${lastName}`.trim();
+    const updatedUser = {
+      ...(currentUser || {}),
+      id: currentUser?.id || (currentUser as any)?.uid || `user_${Date.now()}`,
+      email: email.trim(),
+      fullName,
+      phone: phone.trim(),
+    };
+
+    // 1. Update mock-db
+    db.setCurrentUser(updatedUser as any);
+    setCurrentUser(updatedUser as any);
+
+    // 2. Update Firestore if configured
+    const targetUid = currentUser?.id || (currentUser as any)?.uid;
+    if (isFirebaseConfigured() && targetUid) {
+      try {
+        await updateFirestoreUserProfile(targetUid, {
+          fullName,
+          phone: phone.trim(),
+        });
+      } catch (err: any) {
+        console.warn('Firestore profil güncelleme hatası:', err);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-changed'));
+      window.dispatchEvent(new Event('storage'));
+    }
+
+    setLoading(false);
     setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setTimeout(() => setSaved(false), 4000);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (err) {
+      console.warn('Logout error:', err);
+    }
     db.setCurrentUser(null);
     router.push('/');
     router.refresh();
@@ -75,9 +136,16 @@ export default function CustomerProfilePage() {
               </button>
             </div>
 
+            {errorMessage && (
+              <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs font-bold flex items-center gap-2 animate-fade-in">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
             {saved && (
               <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2 animate-fade-in">
-                <Check className="w-4 h-4 text-emerald-600 shrink-0" /> Bilgileriniz başarıyla güncellendi.
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" /> Bilgileriniz başarıyla kaydedildi.
               </div>
             )}
 
@@ -85,47 +153,80 @@ export default function CustomerProfilePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block font-black text-[#0A1128] mb-1.5">Adınız</label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-slate-200 font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
-                  />
+                  <div className="relative">
+                    <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      required
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Adınız"
+                      className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-200 font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="block font-black text-[#0A1128] mb-1.5">Soyadınız</label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-slate-200 font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
-                  />
+                  <div className="relative">
+                    <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      required
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Soyadınız"
+                      className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-200 font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block font-black text-[#0A1128] mb-1.5">Cep Telefonu Numarası</label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-slate-200 font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
-                  />
+                  <label className="block font-black text-[#0A1128] mb-1.5">
+                    Cep Telefonu Numarası <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="tel"
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="05XX XXX XX XX"
+                      className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-200 font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1 font-medium">
+                    Teklif veren yetkili nakliyecilerin size ulaşabilmesi için kullanılır.
+                  </p>
                 </div>
 
                 <div>
                   <label className="block font-black text-[#0A1128] mb-1.5">E-posta Adresi</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-slate-200 font-bold text-[#0A1128] focus:border-[#F95700] focus:outline-none"
-                  />
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      disabled
+                      value={email}
+                      className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-100 bg-slate-50 font-bold text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1 font-medium">
+                    Hesap güvenliği nedeniyle e-posta adresi değiştirilemez.
+                  </p>
                 </div>
               </div>
 
               <div className="pt-4 border-t border-slate-100 flex justify-end">
-                <Button type="submit" variant="primary" size="md" leftIcon={<Save className="w-4 h-4" />} className="font-black text-xs px-6 py-2.5 rounded-xl shadow-md shadow-orange-900/20">
+                <Button 
+                  type="submit" 
+                  variant="primary" 
+                  size="md" 
+                  isLoading={loading}
+                  leftIcon={loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
+                  className="font-black text-xs px-6 py-2.5 rounded-xl shadow-md bg-[#F95700] hover:bg-[#E04D00]"
+                >
                   Bilgileri Kaydet
                 </Button>
               </div>

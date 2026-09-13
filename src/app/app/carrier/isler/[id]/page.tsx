@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, 
+  ArrowRight,
+  Lock,
   MapPin, 
   Calendar, 
   Building2, 
@@ -27,31 +29,93 @@ import { Modal } from '@/components/ui/Modal';
 import { calculateDistance } from '@/lib/data/turkey-geo';
 import { db } from '@/lib/data/mock-db';
 import { Offer } from '@/types';
+import { sendNotificationEmail } from '@/lib/services/notification-service';
 
 export default function CarrierJobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const resolvedParams = use(params);
   const req = db.getRequestById(resolvedParams.id) || db.getRequests()[0];
-  const carrier = db.getCarriers()[0]; // Demo logged in carrier (Boğaziçi)
+  
+  const currentUser = typeof window !== 'undefined' ? db.getCurrentUser() : null;
+  const isCarrier = currentUser?.role === 'CARRIER';
+  const carrier = isCarrier ? (db.getCurrentCarrier() || db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) || null) : null;
+
+  // Evrak & Doğrulama Kontrolü
+  const carrierDocs = carrier ? db.getDocumentsForCarrier(carrier.id) : [];
+  const hasTaxDoc = carrierDocs.some(d => d.type === 'TAX_CERTIFICATE') || Boolean(carrier?.verificationBadges?.taxVerified);
+  const hasIdDoc = carrierDocs.some(d => d.type === 'IDENTITY') || Boolean(carrier?.verificationBadges?.identityVerified);
+  const isApproved = Boolean(carrier && carrier.verificationStatus === 'APPROVED' && hasTaxDoc && hasIdDoc);
+
+  // Günlük Teklif Kotası & Mevcut Teklif Kontrolü
+  const isFreeOrStarterPlan = !carrier?.planId || carrier.planId === 'plan_starter' || carrier.planId === 'trial' || carrier.planId === 'free';
+  const [activeOffers, setActiveOffers] = useState<Offer[]>(() => carrier ? db.getOffersForCarrier(carrier.id) : []);
+  const existingOffer = activeOffers.find(o => o.requestId === req.id && o.status !== 'WITHDRAWN');
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayOffersCount = activeOffers.filter(o => o.createdAt && o.createdAt.startsWith(todayStr) && o.status !== 'WITHDRAWN').length;
+  const isDailyLimitReached = Boolean(carrier && isFreeOrStarterPlan && todayOffersCount >= 3);
+
+  const handleWithdrawOffer = (offerId: string) => {
+    if (confirm('Bu ilana verdiğiniz teklifi geri çekmek istediğinizden emin misiniz?')) {
+      db.withdrawOffer(offerId);
+      setActiveOffers(prev => prev.map(o => o.id === offerId ? { ...o, status: 'WITHDRAWN' as const } : o));
+      setPrice('');
+      setNotes('');
+    }
+  };
 
   // Distance estimate
   const distanceInfo = calculateDistance(req.originCity, req.destinationCity);
 
-  // Quote Form State (Spec Item 61)
-  const [price, setPrice] = useState('24500');
+  // Quote Form State
+  const [price, setPrice] = useState('');
   const [isVatIncluded, setIsVatIncluded] = useState(true);
   const [isPackagingIncluded, setIsPackagingIncluded] = useState(true);
-  const [isMobileElevatorIncluded, setIsMobileElevatorIncluded] = useState(true);
-  const [isAssemblyIncluded, setIsAssemblyIncluded] = useState(true);
+  const [isMobileElevatorIncluded, setIsMobileElevatorIncluded] = useState(false);
+  const [isAssemblyIncluded, setIsAssemblyIncluded] = useState(false);
   const [isInsuranceIncluded, setIsInsuranceIncluded] = useState(true);
   const [deliveryDuration, setDeliveryDuration] = useState('24 Saat');
-  const [notes, setNotes] = useState('Fiyatımıza çıkış için araç üstü asansör, A\'dan Z\'ye ambalajlama ve sigorta dahildir.');
+  const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [revealedPhone, setRevealedPhone] = useState(false);
 
+  // Warning / Upgrade Modal State
+  const [warningModalOpen, setWarningModalOpen] = useState(false);
+  const [warningModalData, setWarningModalData] = useState<{ title: string; subtitle: string; limitBadge?: string; actionLink?: string; actionText?: string } | null>(null);
+
   const handleSubmitOffer = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!currentUser || currentUser.role !== 'CARRIER' || !carrier) {
+      router.push('/giris?role=nakliyeci');
+      return;
+    }
+
+    if (!isApproved) {
+      setWarningModalData({
+        title: '⚠️ Onaysız Profil — Teklif Verme Kilitli',
+        subtitle: 'TaşınTeklif güvencesi kapsamında müşterilere teklif verebilmek için firmanızın Kimlik ve Vergi Levhası belgelerini yüklemeniz zorunludur.',
+        limitBadge: 'Belgeler Eksik / Onay Bekliyor',
+        actionLink: '/app/carrier/profil',
+        actionText: 'Evrakları Yükle (Profile Git)'
+      });
+      setWarningModalOpen(true);
+      return;
+    }
+
+    if (isDailyLimitReached) {
+      setWarningModalData({
+        title: 'Günlük Ücretsiz Teklif Limitine Ulaştınız (3/3)',
+        subtitle: 'Başlangıç (Ücretsiz) paketinizde günlük en fazla 3 ücretsiz teklif hakkınız bulunmaktadır. Bugün için tüm haklarınızı kullandınız. Sınırsız teklif vermek, müşteri telefon numaralarını görmek ve daha fazla iş almak için paketinizi yükseltin.',
+        limitBadge: '3 / 3 Teklif Kullanıldı',
+        actionLink: '/paketler',
+        actionText: 'Paketleri İncele & Yükselt →'
+      });
+      setWarningModalOpen(true);
+      return;
+    }
+
     setIsSubmitting(true);
 
     setTimeout(() => {
@@ -67,14 +131,27 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
         isAssemblyIncluded,
         isInsuranceIncluded,
         estimatedDeliveryDuration: deliveryDuration,
-        validUntil: '2026-09-15',
-        notes,
+        validUntil: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+        notes: notes || 'Profesyonel ve sigortalı taşımacılık teklifimizdir.',
         status: 'PENDING',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
 
       db.addOffer(newOffer);
+      setActiveOffers(prev => [newOffer, ...prev]);
+
+      sendNotificationEmail({
+        type: 'NEW_OFFER',
+        to: req.customerEmail || 'musteri@tasinteklif.com',
+        customerName: req.customerName,
+        carrierName: carrier.companyName,
+        price: newOffer.price,
+        routeText: `${req.originCity} (${req.originDistrict}) → ${req.destinationCity} (${req.destinationDistrict})`,
+        movingDate: req.movingDate,
+        requestId: req.requestCode || req.id,
+      });
+
       setIsSubmitting(false);
       setSuccessModalOpen(true);
     }, 600);
@@ -82,15 +159,33 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      {/* Header breadcrumb */}
-      <div className="mb-6 flex items-center justify-between">
-        <Link
-          href="/app/carrier/isler"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#0A1128]"
-        >
-          <ArrowLeft className="w-4 h-4" /> Açık İşlere Dön
-        </Link>
-        <span className="text-xs text-slate-400">Talep Kodu: {req.requestCode}</span>
+      {/* Header breadcrumb & Back buttons */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <Link
+            href="/app/carrier"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-[#F95700] py-1.5 px-3 rounded-xl bg-white border border-slate-200 shadow-2xs hover:border-[#F95700]/40 transition-colors group"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Operasyon Merkezi</span>
+          </Link>
+          <span className="text-slate-300">/</span>
+          <Link
+            href="/app/carrier/isler"
+            className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-[#0A1128] transition-colors"
+          >
+            Açık İşler Listesi
+          </Link>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {carrier && isFreeOrStarterPlan && (
+            <span className="text-xs font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1 rounded-xl shadow-2xs">
+              Bugün kalan teklif: <strong className={todayOffersCount >= 3 ? 'text-red-600 font-black' : 'text-emerald-700 font-black'}>{Math.max(0, 3 - todayOffersCount)} / 3</strong>
+            </span>
+          )}
+          <span className="text-xs text-slate-400">Talep Kodu: {req.requestCode}</span>
+        </div>
       </div>
 
       {/* Main Grid: Details on Left, Offer Sticky Form on Right */}
@@ -215,119 +310,199 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
 
         {/* Right 1 Col: Quick Quotation Form Drawer (Spec Item 61) */}
         <div>
-          <div className="bg-white rounded-2xl border-2 border-blue-200 p-6 shadow-lg shadow-blue-900/5 sticky top-24 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-[#0A1128] flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#146EF5]" /> Teklif Ver
-              </h3>
-              <span className="text-xs text-slate-400">30 saniyede hazırla</span>
-            </div>
+          {existingOffer ? (
+            <div className="bg-white rounded-2xl border-2 border-emerald-500 p-6 shadow-lg shadow-emerald-900/5 sticky top-24 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-base font-bold text-emerald-800 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" /> Teklifiniz İletildi
+                </h3>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+                  existingOffer.status === 'ACCEPTED'
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                }`}>
+                  {existingOffer.status === 'ACCEPTED' ? 'Kabul Edildi 🎉' : 'Müşteri İncelemesinde'}
+                </span>
+              </div>
 
-            <form onSubmit={handleSubmitOffer} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Toplam Fiyat (TL)</label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    required
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    placeholder="Örn: 24500"
-                    className="w-full px-3.5 py-3 rounded-xl border border-slate-300 font-black text-lg text-[#0A1128] focus:ring-2 focus:ring-[#146EF5]"
-                  />
-                  <span className="absolute right-3.5 top-3.5 font-bold text-slate-400">TL</span>
+              <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-100 space-y-2 text-center">
+                <span className="text-xs text-slate-500 block font-semibold">Verilen Teklif Tutarı</span>
+                <span className="text-3xl font-black text-emerald-800 block">
+                  {existingOffer.price.toLocaleString('tr-TR')} TL
+                </span>
+                <p className="text-xs text-slate-600">
+                  {existingOffer.isPackagingIncluded ? 'Paketleme Dahil' : 'Paketlemesiz'} • {existingOffer.estimatedDeliveryDuration}
+                </p>
+              </div>
+
+              <div className="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">KDV:</span>
+                  <span className="font-bold text-slate-700">{existingOffer.isVatIncluded ? 'Dahil' : 'Hariç'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Mobil Asansör:</span>
+                  <span className="font-bold text-slate-700">{existingOffer.isMobileElevatorIncluded ? 'Dahil' : 'Hariç'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Montaj/Demontaj:</span>
+                  <span className="font-bold text-slate-700">{existingOffer.isAssemblyIncluded ? 'Dahil' : 'Hariç'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Nakliyat Sigortası:</span>
+                  <span className="font-bold text-slate-700">{existingOffer.isInsuranceIncluded ? 'Dahil' : 'Hariç'}</span>
                 </div>
               </div>
 
-              {/* VAT toggle */}
-              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
-                <span className="font-semibold text-slate-700">KDV Dahil mi?</span>
-                <input
-                  type="checkbox"
-                  checked={isVatIncluded}
-                  onChange={(e) => setIsVatIncluded(e.target.checked)}
-                  className="w-4 h-4 text-[#146EF5]"
-                />
+              {existingOffer.notes && (
+                <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <span className="font-bold block text-slate-700 mb-1">Müşteriye Notunuz:</span>
+                  <p className="text-slate-600 italic leading-relaxed">{existingOffer.notes}</p>
+                </div>
+              )}
+
+              {existingOffer.status === 'PENDING' && (
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => handleWithdrawOffer(existingOffer.id)}
+                    className="w-full py-2.5 px-4 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 font-bold text-xs transition-colors cursor-pointer"
+                  >
+                    Teklifi Geri Çek / İptal Et
+                  </button>
+                  <p className="text-[11px] text-slate-400 text-center mt-2">
+                    Teklifi geri çektiğinizde müşteri bu teklifi göremez.
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border-2 border-blue-200 p-6 shadow-lg shadow-blue-900/5 sticky top-24 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-base font-bold text-[#0A1128] flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#146EF5]" /> Teklif Ver
+                </h3>
+                <span className="text-xs text-slate-400">30 saniyede hazırla</span>
               </div>
 
-              {/* Checklist included services */}
-              <div className="space-y-2 pt-1 font-medium text-slate-700">
-                <label className="flex items-center gap-2 cursor-pointer">
+              <form onSubmit={handleSubmitOffer} className="space-y-4 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Toplam Fiyat (TL)</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      required
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      placeholder="Örn: 24500"
+                      className="w-full px-3.5 py-3 rounded-xl border border-slate-300 font-black text-lg text-[#0A1128] focus:ring-2 focus:ring-[#146EF5]"
+                    />
+                    <span className="absolute right-3.5 top-3.5 font-bold text-slate-400">TL</span>
+                  </div>
+                </div>
+
+                {/* VAT toggle */}
+                <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
+                  <span className="font-semibold text-slate-700">KDV Dahil mi?</span>
                   <input
                     type="checkbox"
-                    checked={isPackagingIncluded}
-                    onChange={(e) => setIsPackagingIncluded(e.target.checked)}
+                    checked={isVatIncluded}
+                    onChange={(e) => setIsVatIncluded(e.target.checked)}
                     className="w-4 h-4 text-[#146EF5]"
                   />
-                  <span>A&apos;dan Z&apos;ye Ambalajlama Dahil</span>
-                </label>
+                </div>
 
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isMobileElevatorIncluded}
-                    onChange={(e) => setIsMobileElevatorIncluded(e.target.checked)}
-                    className="w-4 h-4 text-[#146EF5]"
+                {/* Checklist included services */}
+                <div className="space-y-2 pt-1 font-medium text-slate-700">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isPackagingIncluded}
+                      onChange={(e) => setIsPackagingIncluded(e.target.checked)}
+                      className="w-4 h-4 text-[#146EF5]"
+                    />
+                    <span>A&apos;dan Z&apos;ye Ambalajlama Dahil</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isMobileElevatorIncluded}
+                      onChange={(e) => setIsMobileElevatorIncluded(e.target.checked)}
+                      className="w-4 h-4 text-[#146EF5]"
+                    />
+                    <span>Mobil Asansör Hizmeti Dahil</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isAssemblyIncluded}
+                      onChange={(e) => setIsAssemblyIncluded(e.target.checked)}
+                      className="w-4 h-4 text-[#146EF5]"
+                    />
+                    <span>Mobilya Söküm & Montajı Dahil</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isInsuranceIncluded}
+                      onChange={(e) => setIsInsuranceIncluded(e.target.checked)}
+                      className="w-4 h-4 text-[#146EF5]"
+                    />
+                    <span>Emtia Nakliyat Sigortası Dahil</span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Tahmini Teslim Süresi</label>
+                  <select
+                    value={deliveryDuration}
+                    onChange={(e) => setDeliveryDuration(e.target.value)}
+                    className="w-full p-2.5 rounded-lg border border-slate-300 bg-white font-semibold"
+                  >
+                    <option value="Aynı Gün">Aynı Gün</option>
+                    <option value="24 Saat">24 Saat</option>
+                    <option value="2 Gün">2 Gün</option>
+                    <option value="3-4 Gün">3-4 Gün</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Müşteriye Notunuz</label>
+                  <textarea
+                    rows={2}
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="w-full p-2.5 rounded-lg border border-slate-300 text-xs"
                   />
-                  <span>Mobil Asansör Hizmeti Dahil</span>
-                </label>
+                </div>
 
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isAssemblyIncluded}
-                    onChange={(e) => setIsAssemblyIncluded(e.target.checked)}
-                    className="w-4 h-4 text-[#146EF5]"
-                  />
-                  <span>Mobilya Söküm & Montajı Dahil</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isInsuranceIncluded}
-                    onChange={(e) => setIsInsuranceIncluded(e.target.checked)}
-                    className="w-4 h-4 text-[#146EF5]"
-                  />
-                  <span>Emtia Nakliyat Sigortası Dahil</span>
-                </label>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Tahmini Teslim Süresi</label>
-                <select
-                  value={deliveryDuration}
-                  onChange={(e) => setDeliveryDuration(e.target.value)}
-                  className="w-full p-2.5 rounded-lg border border-slate-300 bg-white font-semibold"
-                >
-                  <option value="Aynı Gün">Aynı Gün</option>
-                  <option value="24 Saat">24 Saat</option>
-                  <option value="2 Gün">2 Gün</option>
-                  <option value="3-4 Gün">3-4 Gün</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Müşteriye Notunuz</label>
-                <textarea
-                  rows={2}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="w-full p-2.5 rounded-lg border border-slate-300 text-xs"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                className="w-full font-bold shadow-md"
-                isLoading={isSubmitting}
-              >
-                Teklifi Müşteriye Gönder
-              </Button>
-            </form>
-          </div>
+                <div className="flex items-center gap-2 pt-1">
+                  <Link href="/app/carrier/isler" className="flex-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="lg"
+                      className="w-full font-bold text-xs"
+                    >
+                      Vazgeç
+                    </Button>
+                  </Link>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    className="flex-[2] font-bold shadow-md text-xs"
+                    isLoading={isSubmitting}
+                  >
+                    Teklifi Müşteriye Gönder
+                  </Button>
+                </div>
+              </form>
+            </div>
+          )}
         </div>
       </div>
 
@@ -360,6 +535,40 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
             <Button variant="outline" size="md" onClick={() => router.push('/app/carrier/isler')} className="w-full">
               Benzer İşleri Gör
             </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Warning / Upgrade Modal */}
+      <Modal
+        isOpen={warningModalOpen}
+        onClose={() => setWarningModalOpen(false)}
+        title={warningModalData?.title || 'Uyarı'}
+      >
+        <div className="space-y-4 text-center py-2">
+          <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+            <Lock className="w-7 h-7" />
+          </div>
+
+          <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed max-w-md mx-auto">
+            {warningModalData?.subtitle}
+          </p>
+
+          {warningModalData?.limitBadge && (
+            <div className="inline-block px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-black border border-slate-200">
+              {warningModalData.limitBadge}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-3">
+            <Button variant="outline" size="md" className="flex-1 font-bold" onClick={() => setWarningModalOpen(false)}>
+              Vazgeç
+            </Button>
+            <Link href={warningModalData?.actionLink || "/paketler"} className="flex-1" onClick={() => setWarningModalOpen(false)}>
+              <Button variant="primary" size="md" className="w-full font-black text-xs" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                {warningModalData?.actionText || "Paketleri İncele & Yükselt"}
+              </Button>
+            </Link>
           </div>
         </div>
       </Modal>

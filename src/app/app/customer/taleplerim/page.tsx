@@ -150,8 +150,8 @@ export default function CustomerRequestsPage() {
 
   const [liveChatOpen, setLiveChatOpen] = useState(false);
   const [chatData, setChatData] = useState({
-    carrierName: 'SAYCANLAR NAKLİYAT',
-    carrierSlug: 'saycanlar-nakliyat',
+    carrierName: 'Teklif Veren Firma',
+    carrierSlug: '',
     requestId: '#26093',
     price: 25000
   });
@@ -405,11 +405,14 @@ export default function CustomerRequestsPage() {
                             <button
                               type="button"
                               onClick={() => {
+                                const offers = db.getOffersForRequest(req.id);
+                                const firstOffer = offers[0];
+                                const carrier = firstOffer ? db.getCarrierById(firstOffer.carrierId) : null;
                                 setChatData({
-                                  carrierName: 'SAYCANLAR NAKLİYAT',
-                                  carrierSlug: 'saycanlar-nakliyat',
+                                  carrierName: carrier?.companyName || firstOffer?.carrier?.companyName || 'Teklif Veren Firma',
+                                  carrierSlug: carrier?.slug || '',
                                   requestId: req.requestCode || '#26093',
-                                  price: 25000
+                                  price: firstOffer?.price || 25000
                                 });
                                 setLiveChatOpen(true);
                               }}

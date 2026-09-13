@@ -16,7 +16,16 @@ import { Badge } from '@/components/ui/Badge';
 import { db } from '@/lib/data/mock-db';
 
 export default function CarrierVerificationPendingPage() {
-  const carrier = db.getCarriers()[db.getCarriers().length - 1] || db.getCarriers()[0];
+  const [carrier, setCarrier] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    const currentUser = db.getCurrentUser();
+    let activeCarrier = db.getCurrentCarrier();
+    if (!activeCarrier && currentUser) {
+      activeCarrier = db.getCarriers().find(c => c.userId === currentUser.id || c.id === currentUser.carrierProfileId) || null;
+    }
+    setCarrier(activeCarrier);
+  }, []);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-16 text-center animate-fade-in">
@@ -29,7 +38,7 @@ export default function CarrierVerificationPendingPage() {
       </h1>
 
       <p className="text-sm text-slate-600 leading-relaxed max-w-lg mx-auto mb-8">
-        <strong>{carrier.companyName}</strong> adına yüklediğiniz kimlik ve vergi levhası belgeleri yetkili ekibimiz tarafından kontrol edilmektedir. Onay işlemi genellikle 2 saat içinde tamamlanır.
+        <strong>{carrier?.companyName || 'Firmanız'}</strong> adına yüklediğiniz kimlik ve vergi levhası belgeleri yetkili ekibimiz tarafından kontrol edilmektedir. Onay işlemi genellikle 2 saat içinde tamamlanır.
       </p>
 
       {/* Verification Checklist (Spec Item 11) */}

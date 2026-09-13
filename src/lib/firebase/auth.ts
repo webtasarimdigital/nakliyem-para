@@ -41,6 +41,8 @@ export async function registerWithFirebase(params: RegisterParams): Promise<{ us
       email: params.email,
       phone: params.phone ?? '',
       role: params.role,
+      fullName: params.fullName,
+      companyName: params.companyName,
       createdAt: new Date().toISOString(),
     };
 
@@ -65,14 +67,15 @@ export async function registerWithFirebase(params: RegisterParams): Promise<{ us
         district: params.district || 'Merkez',
         services: ['evden-eve'],
         serviceAreas: ['TÜM_TÜRKİYE'],
-        verificationStatus: 'APPROVED',
+        verificationStatus: 'PENDING',
         verificationBadges: {
-          identityVerified: true,
-          taxVerified: true,
-          transportPermitVerified: true,
-          elevatorVerified: true,
+          identityVerified: false,
+          taxVerified: false,
+          transportPermitVerified: false,
+          elevatorVerified: false,
         },
-        planId: 'plan_starter',
+        planId: 'trial',
+        isProfileCompleted: false,
         rating: 5.0,
         reviewCount: 0,
         completedJobsCount: 0,
@@ -219,4 +222,61 @@ export async function sendPasswordResetFirebase(email: string): Promise<{ succes
     return { success: false, error: message };
   }
 }
+
+/**
+ * Pre-check if an email is already registered in Firebase Auth.
+ * Tests if email is in use by any provider (Google, password, etc.).
+ */
+export async function checkEmailAlreadyRegistered(email: string): Promise<boolean> {
+  if (!email || !email.includes('@')) return false;
+  const cleanEmail = email.trim().toLowerCase();
+
+  try {
+    const res = await fetch('/api/auth/check-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: cleanEmail }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return !!data.exists;
+    }
+  } catch (err) {
+    console.warn('API check-email error, falling back to direct REST:', err);
+  }
+
+  // Fallback to direct REST API
+  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+  if (!apiKey) return false;
+  try {
+    const dummyPassword = `Chk_${Date.now()}_${Math.random().toString(36).slice(2)}!A1`;
+    const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: cleanEmail,
+        password: dummyPassword,
+        returnSecureToken: true,
+      }),
+    });
+    const data = await res.json();
+    if (data.error) {
+      const msg = data.error.message;
+      const errors = data.error.errors || [];
+      return msg === 'EMAIL_EXISTS' || errors.some((e: any) => e.message === 'EMAIL_EXISTS' || e.reason === 'EMAIL_EXISTS');
+    }
+    if (data.idToken) {
+      await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken: data.idToken }),
+      }).catch(() => {});
+    }
+    return false;
+  } catch (err) {
+    return false;
+  }
+}
+
+
 

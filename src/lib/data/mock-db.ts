@@ -17,23 +17,25 @@ import {
   ConversationMessage, 
   NotificationItem, 
   SystemSettings,
-  CarrierDocument
+  CarrierDocument,
+  UserRole
 } from '@/types';
 
 // Seed Subscription Plans
 export const SEED_PLANS: SubscriptionPlan[] = [
   {
     id: 'plan_starter',
-    name: 'Başlangıç',
+    name: 'Başlangıç (Ücretsiz)',
     slug: 'baslangic',
-    tagline: 'Platforma yeni katılan ve iş hacmini denemek isteyen firmalar için.',
-    priceMonthly: 1250,
-    priceYearly: 12500,
-    trialDays: 7,
+    tagline: 'Platforma yeni katılan ve iş hacmini denemek isteyen firmalar için günlük 3 ücretsiz teklif.',
+    priceMonthly: 0,
+    priceYearly: 0,
+    trialDays: 0,
+    badge: 'Ücretsiz',
     isActive: true,
     features: {
       offerCreate: true,
-      monthlyOfferLimit: 25,
+      monthlyOfferLimit: 90,
       customerPhoneAccess: false,
       notebookAccess: true,
       notebookPostLimit: 10,
@@ -183,8 +185,8 @@ export const SEED_CARRIERS: CarrierProfile[] = [
     slug: 'saycanlar-nakliyat',
     authorizedPersonName: 'Murat',
     authorizedPersonSurname: 'Saycan',
-    phone: '0532 999 88 77',
-    whatsapp: '0532 999 88 77',
+    phone: '0532 489 71 25',
+    whatsapp: '0532 489 71 25',
     email: 'info@saycanlarnakliyat.com',
     logoUrl: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=150&auto=format&fit=crop&q=80',
     coverImageUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&auto=format&fit=crop&q=80',
@@ -201,12 +203,14 @@ export const SEED_CARRIERS: CarrierProfile[] = [
       elevatorVerified: true
     },
     planId: 'plan_gold',
+    isProfileCompleted: true,
     rating: 4.9,
     reviewCount: 58,
     completedJobsCount: 240,
     responseRatePercent: 99,
     joinedAt: '2011-02-10T10:00:00Z',
-    createdAt: '2011-02-10T10:00:00Z'
+    createdAt: '2011-02-10T10:00:00Z',
+    isSeed: true
   },
   {
     id: 'carr_bogazici',
@@ -215,8 +219,8 @@ export const SEED_CARRIERS: CarrierProfile[] = [
     slug: 'bogazici-profesyonel-nakliyat',
     authorizedPersonName: 'Murat',
     authorizedPersonSurname: 'Yılmaz',
-    phone: '0532 890 12 34',
-    whatsapp: '0532 890 12 34',
+    phone: '0533 624 18 90',
+    whatsapp: '0533 624 18 90',
     email: 'info@bogazicinakliyat.com',
     logoUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=150&auto=format&fit=crop&q=80',
     coverImageUrl: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=1200&auto=format&fit=crop&q=80',
@@ -247,7 +251,8 @@ export const SEED_CARRIERS: CarrierProfile[] = [
     completedJobsCount: 312,
     responseRatePercent: 98,
     joinedAt: '2023-01-15T10:00:00Z',
-    createdAt: '2023-01-15T10:00:00Z'
+    createdAt: '2023-01-15T10:00:00Z',
+    isSeed: true
   }
 ];
 
@@ -261,7 +266,8 @@ export const SEED_DOCUMENTS: CarrierDocument[] = [
     fileName: 'marmara_lider_vergi_levhasi.pdf',
     fileUrl: '/mock-files/vergi_levhasi.pdf',
     status: 'PENDING',
-    uploadedAt: '2024-02-18T10:05:00Z'
+    uploadedAt: '2024-02-18T10:05:00Z',
+    isSeed: true
   },
   {
     id: 'doc_2',
@@ -271,7 +277,8 @@ export const SEED_DOCUMENTS: CarrierDocument[] = [
     fileName: 'mehmet_arslan_kimlik.jpg',
     fileUrl: '/mock-files/kimlik.jpg',
     status: 'PENDING',
-    uploadedAt: '2024-02-18T10:08:00Z'
+    uploadedAt: '2024-02-18T10:08:00Z',
+    isSeed: true
   }
 ];
 
@@ -281,42 +288,46 @@ export interface RegisteredUserRecord {
   email: string;
   phone: string;
   password?: string;
-  role: 'CUSTOMER' | 'CARRIER' | 'ADMIN';
+  role: UserRole;
   fullName?: string;
   companyName?: string;
   carrierId?: string;
   createdAt: string;
+  isSeed?: boolean;
 }
 
 export const SEED_REGISTERED_USERS: RegisteredUserRecord[] = [
   {
     id: 'user_cust_1',
     email: 'ahmet@example.com',
-    phone: '0535 234 56 78',
+    phone: '0535 412 83 91',
     password: 'Password123!',
     role: 'CUSTOMER',
     fullName: 'Ahmet Yılmaz',
-    createdAt: '2024-01-01T00:00:00Z'
+    createdAt: '2024-01-01T00:00:00Z',
+    isSeed: true
   },
   {
     id: 'user_carr_1',
     email: 'info@bogazicinakliyat.com',
-    phone: '0532 890 12 34',
+    phone: '0533 624 18 90',
     password: 'Password123!',
     role: 'CARRIER',
     companyName: 'Boğaziçi Profesyonel Nakliyat',
     carrierId: 'carr_bogazici',
-    createdAt: '2024-01-10T10:00:00Z'
+    createdAt: '2024-01-10T10:00:00Z',
+    isSeed: true
   },
   {
     id: 'user_carr_pending',
     email: 'info@marmaralider.com',
-    phone: '0533 123 45 67',
+    phone: '0542 315 84 92',
     password: 'Password123!',
     role: 'CARRIER',
     companyName: 'Marmara Lider Nakliyat',
     carrierId: 'carr_yeni_onay_bekleyen',
-    createdAt: '2024-02-18T10:00:00Z'
+    createdAt: '2024-02-18T10:00:00Z',
+    isSeed: true
   }
 ];
 
@@ -327,7 +338,7 @@ export const SEED_REQUESTS: MovingRequest[] = [
     requestCode: '#26368',
     customerId: 'cust_ahmet',
     customerName: 'Ahmet T.',
-    customerPhone: '0534 812 ** **',
+    customerPhone: '0534 812 45 90',
     allowPhoneCall: true,
     serviceCategory: 'EVDEN_EVE',
     originCity: 'Bursa',
@@ -354,14 +365,15 @@ export const SEED_REQUESTS: MovingRequest[] = [
     status: 'ACTIVE',
     offersCount: 0,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    isSeed: true
   },
   {
     id: 'req_2',
     requestCode: '#38491',
     customerId: 'cust_selim',
     customerName: 'Selim K.',
-    customerPhone: '0532 418 ** **',
+    customerPhone: '0532 418 63 21',
     allowPhoneCall: true,
     serviceCategory: 'EVDEN_EVE',
     originCity: 'İstanbul',
@@ -389,14 +401,15 @@ export const SEED_REQUESTS: MovingRequest[] = [
     status: 'ACTIVE',
     offersCount: 0,
     createdAt: new Date(Date.now() - 3600000 * 3).toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    isSeed: true
   },
   {
     id: 'req_3',
     requestCode: '#49102',
     customerId: 'cust_busra',
     customerName: 'Büşra T.',
-    customerPhone: '0544 671 ** **',
+    customerPhone: '0544 671 90 84',
     allowPhoneCall: true,
     serviceCategory: 'EVDEN_EVE',
     originCity: 'İzmir',
@@ -423,14 +436,15 @@ export const SEED_REQUESTS: MovingRequest[] = [
     status: 'ACTIVE',
     offersCount: 0,
     createdAt: new Date(Date.now() - 3600000 * 7).toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    isSeed: true
   },
   {
     id: 'req_4',
     requestCode: '#51283',
     customerId: 'cust_murat',
     customerName: 'Murat Y.',
-    customerPhone: '0535 892 ** **',
+    customerPhone: '0535 892 14 77',
     allowPhoneCall: true,
     serviceCategory: 'OFIS_TASIMA',
     originCity: 'İstanbul',
@@ -458,7 +472,8 @@ export const SEED_REQUESTS: MovingRequest[] = [
     status: 'ACTIVE',
     offersCount: 0,
     createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    isSeed: true
   }
 ];
 
@@ -592,7 +607,8 @@ export const SEED_AD_CAMPAIGNS: AdCampaign[] = [
     currentClicks: 720,
     source: 'GOLD_MEMBERSHIP',
     isActive: true,
-    createdAt: '2026-08-01T00:00:00Z'
+    createdAt: '2026-08-01T00:00:00Z',
+    isSeed: true
   },
   {
     id: 'camp_2',
@@ -606,7 +622,8 @@ export const SEED_AD_CAMPAIGNS: AdCampaign[] = [
     currentClicks: 590,
     source: 'GOLD_MEMBERSHIP',
     isActive: true,
-    createdAt: '2026-08-01T00:00:00Z'
+    createdAt: '2026-08-01T00:00:00Z',
+    isSeed: true
   },
   {
     id: 'camp_3',
@@ -620,7 +637,8 @@ export const SEED_AD_CAMPAIGNS: AdCampaign[] = [
     currentClicks: 210,
     source: 'GOLD_MEMBERSHIP',
     isActive: true,
-    createdAt: '2026-08-01T00:00:00Z'
+    createdAt: '2026-08-01T00:00:00Z',
+    isSeed: true
   }
 ];
 
@@ -687,7 +705,7 @@ export const SEED_MESSAGES: ConversationMessage[] = [];
 // Seed System Settings
 export const SEED_SETTINGS: SystemSettings = {
   platformName: 'TaşınTeklif',
-  supportPhone: '0850 300 00 00',
+  supportPhone: '0850 308 34 26',
   supportEmail: 'bilgi@tasinteklif.com',
   appStoreUrl: 'https://apple.com/app-store',
   googlePlayUrl: 'https://play.google.com',
@@ -703,7 +721,7 @@ export const SEED_SETTINGS: SystemSettings = {
     routeMatchingEnabled: true,
     pushEnabled: true,
     digitalServicesEnabled: true,
-    reviewsEnabled: true
+    reviewsEnabled: true,
   }
 };
 
@@ -737,6 +755,17 @@ class MockDatabase {
 
   setCurrentUser(user: User | null): void {
     this.setItem('currentUser', user);
+    if (user && user.email) {
+      this.addRegisteredUser({
+        id: user.id,
+        email: user.email.toLowerCase(),
+        phone: user.phone || '',
+        fullName: user.fullName || user.companyName || '',
+        companyName: user.companyName,
+        role: user.role || 'CUSTOMER',
+        createdAt: user.createdAt || new Date().toISOString(),
+      });
+    }
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('auth-changed', { detail: user }));
     }
@@ -752,7 +781,7 @@ class MockDatabase {
       this.setCurrentUser({
         id: 'user_cust_1',
         email: 'ahmet@example.com',
-        phone: '0535 234 56 78',
+        phone: '0535 412 83 91',
         role: 'CUSTOMER',
         customerProfileId: 'cust_1',
         createdAt: '2024-01-01T00:00:00Z'
@@ -763,8 +792,9 @@ class MockDatabase {
       this.setCurrentUser({
         id: 'user_carr_1',
         email: 'murat@bogazicinakliyat.com',
-        phone: '0532 890 12 34',
+        phone: '0533 624 18 90',
         role: 'CARRIER',
+        companyName: 'Boğaziçi Profesyonel Nakliyat',
         carrierProfileId: 'carr_bogazici',
         createdAt: '2023-01-15T10:00:00Z'
       });
@@ -774,12 +804,63 @@ class MockDatabase {
       this.setCurrentUser({
         id: 'user_admin_1',
         email: 'admin@TaşınTeklif.com',
-        phone: '0850 300 00 00',
+        phone: '0850 308 34 26',
         role: 'ADMIN',
         createdAt: '2023-01-01T00:00:00Z'
       });
       return;
     }
+  }
+
+  // Get active carrier matching current logged-in user
+  getCurrentCarrier(): CarrierProfile | null {
+    const user = this.getCurrentUser();
+    if (!user || user.role !== 'CARRIER') return null;
+    const carriers = this.getCarriers();
+    if (user.carrierProfileId) {
+      const found = carriers.find(c => c.id === user.carrierProfileId);
+      if (found) return found;
+    }
+    const foundByUserId = carriers.find(c => c.userId === user.id);
+    if (foundByUserId) return foundByUserId;
+    if (user.companyName) {
+      const foundByName = carriers.find(c => c.companyName?.trim().toLowerCase() === user.companyName?.trim().toLowerCase());
+      if (foundByName) return foundByName;
+    }
+
+    // Auto-create an unapproved trial carrier record for this new user so they never inherit another company
+    const newCarrier: CarrierProfile = {
+      id: `carr_${user.id}`,
+      userId: user.id,
+      companyName: user.companyName || '',
+      slug: (user.companyName || user.email.split('@')[0]).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      authorizedPersonName: user.fullName || '',
+      authorizedPersonSurname: '',
+      phone: user.phone || '',
+      email: user.email,
+      shortBio: '',
+      city: 'İstanbul',
+      district: '',
+      services: ['evden-eve'],
+      serviceAreas: ['TÜM_TÜRKİYE'],
+      verificationStatus: 'PENDING',
+      verificationBadges: {
+        identityVerified: false,
+        taxVerified: false,
+        transportPermitVerified: false,
+        elevatorVerified: false
+      },
+      planId: 'trial',
+      isProfileCompleted: Boolean(user.companyName && user.phone),
+      rating: 5.0,
+      reviewCount: 0,
+      completedJobsCount: 0,
+      responseRatePercent: 100,
+      joinedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
+    };
+    this.addCarrier(newCarrier);
+    return newCarrier;
   }
 
   // Carriers
@@ -801,7 +882,7 @@ class MockDatabase {
   }
 
   addCarrier(carrier: CarrierProfile): void {
-    const list = [carrier, ...this.getCarriers()];
+    const list = [carrier, ...this.getCarriers().filter(c => c.id !== carrier.id && c.userId !== carrier.userId)];
     this.setItem('carriers', list);
   }
 
@@ -834,6 +915,14 @@ class MockDatabase {
     return this.getItem<RegisteredUserRecord[]>('registeredUsers', SEED_REGISTERED_USERS);
   }
 
+  getUsers(): (RegisteredUserRecord | User)[] {
+    return this.getRegisteredUsers();
+  }
+
+  getUserById(id: string): (RegisteredUserRecord | User) | undefined {
+    return this.getRegisteredUsers().find(u => u.id === id);
+  }
+
   getUserByPhone(phone: string): RegisteredUserRecord | undefined {
     const clean = phone.replace(/\D/g, '');
     return this.getRegisteredUsers().find(u => u.phone.replace(/\D/g, '') === clean);
@@ -848,7 +937,8 @@ class MockDatabase {
   }
 
   addRegisteredUser(user: RegisteredUserRecord): void {
-    const list = [...this.getRegisteredUsers().filter(u => u.id !== user.id), user];
+    const cleanEmail = user.email.trim().toLowerCase();
+    const list = [...this.getRegisteredUsers().filter(u => u.id !== user.id && u.email.trim().toLowerCase() !== cleanEmail), user];
     this.setItem('registeredUsers', list);
   }
 
@@ -872,7 +962,7 @@ class MockDatabase {
     if (subs[carrierId]) return subs[carrierId];
 
     const carrier = this.getCarrierById(carrierId);
-    const planId = carrier?.planId || 'plan_gold';
+    const planId = carrier?.planId || 'plan_starter';
     const now = new Date();
     // Varsayılan: 24 gün kaldı
     const periodEnd = new Date(now.getTime() + 24 * 24 * 60 * 60 * 1000);
@@ -886,7 +976,7 @@ class MockDatabase {
       currentPeriodEnd: periodEnd.toISOString(),
       cancelAtPeriodEnd: false,
       lastPaymentDate: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-      lastPaymentAmount: planId === 'plan_gold' ? 4850 : planId === 'plan_pro' ? 2450 : 1250,
+      lastPaymentAmount: planId === 'plan_gold' ? 4850 : planId === 'plan_pro' ? 2450 : 0,
       cardLastFour: '4242',
       cardBrand: 'Mastercard',
       autoRenew: true,
@@ -1048,6 +1138,26 @@ class MockDatabase {
     this.setItem('offers', list);
   }
 
+  withdrawOffer(id: string): boolean {
+    const offers = this.getOffers();
+    const offer = offers.find(o => o.id === id);
+    if (!offer) return false;
+
+    const list = offers.map(o => o.id === id ? { ...o, status: 'WITHDRAWN' as const, updatedAt: new Date().toISOString() } : o);
+    this.setItem('offers', list);
+
+    const req = this.getRequestById(offer.requestId);
+    if (req && req.offersCount > 0) {
+      this.updateRequest(req.id, { offersCount: Math.max(0, req.offersCount - 1) });
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('offer-updated', { detail: { id, status: 'WITHDRAWN' } }));
+    }
+    return true;
+  }
+
   // Assign request to an offer
   acceptOffer(requestId: string, offerId: string): void {
     const offers = this.getOffers();
@@ -1156,7 +1266,8 @@ class MockDatabase {
         notes: 'Ankara Çankaya ve Yenimahalle bölgesinde aylık 5.000 TL bütçe ile reklam vermek istiyor.',
         status: 'CONTACTED',
         createdAt: '2026-08-24T11:00:00Z',
-        updatedAt: '2026-08-25T09:30:00Z'
+        updatedAt: '2026-08-25T09:30:00Z',
+        isSeed: true
       }
     ]);
   }
@@ -1337,6 +1448,150 @@ class MockDatabase {
     const list = [listing, ...this.getMarketplaceListings()];
     this.setItem('marketplace_listings', list);
   }
+
+  // Real Data Fetchers (Filters out seed / demo data)
+  getRealCarriers(): CarrierProfile[] {
+    return this.getCarriers().filter(c => !isSeedCarrier(c));
+  }
+
+  getRealRegisteredUsers(): RegisteredUserRecord[] {
+    return this.getRegisteredUsers().filter(u => !isSeedUser(u));
+  }
+
+  getRealRequests(): MovingRequest[] {
+    return this.getRequests().filter(r => !isSeedRequest(r));
+  }
+
+  getRealDocuments(): CarrierDocument[] {
+    return this.getDocuments().filter(d => !isSeedDoc(d));
+  }
+
+  getRealLeads(): DigitalServiceLead[] {
+    return this.getLeads().filter(l => !isSeedLead(l));
+  }
+
+  getRealAdCampaigns(): AdCampaign[] {
+    return this.getAdCampaigns().filter(c => !isSeedCampaign(c));
+  }
+
+  // Purge demo data permanently from localStorage
+  clearDemoData(): void {
+    if (!this.isClient) return;
+
+    // Filter carriers
+    const realCarriers = this.getRealCarriers();
+    this.setItem('carriers', realCarriers);
+
+    // Filter registered users
+    const realUsers = this.getRealRegisteredUsers();
+    this.setItem('registeredUsers', realUsers);
+
+    // Filter requests
+    const realRequests = this.getRealRequests();
+    this.setItem('requests', realRequests);
+
+    // Filter documents
+    const realDocs = this.getRealDocuments();
+    this.setItem('documents', realDocs);
+
+    // Filter leads
+    const realLeads = this.getRealLeads();
+    this.setItem('digital_leads', realLeads);
+
+    // Filter ad campaigns
+    const realCamps = this.getRealAdCampaigns();
+    this.setItem('ad_campaigns', realCamps);
+
+    // Filter offers
+    const realOffers = this.getOffers().filter(o => 
+      !SEED_CARRIER_IDS.has(o.carrierId) && !SEED_REQUEST_IDS.has(o.requestId)
+    );
+    this.setItem('offers', realOffers);
+
+    // Dispatches storage/auth updates
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('storage-updated'));
+      window.dispatchEvent(new CustomEvent('auth-changed', { detail: this.getCurrentUser() }));
+    }
+  }
 }
 
 export const db = new MockDatabase();
+
+// Seed identification constants & helpers
+export const SEED_CARRIER_IDS = new Set([
+  'carr_saycanlar', 
+  'carr_bogazici', 
+  'carr_ege_trans', 
+  'carr_anadolu_ekspres', 
+  'carr_karadeniz_yildiz', 
+  'carr_baskent_ekspres', 
+  'carr_yeni_onay_bekleyen'
+]);
+
+export const SEED_USER_IDS = new Set([
+  'user_cust_1', 
+  'user_carr_1', 
+  'user_carr_pending', 
+  'user_carr_saycanlar', 
+  'user_admin_1', 
+  'user_cust_2', 
+  'user_cust_3'
+]);
+
+export const SEED_REQUEST_IDS = new Set([
+  'req_1', 
+  'req_2', 
+  'req_3', 
+  'req_4', 
+  '#26368', 
+  '#38491', 
+  '#49102', 
+  '#51283'
+]);
+
+export const SEED_DOC_IDS = new Set(['doc_1', 'doc_2']);
+export const SEED_CAMPAIGN_IDS = new Set(['camp_1', 'camp_2', 'camp_3']);
+export const SEED_LEAD_IDS = new Set(['lead_1']);
+
+export function isSeedCarrier(carrier: CarrierProfile): boolean {
+  if (carrier.isSeed) return true;
+  if (SEED_CARRIER_IDS.has(carrier.id)) return true;
+  if (carrier.userId && SEED_USER_IDS.has(carrier.userId)) return true;
+  return false;
+}
+
+export function isSeedUser(user: RegisteredUserRecord | User): boolean {
+  if ('isSeed' in user && Boolean((user as any).isSeed)) return true;
+  if (SEED_USER_IDS.has(user.id)) return true;
+  if ('carrierId' in user && user.carrierId && SEED_CARRIER_IDS.has(user.carrierId)) return true;
+  return false;
+}
+
+export function isSeedRequest(req: MovingRequest): boolean {
+  if (req.isSeed) return true;
+  if (SEED_REQUEST_IDS.has(req.id) || (req.requestCode && SEED_REQUEST_IDS.has(req.requestCode))) return true;
+  if (req.customerId && (req.customerId.startsWith('cust_') || SEED_USER_IDS.has(req.customerId))) return true;
+  return false;
+}
+
+export function isSeedDoc(doc: CarrierDocument): boolean {
+  if (doc.isSeed) return true;
+  if (SEED_DOC_IDS.has(doc.id)) return true;
+  if (SEED_CARRIER_IDS.has(doc.carrierId)) return true;
+  return false;
+}
+
+export function isSeedLead(lead: DigitalServiceLead): boolean {
+  if (lead.isSeed) return true;
+  if (SEED_LEAD_IDS.has(lead.id)) return true;
+  if (lead.carrierId && SEED_CARRIER_IDS.has(lead.carrierId)) return true;
+  return false;
+}
+
+export function isSeedCampaign(camp: AdCampaign): boolean {
+  if (camp.isSeed) return true;
+  if (SEED_CAMPAIGN_IDS.has(camp.id)) return true;
+  if (camp.carrierId && SEED_CARRIER_IDS.has(camp.carrierId)) return true;
+  return false;
+}

@@ -14,7 +14,8 @@ import {
   Smartphone, 
   Mail, 
   Globe,
-  MapPin
+  MapPin,
+  ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -22,12 +23,24 @@ import { RouteDisplay } from '@/components/ui/RouteDisplay';
 import { Modal } from '@/components/ui/Modal';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { db } from '@/lib/data/mock-db';
-import { RouteAlarm, AlarmType } from '@/types';
+import { RouteAlarm, AlarmType, CarrierProfile } from '@/types';
 
 export default function CarrierAlarmsPage() {
-  const carrier = db.getCarriers()[0];
-  const [alarms, setAlarms] = useState<RouteAlarm[]>(db.getAlarmsForCarrier(carrier.id));
+  const [carrier, setCarrier] = useState<CarrierProfile | null>(null);
+  const [alarms, setAlarms] = useState<RouteAlarm[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  React.useEffect(() => {
+    const currentUser = db.getCurrentUser();
+    let activeCarrier = db.getCurrentCarrier();
+    if (!activeCarrier && currentUser) {
+      activeCarrier = db.getCarriers().find(c => c.userId === currentUser.id || c.id === currentUser.carrierProfileId) || null;
+    }
+    setCarrier(activeCarrier);
+    if (activeCarrier) {
+      setAlarms(db.getAlarmsForCarrier(activeCarrier.id));
+    }
+  }, []);
 
   // New Alarm Form State (Spec Item 84)
   const [alarmType, setAlarmType] = useState<AlarmType>('REQUEST_ALARM');
@@ -38,6 +51,7 @@ export default function CarrierAlarmsPage() {
   const [channelEmail, setChannelEmail] = useState(true);
 
   const handleToggleAlarm = (id: string, currentStatus: string) => {
+    if (!carrier) return;
     const nextStatus = currentStatus === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
     db.updateAlarm(id, { status: nextStatus as any });
     setAlarms(db.getAlarmsForCarrier(carrier.id));
@@ -45,6 +59,7 @@ export default function CarrierAlarmsPage() {
 
   const handleCreateAlarm = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!carrier) return;
     const newAlarm: RouteAlarm = {
       id: `alm_${Date.now()}`,
       carrierId: carrier.id,
@@ -70,6 +85,17 @@ export default function CarrierAlarmsPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      {/* Back to Operation Center */}
+      <div className="mb-6">
+        <Link
+          href="/app/carrier"
+          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#F95700] bg-white hover:bg-orange-50/50 px-3.5 py-2 rounded-xl border border-slate-200 transition-all cursor-pointer shadow-2xs"
+        >
+          <ArrowLeft className="w-4 h-4 text-[#F95700]" />
+          <span>← Operasyon Merkezi&apos;ne Dön</span>
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>

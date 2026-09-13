@@ -15,6 +15,7 @@ export interface CarrierDocument {
   uploadedAt: string;
   reviewedAt?: string;
   reviewNotes?: string;
+  isSeed?: boolean;
 }
 
 export interface MobileElevatorSpec {
@@ -58,12 +59,14 @@ export interface CarrierProfile {
   };
   elevatorSpec?: MobileElevatorSpec;
   planId: string; // 'free' | 'starter' | 'pro' | 'gold'
+  isProfileCompleted?: boolean;
   rating: number;
   reviewCount: number;
   completedJobsCount: number;
   responseRatePercent: number;
   joinedAt: string;
   createdAt: string;
+  isSeed?: boolean;
 }
 
 export interface CustomerProfile {
@@ -132,6 +135,7 @@ export interface MovingRequest {
   closedReason?: string;
   createdAt: string;
   updatedAt: string;
+  isSeed?: boolean;
 }
 
 export type OfferStatus = 'PENDING' | 'UPDATED' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN' | 'REQUEST_CLOSED';
@@ -305,6 +309,7 @@ export interface AdCampaign {
   source: 'GOLD_MEMBERSHIP' | 'DIRECT_CAMPAIGN';
   isActive: boolean;
   createdAt: string;
+  isSeed?: boolean;
 }
 
 export type LeadPipelineStatus = 'NEW' | 'CONTACTED' | 'MEETING' | 'PROPOSAL' | 'WON' | 'LOST';
@@ -336,6 +341,7 @@ export interface DigitalServiceLead {
   status: LeadPipelineStatus;
   createdAt: string;
   updatedAt: string;
+  isSeed?: boolean;
 }
 
 export interface Review {

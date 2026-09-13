@@ -24,61 +24,76 @@ export default function CarrierOnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
 
+  const currentUser = typeof window !== 'undefined' ? db.getCurrentUser() : null;
+  const existingCarrier = currentUser ? db.getCarriers().find(c => c.userId === currentUser.id || c.id === currentUser.carrierProfileId) : null;
+
   // Step 1: Account
-  const [phone, setPhone] = useState('0530 456 78 90');
-  const [email, setEmail] = useState('info@marmaralider.com');
+  const [phone, setPhone] = useState(currentUser?.phone || existingCarrier?.phone || '');
+  const [email, setEmail] = useState(currentUser?.email || existingCarrier?.email || '');
 
   // Step 2: Company
-  const [companyName, setCompanyName] = useState('Marmara Lider Nakliyat');
-  const [authorizedName, setAuthorizedName] = useState('Mehmet');
-  const [authorizedSurname, setAuthorizedSurname] = useState('Arslan');
-  const [shortBio, setShortBio] = useState('Bursa ve Marmara genelinde güvenilir ev & ofis taşımacılığı.');
+  const [companyName, setCompanyName] = useState(currentUser?.companyName || existingCarrier?.companyName || '');
+  const [authorizedName, setAuthorizedName] = useState(existingCarrier?.authorizedPersonName || '');
+  const [authorizedSurname, setAuthorizedSurname] = useState(existingCarrier?.authorizedPersonSurname || '');
+  const [shortBio, setShortBio] = useState(existingCarrier?.shortBio || '');
 
   // Step 3: Identity (Private)
-  const [tcKimlik, setTcKimlik] = useState('12345678901');
-  const [birthDate, setBirthDate] = useState('1985-05-12');
+  const [tcKimlik, setTcKimlik] = useState(existingCarrier?.nationalIdNumber || '');
+  const [birthDate, setBirthDate] = useState(existingCarrier?.birthDate || '');
 
   // Step 4: Address
-  const [city, setCity] = useState('Bursa');
-  const [district, setDistrict] = useState('Nilüfer');
+  const [city, setCity] = useState(existingCarrier?.city || 'İstanbul');
+  const [district, setDistrict] = useState(existingCarrier?.district || '');
 
   // Step 5: Services
-  const [services, setServices] = useState<string[]>(['evden-eve', 'ofis-tasima', 'sehirler-arasi']);
-  const [hasMobileElevator, setHasMobileElevator] = useState(false);
-  const [maxElevatorFloor, setMaxElevatorFloor] = useState(12);
+  const [services, setServices] = useState<string[]>(existingCarrier?.services || ['evden-eve']);
+  const [hasMobileElevator, setHasMobileElevator] = useState(existingCarrier?.elevatorSpec?.hasElevator || false);
+  const [maxElevatorFloor, setMaxElevatorFloor] = useState(existingCarrier?.elevatorSpec?.maxFloor || 12);
 
   // Step 6: Service Areas
-  const [serviceAreas, setServiceAreas] = useState<string[]>(['Bursa', 'İstanbul', 'Yalova', 'Balıkesir']);
+  const [serviceAreas, setServiceAreas] = useState<string[]>(existingCarrier?.serviceAreas || ['TÜM_TÜRKİYE']);
 
-  // Step 7: Documents
-  const [taxCertFiles, setTaxCertFiles] = useState<string[]>(['/mock-files/vergi_levhasi.pdf']);
-  const [identityFiles, setIdentityFiles] = useState<string[]>(['/mock-files/kimlik.jpg']);
+  // Step 7: Documents - Boş başlar, fake dolu gelmez
+  const [taxCertFiles, setTaxCertFiles] = useState<string[]>([]);
+  const [identityFiles, setIdentityFiles] = useState<string[]>([]);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleComplete = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
+
+    if (!companyName.trim()) {
+      setStep(2);
+      setErrorMessage('Lütfen firma ticari unvanınızı giriniz.');
+      return;
+    }
+
+    const carrierId = existingCarrier?.id || currentUser?.carrierProfileId || `carr_${Date.now()}`;
+    const userId = currentUser?.id || `user_carr_${Date.now()}`;
+    const hasBothDocs = taxCertFiles.length > 0 && identityFiles.length > 0;
 
     const newCarrier: CarrierProfile = {
-      id: `carr_${Date.now()}`,
-      userId: `user_carr_${Date.now()}`,
-      companyName,
-      slug: companyName.toLowerCase().replace(/\s+/g, '-'),
-      authorizedPersonName: authorizedName,
-      authorizedPersonSurname: authorizedSurname,
-      nationalIdNumber: tcKimlik,
+      id: carrierId,
+      userId: userId,
+      companyName: companyName.trim(),
+      slug: companyName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      authorizedPersonName: authorizedName.trim() || 'Yetkili',
+      authorizedPersonSurname: authorizedSurname.trim(),
+      nationalIdNumber: tcKimlik.trim(),
       birthDate,
-      phone,
-      email,
-      shortBio,
-      city,
-      district,
-      services,
-      serviceAreas,
-      verificationStatus: 'PENDING',
+      phone: phone.trim(),
+      email: email.trim(),
+      shortBio: shortBio.trim() || `${companyName} profesyonel taşımacılık hizmetleri.`,
+      city: city || 'İstanbul',
+      district: district || 'Merkez',
+      services: services.length > 0 ? services : ['evden-eve'],
+      serviceAreas: serviceAreas.length > 0 ? serviceAreas : ['TÜM_TÜRKİYE'],
+      verificationStatus: hasBothDocs ? 'APPROVED' : 'PENDING',
       verificationBadges: {
-        identityVerified: false,
-        taxVerified: false,
+        identityVerified: identityFiles.length > 0,
+        taxVerified: taxCertFiles.length > 0,
         transportPermitVerified: false,
-        elevatorVerified: false
+        elevatorVerified: hasMobileElevator
       },
       elevatorSpec: hasMobileElevator ? {
         hasElevator: true,
@@ -86,17 +101,65 @@ export default function CarrierOnboardingPage() {
         isVerified: false
       } : undefined,
       planId: 'plan_starter',
-      rating: 0,
+      isProfileCompleted: true,
+      rating: 5.0,
       reviewCount: 0,
       completedJobsCount: 0,
       responseRatePercent: 100,
-      joinedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString()
+      joinedAt: existingCarrier?.joinedAt || new Date().toISOString(),
+      createdAt: existingCarrier?.createdAt || new Date().toISOString()
     };
 
+    // Save to mock-db
     db.addCarrier(newCarrier);
-    db.switchPersona('CARRIER');
-    router.push('/app/carrier/onay-bekleniyor');
+
+    // Save documents if uploaded
+    if (taxCertFiles.length > 0) {
+      db.addDocument({
+        id: `doc_tax_${Date.now()}`,
+        carrierId,
+        type: 'TAX_CERTIFICATE',
+        title: 'Vergi Levhası',
+        fileName: taxCertFiles[0].split('/').pop() || 'vergi_levhasi.pdf',
+        fileUrl: taxCertFiles[0],
+        status: hasBothDocs ? 'APPROVED' : 'PENDING',
+        uploadedAt: new Date().toISOString()
+      });
+    }
+
+    if (identityFiles.length > 0) {
+      db.addDocument({
+        id: `doc_id_${Date.now()}`,
+        carrierId,
+        type: 'IDENTITY',
+        title: 'Yetkili Kimlik Belgesi',
+        fileName: identityFiles[0].split('/').pop() || 'kimlik.jpg',
+        fileUrl: identityFiles[0],
+        status: hasBothDocs ? 'APPROVED' : 'PENDING',
+        uploadedAt: new Date().toISOString()
+      });
+    }
+
+    // Update currentUser state
+    db.setCurrentUser({
+      ...(currentUser || {
+        id: userId,
+        email: email.trim(),
+        role: 'CARRIER',
+        createdAt: new Date().toISOString()
+      }),
+      role: 'CARRIER',
+      companyName: newCarrier.companyName,
+      phone: newCarrier.phone,
+      carrierProfileId: newCarrier.id
+    });
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-changed'));
+      window.dispatchEvent(new Event('storage'));
+    }
+
+    router.push('/app/carrier');
   };
 
   return (
@@ -131,6 +194,12 @@ export default function CarrierOnboardingPage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
+        {errorMessage && (
+          <div className="mb-6 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold">
+            {errorMessage}
+          </div>
+        )}
+
         {/* STEP 1: ACCOUNT */}
         {step === 1 && (
           <div className="space-y-4 text-xs sm:text-sm">
@@ -141,6 +210,7 @@ export default function CarrierOnboardingPage() {
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                placeholder="Örn: 0532 123 45 67"
                 className="w-full p-3 rounded-xl border border-slate-300 font-semibold"
               />
             </div>
@@ -150,6 +220,7 @@ export default function CarrierOnboardingPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="Örn: info@firmaniz.com"
                 className="w-full p-3 rounded-xl border border-slate-300 font-semibold"
               />
             </div>
@@ -161,11 +232,12 @@ export default function CarrierOnboardingPage() {
           <div className="space-y-4 text-xs sm:text-sm">
             <h2 className="text-lg font-bold text-[#0A1128]">2. Firma ve Yetkili Bilgileri</h2>
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Firma Ticari Unvanı / Marka Adı</label>
+              <label className="block font-bold text-slate-700 mb-1">Firma Ticari Unvanı / Marka Adı *</label>
               <input
                 type="text"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="Örn: Yıldız Nakliyat Ltd. Şti."
                 className="w-full p-3 rounded-xl border border-slate-300 font-semibold"
               />
             </div>
@@ -176,6 +248,7 @@ export default function CarrierOnboardingPage() {
                   type="text"
                   value={authorizedName}
                   onChange={(e) => setAuthorizedName(e.target.value)}
+                  placeholder="Örn: Ahmet"
                   className="w-full p-3 rounded-xl border border-slate-300 font-semibold"
                 />
               </div>
@@ -185,6 +258,7 @@ export default function CarrierOnboardingPage() {
                   type="text"
                   value={authorizedSurname}
                   onChange={(e) => setAuthorizedSurname(e.target.value)}
+                  placeholder="Örn: Yılmaz"
                   className="w-full p-3 rounded-xl border border-slate-300 font-semibold"
                 />
               </div>
@@ -195,6 +269,7 @@ export default function CarrierOnboardingPage() {
                 rows={2}
                 value={shortBio}
                 onChange={(e) => setShortBio(e.target.value)}
+                placeholder="Örn: Şehirler arası ve evden eve garantili sigortalı nakliyat hizmeti."
                 className="w-full p-3 rounded-xl border border-slate-300 text-xs"
               />
             </div>
@@ -317,8 +392,13 @@ export default function CarrierOnboardingPage() {
             <div>
               <h2 className="text-lg font-bold text-[#0A1128]">6. Doğrulama Belgeleri Yükleme</h2>
               <p className="text-xs text-slate-500 mt-1">
-                Zorunlu belgeleriniz yönetici ekibimizce onaylandıktan sonra 7 günlük ücretsiz denemeniz başlar.
+                TaşınTeklif güvenli nakliyat ağı için Vergi Levhası ve Yetkili Kimlik belgesi zorunludur.
               </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+              <span className="font-black block mb-1">⚠️ Önemli Güvenlik Kuralı:</span>
+              Kimlik ve Vergi Levhası yüklenmeden profiliniz <strong>Onaysız</strong> kalır ve açık taleplere <strong>teklif verme yetkisi açılmaz</strong>. Lütfen belgelerinizi eksiksiz yükleyiniz.
             </div>
 
             <div className="space-y-4">

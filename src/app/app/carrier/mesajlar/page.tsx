@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   AlertCircle,
   Lock,
+  ArrowLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -32,8 +33,8 @@ const QUICK_TEMPLATES = [
 
 export default function CarrierMessagesPage() {
   const currentUser = db.getCurrentUser();
-  const carrier = db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) || db.getCarriers()[0];
-  const isApproved = carrier.verificationStatus === 'APPROVED';
+  const carrier = db.getCurrentCarrier() || (currentUser?.role === 'CARRIER' ? db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) : null);
+  const isApproved = carrier ? carrier.verificationStatus === 'APPROVED' : false;
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<string>('');
@@ -70,11 +71,11 @@ export default function CarrierMessagesPage() {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isApproved) return;
+    if (!carrier || !isApproved) return;
     if (!inputMessage.trim() || !activeConvId) return;
 
     const newMsg = db.sendMessage(activeConvId, {
-      senderId: 'user_carr_1',
+      senderId: carrier.userId || 'user_carr_1',
       senderName: carrier.companyName,
       senderRole: 'CARRIER',
       content: inputMessage.trim()
@@ -93,6 +94,17 @@ export default function CarrierMessagesPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       
+      {/* Back to Operation Center */}
+      <div className="mb-6">
+        <Link
+          href="/app/carrier"
+          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#F95700] bg-white hover:bg-orange-50/50 px-3.5 py-2 rounded-xl border border-slate-200 transition-all cursor-pointer shadow-2xs"
+        >
+          <ArrowLeft className="w-4 h-4 text-[#F95700]" />
+          <span>← Operasyon Merkezi&apos;ne Dön</span>
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
@@ -202,13 +214,20 @@ export default function CarrierMessagesPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <a href="tel:05321112233">
-                  <Button variant="navy" size="sm" className="font-bold text-xs" leftIcon={<Phone className="w-3.5 h-3.5" />}>
-                    0532 111 22 33
-                  </Button>
-                </a>
-              </div>
+              {(() => {
+                const activeReq = activeConv ? db.getRequestById(activeConv.contextId) : null;
+                const customerPhone = activeReq?.customerPhone;
+                if (!customerPhone) return null;
+                return (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <a href={`tel:${customerPhone}`}>
+                      <Button variant="navy" size="sm" className="font-bold text-xs" leftIcon={<Phone className="w-3.5 h-3.5" />}>
+                        {customerPhone}
+                      </Button>
+                    </a>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Quick Templates Bar */}

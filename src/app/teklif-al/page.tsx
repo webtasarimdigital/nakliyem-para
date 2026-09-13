@@ -266,7 +266,7 @@ function RequestWizardContent() {
     const userId = user.id || (user as any).uid || user.email || 'cust_demo';
     const userEmail = user.email || '';
     const customerDisplayName = user?.fullName || (user as any)?.name || (user as any)?.displayName || (user?.email ? user.email.split('@')[0] : 'Kullanıcı');
-    const customerPhoneNum = user?.phone || (user as any)?.phoneNumber || '0538 412 90 75';
+    const customerPhoneNum = user?.phone || (user as any)?.phoneNumber || '';
 
     const newRequest: MovingRequest = {
       id: `req_${Date.now()}`,

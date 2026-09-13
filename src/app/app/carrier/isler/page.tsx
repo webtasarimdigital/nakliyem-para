@@ -23,6 +23,7 @@ import {
   Armchair,
   Boxes,
   ArrowRight,
+  ArrowLeft,
   MoveRight,
   Star,
   Clock,
@@ -41,6 +42,7 @@ import { db, SEED_PLANS } from '@/lib/data/mock-db';
 import { MovingRequest, ServiceCategory } from '@/types';
 import { collection, getDocs, query, where, orderBy, doc, setDoc } from 'firebase/firestore';
 import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+import { sendNotificationEmail } from '@/lib/services/notification-service';
 
 // Category pills styled exactly like the user's reference image
 const CATEGORY_TABS = [
@@ -82,41 +84,18 @@ function getRelativeTimeString(dateStr?: string): { text: string; isHot: boolean
 }
 
 export default function CarrierJobsPage() {
-  const currentUser = db.getCurrentUser();
+  const currentUser = typeof window !== 'undefined' ? db.getCurrentUser() : null;
   const isCarrier = currentUser?.role === 'CARRIER';
-  const foundCarrier = isCarrier ? (db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) || null) : null;
+  const foundCarrier = isCarrier ? (db.getCurrentCarrier() || db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) || null) : null;
   
-  const carrier = foundCarrier || (isCarrier ? {
-    id: `carr_${currentUser?.id || 'demo'}`,
-    userId: currentUser?.id || `user_carrier`,
-    companyName: currentUser?.companyName || 'TaşınTeklif Nakliyat',
-    slug: (currentUser?.companyName || 'tasinteklif-nakliyat').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-    authorizedPersonName: currentUser?.fullName || currentUser?.companyName || 'Yetkili',
-    authorizedPersonSurname: '',
-    phone: currentUser?.phone || '0555 123 45 67',
-    email: currentUser?.email || 'nakliyeci@tasinteklif.com',
-    city: 'İstanbul',
-    district: 'Kadıköy',
-    services: ['evden-eve', 'ofis-tasima'],
-    serviceAreas: ['TÜM_TÜRKİYE'],
-    verificationStatus: 'APPROVED' as const,
-    verificationBadges: {
-      identityVerified: true,
-      taxVerified: true,
-      transportPermitVerified: true,
-      elevatorVerified: true,
-    },
-    planId: 'plan_starter',
-    shortBio: 'TaşınTeklif onaylı nakliyat firması.',
-    rating: 5.0,
-    reviewCount: 0,
-    completedJobsCount: 0,
-    responseRatePercent: 100,
-    joinedAt: new Date().toISOString(),
-    createdAt: new Date().toISOString(),
-  } : null);
+  const carrier = foundCarrier;
 
-  const isApproved = true; // Auto-allow registered carriers
+  // Evrak ve Onay Kontrolü: Kimlik ve Vergi levhası yüklenmeden onaylı olunamaz
+  const carrierDocs = carrier ? db.getDocumentsForCarrier(carrier.id) : [];
+  const hasTaxDoc = carrierDocs.some(d => d.type === 'TAX_CERTIFICATE') || Boolean(carrier?.verificationBadges?.taxVerified);
+  const hasIdDoc = carrierDocs.some(d => d.type === 'IDENTITY') || Boolean(carrier?.verificationBadges?.identityVerified);
+  const isApproved = Boolean(carrier && carrier.verificationStatus === 'APPROVED' && hasTaxDoc && hasIdDoc);
+
   const [requests, setRequests] = useState<MovingRequest[]>(() =>
     db.getRequests()
       .filter(r => r.status === 'ACTIVE')
@@ -183,12 +162,19 @@ export default function CarrierJobsPage() {
   const carrierPlan = carrier ? (SEED_PLANS.find(p => p.id === carrier?.planId) || SEED_PLANS[0]) : null;
   const myCarrierOffers = carrier ? db.getOffersForCarrier(carrier.id) : [];
   const carrierOffersCount = myCarrierOffers.length;
-  const canCreateOffer = Boolean(carrier && (!carrierPlan || (carrierPlan.features.offerCreate && (carrierPlan.features.monthlyOfferLimit === 'unlimited' || carrierOffersCount < carrierPlan.features.monthlyOfferLimit))));
-  const canViewPhone = Boolean(carrier && carrierPlan?.features.customerPhoneAccess === true);
+
+  // Günlük ücretsiz teklif kontrolü (Başlangıç paketinde günde 3 teklif)
+  const isFreeOrStarterPlan = !carrier?.planId || carrier.planId === 'plan_starter' || carrier.planId === 'free';
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayOffersCount = myCarrierOffers.filter(o => o.createdAt && o.createdAt.startsWith(todayStr)).length;
+  const isDailyLimitReached = Boolean(carrier && isFreeOrStarterPlan && todayOffersCount >= 3);
+
+  const canCreateOffer = Boolean(carrier && isApproved && !isDailyLimitReached && (!carrierPlan || (carrierPlan.features.offerCreate && (carrierPlan.features.monthlyOfferLimit === 'unlimited' || carrierOffersCount < carrierPlan.features.monthlyOfferLimit))));
+  const canViewPhone = Boolean(carrier && isApproved && carrierPlan?.features.customerPhoneAccess === true);
 
   // Plan limitation modal state
   const [planModalOpen, setPlanModalOpen] = useState(false);
-  const [planModalData, setPlanModalData] = useState<{ title: string; subtitle: string; limitBadge?: string } | null>(null);
+  const [planModalData, setPlanModalData] = useState<{ title: string; subtitle: string; limitBadge?: string; actionLink?: string; actionText?: string } | null>(null);
 
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -253,13 +239,41 @@ export default function CarrierJobsPage() {
       setAuthModalOpen(true);
       return false;
     }
+    if (!isApproved) {
+      e.preventDefault();
+      (e.target as HTMLElement).blur();
+      setPlanModalData({
+        title: '⚠️ Onaysız Profil — Teklif Verme Kilitli',
+        subtitle: 'TaşınTeklif güvencesi kapsamında müşterilere teklif verebilmek için firmanızın Kimlik ve Vergi Levhası belgelerini yüklemeniz zorunludur.',
+        limitBadge: 'Belgeler Eksik / Onay Bekliyor',
+        actionLink: '/app/carrier/profil',
+        actionText: 'Evrakları Yükle (Profile Git)'
+      });
+      setPlanModalOpen(true);
+      return false;
+    }
+    if (isDailyLimitReached) {
+      e.preventDefault();
+      (e.target as HTMLElement).blur();
+      setPlanModalData({
+        title: 'Günlük Ücretsiz Teklif Limitine Ulaştınız (3/3)',
+        subtitle: 'Başlangıç (Ücretsiz) paketinizde günlük en fazla 3 ücretsiz teklif hakkınız bulunmaktadır. Bugün için tüm haklarınızı kullandınız. Sınırsız teklif vermek, müşteri telefon numaralarını görmek ve daha fazla iş almak için paketinizi yükseltin.',
+        limitBadge: '3 / 3 Teklif Kullanıldı',
+        actionLink: '/paketler',
+        actionText: 'Paketleri İncele & Yükselt →'
+      });
+      setPlanModalOpen(true);
+      return false;
+    }
     if (!canCreateOffer) {
       e.preventDefault();
       (e.target as HTMLElement).blur();
       setPlanModalData({
-        title: 'Aylık Teklif Limitiniz Doldu',
-        subtitle: `Mevcut ${carrierPlan?.name || 'Başlangıç'} paketinizdeki aylık ${carrierPlan?.features.monthlyOfferLimit} teklif hakkını doldurdunuz. Sınırsız teklif vermek ve daha fazla iş almak için paketinizi Pro veya Gold'a yükseltin.`,
-        limitBadge: `${carrierOffersCount} / ${carrierPlan?.features.monthlyOfferLimit} Teklif Kullanıldı`
+        title: 'Teklif Limitiniz Doldu',
+        subtitle: `Mevcut paketinizdeki teklif limitini doldurdunuz. Sınırsız teklif vermek ve daha fazla iş almak için paketinizi Pro veya Gold'a yükseltin.`,
+        limitBadge: `${carrierOffersCount} Teklif Kullanıldı`,
+        actionLink: '/paketler',
+        actionText: 'Paketleri İncele & Yükselt →'
       });
       setPlanModalOpen(true);
       return false;
@@ -296,8 +310,22 @@ export default function CarrierJobsPage() {
     if (!isApproved) {
       setPlanModalData({
         title: '⚠️ Onaysız Profil — Teklif Verme Kilitli',
-        subtitle: 'Henüz firmamız tarafından doğrulanmış profil değilsiniz. Yüklediğiniz kimlik ve vergi levhası belgeleriniz inceleme aşamasındadır (12 saat içinde sonuçlandırılır). Onay verildikten sonra teklif verebilirsiniz.',
-        limitBadge: '12 Saat İçinde Sonuçlandırılır'
+        subtitle: 'TaşınTeklif güvencesi kapsamında müşterilere teklif verebilmek için firmanızın Kimlik ve Vergi Levhası belgelerini yüklemeniz zorunludur.',
+        limitBadge: 'Belgeler Eksik / Onay Bekliyor',
+        actionLink: '/app/carrier/profil',
+        actionText: 'Evrakları Yükle (Profile Git)'
+      });
+      setPlanModalOpen(true);
+      return;
+    }
+
+    if (isDailyLimitReached) {
+      setPlanModalData({
+        title: 'Günlük Ücretsiz Teklif Limitine Ulaştınız (3/3)',
+        subtitle: 'Başlangıç (Ücretsiz) paketinizde günlük en fazla 3 ücretsiz teklif hakkınız bulunmaktadır. Bugün için tüm haklarınızı kullandınız. Sınırsız teklif vermek, müşteri telefon numaralarını görmek ve daha fazla iş almak için paketinizi yükseltin.',
+        limitBadge: '3 / 3 Teklif Kullanıldı',
+        actionLink: '/paketler',
+        actionText: 'Paketleri İncele & Yükselt →'
       });
       setPlanModalOpen(true);
       return;
@@ -305,9 +333,11 @@ export default function CarrierJobsPage() {
 
     if (!canCreateOffer) {
       setPlanModalData({
-        title: 'Aylık Teklif Limitiniz Doldu',
-        subtitle: `Mevcut ${carrierPlan?.name || 'Başlangıç'} paketinizdeki aylık ${carrierPlan?.features.monthlyOfferLimit} teklif hakkını doldurdunuz. Sınırsız teklif vermek ve daha fazla iş almak için paketinizi Pro veya Gold'a yükseltin.`,
-        limitBadge: `${carrierOffersCount} / ${carrierPlan?.features.monthlyOfferLimit} Teklif Kullanıldı`
+        title: 'Teklif Limitiniz Doldu',
+        subtitle: `Mevcut paketinizdeki teklif limitini doldurdunuz. Sınırsız teklif vermek ve daha fazla iş almak için paketinizi Pro veya Gold'a yükseltin.`,
+        limitBadge: `${carrierOffersCount} Teklif Kullanıldı`,
+        actionLink: '/paketler',
+        actionText: 'Paketleri İncele & Yükselt →'
       });
       setPlanModalOpen(true);
       return;
@@ -342,6 +372,25 @@ export default function CarrierJobsPage() {
 
     db.addOffer(newOffer);
 
+    // Send email notification to customer
+    try {
+      const customerUser = db.getUsers().find((u: any) => u.id === req.customerId);
+      const targetEmail = req.customerEmail || customerUser?.email || 'omerfaruksaycan@gmail.com';
+      if (targetEmail) {
+        sendNotificationEmail({
+          type: 'NEW_OFFER',
+          to: targetEmail,
+          recipientName: req.customerName || customerUser?.fullName || 'Müşterimiz',
+          carrierName: carrier.companyName,
+          price: newOffer.price,
+          routeText: `${req.originCity} / ${req.originDistrict} → ${req.destinationCity} / ${req.destinationDistrict}`,
+          requestId: req.requestCode || req.id,
+        });
+      }
+    } catch (emailErr) {
+      console.warn('Teklif bildirim e-postası gönderilemedi:', emailErr);
+    }
+
     if (isFirebaseConfigured() && firestoreDb) {
       try {
         setDoc(doc(firestoreDb, 'offers', newOffer.id), newOffer).catch(err => console.warn(err));
@@ -367,11 +416,25 @@ export default function CarrierJobsPage() {
       return;
     }
 
+    if (!isApproved) {
+      setPlanModalData({
+        title: '⚠️ Onaysız Profil — İletişim Kilitli',
+        subtitle: 'Müşteri telefon numaralarını görebilmek ve doğrudan iletişim kurabilmek için öncelikle Kimlik ve Vergi Levhası belgelerinizi yüklemeniz gerekmektedir.',
+        limitBadge: 'Belgeler Eksik / Onay Bekliyor',
+        actionLink: '/app/carrier/profil',
+        actionText: 'Evrakları Yükle (Profile Git)'
+      });
+      setPlanModalOpen(true);
+      return;
+    }
+
     if (!canViewPhone) {
       setPlanModalData({
         title: 'Müşteri Numarasını Görmek İçin Paketinizi Yükseltin',
         subtitle: 'Müşteri telefon numaralarına doğrudan erişmek, anında aramak ve WhatsApp üzerinden iletişim kurmak Pro ve Gold nakliyeci paketlerine özeldir.',
-        limitBadge: `Mevcut Paketiniz: ${carrierPlan?.name || 'Başlangıç'} (Telefon Erişimi Kapalı)`
+        limitBadge: `Mevcut Paketiniz: ${carrierPlan?.name || 'Başlangıç'} (Telefon Erişimi Kapalı)`,
+        actionLink: '/paketler',
+        actionText: 'Paketleri İncele & Yükselt →'
       });
       setPlanModalOpen(true);
       return;
@@ -399,6 +462,26 @@ export default function CarrierJobsPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 md:py-10">
+
+        {/* ── GERİ DÖNÜŞ BUTONU & GÜNLÜK KOTA GÖSTERGESİ ── */}
+        <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <Link
+            href="/app/carrier"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-700 hover:text-[#F95700] transition-colors py-2 px-3.5 rounded-xl bg-white border border-slate-200 hover:border-[#F95700]/40 shadow-xs group w-fit"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span>Operasyon Merkezi&apos;ne Dön</span>
+          </Link>
+
+          {carrier && isFreeOrStarterPlan && (
+            <div className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs w-fit">
+              <span>Bugün Kalan Ücretsiz Teklif:</span>
+              <strong className={todayOffersCount >= 3 ? 'text-red-600 font-black' : 'text-emerald-700 font-black'}>
+                {Math.max(0, 3 - todayOffersCount)} / 3
+              </strong>
+            </div>
+          )}
+        </div>
 
         {/* ── 1. HEADER (Title & Search Toggle exactly like screenshot) ── */}
         <div className="flex items-center justify-between mb-5">
@@ -821,14 +904,21 @@ export default function CarrierJobsPage() {
             </div>
           )}
 
-          <div className="flex gap-3 pt-3">
-            <Button variant="outline" size="md" className="flex-1 font-bold" onClick={() => setPlanModalOpen(false)}>
+          <div className="flex items-center justify-center gap-3 pt-3">
+            <button
+              type="button"
+              className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-colors cursor-pointer"
+              onClick={() => setPlanModalOpen(false)}
+            >
               Vazgeç
-            </Button>
-            <Link href="/app/carrier/abonelik" className="flex-1" onClick={() => setPlanModalOpen(false)}>
-              <Button variant="primary" size="md" className="w-full font-black" rightIcon={<ArrowRight className="w-4 h-4" />}>
-                Paketleri İncele
-              </Button>
+            </button>
+            <Link
+              href={planModalData?.actionLink || "/paketler"}
+              onClick={() => setPlanModalOpen(false)}
+              className="inline-flex items-center justify-center gap-1.5 px-6 py-2.5 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs transition-all shadow-md shadow-orange-900/20 cursor-pointer"
+            >
+              <span>{planModalData?.actionText || "Paketleri İncele"}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
@@ -874,8 +964,31 @@ export default function CarrierJobsPage() {
                 className="flex-1 font-black"
                 disabled={!offerPrice || parseFloat(offerPrice) <= 0}
                 onClick={() => {
-                  if (!carrier) {
+                  if (!currentUser || currentUser.role !== 'CARRIER' || !carrier) {
+                    setAuthActionPayload({ reqId: offerModalReq.id, type: 'OFFER' });
                     setAuthModalOpen(true);
+                    return;
+                  }
+                  if (!isApproved) {
+                    setPlanModalData({
+                      title: '⚠️ Onaysız Profil — Teklif Verme Kilitli',
+                      subtitle: 'TaşınTeklif güvencesi kapsamında müşterilere teklif verebilmek için firmanızın Kimlik ve Vergi Levhası belgelerini yüklemeniz zorunludur.',
+                      limitBadge: 'Belgeler Eksik / Onay Bekliyor',
+                      actionLink: '/app/carrier/profil',
+                      actionText: 'Evrakları Yükle (Profile Git)'
+                    });
+                    setPlanModalOpen(true);
+                    return;
+                  }
+                  if (isDailyLimitReached) {
+                    setPlanModalData({
+                      title: 'Günlük Ücretsiz Teklif Limitine Ulaştınız (3/3)',
+                      subtitle: 'Başlangıç (Ücretsiz) paketinizde günlük en fazla 3 ücretsiz teklif hakkınız bulunmaktadır. Bugün için tüm haklarınızı kullandınız. Sınırsız teklif vermek, müşteri telefon numaralarını görmek ve daha fazla iş almak için paketinizi yükseltin.',
+                      limitBadge: '3 / 3 Teklif Kullanıldı',
+                      actionLink: '/paketler',
+                      actionText: 'Paketleri İncele & Yükselt →'
+                    });
+                    setPlanModalOpen(true);
                     return;
                   }
                   const modalOffer = {
@@ -897,6 +1010,25 @@ export default function CarrierJobsPage() {
                     updatedAt: new Date().toISOString()
                   };
                   db.addOffer(modalOffer);
+
+                  // Send email notification to customer
+                  try {
+                    const customerUser = db.getUsers().find((u: any) => u.id === offerModalReq.customerId);
+                    const targetEmail = offerModalReq.customerEmail || customerUser?.email || 'omerfaruksaycan@gmail.com';
+                    if (targetEmail) {
+                      sendNotificationEmail({
+                        type: 'NEW_OFFER',
+                        to: targetEmail,
+                        recipientName: offerModalReq.customerName || customerUser?.fullName || 'Müşterimiz',
+                        carrierName: carrier.companyName,
+                        price: modalOffer.price,
+                        routeText: `${offerModalReq.originCity} / ${offerModalReq.originDistrict} → ${offerModalReq.destinationCity} / ${offerModalReq.destinationDistrict}`,
+                        requestId: offerModalReq.requestCode || offerModalReq.id,
+                      });
+                    }
+                  } catch (emailErr) {
+                    console.warn('Teklif bildirim e-postası gönderilemedi:', emailErr);
+                  }
 
                   if (isFirebaseConfigured() && firestoreDb) {
                     try {

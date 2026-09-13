@@ -27,6 +27,7 @@ import { db } from '@/lib/data/mock-db';
 import { CustomerSidebar } from '@/components/layout/CustomerSidebar';
 import { Conversation, ConversationMessage, Offer } from '@/types';
 import { useAuth } from '@/context/AuthContext';
+import { sendNotificationEmail } from '@/lib/services/notification-service';
 
 function CustomerMessagesContent() {
   const searchParams = useSearchParams();
@@ -89,7 +90,9 @@ function CustomerMessagesContent() {
   }, [messages, isTyping]);
 
   const activeConv = conversations.find(c => c.id === activeConvId);
-  const activeCarrier = (activeConv ? db.getCarriers().find(c => activeConv.participantIds.includes(c.userId)) : null) || db.getCarriers()[0];
+  const activeCarrier = activeConv 
+    ? (db.getCarriers().find(c => activeConv.participantIds.includes(c.userId) || activeConv.participantIds.includes(c.id)) || (activeConv as any).carrier || null)
+    : null;
   const activeOffer = activeCarrier ? db.getOffers().find(o => o.carrierId === activeCarrier.id) : null;
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -97,12 +100,34 @@ function CustomerMessagesContent() {
     if (!inputMessage.trim() || !activeConvId || !activeCarrier) return;
 
     const senderDisplayName = currentUser?.fullName || (currentUser as any)?.name || (currentUser?.email ? currentUser.email.split('@')[0] : 'Müşteri');
+    const cleanContent = inputMessage.trim();
+
+    // Dispatch email to carrier ONLY on the FIRST message by the customer in this conversation
+    const isFirstCustomerMessage = !messages.some(m => m.senderRole === 'CUSTOMER');
+    if (isFirstCustomerMessage) {
+      try {
+        const carrierUser = db.getUsers().find((u: any) => u.id === activeCarrier.userId);
+        const targetCarrierEmail = carrierUser?.email || activeCarrier.email || 'omerfaruksaycan@gmail.com';
+        if (targetCarrierEmail) {
+          sendNotificationEmail({
+            type: 'FIRST_MESSAGE',
+            to: targetCarrierEmail,
+            carrierName: activeCarrier.companyName,
+            customerName: senderDisplayName,
+            messagePreview: cleanContent,
+            conversationId: activeConvId
+          });
+        }
+      } catch (emailErr) {
+        console.warn('İlk mesaj bildirim e-postası gönderilemedi:', emailErr);
+      }
+    }
 
     const userMsg = db.sendMessage(activeConvId, {
       senderId: userId || 'cust_user',
       senderName: senderDisplayName,
       senderRole: 'CUSTOMER',
-      content: inputMessage.trim()
+      content: cleanContent
     });
 
     setMessages(prev => [...prev, userMsg]);
@@ -204,7 +229,7 @@ function CustomerMessagesContent() {
           <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
             {conversations.map((conv) => {
               const isSelected = conv.id === activeConvId;
-              const carrier = db.getCarriers().find(c => conv.participantIds.includes(c.userId)) || db.getCarriers()[0];
+              const carrier = db.getCarriers().find(c => conv.participantIds.includes(c.userId) || conv.participantIds.includes(c.id)) || (conv as any).carrier || { companyName: 'Nakliye Firması' };
               const unread = conv.unreadCounts['user_cust_1'] || 0;
 
               return (

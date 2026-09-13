@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   TrendingUp,
@@ -57,7 +57,8 @@ const MOCK_NEW = [
 ];
 
 export default function GelirPage() {
-  const carriers = db.getCarriers();
+  const [showDemoData, setShowDemoData] = useState(false);
+  const carriers = showDemoData ? db.getCarriers() : db.getRealCarriers();
   const approvedCarriers = carriers.filter(c => c.verificationStatus === 'APPROVED');
 
   const monthlyRevenue = approvedCarriers.reduce((sum, c) => sum + (PLAN_PRICES[c.planId] || 0), 0);
@@ -76,16 +77,22 @@ export default function GelirPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 overflow-x-hidden w-full">
-      {/* Mini Navbar */}
-      <div className="bg-[#0A1128] text-white px-6 py-3.5 flex items-center gap-4 sticky top-0 z-50 shadow-lg">
-        <Link href="/admin" className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-colors">
-          <ArrowLeft className="w-3.5 h-3.5" /> Admin
-        </Link>
-        <span className="text-slate-600">/</span>
-        <span className="text-xs font-black text-white">Gelir Raporu</span>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-[#F95700] mb-0.5">Finans & Büyüme</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">Gelir ve Abonelik Raporu</h1>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Abonelik gelirleri, paket dağılımı ve aktif nakliyeci nakit akışı.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowDemoData(!showDemoData)}
+            className="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors self-start cursor-pointer"
+          >
+            {showDemoData ? '🛡️ Yalnızca Gerçek Üyeleri Göster' : 'Demo Verileri Göster'}
+          </button>
+        </div>
 
         {/* Header */}
         <div>

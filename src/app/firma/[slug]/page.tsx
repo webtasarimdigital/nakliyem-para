@@ -41,7 +41,23 @@ const SAMPLE_FLEET_PHOTOS = [
 
 export default function PublicCarrierProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
-  const carrier = db.getCarrierBySlug(resolvedParams.slug) || db.getCarriers()[0];
+  const carrier = db.getCarrierBySlug(resolvedParams.slug) || db.getCarriers().find(c => c.slug === resolvedParams.slug || c.id === resolvedParams.slug) || null;
+
+  if (!carrier) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4 py-16">
+        <div className="w-16 h-16 rounded-2xl bg-orange-50 text-[#F95700] flex items-center justify-center mb-4">
+          <Truck className="w-8 h-8" />
+        </div>
+        <h1 className="text-xl font-black text-[#0A1128] mb-2">Firma Profili Bulunamadı</h1>
+        <p className="text-sm text-slate-500 mb-6">Aradığınız nakliye firması profili bulunamadı veya henüz yayında değil.</p>
+        <Link href="/talepler">
+          <Button variant="primary" size="md">Açık Talepleri Gör</Button>
+        </Link>
+      </div>
+    );
+  }
+
   const reviews = db.getReviewsForCarrier(carrier.id);
   const defterPosts = db.getDefterPosts().filter(p => p.carrierId === carrier.id);
 

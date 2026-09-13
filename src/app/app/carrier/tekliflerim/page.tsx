@@ -17,22 +17,57 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { RouteDisplay } from '@/components/ui/RouteDisplay';
 import { db } from '@/lib/data/mock-db';
-import { OfferStatus } from '@/types';
+import { Offer, OfferStatus, CarrierProfile } from '@/types';
+import { ArrowLeft } from 'lucide-react';
 
 export default function CarrierOffersTrackerPage() {
-  const carrier = db.getCarriers()[0];
-  const offers = db.getOffersForCarrier(carrier.id);
+  const [carrier, setCarrier] = useState<CarrierProfile | null>(null);
+  const [offers, setOffers] = useState<Offer[]>([]);
+
+  React.useEffect(() => {
+    const currentUser = db.getCurrentUser();
+    let activeCarrier = db.getCurrentCarrier();
+    if (!activeCarrier && currentUser) {
+      activeCarrier = db.getCarriers().find(c => c.userId === currentUser.id || c.id === currentUser.carrierProfileId) || null;
+    }
+    setCarrier(activeCarrier);
+    if (activeCarrier) {
+      setOffers(db.getOffersForCarrier(activeCarrier.id));
+    }
+  }, []);
+
+  const handleWithdraw = (offerId: string) => {
+    if (confirm('Bu teklifi geri çekmek istediğinize emin misiniz?')) {
+      db.withdrawOffer(offerId);
+      setOffers(prev => prev.map(o => o.id === offerId ? { ...o, status: 'WITHDRAWN' as const } : o));
+    }
+  };
+
   const requests = db.getRequests();
 
   const [tab, setTab] = useState<'ALL' | 'PENDING' | 'ACCEPTED' | 'REJECTED'>('ALL');
 
   const filteredOffers = offers.filter(o => {
-    if (tab === 'ALL') return true;
-    return o.status === tab;
+    if (tab === 'ALL') return o.status !== 'WITHDRAWN';
+    if (tab === 'PENDING') return o.status === 'PENDING';
+    if (tab === 'ACCEPTED') return o.status === 'ACCEPTED';
+    if (tab === 'REJECTED') return o.status === 'REJECTED' || o.status === 'WITHDRAWN';
+    return true;
   });
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      {/* Back to Operation Center */}
+      <div className="mb-6">
+        <Link
+          href="/app/carrier"
+          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#F95700] bg-white hover:bg-orange-50/50 px-3.5 py-2 rounded-xl border border-slate-200 transition-all cursor-pointer shadow-2xs"
+        >
+          <ArrowLeft className="w-4 h-4 text-[#F95700]" />
+          <span>← Operasyon Merkezi&apos;ne Dön</span>
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
@@ -91,10 +126,10 @@ export default function CarrierOffersTrackerPage() {
                       {req?.requestCode || '#26093'}
                     </span>
                     <Badge
-                      variant={off.status === 'ACCEPTED' ? 'success' : off.status === 'PENDING' ? 'pending' : 'neutral'}
+                      variant={off.status === 'ACCEPTED' ? 'success' : off.status === 'PENDING' ? 'pending' : off.status === 'WITHDRAWN' ? 'neutral' : 'danger'}
                       size="sm"
                     >
-                      {off.status === 'ACCEPTED' ? 'İş Kazanıldı 🎉' : off.status === 'PENDING' ? 'Müşteri İncelemesinde' : 'Kapandı'}
+                      {off.status === 'ACCEPTED' ? 'İş Kazanıldı 🎉' : off.status === 'PENDING' ? 'Müşteri İncelemesinde' : off.status === 'WITHDRAWN' ? 'Geri Çekildi' : 'Kapandı'}
                     </Badge>
                   </div>
 
@@ -126,7 +161,16 @@ export default function CarrierOffersTrackerPage() {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {off.status === 'PENDING' && (
+                      <button
+                        type="button"
+                        onClick={() => handleWithdraw(off.id)}
+                        className="text-xs font-bold text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                      >
+                        Geri Çek
+                      </button>
+                    )}
                     <Link href={`/app/carrier/mesajlar`}>
                       <Button variant="outline" size="sm" leftIcon={<MessageSquare className="w-3.5 h-3.5" />}>
                         Mesaj

@@ -131,7 +131,7 @@ export default function DijitalHizmetlerPage() {
                   Komisyonsuz Kendi Müşterilerinizi Bulun
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black text-white leading-tight">
-                  Nakliyat firmanızı arayan müşteriler önce Google\'a bakar.
+                  Nakliyat firmanızı arayan müşteriler önce Google&apos;a bakar.
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-300 font-normal leading-relaxed max-w-xl">
                   Platformumuz üzerinden gelen işlerin yanı sıra, kendi kurumsal web siteniz ve Google reklamlarınızla her ay onlarca doğrudan taşıma işi bağlayın.

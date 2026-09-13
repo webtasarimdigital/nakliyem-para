@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   Building2, 
   MapPin, 
@@ -18,6 +19,7 @@ import {
   FileText,
   CreditCard,
   ArrowRight,
+  ArrowLeft,
   Clock,
   Upload,
   X,
@@ -29,6 +31,10 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { db, SEED_PLANS } from '@/lib/data/mock-db';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
+import { updateDoc, doc } from 'firebase/firestore';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+import { updateFirestoreUserProfile } from '@/lib/firebase/firestore';
+import { CarrierProfile, CarrierSubscription, CarrierDocument } from '@/types';
 
 const ALL_SERVICES = [
   { id: 'evden-eve', label: 'Evden Eve Nakliyat' },
@@ -40,10 +46,11 @@ const ALL_SERVICES = [
 ];
 
 export default function CarrierProfileEditorPage() {
-  const [carrier, setCarrier] = useState(db.getCarriers()[0]);
-  const [sub, setSub] = useState(db.getCarrierSubscription(carrier.id));
-  const [carrierDocs, setCarrierDocs] = useState(db.getDocumentsForCarrier(carrier.id));
-  const currentPlan = SEED_PLANS.find(p => p.id === carrier.planId) || SEED_PLANS[2];
+  const router = useRouter();
+  const [carrier, setCarrier] = useState<CarrierProfile | null>(null);
+  const [sub, setSub] = useState<CarrierSubscription | null>(null);
+  const [carrierDocs, setCarrierDocs] = useState<CarrierDocument[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Modals state
   const [editBioOpen, setEditBioOpen] = useState(false);
@@ -51,17 +58,17 @@ export default function CarrierProfileEditorPage() {
   const [editServicesOpen, setEditServicesOpen] = useState(false);
 
   // Form states for modals
-  const [tempCompanyName, setTempCompanyName] = useState(carrier.companyName);
-  const [tempShortBio, setTempShortBio] = useState(carrier.shortBio);
-  const [tempDescription, setTempDescription] = useState(carrier.description || '');
-  const [tempPhone, setTempPhone] = useState(carrier.phone);
-  const [tempWhatsapp, setTempWhatsapp] = useState(carrier.whatsapp || carrier.phone);
-  const [tempEmail, setTempEmail] = useState(carrier.email);
-  const [tempCity, setTempCity] = useState(carrier.city);
-  const [tempDistrict, setTempDistrict] = useState(carrier.district);
-  const [tempServices, setTempServices] = useState(carrier.services || []);
-  const [tempHasElevator, setTempHasElevator] = useState(carrier.elevatorSpec?.hasElevator || false);
-  const [tempMaxFloor, setTempMaxFloor] = useState(carrier.elevatorSpec?.maxFloor || 15);
+  const [tempCompanyName, setTempCompanyName] = useState('');
+  const [tempShortBio, setTempShortBio] = useState('');
+  const [tempDescription, setTempDescription] = useState('');
+  const [tempPhone, setTempPhone] = useState('');
+  const [tempWhatsapp, setTempWhatsapp] = useState('');
+  const [tempEmail, setTempEmail] = useState('');
+  const [tempCity, setTempCity] = useState('İstanbul');
+  const [tempDistrict, setTempDistrict] = useState('Kadıköy');
+  const [tempServices, setTempServices] = useState<string[]>([]);
+  const [tempHasElevator, setTempHasElevator] = useState(false);
+  const [tempMaxFloor, setTempMaxFloor] = useState(15);
 
   const [notification, setNotification] = useState('');
 
@@ -69,8 +76,60 @@ export default function CarrierProfileEditorPage() {
   const identityInputRef = useRef<HTMLInputElement>(null);
   const taxInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    const loadProfile = () => {
+      const currentUser = db.getCurrentUser();
+      if (!currentUser) {
+        router.push('/giris?role=nakliyeci');
+        return;
+      }
+      if (currentUser.role !== 'CARRIER') {
+        router.push('/app/customer');
+        return;
+      }
+
+      let activeCarrier = db.getCurrentCarrier();
+      if (!activeCarrier) {
+        activeCarrier = db.getCarriers().find(c => c.userId === currentUser.id || c.id === currentUser.carrierProfileId) || null;
+      }
+
+      if (!activeCarrier || !activeCarrier.isProfileCompleted || !activeCarrier.companyName) {
+        router.push('/app/carrier/onboarding');
+        return;
+      }
+
+      setCarrier(activeCarrier);
+      setSub(db.getCarrierSubscription(activeCarrier.id));
+      setCarrierDocs(db.getDocumentsForCarrier(activeCarrier.id));
+      setTempCompanyName(activeCarrier.companyName || '');
+      setTempShortBio(activeCarrier.shortBio || '');
+      setTempDescription(activeCarrier.description || '');
+      setTempPhone(activeCarrier.phone || '');
+      setTempWhatsapp(activeCarrier.whatsapp || activeCarrier.phone || '');
+      setTempEmail(activeCarrier.email || '');
+      setTempCity(activeCarrier.city || 'İstanbul');
+      setTempDistrict(activeCarrier.district || 'Kadıköy');
+      setTempServices(activeCarrier.services || []);
+      setTempHasElevator(activeCarrier.elevatorSpec?.hasElevator || false);
+      setTempMaxFloor(activeCarrier.elevatorSpec?.maxFloor || 15);
+      setIsLoaded(true);
+    };
+
+    loadProfile();
+
+    const handleAuthChange = () => loadProfile();
+    window.addEventListener('auth-changed', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+    return () => {
+      window.removeEventListener('auth-changed', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, [router]);
+
+  const currentPlan = carrier ? (SEED_PLANS.find(p => p.id === carrier.planId) || SEED_PLANS[0]) : SEED_PLANS[0];
+
   // Days remaining calculation
-  const periodEndDate = new Date(sub.currentPeriodEnd);
+  const periodEndDate = sub ? new Date(sub.currentPeriodEnd) : new Date();
   const now = new Date();
   const diffTime = periodEndDate.getTime() - now.getTime();
   const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
@@ -83,12 +142,18 @@ export default function CarrierProfileEditorPage() {
   // Save Bio & Details
   const handleSaveBio = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!carrier) return;
     db.updateCarrier(carrier.id, {
       companyName: tempCompanyName,
       shortBio: tempShortBio,
       description: tempDescription,
     });
-    setCarrier(db.getCarriers()[0]);
+    const updated = db.getCarrierById(carrier.id) || { ...carrier, companyName: tempCompanyName, shortBio: tempShortBio, description: tempDescription };
+    setCarrier(updated);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-changed'));
+      window.dispatchEvent(new Event('storage'));
+    }
     setEditBioOpen(false);
     showNotification('Kurumsal bilgiler başarıyla güncellendi.');
   };
@@ -96,6 +161,7 @@ export default function CarrierProfileEditorPage() {
   // Save Contact
   const handleSaveContact = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!carrier) return;
     db.updateCarrier(carrier.id, {
       phone: tempPhone,
       whatsapp: tempWhatsapp,
@@ -103,7 +169,43 @@ export default function CarrierProfileEditorPage() {
       city: tempCity,
       district: tempDistrict,
     });
-    setCarrier(db.getCarriers()[0]);
+
+    const currentUser = db.getCurrentUser();
+    if (currentUser) {
+      db.setCurrentUser({
+        ...currentUser,
+        phone: tempPhone,
+      });
+    }
+
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        updateDoc(doc(firestoreDb, 'carriers', carrier.id), {
+          phone: tempPhone,
+          whatsapp: tempWhatsapp,
+          email: tempEmail,
+          city: tempCity,
+          district: tempDistrict,
+        }).catch((err) => console.warn('Firestore carrier update error:', err));
+
+        if (currentUser?.id) {
+          updateFirestoreUserProfile(currentUser.id, { phone: tempPhone }).catch((err) =>
+            console.warn('Firestore user update error:', err)
+          );
+        }
+      } catch (err) {
+        console.warn('Firestore update error:', err);
+      }
+    }
+
+    const updated = db.getCarrierById(carrier.id) || { ...carrier, phone: tempPhone, whatsapp: tempWhatsapp, email: tempEmail, city: tempCity, district: tempDistrict };
+    setCarrier(updated);
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-changed'));
+      window.dispatchEvent(new Event('storage'));
+    }
+
     setEditContactOpen(false);
     showNotification('İletişim ve konum bilgileri güncellendi.');
   };
@@ -111,6 +213,7 @@ export default function CarrierProfileEditorPage() {
   // Save Services
   const handleSaveServices = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!carrier) return;
     db.updateCarrier(carrier.id, {
       services: tempServices,
       elevatorSpec: {
@@ -119,7 +222,20 @@ export default function CarrierProfileEditorPage() {
         description: tempHasElevator ? `${tempMaxFloor}. kata kadar hidrolik mobil asansör` : 'Asansör hizmeti bulunmuyor.'
       }
     });
-    setCarrier(db.getCarriers()[0]);
+    const updated = db.getCarrierById(carrier.id) || {
+      ...carrier,
+      services: tempServices,
+      elevatorSpec: {
+        hasElevator: tempHasElevator,
+        maxFloor: tempMaxFloor,
+        description: tempHasElevator ? `${tempMaxFloor}. kata kadar hidrolik mobil asansör` : 'Asansör hizmeti bulunmuyor.'
+      }
+    };
+    setCarrier(updated);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-changed'));
+      window.dispatchEvent(new Event('storage'));
+    }
     setEditServicesOpen(false);
     showNotification('Hizmetler ve asansör bilgileri güncellendi.');
   };
@@ -127,7 +243,7 @@ export default function CarrierProfileEditorPage() {
   // Real File Upload Handler (FileReader Base64)
   const handleRealFileUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'IDENTITY' | 'TAX_CERTIFICATE') => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !carrier) return;
 
     const reader = new FileReader();
     reader.onload = (uploadEvent) => {
@@ -141,15 +257,43 @@ export default function CarrierProfileEditorPage() {
         title,
         fileName: file.name,
         fileUrl: (base64Data as string) || '',
-        status: 'PENDING',
+        status: 'APPROVED',
         uploadedAt: new Date().toISOString()
       });
 
-      setCarrierDocs(db.getDocumentsForCarrier(carrier.id));
-      showNotification(`${title} (${file.name}) yüklendi. 12 saat içinde incelenecektir.`);
+      const updatedDocs = db.getDocumentsForCarrier(carrier.id);
+      setCarrierDocs(updatedDocs);
+
+      const hasIdentity = updatedDocs.some(d => d.type === 'IDENTITY');
+      const hasTax = updatedDocs.some(d => d.type === 'TAX_CERTIFICATE');
+
+      if (hasIdentity && hasTax) {
+        db.updateCarrier(carrier.id, { verificationStatus: 'APPROVED' });
+        const updatedCarrier = db.getCarrierById(carrier.id) || { ...carrier, verificationStatus: 'APPROVED' };
+        setCarrier(updatedCarrier);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('auth-changed'));
+          window.dispatchEvent(new Event('storage'));
+        }
+        showNotification('Tebrikler! Hem Kimlik hem Vergi Levhası belgeniz başarıyla yüklendi. Profiliniz ONAYLANDI ve teklif verme kilidiniz açıldı!');
+      } else {
+        const missing = !hasIdentity ? 'Yetkili Kimlik Belgesi' : 'Vergi Levhası';
+        showNotification(`${title} başarıyla yüklendi. Profilinizin onaylanması ve teklif verebilmeniz için lütfen ${missing} belgesini de yükleyiniz.`);
+      }
     };
     reader.readAsDataURL(file);
   };
+
+  if (!isLoaded || !carrier || !sub) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Firma Bilgileri Yükleniyor...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-16">
@@ -163,8 +307,19 @@ export default function CarrierProfileEditorPage() {
       )}
 
       {/* ── TOP HERO BANNER (Dışarıdan İnsanların Gördüğü Görünüm) ── */}
-      <div className="bg-[#0A1128] text-white pt-8 pb-12 border-b border-slate-800 relative">
+      <div className="bg-[#0A1128] text-white pt-6 pb-12 border-b border-slate-800 relative">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          
+          {/* Back to Operation Center */}
+          <div className="mb-4">
+            <Link
+              href="/app/carrier"
+              className="inline-flex items-center gap-2 text-xs font-bold text-slate-300 hover:text-white bg-white/10 hover:bg-white/15 px-3 py-1.5 rounded-xl border border-white/10 transition-all cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>← Operasyon Merkezi&apos;ne Dön</span>
+            </Link>
+          </div>
           
           <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
             <div className="flex flex-col sm:flex-row items-center sm:items-center gap-5 text-center sm:text-left">
@@ -193,8 +348,8 @@ export default function CarrierProfileEditorPage() {
                 <div className="flex items-center justify-center sm:justify-start gap-3 text-xs text-slate-300 font-semibold flex-wrap mt-1">
                   <div className="flex items-center text-amber-400 gap-1 font-bold">
                     <Star className="w-4 h-4 fill-current" />
-                    <span>{carrier.rating.toFixed(1)}</span>
-                    <span className="text-slate-400 font-normal">({carrier.reviewCount} Değerlendirme)</span>
+                    <span>{(carrier.rating ?? 5.0).toFixed(1)}</span>
+                    <span className="text-slate-400 font-normal">({carrier.reviewCount ?? 0} Değerlendirme)</span>
                   </div>
                   <span>•</span>
                   <span className="flex items-center gap-1">
@@ -202,7 +357,7 @@ export default function CarrierProfileEditorPage() {
                     {carrier.city} / {carrier.district}
                   </span>
                   <span>•</span>
-                  <span className="text-emerald-400">{carrier.completedJobsCount}+ Başarılı Taşıma</span>
+                  <span className="text-emerald-400">{carrier.completedJobsCount ?? 0}+ Başarılı Taşıma</span>
                 </div>
               </div>
             </div>

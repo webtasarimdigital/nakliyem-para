@@ -13,7 +13,16 @@ import {
   Unsubscribe 
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from './config';
-import { MovingRequest, Offer, DefterPost, Review, CarrierProfile } from '@/types';
+import { MovingRequest, Offer, DefterPost, Review, CarrierProfile, User } from '@/types';
+
+// ─── USERS (KULLANICILAR) ─────────────────────────────────────
+export async function updateFirestoreUserProfile(userId: string, updates: Partial<User>): Promise<void> {
+  if (!isFirebaseConfigured()) return;
+  await updateDoc(doc(db, 'users', userId), {
+    ...updates,
+    updatedAt: serverTimestamp(),
+  });
+}
 
 // ─── REQUESTS (TALEPLER) ──────────────────────────────────────
 export async function createFirestoreRequest(req: MovingRequest): Promise<void> {
@@ -102,7 +111,25 @@ export async function getFirestoreReviewsForCarrier(carrierId: string): Promise<
 
 // ─── CARRIERS (FİRMALAR) ──────────────────────────────────────
 export async function getFirestoreCarriers(): Promise<CarrierProfile[]> {
-  if (!isFirebaseConfigured()) return [];
-  const snap = await getDocs(collection(db, 'carriers'));
-  return snap.docs.map(d => ({ ...d.data(), id: d.id } as CarrierProfile));
+  if (!isFirebaseConfigured() || !db) return [];
+  try {
+    const snap = await getDocs(collection(db, 'carriers'));
+    return snap.docs.map(d => ({ ...d.data(), id: d.id } as CarrierProfile));
+  } catch (err) {
+    console.warn('Failed to fetch Firestore carriers:', err);
+    return [];
+  }
 }
+
+// ─── USERS (KULLANICILAR LİSTESİ) ────────────────────────────
+export async function getFirestoreUsers(): Promise<User[]> {
+  if (!isFirebaseConfigured() || !db) return [];
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    return snap.docs.map(d => ({ ...d.data(), id: d.id } as User));
+  } catch (err) {
+    console.warn('Failed to fetch Firestore users:', err);
+    return [];
+  }
+}
+

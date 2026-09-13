@@ -46,61 +46,6 @@ const PLAN_COLORS: Record<string, string> = {
   plan_gold: 'bg-amber-500',
 };
 
-function AdminNavbar({ onLogout }: { onLogout: () => void }) {
-  const [loggingOut, setLoggingOut] = useState(false);
-
-  const handleLogout = async () => {
-    setLoggingOut(true);
-    try {
-      localStorage.removeItem('admin_token_active');
-      await fetch('/api/admin/logout', { method: 'POST' });
-    } finally {
-      onLogout();
-      setLoggingOut(false);
-    }
-  };
-
-  return (
-    <div className="bg-[#0A1128] text-white px-4 sm:px-6 py-3.5 flex items-center justify-between sticky top-0 z-50 shadow-lg">
-      <div className="flex items-center gap-2.5">
-        <div className="w-7 h-7 rounded-lg bg-[#F95700] flex items-center justify-center shrink-0">
-          <ShieldCheck className="w-4 h-4 text-white" />
-        </div>
-        <span className="font-black text-sm tracking-tight truncate">TaşınTeklif <span className="text-[#F95700]">Admin</span></span>
-      </div>
-
-      <nav className="hidden md:flex items-center gap-1 text-xs font-bold text-slate-400">
-        <Link href="/admin" className="px-3 py-1.5 rounded-lg hover:bg-white/10 hover:text-white transition-colors text-white">
-          Dashboard
-        </Link>
-        <Link href="/admin/uyeler" className="px-3 py-1.5 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
-          Üyeler
-        </Link>
-        <Link href="/admin/gelir" className="px-3 py-1.5 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
-          Gelir
-        </Link>
-        <Link href="/admin/dogrulamalar" className="px-3 py-1.5 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
-          Doğrulamalar
-        </Link>
-        <Link href="/admin/paketler" className="px-3 py-1.5 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
-          Paketler
-        </Link>
-        <Link href="/admin/ayarlar" className="px-3 py-1.5 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
-          Ayarlar
-        </Link>
-      </nav>
-
-      <button
-        onClick={handleLogout}
-        disabled={loggingOut}
-        className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-red-400 transition-colors disabled:opacity-50 cursor-pointer"
-      >
-        <LogOut className="w-3.5 h-3.5" />
-        {loggingOut ? 'Çıkılıyor...' : 'Çıkış'}
-      </button>
-    </div>
-  );
-}
 
 export default function AdminDashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -233,10 +178,24 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const carriers = db.getCarriers();
-  const requests = db.getRequests();
-  const pendingDocs = db.getDocuments().filter(d => d.status === 'PENDING');
-  const leads = db.getLeads();
+  const [showDemoData, setShowDemoData] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const carriers = showDemoData ? db.getCarriers() : db.getRealCarriers();
+  const requests = showDemoData ? db.getRequests() : db.getRealRequests();
+  const pendingDocs = (showDemoData ? db.getDocuments() : db.getRealDocuments()).filter(d => d.status === 'PENDING');
+  const leads = showDemoData ? db.getLeads() : db.getRealLeads();
+
+  const handleClearDemoData = () => {
+    if (confirm('Tüm tohum / demo verileri kalıcı olarak veritabanından temizlemek istiyor musunuz?')) {
+      db.clearDemoData();
+      setShowDemoData(false);
+      setRefreshKey(k => k + 1);
+      setNotice('Tüm fake ve tohum veriler temizlendi.');
+      setTimeout(() => setNotice(null), 4000);
+    }
+  };
 
   // --- Nakliyeci Segmentasyonu ---
   const approvedCarriers = carriers.filter(c => c.verificationStatus === 'APPROVED');
@@ -252,23 +211,72 @@ export default function AdminDashboardPage() {
   }, 0);
   const annualRevenue = monthlyRevenue * 12;
 
-  // --- Müşteri (Talep Açmış Benzersiz Kullanıcılar) ---
-  const uniqueCustomerIds = new Set(requests.map(r => r.customerId));
+  // --- Müşteri (Talep Açmış ve Kayıtlı Benzersiz Müşteriler) ---
+  const registeredCustomers = (showDemoData ? db.getRegisteredUsers() : db.getRealRegisteredUsers()).filter(u => u.role === 'CUSTOMER');
+  const uniqueCustomerIds = new Set([
+    ...requests.map(r => r.customerId),
+    ...registeredCustomers.map(u => u.id)
+  ]);
   const totalCustomers = uniqueCustomerIds.size;
   const activeRequests = requests.filter(r => r.status === 'ACTIVE').length;
   const closedRequests = requests.filter(r => r.status === 'CLOSED').length;
 
-  // --- Mock monthly breakdown (simulated) ---
-  const mockChurnCount = 2;
-  const mockTrialCount = 3;
-  const mockNewThisMonth = 4;
-  const mockRenewedCount = approvedCarriers.length - mockNewThisMonth;
+  // --- Gerçek periyot istatistikleri ---
+  const thirtyDaysAgo = Date.now() - 30 * 24 * 3600 * 1000;
+  const newThisMonth = carriers.filter(c => new Date(c.joinedAt).getTime() > thirtyDaysAgo).length;
+  const mockRenewedCount = Math.max(0, approvedCarriers.length - newThisMonth);
+  const churnCount = 0;
+  const trialCount = carriers.filter(c => !c.planId || c.planId === 'trial').length;
 
   return (
     <div className="min-h-screen bg-slate-50 overflow-x-hidden w-full">
-      <AdminNavbar onLogout={() => setIsAuthenticated(false)} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+        {notice && (
+          <div className="p-4 rounded-xl bg-emerald-100 text-emerald-900 text-xs font-bold flex items-center justify-between shadow-xs">
+            <span>{notice}</span>
+          </div>
+        )}
+
+        {/* Gerçek Veri Filtresi Banner */}
+        <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs ${
+          !showDemoData 
+            ? 'bg-emerald-50/70 border-emerald-200' 
+            : 'bg-amber-50/70 border-amber-200'
+        }`}>
+          <div className="flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              !showDemoData ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'
+            }`}>
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-[#0A1128]">
+                {!showDemoData ? '🛡️ Gerçek Sistem Verileri Modu Aktif' : 'Demo Verileri Dahil Edildi'}
+              </h2>
+              <p className="text-xs text-slate-600">
+                {!showDemoData 
+                  ? 'Gelir, müşteri ve nakliyeci metrikleri sahte seed kayıtlardan arındırılmış canlı verileri yansıtmaktadır.' 
+                  : 'Geliştirme aşamasındaki vitrin verileri ve örnek firmalar da gösteriliyor.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowDemoData(!showDemoData)}
+              className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              {!showDemoData ? 'Demo Verilerini Aç' : 'Yalnızca Gerçek Üyeleri Göster'}
+            </button>
+            <button
+              onClick={handleClearDemoData}
+              className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-colors cursor-pointer"
+            >
+              Fake Verileri Temizle
+            </button>
+          </div>
+        </div>
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -360,8 +368,8 @@ export default function AdminDashboardPage() {
               { label: 'Toplam Nakliyeci', value: carriers.length, icon: Truck, color: 'bg-orange-50 text-[#F95700]', badge: 'Kayıtlı Firma', badgeColor: 'text-[#F95700]' },
               { label: 'Aktif Nakliyeci', value: approvedCarriers.length, icon: UserCheck, color: 'bg-emerald-50 text-emerald-600', badge: 'Onaylı + Aktif', badgeColor: 'text-emerald-600' },
               { label: 'Onay Bekleyen', value: pendingCarriers.length, icon: Clock, color: 'bg-amber-50 text-amber-600', badge: 'İnceleme Gerek', badgeColor: 'text-amber-600' },
-              { label: 'Deneme Sürümü', value: mockTrialCount, icon: AlertCircle, color: 'bg-blue-50 text-blue-600', badge: '7 Gün Trial', badgeColor: 'text-blue-600' },
-              { label: 'Bu Ay İptal', value: mockChurnCount, icon: UserX, color: 'bg-red-50 text-red-500', badge: 'Churn', badgeColor: 'text-red-500' },
+              { label: 'Deneme Sürümü', value: trialCount, icon: AlertCircle, color: 'bg-blue-50 text-blue-600', badge: '7 Gün Trial', badgeColor: 'text-blue-600' },
+              { label: 'Bu Ay İptal', value: churnCount, icon: UserX, color: 'bg-red-50 text-red-500', badge: 'Churn', badgeColor: 'text-red-500' },
             ].map((item) => (
               <div key={item.label} className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs">
                 <div className={`w-8 h-8 rounded-lg ${item.color} flex items-center justify-center mb-2`}>
@@ -394,10 +402,10 @@ export default function AdminDashboardPage() {
                 { label: 'Gold', count: goldCarriers.length, price: 4850, planId: 'plan_gold' },
                 { label: 'Pro', count: proCarriers.length, price: 2450, planId: 'plan_pro' },
                 { label: 'Başlangıç', count: starterCarriers.length, price: 1250, planId: 'plan_starter' },
-                { label: 'Deneme (Trial)', count: mockTrialCount, price: 0, planId: 'trial' },
-                { label: 'İptal / Churn', count: mockChurnCount, price: 0, planId: 'churn' },
+                { label: 'Deneme (Trial)', count: trialCount, price: 0, planId: 'trial' },
+                { label: 'İptal / Churn', count: churnCount, price: 0, planId: 'churn' },
               ].map((tier) => {
-                const total = carriers.length + mockTrialCount + mockChurnCount;
+                const total = carriers.length + trialCount + churnCount;
                 const pct = total > 0 ? Math.round((tier.count / total) * 100) : 0;
                 const barColor = tier.planId === 'plan_gold' ? 'bg-amber-400'
                   : tier.planId === 'plan_pro' ? 'bg-blue-500'
@@ -462,11 +470,11 @@ export default function AdminDashboardPage() {
               <div className="flex gap-3">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  +{mockNewThisMonth} yeni nakliyeci
+                  +{newThisMonth} yeni nakliyeci
                 </div>
                 <div className="flex items-center gap-1.5 text-xs font-bold text-red-600">
                   <XCircle className="w-3.5 h-3.5" />
-                  {mockChurnCount} iptal
+                  {churnCount} iptal
                 </div>
               </div>
             </div>
