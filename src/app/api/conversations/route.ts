@@ -87,13 +87,14 @@ export async function GET(req: NextRequest) {
     try {
       await ensureWorkerAuth();
 
-      // 1. If reqNum is given, read direct chat docs
-      if (reqNum) {
+      // 1. If reqNum or direct requestId is given, read direct chat docs
+      const resolvedId = reqNum || (requestId || '').replace(/[^a-zA-Z0-9_-]/g, '');
+      if (resolvedId) {
         const carrRoot = extractCarrierRoot(carrierId || '');
         const carrFull = slugifyTurkish(carrierId || '').replace(/[^a-z0-9]/g, '');
-        const chatDocIds = [`chat_${reqNum}`];
-        if (carrRoot && carrRoot !== 'carrier') chatDocIds.push(`chat_${reqNum}_${carrRoot}`);
-        if (carrFull && !chatDocIds.includes(`chat_${reqNum}_${carrFull}`)) chatDocIds.push(`chat_${reqNum}_${carrFull}`);
+        const chatDocIds = [`chat_${resolvedId}`];
+        if (carrRoot && carrRoot !== 'carrier') chatDocIds.push(`chat_${resolvedId}_${carrRoot}`);
+        if (carrFull && !chatDocIds.includes(`chat_${resolvedId}_${carrFull}`)) chatDocIds.push(`chat_${resolvedId}_${carrFull}`);
 
         for (const docId of chatDocIds) {
           try {
@@ -210,14 +211,20 @@ export async function GET(req: NextRequest) {
   if (userId || carrierId || email) {
     const u = userId ? userId.toLowerCase() : '';
     const carr = carrierId ? carrierId.toLowerCase() : '';
+    const carrRoot = extractCarrierRoot(carrierId || '');
     const em = email ? email.toLowerCase() : '';
 
     const filtered = allConvs.filter(c => {
       const parts = (c.participantIds || []).map((p: any) => String(p).toLowerCase());
-      const pNames = c.participantNames ? Object.keys(c.participantNames).map(k => k.toLowerCase()) : [];
+      const pNames = c.participantNames ? 
+        Object.keys(c.participantNames).concat(Object.values(c.participantNames).map(String)).map(k => k.toLowerCase()) : [];
 
-      const matchUser = u && (parts.includes(u) || pNames.includes(u));
-      const matchCarrier = carr && (parts.includes(carr) || pNames.includes(carr));
+      const matchUser = u && (parts.includes(u) || pNames.some(n => n.includes(u) || u.includes(n)));
+      const matchCarrier = carr && (
+        parts.includes(carr) || 
+        pNames.some(n => n.includes(carr) || carr.includes(n)) ||
+        (carrRoot && carrRoot !== 'carrier' && parts.some((p: string) => p === carrRoot || extractCarrierRoot(p) === carrRoot))
+      );
       const matchEmail = em && (parts.includes(em) || pNames.includes(em));
 
       return matchUser || matchCarrier || matchEmail;
@@ -277,6 +284,10 @@ export async function POST(req: NextRequest) {
                    extractNumericRequestCode(targetConvId) || 
                    extractNumericRequestCode(conversation?.contextTitle) || 
                    extractNumericRequestCode(conversation?.contextId);
+    const cleanContextId = reqNum || 
+                           (requestId || '').replace(/[^a-zA-Z0-9_-]/g, '') ||
+                           (conversation?.contextId || '').replace(/[^a-zA-Z0-9_-]/g, '') ||
+                           (targetConvId || '').replace(/[^a-zA-Z0-9_-]/g, '');
     const carrKey = getCarrierKey(carrierSlug || carrierId || carrierName);
 
     // 1. Update in-memory & local fallback
@@ -313,17 +324,21 @@ export async function POST(req: NextRequest) {
 
         const carrRoot = extractCarrierRoot(carrierSlug || carrierId || carrierName);
         const carrFull = slugifyTurkish(carrierSlug || carrierId || carrierName || '').replace(/[^a-z0-9]/g, '');
-        const chatDocsToUpdate = [];
-        if (reqNum) {
-          chatDocsToUpdate.push(`chat_${reqNum}`);
-          if (carrRoot && carrRoot !== 'carrier') chatDocsToUpdate.push(`chat_${reqNum}_${carrRoot}`);
-          if (carrFull && !chatDocsToUpdate.includes(`chat_${reqNum}_${carrFull}`)) chatDocsToUpdate.push(`chat_${reqNum}_${carrFull}`);
+        const chatDocsToUpdate: string[] = [];
+        if (cleanContextId) {
+          chatDocsToUpdate.push(`chat_${cleanContextId}`);
+          if (carrRoot && carrRoot !== 'carrier') chatDocsToUpdate.push(`chat_${cleanContextId}_${carrRoot}`);
+          if (carrFull && !chatDocsToUpdate.includes(`chat_${cleanContextId}_${carrFull}`)) chatDocsToUpdate.push(`chat_${cleanContextId}_${carrFull}`);
+        }
+        if (targetConvId && !chatDocsToUpdate.includes(`chat_${targetConvId}`)) {
+          chatDocsToUpdate.push(`chat_${targetConvId}`);
         }
 
+        let currentList: any[] = [];
         for (const docId of chatDocsToUpdate) {
           const docRef = doc(firestoreDb, 'requests', docId);
           const snap = await getDoc(docRef);
-          let currentList: any[] = [];
+          currentList = [];
           if (snap.exists() && Array.isArray(snap.data().messages)) {
             currentList = snap.data().messages;
           }
@@ -337,7 +352,7 @@ export async function POST(req: NextRequest) {
           }
           await setDoc(docRef, {
             isChatDoc: true,
-            requestId: reqNum,
+            requestId: cleanContextId,
             carrierKey: carrKey,
             conversationId: targetConvId,
             conversation: conversation || snap.data()?.conversation || null,
@@ -353,7 +368,8 @@ export async function POST(req: NextRequest) {
           await setDoc(doc(firestoreDb, 'conversations', targetConvId), {
             ...(conversation || {}),
             id: targetConvId,
-            requestId: reqNum || requestId,
+            requestId: cleanContextId,
+            messages: currentList.length > 0 ? currentList : (targetMessage ? [targetMessage] : []),
             lastMessage: targetMessage?.content || '',
             lastMessageAt: targetMessage?.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString()

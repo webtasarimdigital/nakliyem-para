@@ -167,6 +167,7 @@ export default function IlanVerPage() {
   const handleSubmit = () => {
     setIsSubmitting(true);
 
+    const user = currentUser || db.getCurrentUser();
     const generatedTitle = form.title || `${form.brand || ''} ${form.model || form.category}`.trim();
     const newListing = {
       id: `listing_${Date.now()}`,
@@ -185,6 +186,9 @@ export default function IlanVerPage() {
       city: form.city,
       district: form.district,
       sellerName: form.sellerName,
+      sellerUserId: user?.id || (user as any)?.uid,
+      sellerCarrierId: user?.carrierProfileId || (user?.role === 'CARRIER' ? user?.id : undefined),
+      sellerEmail: user?.email,
       sellerJoinYear: '2026',
       sellerPhone: form.sellerPhone,
       isVerified: true,
@@ -196,6 +200,12 @@ export default function IlanVerPage() {
 
     db.addMarketplaceListing(newListing);
     setCreatedListing(newListing);
+
+    fetch('/api/marketplace', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newListing)
+    }).catch(() => {});
 
     setTimeout(() => {
       setIsSubmitting(false);

@@ -1202,8 +1202,12 @@ export function extractCarrierRoot(carrierIdentifier?: string): string {
 }
 
 export function getCanonicalConvId(requestCodeOrId: string, carrierIdentifier?: string): string {
-  const code = extractNumericRequestCode(requestCodeOrId) || (requestCodeOrId || '').replace(/[^a-zA-Z0-9_-]/g, '');
+  const cleanId = (requestCodeOrId || '').replace(/[^a-zA-Z0-9_-]/g, '');
   const carrierKey = extractCarrierRoot(carrierIdentifier);
+  if (cleanId.startsWith('listing_') || cleanId.startsWith('market_')) {
+    return `conv_market_${cleanId}_${carrierKey || 'carr'}`;
+  }
+  const code = extractNumericRequestCode(requestCodeOrId) || cleanId;
   return `conv_req_${code || 'general'}_${carrierKey || 'carr'}`;
 }
 
@@ -2380,7 +2384,7 @@ class MockDatabase {
     return newMsg;
   }
 
-  createConversation(data: { id?: string; participantIds: string[]; participantNames: { [id: string]: string }; contextType: 'REQUEST' | 'DEFTER' | 'DIRECT'; contextId: string; contextTitle: string; initialMessage?: string }): Conversation {
+  createConversation(data: { id?: string; participantIds: string[]; participantNames: { [id: string]: string }; contextType: 'REQUEST' | 'DEFTER' | 'DIRECT' | 'MARKETPLACE'; contextId: string; contextTitle: string; initialMessage?: string }): Conversation {
     const newConv: Conversation = {
       id: data.id || `conv_${Date.now()}`,
       participantIds: data.participantIds,

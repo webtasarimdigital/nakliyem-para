@@ -143,11 +143,22 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     return [];
   });
 
+  const [remoteListing, setRemoteListing] = useState<any>(null);
+
   useEffect(() => {
     setUserListings(db.getMarketplaceListings());
-  }, []);
+    fetch(`/api/marketplace?id=${encodeURIComponent(id)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.listing) {
+          setRemoteListing(data.listing);
+          db.addMarketplaceListing(data.listing);
+        }
+      })
+      .catch(() => {});
+  }, [id]);
 
-  const allListings = [...userListings, ...SAMPLE_LISTINGS];
+  const allListings = remoteListing ? [remoteListing, ...userListings, ...SAMPLE_LISTINGS] : [...userListings, ...SAMPLE_LISTINGS];
   const rawListing = allListings.find(l => String(l.id) === String(id)) || SAMPLE_LISTINGS[0];
 
   const specs: { label: string; value: string }[] = (rawListing.specs && rawListing.specs.length > 0) ? rawListing.specs : [
@@ -178,10 +189,26 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   const [messageText, setMessageText] = useState('');
   const [showFullGallery, setShowFullGallery] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
+  const [sentConvId, setSentConvId] = useState<string>('');
+  const [isSending, setIsSending] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalPurpose, setAuthModalPurpose] = useState<'MESSAGE' | 'PHONE'>('MESSAGE');
 
-  const currentUser = db.getCurrentUser();
+  const [currentUser, setCurrentUser] = useState<any>(() => {
+    if (typeof window !== 'undefined') return db.getCurrentUser();
+    return null;
+  });
+
+  useEffect(() => {
+    setCurrentUser(db.getCurrentUser());
+    const handleAuth = () => setCurrentUser(db.getCurrentUser());
+    window.addEventListener('auth-changed', handleAuth);
+    window.addEventListener('storage', handleAuth);
+    return () => {
+      window.removeEventListener('auth-changed', handleAuth);
+      window.removeEventListener('storage', handleAuth);
+    };
+  }, []);
 
   const handleMessageClick = () => {
     if (!currentUser) {
@@ -210,15 +237,137 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     }
   };
 
-  const handleSendMessage = (customText?: string) => {
-    if (!currentUser) {
+  const handleSendMessage = async (customText?: string) => {
+    const user = currentUser || db.getCurrentUser();
+    if (!user) {
       setAuthModalPurpose('MESSAGE');
       setAuthModalOpen(true);
       return;
     }
+
     const textToSend = typeof customText === 'string' ? customText : (messageText.trim() || 'Bu ilan hakkında bilgi alabilir miyim?');
-    if (!textToSend.trim()) return;
-    setMessageSent(true);
+    if (!textToSend.trim() || isSending) return;
+
+    setIsSending(true);
+
+    try {
+      // 1. Resolve seller & carrier
+      const carriers = db.getCarriers();
+      const sellerRoot = db.extractCarrierRoot(listing.sellerName);
+      const matchedCarrier = carriers.find(c => 
+        (listing.sellerCarrierId && c.id === listing.sellerCarrierId) ||
+        (listing.sellerUserId && c.userId === listing.sellerUserId) ||
+        (c.companyName && c.companyName.toLowerCase().includes(listing.sellerName.toLowerCase())) ||
+        (listing.sellerName && listing.sellerName.toLowerCase().includes(c.companyName.toLowerCase())) ||
+        (sellerRoot && sellerRoot !== 'carrier' && db.extractCarrierRoot(c.companyName) === sellerRoot) ||
+        (sellerRoot && sellerRoot !== 'carrier' && db.extractCarrierRoot(c.slug) === sellerRoot)
+      );
+
+      const sellerDisplayName = matchedCarrier?.companyName || listing.sellerName || 'Satıcı Firma';
+      const sellerId = matchedCarrier?.userId || matchedCarrier?.id || listing.sellerUserId || `user_${sellerRoot}`;
+      const sellerCarrierId = matchedCarrier?.id || listing.sellerCarrierId || `carr_${sellerRoot}`;
+      const carrierSlug = matchedCarrier?.slug || sellerRoot;
+
+      // 2. Buyer info
+      const buyerId = user.id || (user as any).uid || 'cust_user';
+      const buyerName = user.fullName || (user as any).name || (user.role === 'CARRIER' ? user.companyName : 'Alıcı');
+      const buyerRole = user.role === 'CARRIER' ? 'CARRIER' : 'CUSTOMER';
+
+      // 3. Find or generate canonical conversation ID
+      const allConvs = db.getConversations();
+      const existingConv = allConvs.find(c => 
+        c.contextId === listing.id && 
+        (c.participantIds?.includes(buyerId) || (user.email && c.participantIds?.includes(user.email)))
+      );
+
+      const targetConvId = existingConv ? existingConv.id : db.getCanonicalConvId(listing.id, carrierSlug || listing.sellerName);
+
+      const participantIds = Array.from(new Set([
+        buyerId,
+        sellerId,
+        sellerCarrierId,
+        sellerRoot,
+        matchedCarrier?.slug,
+        matchedCarrier?.userId,
+        listing.sellerName
+      ].filter(Boolean).map(String)));
+
+      const participantNames: { [key: string]: string } = {
+        [buyerId]: buyerName,
+        [sellerId]: sellerDisplayName,
+        ...(matchedCarrier?.id ? { [matchedCarrier.id]: sellerDisplayName } : {}),
+        ...(matchedCarrier?.userId ? { [matchedCarrier.userId]: sellerDisplayName } : {}),
+        ...(sellerRoot ? { [sellerRoot]: sellerDisplayName } : {})
+      };
+
+      const convData = {
+        id: targetConvId,
+        participantIds,
+        participantNames,
+        contextType: 'MARKETPLACE' as const,
+        contextId: listing.id,
+        contextTitle: `Pazaryeri İlanı: ${listing.title}`,
+        unreadCounts: {
+          [sellerId]: 1
+        },
+        lastMessage: textToSend,
+        lastMessageAt: new Date().toISOString()
+      };
+
+      // 4. Save to local mock-db
+      if (!existingConv) {
+        db.createConversation({
+          id: targetConvId,
+          participantIds,
+          participantNames,
+          contextType: 'MARKETPLACE',
+          contextId: listing.id,
+          contextTitle: `Pazaryeri İlanı: ${listing.title}`
+        });
+      }
+
+      const newMsg = db.sendMessage(targetConvId, {
+        senderId: buyerId,
+        senderName: buyerName,
+        senderRole: buyerRole,
+        content: textToSend
+      });
+
+      // 5. Sync to server & Cloud Firestore
+      await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId: targetConvId,
+          message: newMsg,
+          conversation: convData,
+          requestId: listing.id,
+          content: textToSend,
+          senderId: buyerId,
+          senderName: buyerName,
+          senderRole: buyerRole,
+          carrierName: sellerDisplayName,
+          carrierId: sellerCarrierId,
+          carrierSlug: carrierSlug,
+          customerId: buyerId,
+          customerName: buyerName
+        })
+      }).catch(err => console.warn('Sync /api/conversations error:', err));
+
+      // 6. Dispatch events
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new CustomEvent('message-added', { detail: newMsg }));
+      }
+
+      setSentConvId(targetConvId);
+      setMessageSent(true);
+      setMessageText('');
+    } catch (err) {
+      console.error('Mesaj gönderme hatası:', err);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handlePrevPhoto = () => {
@@ -399,12 +548,23 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
                 {/* Clear & Distinct Message Composer Card */}
                 {messageSent ? (
-                  <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2.5 shadow-xs animate-fade-in">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                    <div>
-                      <p className="font-black text-emerald-950">Mesajınız Satıcıya İletildi!</p>
-                      <p className="text-[11px] text-emerald-700 font-medium">Satıcı yanıtladığında bildirimleriniz ve mesajlarım bölümünde görüntülenecektir.</p>
+                  <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs animate-fade-in">
+                    <div className="flex items-center gap-2.5">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <div>
+                        <p className="font-black text-emerald-950">Mesajınız Satıcıya İletildi!</p>
+                        <p className="text-[11px] text-emerald-700 font-medium">Satıcı en kısa sürede yanıtlayacaktır. Sohbetinize mesajlarım sayfasından devam edebilirsiniz.</p>
+                      </div>
                     </div>
+                    {sentConvId && (
+                      <Link 
+                        href={`/app/${currentUser?.role === 'CARRIER' ? 'carrier' : 'customer'}/mesajlar?convId=${sentConvId}`}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition-colors shrink-0 shadow-xs cursor-pointer active:scale-95"
+                      >
+                        <span>Sohbete Git</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                    )}
                   </div>
                 ) : (
                   <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 space-y-2.5 shadow-2xs">
@@ -464,11 +624,12 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       />
                       <button
                         type="button"
+                        disabled={isSending}
                         onClick={() => handleSendMessage()}
-                        className="absolute right-1 top-1 bottom-1 px-3.5 rounded-lg bg-[#F95700] hover:bg-[#E04D00] text-white text-xs font-black flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+                        className="absolute right-1 top-1 bottom-1 px-3.5 rounded-lg bg-[#F95700] hover:bg-[#E04D00] text-white text-xs font-black flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
                       >
                         <Send className="w-3.5 h-3.5" />
-                        <span>Gönder</span>
+                        <span>{isSending ? '...' : 'Gönder'}</span>
                       </button>
                     </div>
                   </div>
@@ -560,8 +721,20 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
 
                 {/* Inline Message */}
                 {messageSent ? (
-                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 text-center">
-                    ✓ Mesajınız gönderildi, satıcı en kısa sürede yanıtlayacak.
+                  <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>✓ Mesajınız iletildi.</span>
+                    </div>
+                    {sentConvId && (
+                      <Link 
+                        href={`/app/${currentUser?.role === 'CARRIER' ? 'carrier' : 'customer'}/mesajlar?convId=${sentConvId}`}
+                        className="inline-flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition-colors shadow-xs"
+                      >
+                        <span>Sohbeti Görüntüle</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                    )}
                   </div>
                 ) : (
                   <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3 space-y-2">
@@ -588,11 +761,12 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       />
                       <button
                         type="button"
+                        disabled={isSending}
                         onClick={() => handleSendMessage()}
-                        className="absolute right-1 top-1 bottom-1 px-3 rounded-lg bg-[#F95700] hover:bg-[#E04D00] text-white text-xs font-black flex items-center gap-1 transition-all shadow-xs cursor-pointer active:scale-95"
+                        className="absolute right-1 top-1 bottom-1 px-3 rounded-lg bg-[#F95700] hover:bg-[#E04D00] text-white text-xs font-black flex items-center gap-1 transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
                       >
                         <Send className="w-3 h-3" />
-                        <span>Gönder</span>
+                        <span>{isSending ? '...' : 'Gönder'}</span>
                       </button>
                     </div>
                   </div>

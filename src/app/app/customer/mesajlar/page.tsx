@@ -62,19 +62,25 @@ function CustomerMessagesContent() {
 
     const matchesUser = (c: Conversation) => {
       if (!currentUser && userReqIds.size === 0) return true;
-      const parts = c.participantIds || [];
-      if (userId && parts.includes(userId)) return true;
-      if (currentUser?.id && parts.includes(currentUser.id)) return true;
-      if ((currentUser as any)?.uid && parts.includes((currentUser as any).uid)) return true;
-      if (currentUser?.email && parts.some(p => p && p.toLowerCase() === currentUser.email.toLowerCase())) return true;
-      if (currentUser?.phone && parts.some(p => p && p.replace(/\D/g, '').slice(-10) === currentUser.phone.replace(/\D/g, '').slice(-10))) return true;
-      if (currentUser?.fullName && Object.values(c.participantNames || {}).some(n => n && n.toLowerCase().includes(currentUser.fullName!.toLowerCase()))) return true;
+      const parts = (c.participantIds || []).map(p => String(p).toLowerCase());
+      const cNames = Object.values(c.participantNames || {}).map(n => String(n).trim().toLowerCase());
+      const uId = (userId || currentUser?.id || (currentUser as any)?.uid || '').toLowerCase();
+      const uEmail = (currentUser?.email || '').toLowerCase();
+      const uName = (currentUser?.fullName || (currentUser as any)?.name || '').trim().toLowerCase();
+      const uRoot = db.extractCarrierRoot(uName);
+      const uPhone = (currentUser?.phone || '').replace(/\D/g, '').slice(-10);
+
+      if (uId && parts.includes(uId)) return true;
+      if (uEmail && parts.some(p => p && p.toLowerCase() === uEmail)) return true;
+      if (uPhone && parts.some(p => p && p.replace(/\D/g, '').slice(-10) === uPhone)) return true;
+      if (uName && (cNames.some(n => n && (n.includes(uName) || uName.includes(n))) || parts.some(p => p && (p.includes(uName) || uName.includes(p))))) return true;
+      if (uRoot && uRoot !== 'carrier' && (parts.includes(uRoot) || parts.some(p => db.extractCarrierRoot(p) === uRoot))) return true;
       if (c.contextId && userReqIds.has(c.contextId)) return true;
       if (userRequests.some(r => {
         const code = (r.requestCode || '').replace('#', '');
         return code && ((c.contextId && c.contextId.includes(code)) || (c.contextTitle && c.contextTitle.includes(code)) || c.id.includes(code));
       })) return true;
-      if (c.participantNames && userId && Object.keys(c.participantNames).includes(userId)) return true;
+      if (c.participantNames && uId && Object.keys(c.participantNames).map(k => k.toLowerCase()).includes(uId)) return true;
       return false;
     };
 
@@ -132,10 +138,12 @@ function CustomerMessagesContent() {
     const pollInterval = setInterval(() => {
       if (activeConvId) {
         const activeC = db.getConversationById(activeConvId);
-        const reqNum = db.extractNumericRequestCode(activeC?.contextTitle) || 
-                       db.extractNumericRequestCode(activeC?.contextId) || 
-                       db.extractNumericRequestCode(activeConvId);
-        fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}&requestId=${encodeURIComponent(reqNum)}`)
+        const contextCode = db.extractNumericRequestCode(activeC?.contextTitle) || 
+                            db.extractNumericRequestCode(activeC?.contextId) || 
+                            (activeC?.contextId || '').replace(/[^a-zA-Z0-9_-]/g, '') ||
+                            db.extractNumericRequestCode(activeConvId) ||
+                            (activeConvId || '').replace(/[^a-zA-Z0-9_-]/g, '');
+        fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}&requestId=${encodeURIComponent(contextCode)}`)
           .then(res => res.json())
           .then(data => {
             if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
@@ -179,10 +187,35 @@ function CustomerMessagesContent() {
   }, [activeConvId, userId]);
 
   const activeConv = conversations.find(c => c.id === activeConvId);
-  const activeCarrier = activeConv 
-    ? (db.getCarriers().find(c => activeConv.participantIds.includes(c.userId) || activeConv.participantIds.includes(c.id)) || (activeConv as any).carrier || null)
-    : null;
-  const activeOffer = activeCarrier ? db.getOffers().find(o => o.carrierId === activeCarrier.id) : null;
+  const activeCarrier = React.useMemo(() => {
+    if (!activeConv) return null;
+    const found = db.getCarriers().find(c => 
+      activeConv.participantIds.includes(c.userId) || 
+      activeConv.participantIds.includes(c.id) ||
+      (c.companyName && Object.values(activeConv.participantNames || {}).some(n => n && n.toLowerCase().includes(c.companyName.toLowerCase()))) ||
+      (c.slug && activeConv.participantIds.includes(c.slug)) ||
+      (db.extractCarrierRoot(c.companyName) && activeConv.participantIds.includes(db.extractCarrierRoot(c.companyName)))
+    );
+    if (found) return found;
+
+    // Fallback recipient from conversation metadata (e.g. marketplace seller)
+    const otherId = (activeConv.participantIds || []).find(p => p !== userId && p !== currentUser?.id && p !== (currentUser as any)?.uid);
+    const otherName = (otherId && activeConv.participantNames?.[otherId]) || 
+                      Object.entries(activeConv.participantNames || {}).find(([k]) => k !== userId && k !== currentUser?.id)?.[1] || 
+                      'Satıcı Firma';
+
+    return {
+      id: otherId || 'carrier_generic',
+      userId: otherId || 'user_carr_generic',
+      companyName: otherName,
+      city: 'İstanbul',
+      rating: 4.9,
+      reviewCount: 42,
+      slug: db.slugifyTurkish(otherName) || 'satici-firma',
+      phone: '0850 000 00 00'
+    };
+  }, [activeConv, userId, currentUser?.id]);
+  const activeOffer = (activeCarrier && activeCarrier.id) ? db.getOffers().find(o => o.carrierId === activeCarrier.id) : null;
 
   // Direct Firestore real-time socket synchronization for active conversation
   useEffect(() => {
@@ -190,15 +223,23 @@ function CustomerMessagesContent() {
     if (!isFirebaseConfigured() || !firestoreDb) return;
 
     const activeC = db.getConversationById(activeConvId);
-    const reqNum = db.extractNumericRequestCode(activeC?.contextTitle) || 
-                   db.extractNumericRequestCode(activeC?.contextId) || 
-                   db.extractNumericRequestCode(activeConvId);
+    const contextCode = db.extractNumericRequestCode(activeC?.contextTitle) || 
+                        db.extractNumericRequestCode(activeC?.contextId) || 
+                        (activeC?.contextId || '').replace(/[^a-zA-Z0-9_-]/g, '') ||
+                        db.extractNumericRequestCode(activeConvId) ||
+                        (activeConvId || '').replace(/[^a-zA-Z0-9_-]/g, '');
     const carrRoot = db.extractCarrierRoot(activeCarrier?.slug || activeCarrier?.companyName || activeCarrier?.id || '');
     const carrFull = db.slugifyTurkish(activeCarrier?.slug || activeCarrier?.companyName || activeCarrier?.id || '').replace(/[^a-z0-9]/g, '');
 
-    const docIds = [`chat_${reqNum}`];
-    if (carrRoot && carrRoot !== 'carrier') docIds.push(`chat_${reqNum}_${carrRoot}`);
-    if (carrFull && !docIds.includes(`chat_${reqNum}_${carrFull}`)) docIds.push(`chat_${reqNum}_${carrFull}`);
+    const docIds: string[] = [];
+    if (contextCode) {
+      docIds.push(`chat_${contextCode}`);
+      if (carrRoot && carrRoot !== 'carrier') docIds.push(`chat_${contextCode}_${carrRoot}`);
+      if (carrFull && !docIds.includes(`chat_${contextCode}_${carrFull}`)) docIds.push(`chat_${contextCode}_${carrFull}`);
+    }
+    if (activeConvId && !docIds.includes(`chat_${activeConvId}`)) {
+      docIds.push(`chat_${activeConvId}`);
+    }
 
     const unsubs = docIds.map(docId => {
       try {
@@ -249,7 +290,7 @@ function CustomerMessagesContent() {
     if (isFirstCustomerMessage) {
       try {
         const carrierUser = db.getUsers().find((u: any) => u.id === activeCarrier.userId);
-        const targetCarrierEmail = carrierUser?.email || activeCarrier.email || 'omerfaruksaycan@gmail.com';
+        const targetCarrierEmail = carrierUser?.email || (activeCarrier as any)?.email || 'omerfaruksaycan@gmail.com';
         if (targetCarrierEmail) {
           sendNotificationEmail({
             type: 'FIRST_MESSAGE',
@@ -281,9 +322,11 @@ function CustomerMessagesContent() {
       window.dispatchEvent(new CustomEvent('message-added', { detail: userMsg }));
     }
 
-    const reqNum = db.extractNumericRequestCode(activeConv?.contextTitle) || 
-                   db.extractNumericRequestCode(activeConv?.contextId) || 
-                   db.extractNumericRequestCode(activeConvId);
+    const contextCode = db.extractNumericRequestCode(activeConv?.contextTitle) || 
+                        db.extractNumericRequestCode(activeConv?.contextId) || 
+                        (activeConv?.contextId || '').replace(/[^a-zA-Z0-9_-]/g, '') ||
+                        db.extractNumericRequestCode(activeConvId) ||
+                        (activeConvId || '').replace(/[^a-zA-Z0-9_-]/g, '');
 
     // Server'a sync et
     fetch('/api/conversations', {
@@ -293,7 +336,10 @@ function CustomerMessagesContent() {
         conversationId: activeConvId,
         message: userMsg,
         conversation: activeConv,
-        requestId: reqNum,
+        requestId: contextCode,
+        carrierName: activeCarrier?.companyName,
+        carrierId: activeCarrier?.id,
+        carrierSlug: activeCarrier?.slug,
         customerId: userId,
         customerName: senderDisplayName
       })
@@ -423,7 +469,7 @@ function CustomerMessagesContent() {
         </div>
 
         {/* RIGHT COLUMN: Active Chat Thread (2/3) */}
-        {activeConv ? (
+        {activeConv && activeCarrier ? (
           <div className="flex-1 flex flex-col min-w-0 bg-white">
             
             {/* Top Chat Bar: Carrier Info & Offer Quick Card */}
@@ -472,12 +518,24 @@ function CustomerMessagesContent() {
             <div ref={messagesContainerRef} className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-[#F8FAFC]">
               
               {/* Context Banner */}
-              <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between text-xs font-medium text-slate-700">
+              <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-between text-xs font-medium text-slate-700 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#F95700]" />
+                  {activeConv.contextType === 'MARKETPLACE' && (
+                    <span className="px-2 py-0.5 rounded-full bg-orange-100 text-[#C23E00] font-bold text-[10px]">
+                      Pazaryeri İlanı
+                    </span>
+                  )}
                   <span><strong>Konu:</strong> {activeConv.contextTitle}</span>
                 </div>
-                <span className="text-slate-400">Uçtan uca güvenli sohbet</span>
+                {activeConv.contextType === 'MARKETPLACE' && activeConv.contextId ? (
+                  <Link href={`/pazaryeri/${activeConv.contextId}`} target="_blank" className="text-xs text-[#F95700] font-bold hover:underline inline-flex items-center gap-0.5">
+                    <span>İlanı İncele</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
+                ) : (
+                  <span className="text-slate-400">Uçtan uca güvenli sohbet</span>
+                )}
               </div>
 
               {/* Profile Summary Card inside chat (Image media_1788383028254 exact) */}

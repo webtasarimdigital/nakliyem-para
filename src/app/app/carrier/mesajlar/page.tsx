@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { 
   Send, 
   Truck, 
@@ -33,13 +34,16 @@ const QUICK_TEMPLATES = [
   'Fiyatımıza mobilya söküm ve kurulum marangozluk hizmetimiz dahildir.'
 ];
 
-export default function CarrierMessagesPage() {
+function CarrierMessagesContent() {
+  const searchParams = useSearchParams();
+  const targetConvId = searchParams?.get('convId');
+
   const currentUser = db.getCurrentUser();
   const carrier = db.getCurrentCarrier() || (currentUser?.role === 'CARRIER' ? db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) : null);
   const isApproved = carrier ? carrier.verificationStatus === 'APPROVED' : false;
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeConvId, setActiveConvId] = useState<string>('');
+  const [activeConvId, setActiveConvId] = useState<string>(targetConvId || '');
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -47,6 +51,9 @@ export default function CarrierMessagesPage() {
   const matchesCarrier = (c: Conversation) => {
     const carrierId = (carrier?.userId || carrier?.id || '').toLowerCase();
     const myName = (carrier?.companyName || '').trim().toLowerCase();
+    const myRoot = db.extractCarrierRoot(carrier?.slug || carrier?.companyName || carrier?.id || '');
+    const myUser = (currentUser?.fullName || (currentUser as any)?.name || '').trim().toLowerCase();
+    const myUserRoot = db.extractCarrierRoot(myUser);
     const parts = (c.participantIds || []).map(p => String(p).toLowerCase());
     const cNames = Object.values(c.participantNames || {}).map(n => String(n).trim().toLowerCase());
 
@@ -58,8 +65,15 @@ export default function CarrierMessagesPage() {
     if ((currentUser as any)?.uid && parts.includes((currentUser as any).uid.toLowerCase())) return true;
     if (currentUser?.email && parts.some(p => p && p.toLowerCase() === currentUser.email.toLowerCase())) return true;
 
-    // Match by company name in participantNames
-    if (myName && cNames.some(n => n === myName || n.includes(myName) || myName.includes(n))) return true;
+    // Carrier root match
+    if (myRoot && myRoot !== 'carrier' && (parts.includes(myRoot) || parts.some(p => db.extractCarrierRoot(p) === myRoot))) return true;
+
+    // User root match
+    if (myUserRoot && myUserRoot !== 'carrier' && (parts.includes(myUserRoot) || parts.some(p => db.extractCarrierRoot(p) === myUserRoot))) return true;
+
+    // Match by company name in participantNames or participantIds
+    if (myName && (cNames.some(n => n === myName || n.includes(myName) || myName.includes(n)) || parts.some(p => p.includes(myName) || myName.includes(p)))) return true;
+    if (myUser && (cNames.some(n => n === myUser || n.includes(myUser) || myUser.includes(n)) || parts.some(p => p.includes(myUser) || myUser.includes(p)))) return true;
 
     if (c.participantNames && (
       (carrier?.id && c.participantNames[carrier.id]) ||
@@ -76,9 +90,12 @@ export default function CarrierMessagesPage() {
     setConversations(myConvs);
     if (myConvs.length > 0) {
       setActiveConvId(prev => {
+        if (targetConvId && myConvs.some(c => c.id === targetConvId)) return targetConvId;
         if (prev && myConvs.some(c => c.id === prev)) return prev;
         return myConvs[0].id;
       });
+    } else if (targetConvId) {
+      setActiveConvId(targetConvId);
     }
 
     // Sync from server API to bridge cross-window and incognito testing
@@ -97,9 +114,12 @@ export default function CarrierMessagesPage() {
           setConversations(updatedConvs);
           if (updatedConvs.length > 0) {
             setActiveConvId(prev => {
+              if (targetConvId && updatedConvs.some(c => c.id === targetConvId)) return targetConvId;
               if (prev && updatedConvs.some(c => c.id === prev)) return prev;
               return updatedConvs[0].id;
             });
+          } else if (targetConvId) {
+            setActiveConvId(targetConvId);
           }
         }
       })
@@ -156,10 +176,12 @@ export default function CarrierMessagesPage() {
 
     const poll = setInterval(() => {
       const activeC = db.getConversationById(activeConvId);
-      const reqNum = db.extractNumericRequestCode(activeC?.contextTitle) || 
-                     db.extractNumericRequestCode(activeC?.contextId) || 
-                     db.extractNumericRequestCode(activeConvId);
-      fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}&requestId=${encodeURIComponent(reqNum)}`)
+      const contextCode = db.extractNumericRequestCode(activeC?.contextTitle) || 
+                          db.extractNumericRequestCode(activeC?.contextId) || 
+                          (activeC?.contextId || '').replace(/[^a-zA-Z0-9_-]/g, '') ||
+                          db.extractNumericRequestCode(activeConvId) ||
+                          (activeConvId || '').replace(/[^a-zA-Z0-9_-]/g, '');
+      fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}&requestId=${encodeURIComponent(contextCode)}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
@@ -201,15 +223,23 @@ export default function CarrierMessagesPage() {
     if (!isFirebaseConfigured() || !firestoreDb) return;
 
     const activeC = db.getConversationById(activeConvId);
-    const reqNum = db.extractNumericRequestCode(activeC?.contextTitle) || 
-                   db.extractNumericRequestCode(activeC?.contextId) || 
-                   db.extractNumericRequestCode(activeConvId);
+    const contextCode = db.extractNumericRequestCode(activeC?.contextTitle) || 
+                        db.extractNumericRequestCode(activeC?.contextId) || 
+                        (activeC?.contextId || '').replace(/[^a-zA-Z0-9_-]/g, '') ||
+                        db.extractNumericRequestCode(activeConvId) ||
+                        (activeConvId || '').replace(/[^a-zA-Z0-9_-]/g, '');
     const carrRoot = db.extractCarrierRoot(carrier?.slug || carrier?.companyName || carrier?.id || '');
     const carrFull = db.slugifyTurkish(carrier?.slug || carrier?.companyName || carrier?.id || '').replace(/[^a-z0-9]/g, '');
 
-    const docIds = [`chat_${reqNum}`];
-    if (carrRoot && carrRoot !== 'carrier') docIds.push(`chat_${reqNum}_${carrRoot}`);
-    if (carrFull && !docIds.includes(`chat_${reqNum}_${carrFull}`)) docIds.push(`chat_${reqNum}_${carrFull}`);
+    const docIds: string[] = [];
+    if (contextCode) {
+      docIds.push(`chat_${contextCode}`);
+      if (carrRoot && carrRoot !== 'carrier') docIds.push(`chat_${contextCode}_${carrRoot}`);
+      if (carrFull && !docIds.includes(`chat_${contextCode}_${carrFull}`)) docIds.push(`chat_${contextCode}_${carrFull}`);
+    }
+    if (activeConvId && !docIds.includes(`chat_${activeConvId}`)) {
+      docIds.push(`chat_${activeConvId}`);
+    }
 
     const unsubs = docIds.map(docId => {
       try {
@@ -261,9 +291,11 @@ export default function CarrierMessagesPage() {
       content: inputMessage.trim()
     });
 
-    const reqNum = db.extractNumericRequestCode(activeConv?.contextTitle) || 
-                   db.extractNumericRequestCode(activeConv?.contextId) || 
-                   db.extractNumericRequestCode(activeConvId);
+    const contextCode = db.extractNumericRequestCode(activeConv?.contextTitle) || 
+                        db.extractNumericRequestCode(activeConv?.contextId) || 
+                        (activeConv?.contextId || '').replace(/[^a-zA-Z0-9_-]/g, '') ||
+                        db.extractNumericRequestCode(activeConvId) ||
+                        (activeConvId || '').replace(/[^a-zA-Z0-9_-]/g, '');
 
     // Server'a da sync et
     fetch('/api/conversations', {
@@ -273,7 +305,7 @@ export default function CarrierMessagesPage() {
         conversationId: activeConvId,
         message: newMsg,
         conversation: activeConv,
-        requestId: reqNum,
+        requestId: contextCode,
         carrierName: carrier.companyName,
         carrierId: carrier.id,
         carrierSlug: carrier.slug
@@ -437,8 +469,19 @@ export default function CarrierMessagesPage() {
                         <h3 className="font-black text-[#0A1128] text-sm sm:text-base truncate">
                           {customerName}
                         </h3>
-                        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium flex-wrap">
+                          {activeConv.contextType === 'MARKETPLACE' && (
+                            <span className="px-2 py-0.5 rounded-full bg-orange-100 text-[#C23E00] font-bold text-[10px]">
+                              Pazaryeri İlanı
+                            </span>
+                          )}
                           <span>Talep: {activeConv.contextTitle}</span>
+                          {activeConv.contextType === 'MARKETPLACE' && activeConv.contextId && (
+                            <Link href={`/pazaryeri/${activeConv.contextId}`} target="_blank" className="text-xs text-[#F95700] font-bold hover:underline inline-flex items-center gap-0.5">
+                              <span>İlanı Gör</span>
+                              <ChevronRight className="w-3 h-3" />
+                            </Link>
+                          )}
                         </div>
                       </div>
                     </>
@@ -558,5 +601,13 @@ export default function CarrierMessagesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function CarrierMessagesPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-sm font-bold text-slate-500">Yükleniyor...</div>}>
+      <CarrierMessagesContent />
+    </Suspense>
   );
 }

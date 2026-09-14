@@ -380,7 +380,7 @@ export interface Conversation {
   id: string;
   participantIds: string[];
   participantNames: { [userId: string]: string };
-  contextType: 'REQUEST' | 'DEFTER' | 'DIRECT';
+  contextType: 'REQUEST' | 'DEFTER' | 'DIRECT' | 'MARKETPLACE';
   contextId: string;
   contextTitle: string;
   lastMessage?: string;
