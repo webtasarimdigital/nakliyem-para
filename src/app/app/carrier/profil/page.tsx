@@ -317,7 +317,7 @@ export default function CarrierProfileEditorPage() {
               className="inline-flex items-center gap-2 text-xs font-bold text-slate-300 hover:text-white bg-white/10 hover:bg-white/15 px-3 py-1.5 rounded-xl border border-white/10 transition-all cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>← Operasyon Merkezi&apos;ne Dön</span>
+              <span>← Teklif Durumları&apos;na Dön</span>
             </Link>
           </div>
           

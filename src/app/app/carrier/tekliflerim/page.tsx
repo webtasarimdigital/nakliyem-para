@@ -31,18 +31,80 @@ export default function CarrierOffersTrackerPage() {
       activeCarrier = db.getCarriers().find(c => c.userId === currentUser.id || c.id === currentUser.carrierProfileId) || null;
     }
     setCarrier(activeCarrier);
-    if (activeCarrier) {
+
+    const loadOffers = () => {
+      if (!activeCarrier) return;
+      let localAcceptedMap: Record<string, any> = {};
+      try {
+        const raw = localStorage.getItem('tasinteklif_accepted_offers');
+        if (raw) localAcceptedMap = JSON.parse(raw);
+      } catch {}
+
+      const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+      const isOfferAccepted = (o: Offer) => {
+        if (o.status === 'ACCEPTED') return true;
+        const req = db.getRequestById(o.requestId);
+        if (req && (req.status === 'ASSIGNED' || (req.status === 'CLOSED' && req.closedReason === 'İş Verildi')) && 
+            (req.assignedCarrierId === activeCarrier?.id || req.assignedOfferId === o.id)) {
+          return true;
+        }
+        const cleanReqId = (o.requestId || '').replace(/[^a-zA-Z0-9]/g, '');
+        const acc = localAcceptedMap[o.requestId] || Object.entries(localAcceptedMap).find(([k]) => k.replace(/[^a-zA-Z0-9]/g, '') === cleanReqId)?.[1];
+        if (acc && (acc.id === o.id || acc.assignedOfferId === o.id || acc.carrierId === activeCarrier?.id)) {
+          return true;
+        }
+        return false;
+      };
+
       const rawOffers = db.getOffersForCarrier(activeCarrier.id);
       const map = new Map<string, Offer>();
       rawOffers.forEach(o => {
         const key = o.requestId || o.id;
         const existing = map.get(key);
+        let effStatus = o.status;
+        if (isOfferAccepted(o)) {
+          effStatus = 'ACCEPTED';
+        } else if (effStatus === 'PENDING' && o.createdAt) {
+          const createdTime = new Date(o.createdAt).getTime();
+          if (createdTime > 0 && (Date.now() - createdTime > THREE_DAYS_MS)) {
+            effStatus = 'REJECTED';
+          }
+        }
+        const processedOffer = { ...o, status: effStatus };
+
         if (!existing || new Date(o.createdAt || 0).getTime() >= new Date(existing.createdAt || 0).getTime()) {
-          map.set(key, o);
+          map.set(key, processedOffer);
         }
       });
       setOffers(Array.from(map.values()));
+    };
+
+    loadOffers();
+
+    // Background sync with server API
+    if (activeCarrier?.id) {
+      fetch(`/api/offers?carrierId=${activeCarrier.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && Array.isArray(data.offers)) {
+            data.offers.forEach((ao: any) => {
+              db.updateOffer(ao.id, ao);
+            });
+            loadOffers();
+          }
+        })
+        .catch(() => {});
     }
+
+    const handleEvt = () => loadOffers();
+    window.addEventListener('storage', handleEvt);
+    window.addEventListener('offer-added', handleEvt);
+    window.addEventListener('offer-updated', handleEvt);
+    return () => {
+      window.removeEventListener('storage', handleEvt);
+      window.removeEventListener('offer-added', handleEvt);
+      window.removeEventListener('offer-updated', handleEvt);
+    };
   }, []);
 
   const handleWithdraw = (offerId: string) => {
@@ -73,7 +135,7 @@ export default function CarrierOffersTrackerPage() {
           className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#F95700] bg-white hover:bg-orange-50/50 px-3.5 py-2 rounded-xl border border-slate-200 transition-all cursor-pointer shadow-2xs"
         >
           <ArrowLeft className="w-4 h-4 text-[#F95700]" />
-          <span>← Operasyon Merkezi&apos;ne Dön</span>
+          <span>← Teklif Durumları&apos;na Dön</span>
         </Link>
       </div>
 
@@ -138,7 +200,7 @@ export default function CarrierOffersTrackerPage() {
                       variant={off.status === 'ACCEPTED' ? 'success' : off.status === 'PENDING' ? 'pending' : off.status === 'WITHDRAWN' ? 'neutral' : 'danger'}
                       size="sm"
                     >
-                      {off.status === 'ACCEPTED' ? 'İş Kazanıldı 🎉' : off.status === 'PENDING' ? 'Müşteri İncelemesinde' : off.status === 'WITHDRAWN' ? 'Geri Çekildi' : 'Kapandı'}
+                      {off.status === 'ACCEPTED' ? '✓ Onaylandı (İş Size Verildi 🎉)' : off.status === 'PENDING' ? '⏳ Müşteri İncelemesinde' : off.status === 'WITHDRAWN' ? 'Geri Çekildi' : 'Süresi Doldu / Reddedildi'}
                     </Badge>
                   </div>
 

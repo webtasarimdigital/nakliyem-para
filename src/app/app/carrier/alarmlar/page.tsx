@@ -92,7 +92,7 @@ export default function CarrierAlarmsPage() {
           className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#F95700] bg-white hover:bg-orange-50/50 px-3.5 py-2 rounded-xl border border-slate-200 transition-all cursor-pointer shadow-2xs"
         >
           <ArrowLeft className="w-4 h-4 text-[#F95700]" />
-          <span>← Operasyon Merkezi&apos;ne Dön</span>
+          <span>← Teklif Durumları&apos;na Dön</span>
         </Link>
       </div>
 

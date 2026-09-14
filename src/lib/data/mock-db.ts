@@ -1633,11 +1633,33 @@ class MockDatabase {
       if (rawClosed) closedReqsMap = JSON.parse(rawClosed);
     } catch {}
 
+    const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000; // 3 gün (72 saat)
+    const now = Date.now();
+
     return rawOffers.map(o => {
+      // If already explicitly ACCEPTED
+      if (o.status === 'ACCEPTED') {
+        return o;
+      }
+
       // Check accepted offers map
-      const acceptedForReq = acceptedOffersMap[o.requestId];
+      const cleanReqId = (o.requestId || '').replace(/[^a-zA-Z0-9]/g, '');
+      let acceptedForReq = acceptedOffersMap[o.requestId];
+      if (!acceptedForReq) {
+        // try finding key by code or partial match
+        const foundKey = Object.keys(acceptedOffersMap).find(k => 
+          k === o.requestId || 
+          k.replace(/[^a-zA-Z0-9]/g, '') === cleanReqId ||
+          (cleanReqId.length >= 4 && k.includes(cleanReqId))
+        );
+        if (foundKey) acceptedForReq = acceptedOffersMap[foundKey];
+      }
+
       if (acceptedForReq) {
-        const isWinningOffer = acceptedForReq.id === o.id || acceptedForReq.assignedOfferId === o.id;
+        const isWinningOffer = 
+          acceptedForReq.id === o.id || 
+          acceptedForReq.assignedOfferId === o.id ||
+          (acceptedForReq.carrierId && acceptedForReq.carrierId === o.carrierId);
         return {
           ...o,
           status: isWinningOffer ? ('ACCEPTED' as const) : ('REJECTED' as const)
@@ -1645,15 +1667,37 @@ class MockDatabase {
       }
 
       // Check closed requests map
-      const closedInfo = closedReqsMap[o.requestId];
+      let closedInfo = closedReqsMap[o.requestId];
+      if (!closedInfo) {
+        const foundClosedKey = Object.keys(closedReqsMap).find(k => 
+          k === o.requestId || 
+          k.replace(/[^a-zA-Z0-9]/g, '') === cleanReqId ||
+          (cleanReqId.length >= 4 && k.includes(cleanReqId))
+        );
+        if (foundClosedKey) closedInfo = closedReqsMap[foundClosedKey];
+      }
+
       if (closedInfo) {
         if (closedInfo.status === 'ASSIGNED') {
-          const isWinningOffer = closedInfo.assignedOfferId === o.id || (closedInfo.assignedCarrierId && closedInfo.assignedCarrierId === o.carrierId);
+          const isWinningOffer = 
+            closedInfo.assignedOfferId === o.id || 
+            (closedInfo.assignedCarrierId && closedInfo.assignedCarrierId === o.carrierId);
           return {
             ...o,
             status: isWinningOffer ? ('ACCEPTED' as const) : ('REJECTED' as const)
           };
         } else if (closedInfo.status === 'CLOSED') {
+          return {
+            ...o,
+            status: 'REJECTED' as const
+          };
+        }
+      }
+
+      // 3 Günlük Süre Kontrolü (72 saat içinde yanıtlanmayan teklifler otomatik reddedildi olur)
+      if (o.status === 'PENDING' && o.createdAt) {
+        const createdTime = new Date(o.createdAt).getTime();
+        if (createdTime > 0 && (now - createdTime > THREE_DAYS_MS)) {
           return {
             ...o,
             status: 'REJECTED' as const
@@ -1845,39 +1889,52 @@ class MockDatabase {
   }
 
   // Assign request to an offer
-  acceptOffer(requestId: string, offerId: string): void {
+  acceptOffer(requestId: string, offerId: string, carrierId?: string): void {
     const offers = this.getOffers();
-    const targetOffer = offers.find(o => o.id === offerId);
-    if (!targetOffer) return;
+    let targetOffer = offers.find(o => o.id === offerId);
+    if (!targetOffer && carrierId) {
+      targetOffer = offers.find(o => (o.requestId === requestId || o.id === offerId) && o.carrierId === carrierId);
+    }
 
     const req = this.getRequestById(requestId);
     const code = req?.requestCode;
+    const matchedCarrierId = targetOffer?.carrierId || carrierId;
 
     // Update accepted offer
     const updatedOffers = offers.map(o => {
       if (o.requestId === requestId || (code && o.requestId === code)) {
-        return o.id === offerId 
-          ? { ...o, status: 'ACCEPTED' as const }
-          : { ...o, status: 'REJECTED' as const };
+        const isMatch = o.id === offerId || (matchedCarrierId && o.carrierId === matchedCarrierId);
+        return isMatch 
+          ? { ...o, status: 'ACCEPTED' as const, updatedAt: new Date().toISOString() }
+          : { ...o, status: 'REJECTED' as const, updatedAt: new Date().toISOString() };
       }
       return o;
     });
     this.setItem('offers', updatedOffers);
 
     // Update request
-    this.updateRequest(requestId, {
-      status: 'ASSIGNED',
-      closedReason: 'İş Verildi',
-      assignedCarrierId: targetOffer.carrierId,
-      assignedOfferId: offerId
-    });
-    if (code && code !== requestId) {
-      this.updateRequest(code, {
+    if (matchedCarrierId) {
+      this.updateRequest(requestId, {
         status: 'ASSIGNED',
         closedReason: 'İş Verildi',
-        assignedCarrierId: targetOffer.carrierId,
+        assignedCarrierId: matchedCarrierId,
         assignedOfferId: offerId
       });
+      if (code && code !== requestId) {
+        this.updateRequest(code, {
+          status: 'ASSIGNED',
+          closedReason: 'İş Verildi',
+          assignedCarrierId: matchedCarrierId,
+          assignedOfferId: offerId
+        });
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('offer-added'));
+      window.dispatchEvent(new Event('request-added'));
+      window.dispatchEvent(new CustomEvent('offer-updated', { detail: { id: offerId, status: 'ACCEPTED' } }));
     }
   }
 
@@ -2148,6 +2205,16 @@ class MockDatabase {
       return c;
     });
     this.setItem('conversations', convs);
+  }
+
+  addConversation(conv: Conversation): void {
+    const list = [conv, ...this.getConversations().filter(c => c.id !== conv.id)];
+    this.setItem('conversations', list);
+  }
+
+  updateConversation(id: string, updates: Partial<Conversation>): void {
+    const list = this.getConversations().map(c => c.id === id ? { ...c, ...updates } : c);
+    this.setItem('conversations', list);
   }
 
   // Intent preservation for non-logged-in users

@@ -519,7 +519,7 @@ export default function CarrierJobsPage() {
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-700 hover:text-[#F95700] transition-colors py-2 px-3.5 rounded-xl bg-white border border-slate-200 hover:border-[#F95700]/40 shadow-xs group w-fit"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span>Operasyon Merkezi&apos;ne Dön</span>
+            <span>Teklif Durumları&apos;na Dön</span>
           </Link>
 
           {carrier && isFreeOrStarterPlan && (

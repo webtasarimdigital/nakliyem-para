@@ -203,7 +203,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
             className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-[#F95700] py-1.5 px-3 rounded-xl bg-white border border-slate-200 shadow-2xs hover:border-[#F95700]/40 transition-colors group"
           >
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-            <span>Operasyon Merkezi</span>
+            <span>Teklif Durumları</span>
           </Link>
           <span className="text-slate-300">/</span>
           <Link

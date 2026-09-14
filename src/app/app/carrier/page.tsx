@@ -98,15 +98,65 @@ export default function CarrierDashboard() {
     const handleRefresh = () => setRefreshTrigger(k => k + 1);
     window.addEventListener('storage', handleRefresh);
     window.addEventListener('offer-added', handleRefresh);
+    window.addEventListener('offer-updated', handleRefresh);
+    window.addEventListener('request-added', handleRefresh);
     window.addEventListener('auth-changed', handleRefresh);
     window.addEventListener('focus', handleRefresh);
     return () => {
       window.removeEventListener('storage', handleRefresh);
       window.removeEventListener('offer-added', handleRefresh);
+      window.removeEventListener('offer-updated', handleRefresh);
+      window.removeEventListener('request-added', handleRefresh);
       window.removeEventListener('auth-changed', handleRefresh);
       window.removeEventListener('focus', handleRefresh);
     };
   }, []);
+
+  // Server API Background Sync (Farklı tarayıcı veya sekmede teklif kabul edildiğinde nakliyeci anında görsün)
+  useEffect(() => {
+    if (!carrier?.id) return;
+    let isMounted = true;
+    const syncServerData = async () => {
+      try {
+        const [offersRes, reqsRes] = await Promise.all([
+          fetch(`/api/offers?carrierId=${carrier.id}`),
+          fetch('/api/requests')
+        ]);
+        const offersData = await offersRes.json();
+        const reqsData = await reqsRes.json();
+
+        let updated = false;
+        if (reqsData.success && Array.isArray(reqsData.requests)) {
+          reqsData.requests.forEach((r: any) => {
+            const existing = db.getRequestById(r.id);
+            if (!existing || existing.status !== r.status || existing.assignedCarrierId !== r.assignedCarrierId) {
+              db.updateRequest(r.id, r);
+              updated = true;
+            }
+          });
+        }
+        if (offersData.success && Array.isArray(offersData.offers)) {
+          offersData.offers.forEach((apiOffer: any) => {
+            const existingOffer = db.getOffers().find(o => o.id === apiOffer.id);
+            if (!existingOffer || existingOffer.status !== apiOffer.status) {
+              db.updateOffer(apiOffer.id, apiOffer);
+              updated = true;
+            }
+          });
+        }
+        if (updated && isMounted) {
+          setRefreshTrigger(k => k + 1);
+        }
+      } catch {}
+    };
+
+    syncServerData();
+    const interval = setInterval(syncServerData, 4000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [carrier?.id]);
 
   if (!currentUser || !carrier) {
     return (
@@ -145,31 +195,52 @@ export default function CarrierDashboard() {
     return { ...req, matchScore: match.score, matchReasons: match.reasons };
   }).sort((a, b) => b.matchScore - a.matchScore);
 
-  // Bekleyen teklifler: İlan kapandıysa veya başka firmaya verildiyse bekleyen tekliflerden çıksın
+  // Local storage kabul edilmiş teklifler kontrolü
+  let localAcceptedMap: Record<string, any> = {};
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('tasinteklif_accepted_offers');
+      if (raw) localAcceptedMap = JSON.parse(raw);
+    } catch {}
+  }
+
+  const isOfferAccepted = (o: any) => {
+    if (o.status === 'ACCEPTED') return true;
+    const req = db.getRequestById(o.requestId);
+    if (req && (req.status === 'ASSIGNED' || (req.status === 'CLOSED' && req.closedReason === 'İş Verildi')) && 
+        (req.assignedCarrierId === carrier.id || req.assignedOfferId === o.id)) {
+      return true;
+    }
+    const cleanReqId = (o.requestId || '').replace(/[^a-zA-Z0-9]/g, '');
+    const acc = localAcceptedMap[o.requestId] || Object.entries(localAcceptedMap).find(([k]) => k.replace(/[^a-zA-Z0-9]/g, '') === cleanReqId)?.[1];
+    if (acc && (acc.id === o.id || acc.assignedOfferId === o.id || acc.carrierId === carrier.id)) {
+      return true;
+    }
+    return false;
+  };
+
+  // Kazanılan teklifler (İş bu firmaya verildi)
+  const acceptedOffers = Array.from(
+    new Map(
+      myOffers
+        .filter(isOfferAccepted)
+        .map(o => [o.requestId || o.id, { ...o, status: 'ACCEPTED' as const }])
+    ).values()
+  );
+
+  // Bekleyen teklifler: İlan kapandıysa, başka firmaya verildiyse veya 3 günü aştıysa bekleyenlerden çıksın
+  const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
   const pendingOffers = Array.from(
     new Map(
       myOffers
         .filter(o => {
+          if (isOfferAccepted(o)) return false;
           if (o.status !== 'PENDING') return false;
           const req = db.getRequestById(o.requestId);
           if (req && (req.status === 'ASSIGNED' || req.status === 'CLOSED')) return false;
+          const createdTime = new Date(o.createdAt || 0).getTime();
+          if (createdTime > 0 && (Date.now() - createdTime > THREE_DAYS_MS)) return false;
           return true;
-        })
-        .map(o => [o.requestId || o.id, o])
-    ).values()
-  );
-
-  // Kazanılan teklifler
-  const acceptedOffers = Array.from(
-    new Map(
-      myOffers
-        .filter(o => {
-          if (o.status === 'ACCEPTED') return true;
-          const req = db.getRequestById(o.requestId);
-          if (req && (req.status === 'ASSIGNED' || (req.status === 'CLOSED' && req.closedReason === 'İş Verildi')) && (req.assignedCarrierId === carrier.id || req.assignedOfferId === o.id)) {
-            return true;
-          }
-          return false;
         })
         .map(o => [o.requestId || o.id, o])
     ).values()
@@ -179,10 +250,10 @@ export default function CarrierDashboard() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
-        {/* ── HEADER: Operasyon Merkezi ───────────────────────── */}
+        {/* ── HEADER: Teklif Durumları ───────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
           <div>
-            <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-0.5">Operasyon Merkezi</p>
+            <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-0.5">Teklif Durumları</p>
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">{carrier.companyName}</h1>
               {isGold && <Badge variant="gold" size="sm" />}
@@ -295,6 +366,163 @@ export default function CarrierDashboard() {
                 </Link>
               ))}
             </div>
+
+            {/* ── TEKLİF DURUMLARIM & KAZANILAN İŞLERİM (EN ÜSTTE) ────────────────────── */}
+            {(acceptedOffers.length > 0 || pendingOffers.length > 0) && (
+              <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-xs overflow-hidden">
+                <div className="flex items-center justify-between p-5 pb-4 border-b border-slate-100 bg-slate-50/50">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-orange-100 text-[#F95700] flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h2 className="font-black text-[#0A1128] text-base leading-tight">Teklif Durumlarım & İşlerim</h2>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5">Aktif ve onaylanan taşıma teklifleriniz</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {acceptedOffers.length > 0 && (
+                      <span className="text-[11px] font-black bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full border border-emerald-300 flex items-center gap-1 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        {acceptedOffers.length} Kazanılan İş
+                      </span>
+                    )}
+                    <Link href="/nakliyeci/tekliflerim" className="text-xs font-black text-[#F95700] hover:underline ml-2">
+                      Tümü →
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="p-4 sm:p-5 space-y-3.5">
+                  {/* 1. KAZANILAN / ONAYLANAN TEKLİFLER (ÖNCELİKLİ VE BELİRGİN YEŞİL) */}
+                  {acceptedOffers.map(offer => {
+                    const req = db.getRequestById(offer.requestId);
+                    const codeText = req?.requestCode || `#${offer.requestId.slice(-5)}`;
+                    const routeText = req
+                      ? `${req.originCity} (${req.originDistrict}) → ${req.destinationCity} (${req.destinationDistrict})`
+                      : 'Güzergah Belirtildi';
+                    const homeText = req?.homeSize ? `${req.homeSize} Ev` : 'Ev Taşıma';
+                    const dateText = req?.movingDate || 'Tarih Belirtildi';
+                    const customerPhone = req?.customerPhone;
+                    const customerName = req?.customerName || 'Müşteri';
+
+                    return (
+                      <div
+                        key={offer.id}
+                        className="rounded-2xl border-2 border-emerald-500 bg-gradient-to-r from-emerald-50/90 via-teal-50/40 to-white p-4 sm:p-5 shadow-xs transition-all hover:shadow-sm"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-emerald-200/70">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-black text-slate-700 bg-white px-2 py-0.5 rounded-lg border border-slate-200 shadow-2xs">
+                              {codeText}
+                            </span>
+                            <span className="text-xs font-bold text-slate-600">{homeText}</span>
+                            <span className="text-xs text-slate-400 font-medium">· {dateText}</span>
+                          </div>
+
+                          <span className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white font-black text-xs flex items-center gap-1.5 shadow-2xs self-start sm:self-auto">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-100 shrink-0" />
+                            <span>✓ Onaylandı (İş Size Verildi 🎉)</span>
+                          </span>
+                        </div>
+
+                        <div className="pt-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div>
+                            <div className="flex items-center gap-2 font-black text-[#0A1128] text-base mb-1">
+                              <span>{routeText}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs font-bold text-slate-600 flex-wrap">
+                              <span>Müşteri: <strong className="text-[#0A1128]">{customerName}</strong></span>
+                              {customerPhone && (
+                                <>
+                                  <span className="text-slate-300">•</span>
+                                  <a href={`tel:${customerPhone}`} className="text-emerald-700 hover:underline flex items-center gap-1">
+                                    <Phone className="w-3 h-3 text-emerald-600" />
+                                    {customerPhone}
+                                  </a>
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-emerald-100">
+                            <div className="text-left sm:text-right">
+                              <span className="text-[10px] font-bold text-slate-400 block uppercase">Anlaşılan Fiyat</span>
+                              <span className="text-xl sm:text-2xl font-black text-emerald-700">
+                                {offer.price.toLocaleString('tr-TR')} TL
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <Link href="/nakliyeci/mesajlar">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="font-bold text-xs bg-white border-emerald-300 text-emerald-950 hover:bg-emerald-100/60 shadow-2xs h-9"
+                                  leftIcon={<MessageSquare className="w-3.5 h-3.5 text-emerald-600" />}
+                                >
+                                  Mesajlaş
+                                </Button>
+                              </Link>
+                              <Link href={`/nakliyeci/isler/${offer.requestId}`}>
+                                <Button
+                                  variant="primary"
+                                  size="sm"
+                                  className="font-black text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs h-9"
+                                  rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+                                >
+                                  İş Detayı
+                                </Button>
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* 2. YANIT BEKLEYEN TEKLİFLER */}
+                  {pendingOffers.map(offer => {
+                    const req = db.getRequestById(offer.requestId);
+                    const codeText = req?.requestCode || '';
+                    const routeText = req
+                      ? `${req.originCity} → ${req.destinationCity} · ${req.homeSize} Ev`
+                      : offer.requestId;
+                    const dateText = req?.movingDate ? ` · ${req.movingDate}` : '';
+
+                    const createdTime = new Date(offer.createdAt || 0).getTime();
+                    const ageMs = Date.now() - createdTime;
+                    const daysLeft = Math.max(1, Math.ceil((THREE_DAYS_MS - ageMs) / (24 * 60 * 60 * 1000)));
+
+                    return (
+                      <Link key={offer.id} href={req ? `/nakliyeci/isler/${offer.requestId}` : '/nakliyeci/tekliflerim'}>
+                        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 hover:bg-amber-100/60 transition-all hover:shadow-2xs cursor-pointer">
+                          <div>
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              {codeText && (
+                                <span className="text-[10px] font-black text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                                  {codeText}
+                                </span>
+                              )}
+                              <span className="text-xs font-black text-[#0A1128]">{routeText}</span>
+                            </div>
+                            <p className="font-bold text-sm text-[#0A1128]">
+                              {offer.price.toLocaleString('tr-TR')} TL <span className="text-[11px] text-slate-400 font-normal">{dateText}</span>
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs font-black text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-xl flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-amber-600" />
+                              <span>Yanıt Bekleniyor ({daysLeft} gün kaldı)</span>
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* ── ROTA EŞLEŞMELİ İŞLER ──────────────────── */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
@@ -415,42 +643,6 @@ export default function CarrierDashboard() {
                 </Button>
               </Link>
             </div>
-
-            {/* ── BEKLEYEN TEKLİFLERİM ────────────────────── */}
-            {pendingOffers.length > 0 && (
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-xs">
-                <div className="flex items-center justify-between p-5 pb-0">
-                  <h2 className="font-black text-[#0A1128] text-base">Bekleyen Tekliflerim ({pendingOffers.length})</h2>
-                  <Link href="/nakliyeci/tekliflerim" className="text-xs font-black text-[#F95700] hover:underline">Tümü →</Link>
-                </div>
-                <div className="p-5 space-y-3">
-                  {pendingOffers.map(offer => {
-                    const req = db.getRequestById(offer.requestId);
-                    const routeText = req
-                      ? `${req.originCity} → ${req.destinationCity} · ${req.homeSize} Ev`
-                      : offer.requestId;
-                    const codeText = req?.requestCode || '';
-                    const dateText = req?.movingDate ? ` · ${req.movingDate}` : '';
-                    return (
-                      <Link key={offer.id} href={req ? `/nakliyeci/isler/${offer.requestId}` : '/nakliyeci/tekliflerim'}>
-                        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 hover:bg-amber-100/60 transition-all hover:shadow-2xs">
-                          <div>
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              {codeText && <span className="text-[10px] font-black text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200">{codeText}</span>}
-                              <span className="text-xs font-black text-[#0A1128]">{routeText}</span>
-                            </div>
-                            <p className="font-bold text-sm text-[#0A1128]">{offer.price.toLocaleString('tr-TR')} TL <span className="text-[11px] text-slate-400 font-normal">{dateText}</span></p>
-                          </div>
-                          <span className="text-xs font-black text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-xl shrink-0">
-                            Yanıt Bekleniyor
-                          </span>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* ── RIGHT: Sidebar (1/3) ─────────────────────────── */}

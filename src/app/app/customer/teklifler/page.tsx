@@ -412,7 +412,7 @@ function CustomerOffersContent() {
       }
     }
 
-    // 4. Update Server API
+    // 4. Update Server API (both requests and offers)
     try {
       await fetch('/api/requests', {
         method: 'POST',
@@ -426,7 +426,27 @@ function CustomerOffersContent() {
           assignedOfferId: selectedOffer.id
         })
       });
-    } catch {}
+
+      await fetch('/api/offers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          offer: {
+            ...selectedOffer,
+            status: 'ACCEPTED'
+          },
+          request: {
+            ...activeReq,
+            status: 'ASSIGNED',
+            closedReason: 'İş Verildi',
+            assignedCarrierId: selectedOffer.carrierId,
+            assignedOfferId: selectedOffer.id
+          }
+        })
+      });
+    } catch (apiErr) {
+      console.warn('API sync error on accept:', apiErr);
+    }
 
     // 5. Update local state
     setRequests(prev => prev.map(r => 
@@ -435,25 +455,105 @@ function CustomerOffersContent() {
         : r
     ));
 
-    // 6. Notify sidebar and other views
+    // 6. Send automated celebration & confirmation chat message to the carrier
+    try {
+      const fullCarrier = db.getCarriers().find(c => c.id === selectedOffer.carrierId) || selectedOffer.carrier;
+      const carrierUserId = fullCarrier?.userId || (selectedOffer.carrier as any)?.userId || `user_${selectedOffer.carrierId}`;
+      const customerId = activeReq.customerId || currentUser?.id || 'user_cust_1';
+      const customerName = activeReq.customerName || currentUser?.fullName || 'Müşteri';
+      const customerPhone = activeReq.customerPhone || currentUser?.phone || '';
+      const requestCodeStr = activeReq.requestCode || activeReq.id;
+
+      const conversations = db.getConversations();
+      let conv = conversations.find(c => 
+        (c.contextId === activeReq.id || (activeReq.requestCode && c.contextId === activeReq.requestCode) || (c.id && c.id.includes(requestCodeStr))) &&
+        (c.participantIds.includes(carrierUserId) || c.participantIds.includes(fullCarrier?.id || '') || c.participantIds.includes(selectedOffer.carrierId))
+      );
+
+      const convId = conv ? conv.id : `conv_${requestCodeStr.replace('#', '')}_${selectedOffer.carrierId}`;
+
+      const chatAcceptContent = `🎉 TEBRİKLER! Teklifiniz müşteri tarafından KABUL EDİLDİ.\n\n` +
+        `Taşıma işi firmanıza verilmiştir:\n` +
+        `• Talep No: ${requestCodeStr}\n` +
+        `• Anlaşılan Fiyat: ${selectedOffer.price.toLocaleString('tr-TR')} TL\n` +
+        `• Güzergah: ${activeReq.originCity} / ${activeReq.originDistrict} → ${activeReq.destinationCity} / ${activeReq.destinationDistrict}\n` +
+        `• Taşınma Tarihi: ${activeReq.movingDate || 'Belirtildi'}\n` +
+        `• Müşteri: ${customerName}\n` +
+        `• Müşteri Telefonu: ${customerPhone || 'Panelde aktif'}\n\n` +
+        `Taşınma öncesinde detayları teyit etmek için müşteriyle doğrudan iletişime geçebilirsiniz. Hayırlı işler!`;
+
+      const acceptChatMessage = {
+        id: `msg_accepted_${Date.now()}`,
+        conversationId: convId,
+        senderId: customerId,
+        senderName: customerName,
+        senderRole: 'CUSTOMER' as const,
+        content: chatAcceptContent,
+        createdAt: new Date().toISOString()
+      };
+
+      if (!conv) {
+        conv = {
+          id: convId,
+          participantIds: Array.from(new Set([customerId, carrierUserId, fullCarrier?.id || '', selectedOffer.carrierId].filter(Boolean))),
+          participantNames: {
+            [customerId]: customerName,
+            [carrierUserId]: fullCarrier?.companyName || selectedOffer.carrier?.companyName || 'Nakliyat Firması',
+            [selectedOffer.carrierId]: fullCarrier?.companyName || selectedOffer.carrier?.companyName || 'Nakliyat Firması'
+          },
+          contextType: 'REQUEST',
+          contextId: activeReq.id,
+          contextTitle: `Talep #${requestCodeStr}`,
+          lastMessage: chatAcceptContent,
+          lastMessageAt: new Date().toISOString(),
+          unreadCounts: { [carrierUserId]: 1 },
+          createdAt: new Date().toISOString()
+        };
+        db.addConversation(conv);
+      } else {
+        db.updateConversation(conv.id, {
+          lastMessage: chatAcceptContent,
+          lastMessageAt: new Date().toISOString()
+        });
+      }
+
+      db.sendMessage(convId, acceptChatMessage);
+
+      // Sync conversation & message with server API
+      fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId: convId,
+          conversation: conv,
+          message: acceptChatMessage
+        })
+      }).catch(err => console.warn('Chat sync error on accept:', err));
+    } catch (chatErr) {
+      console.warn('Teklif kabul mesajı oluşturulamadı:', chatErr);
+    }
+
+    // 7. Notify sidebar and other views
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('storage'));
       window.dispatchEvent(new Event('request-added'));
       window.dispatchEvent(new Event('offer-added'));
+      window.dispatchEvent(new CustomEvent('offer-updated', { detail: { id: selectedOffer.id, status: 'ACCEPTED' } }));
     }
 
     setSuccessOffer(selectedOffer);
     setPersistedAcceptedOffer(selectedOffer);
 
-    // Send transactional email to carrier
+    // 8. Send transactional email to carrier
     try {
-      const carrierUser = db.getUsers().find((u: any) => u.id === selectedOffer.carrier.userId);
-      const targetCarrierEmail = carrierUser?.email || selectedOffer.carrier.email || 'omerfaruksaycan@gmail.com';
+      const fullCarrier = db.getCarriers().find(c => c.id === selectedOffer.carrierId) || selectedOffer.carrier;
+      const carrierUser = db.getUsers().find((u: any) => u.id === fullCarrier?.userId);
+      const targetCarrierEmail = carrierUser?.email || fullCarrier?.email || selectedOffer?.carrier?.email || 'omerfaruksaycan@gmail.com';
       if (targetCarrierEmail) {
-        sendNotificationEmail({
+        await sendNotificationEmail({
           type: 'OFFER_ACCEPTED',
           to: targetCarrierEmail,
-          carrierName: selectedOffer.carrier.companyName,
+          carrierName: fullCarrier?.companyName || selectedOffer.carrier?.companyName || 'Taşıyıcı Firma',
           customerName: activeReq.customerName || currentUser?.fullName || 'Müşteri',
           customerPhone: activeReq.customerPhone || currentUser?.phone || 'Müşteri Paneli',
           routeText: `${activeReq.originCity} / ${activeReq.originDistrict} → ${activeReq.destinationCity} / ${activeReq.destinationDistrict}`,

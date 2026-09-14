@@ -328,15 +328,7 @@ export const Navbar: React.FC = () => {
                       </Link>
                       <Link href="/nakliyeci" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
                         <Truck className="w-3.5 h-3.5 text-[#F95700]" />
-                        Operasyon Merkezi
-                      </Link>
-                      <Link href="/nakliyeci/isler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
-                        <Briefcase className="w-3.5 h-3.5 text-[#F95700]" />
-                        Açık İşler &amp; Teklif Ver
-                      </Link>
-                      <Link href="/nakliyeci/defter" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
-                        <BookOpen className="w-3.5 h-3.5 text-[#F95700]" />
-                        Nakliyeci Defteri
+                        Teklif Durumları
                       </Link>
                       <Link href="/nakliyeci/mesajlar" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
                         <MessageSquare className="w-3.5 h-3.5 text-[#F95700]" />
@@ -518,7 +510,7 @@ export const Navbar: React.FC = () => {
 
             {[
               ...(isCarrier ? [
-                { href: '/nakliyeci', label: 'Operasyon Merkezi', icon: <Truck className="w-4 h-4 text-[#F95700]" /> },
+                { href: '/nakliyeci', label: 'Teklif Durumları', icon: <Truck className="w-4 h-4 text-[#F95700]" /> },
                 { href: '/nakliyeci/tekliflerim', label: 'Verdiğim Teklifler', icon: <Briefcase className="w-4 h-4 text-[#F95700]" /> }
               ] : []),
               { href: isCarrier ? '/nakliyeci/defter' : '/nakliyeci-defteri', label: 'Defter', icon: <BookOpen className="w-4 h-4 text-[#F95700]" /> },

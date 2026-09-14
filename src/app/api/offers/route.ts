@@ -38,8 +38,20 @@ export async function GET(req: NextRequest) {
   const carrierId = searchParams.get('carrierId');
 
   const offers = readJson<any[]>('offers.json', []);
+  const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000; // 3 gün (72 saat)
+  const now = Date.now();
 
-  let filtered = offers;
+  const processedOffers = offers.map(o => {
+    if (o.status === 'PENDING' && o.createdAt) {
+      const createdTime = new Date(o.createdAt).getTime();
+      if (createdTime > 0 && (now - createdTime > THREE_DAYS_MS)) {
+        return { ...o, status: 'REJECTED' };
+      }
+    }
+    return o;
+  });
+
+  let filtered = processedOffers;
   if (requestId) {
     filtered = filtered.filter(o => o.requestId === requestId);
   }
@@ -67,6 +79,16 @@ export async function POST(req: NextRequest) {
     } else {
       offers.unshift(offer);
     }
+
+    // Eğer bu teklif KABUL EDİLDİYSE, bu ilandaki diğer teklifleri REDDEDİLDİ yap
+    if (offer.status === 'ACCEPTED') {
+      offers.forEach((o, idx) => {
+        if (o.requestId === offer.requestId && o.id !== offer.id) {
+          offers[idx] = { ...offers[idx], status: 'REJECTED', updatedAt: new Date().toISOString() };
+        }
+      });
+    }
+
     writeJson('offers.json', offers);
 
     // 2. Talebi kaydet / güncelle
