@@ -151,14 +151,18 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
   // Counts strictly for this logged-in user
   const myRequests = currentUser ? requests.filter((r: MovingRequest) => isUserRequest(r, currentUser)) : [];
   const requestCount = myRequests.filter((r: MovingRequest) => r.status === 'ACTIVE').length;
-  const offerCount = myRequests.reduce((acc, req) => {
+  
+  // Incoming offer badge: ONLY count pending offers for ACTIVE requests (assigned/closed requests don't show pending alerts)
+  const activeRequests = myRequests.filter((r: MovingRequest) => r.status === 'ACTIVE');
+  const offerCount = activeRequests.reduce((acc, req) => {
     const matchedOffers = offers.filter(o => 
-      o.requestId === req.id || 
+      (o.requestId === req.id || 
       (req.requestCode && o.requestId === req.requestCode) ||
-      (o as any).requestContextId === req.id
+      (o as any).requestContextId === req.id) &&
+      o.status !== 'REJECTED' && o.status !== 'WITHDRAWN'
     );
-    const localCount = db.getOffersForRequest(req.id).length;
-    const byCodeCount = req.requestCode ? db.getOffersForRequest(req.requestCode).length : 0;
+    const localCount = db.getOffersForRequest(req.id).filter(o => o.status !== 'REJECTED' && o.status !== 'WITHDRAWN').length;
+    const byCodeCount = req.requestCode ? db.getOffersForRequest(req.requestCode).filter(o => o.status !== 'REJECTED' && o.status !== 'WITHDRAWN').length : 0;
     const reqOffersCount = req.offersCount || 0;
     return acc + Math.max(matchedOffers.length, localCount, byCodeCount, reqOffersCount);
   }, 0);

@@ -91,11 +91,11 @@ export default function CarrierJobsPage() {
   
   const carrier = foundCarrier;
 
-  // Evrak ve Onay Kontrolü: Kimlik ve Vergi levhası yüklenmeden onaylı olunamaz
+  // Evrak ve Onay Kontrolü: Yönetici onayı veya evrakların tam olması
   const carrierDocs = carrier ? db.getDocumentsForCarrier(carrier.id) : [];
   const hasTaxDoc = carrierDocs.some(d => d.type === 'TAX_CERTIFICATE') || Boolean(carrier?.verificationBadges?.taxVerified);
   const hasIdDoc = carrierDocs.some(d => d.type === 'IDENTITY') || Boolean(carrier?.verificationBadges?.identityVerified);
-  const isApproved = Boolean(carrier && carrier.verificationStatus === 'APPROVED' && hasTaxDoc && hasIdDoc);
+  const isApproved = Boolean(carrier && (carrier.verificationStatus === 'APPROVED' || (hasTaxDoc && hasIdDoc)));
 
   const [requests, setRequests] = useState<MovingRequest[]>(() => {
     if (typeof window !== 'undefined') {
@@ -196,7 +196,8 @@ export default function CarrierJobsPage() {
   const isDailyLimitReached = Boolean(carrier && isFreeOrStarterPlan && todayOffersCount >= 3);
 
   const canCreateOffer = Boolean(carrier && isApproved && !isDailyLimitReached && (!carrierPlan || (carrierPlan.features.offerCreate && (carrierPlan.features.monthlyOfferLimit === 'unlimited' || carrierOffersCount < carrierPlan.features.monthlyOfferLimit))));
-  const canViewPhone = Boolean(carrier && isApproved && carrierPlan?.features.customerPhoneAccess === true);
+  const isProOrGoldPlan = carrier?.planId === 'plan_pro' || carrier?.planId === 'plan_gold' || carrier?.planId === 'pro' || carrier?.planId === 'gold';
+  const canViewPhone = Boolean(carrier && isApproved && (isProOrGoldPlan || carrierPlan?.features.customerPhoneAccess === true));
 
   // Plan limitation modal state
   const [planModalOpen, setPlanModalOpen] = useState(false);
@@ -459,13 +460,18 @@ export default function CarrierJobsPage() {
       return;
     }
 
+    if (isProOrGoldPlan) {
+      setRevealedPhones(prev => ({ ...prev, [req.id]: true }));
+      return;
+    }
+
     if (!isApproved) {
       setPlanModalData({
         title: '⚠️ Onaysız Profil — İletişim Kilitli',
         subtitle: 'Müşteri telefon numaralarını görebilmek ve doğrudan iletişim kurabilmek için öncelikle Kimlik ve Vergi Levhası belgelerinizi yüklemeniz gerekmektedir.',
         limitBadge: 'Belgeler Eksik / Onay Bekliyor',
-        actionLink: '/app/carrier/profil',
-        actionText: 'Evrakları Yükle (Profile Git)'
+        actionLink: '/nakliyeci/profil',
+        actionText: 'Evrakları Yükle'
       });
       setPlanModalOpen(true);
       return;
@@ -476,8 +482,8 @@ export default function CarrierJobsPage() {
         title: 'Müşteri Numarasını Görmek İçin Paketinizi Yükseltin',
         subtitle: 'Müşteri telefon numaralarına doğrudan erişmek, anında aramak ve WhatsApp üzerinden iletişim kurmak Pro ve Gold nakliyeci paketlerine özeldir.',
         limitBadge: `Mevcut Paketiniz: ${carrierPlan?.name || 'Başlangıç'} (Telefon Erişimi Kapalı)`,
-        actionLink: '/paketler',
-        actionText: 'Paketleri İncele & Yükselt →'
+        actionLink: '/nakliyeci/abonelik',
+        actionText: 'Paketleri İncele & Yükselt'
       });
       setPlanModalOpen(true);
       return;
@@ -504,7 +510,7 @@ export default function CarrierJobsPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 md:py-10">
+      <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
         {/* ── GERİ DÖNÜŞ BUTONU & GÜNLÜK KOTA GÖSTERGESİ ── */}
         <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -958,25 +964,25 @@ export default function CarrierJobsPage() {
         onClose={() => setPlanModalOpen(false)}
         title={planModalData?.title || 'Paket Yükseltme'}
       >
-        <div className="space-y-4 text-center py-2">
-          <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
-            <Lock className="w-7 h-7" />
+        <div className="space-y-5 text-center py-1">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
+            <Lock className="w-6 h-6" />
           </div>
 
-          <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed max-w-md mx-auto">
+          <p className="text-sm text-slate-600 font-medium leading-relaxed max-w-sm mx-auto">
             {planModalData?.subtitle}
           </p>
 
           {planModalData?.limitBadge && (
-            <div className="inline-block px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-black border border-slate-200">
+            <span className="inline-block px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold border border-slate-200">
               {planModalData.limitBadge}
-            </div>
+            </span>
           )}
 
-          <div className="flex items-center justify-center gap-3 pt-3">
+          <div className="flex gap-2 pt-1">
             <button
               type="button"
-              className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-colors cursor-pointer"
+              className="flex-1 h-10 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-sm transition-colors cursor-pointer"
               onClick={() => setPlanModalOpen(false)}
             >
               Vazgeç
@@ -984,10 +990,14 @@ export default function CarrierJobsPage() {
             <Link
               href={planModalData?.actionLink || "/paketler"}
               onClick={() => setPlanModalOpen(false)}
-              className="inline-flex items-center justify-center gap-1.5 px-6 py-2.5 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs transition-all shadow-md shadow-orange-900/20 cursor-pointer"
+              className="flex-1"
             >
-              <span>{planModalData?.actionText || "Paketleri İncele"}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <button
+                type="button"
+                className="w-full h-10 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-sm transition-colors cursor-pointer"
+              >
+                {planModalData?.actionText || "Paketleri İncele"}
+              </button>
             </Link>
           </div>
         </div>

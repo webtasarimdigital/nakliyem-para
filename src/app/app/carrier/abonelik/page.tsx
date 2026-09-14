@@ -10,7 +10,8 @@ import {
   AlertCircle, 
   ArrowRight,
   Zap,
-  Clock
+  Clock,
+  Lock
 } from 'lucide-react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
@@ -43,8 +44,56 @@ export default function CarrierSubscriptionPage() {
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvc, setCardCvc] = useState('');
+  const [cardError, setCardError] = useState('');
   const [isActivating, setIsActivating] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
+
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCardError('');
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
+    const parts = raw.match(/.{1,4}/g);
+    setCardNumber(parts ? parts.join(' ') : raw);
+  };
+
+  const handleCardExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCardError('');
+    const value = e.target.value;
+    const clean = value.replace(/\D/g, '').slice(0, 4);
+
+    if (clean.length === 0) {
+      setCardExpiry('');
+      return;
+    }
+
+    if (clean.length === 1) {
+      if (Number(clean) > 1) {
+        setCardExpiry(`0${clean}/`);
+        return;
+      }
+      setCardExpiry(clean);
+      return;
+    }
+
+    let month = clean.slice(0, 2);
+    if (Number(month) > 12) month = '12';
+    if (Number(month) === 0) month = '01';
+
+    if (clean.length > 2) {
+      setCardExpiry(`${month}/${clean.slice(2, 4)}`);
+    } else {
+      if (cardExpiry.endsWith('/') && value.length < cardExpiry.length) {
+        setCardExpiry(month.slice(0, 1));
+      } else {
+        setCardExpiry(`${month}/`);
+      }
+    }
+  };
+
+  const handleCardCvcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCardError('');
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 3);
+    setCardCvc(raw);
+  };
 
   const currentPlan = carrier ? (plans.find(p => p.id === carrier.planId) || plans[0]) : plans[0];
 
@@ -71,6 +120,21 @@ export default function CarrierSubscriptionPage() {
     e.preventDefault();
     if (!selectedPlanForTrial || !carrier) return;
 
+    const rawCard = cardNumber.replace(/\s/g, '');
+    if (rawCard.length < 16) {
+      setCardError('Lütfen 16 haneli kart numaranızı eksiksiz giriniz.');
+      return;
+    }
+    if (cardExpiry.length < 5) {
+      setCardError('Lütfen geçerli bir son kullanma tarihi giriniz (AA/YY).');
+      return;
+    }
+    if (cardCvc.length < 3) {
+      setCardError('Lütfen 3 haneli güvenlik kodunu (CVC) giriniz.');
+      return;
+    }
+
+    setCardError('');
     setIsActivating(true);
     setTimeout(() => {
       db.updateCarrier(carrier.id, { planId: selectedPlanForTrial.id });
@@ -80,6 +144,9 @@ export default function CarrierSubscriptionPage() {
       setSub(updatedSub);
       setIsActivating(false);
       setSelectedPlanForTrial(null);
+      setCardNumber('');
+      setCardExpiry('');
+      setCardCvc('');
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('auth-changed'));
         window.dispatchEvent(new Event('storage'));
@@ -327,7 +394,10 @@ export default function CarrierSubscriptionPage() {
       {/* 7-DAY TRIAL START MODAL (Spec Item 21) */}
       <Modal
         isOpen={!!selectedPlanForTrial}
-        onClose={() => setSelectedPlanForTrial(null)}
+        onClose={() => {
+          setSelectedPlanForTrial(null);
+          setCardError('');
+        }}
         title="7 Gün Ücretsiz Denemenizi Başlatın"
       >
         {selectedPlanForTrial && (
@@ -348,16 +418,29 @@ export default function CarrierSubscriptionPage() {
               </p>
             </div>
 
+            {cardError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-bold text-red-700 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                <span>{cardError}</span>
+              </div>
+            )}
+
             <div className="space-y-3 pt-2">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">Kart Numarası</label>
-                <input
-                  type="text"
-                  required
-                  value={cardNumber}
-                  onChange={(e) => setCardNumber(e.target.value)}
-                  className="w-full p-2.5 rounded-lg border border-slate-300 font-semibold"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    required
+                    placeholder="0000 0000 0000 0000"
+                    maxLength={19}
+                    value={cardNumber}
+                    onChange={handleCardNumberChange}
+                    className="w-full p-2.5 pl-3 pr-10 rounded-lg border border-slate-300 font-mono font-bold tracking-wider text-slate-900 focus:border-[#F95700] focus:ring-1 focus:ring-[#F95700] outline-hidden text-sm"
+                  />
+                  <CreditCard className="w-5 h-5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -365,27 +448,49 @@ export default function CarrierSubscriptionPage() {
                   <label className="block text-xs font-bold text-slate-700 mb-1">Son Kullanma</label>
                   <input
                     type="text"
+                    inputMode="numeric"
                     required
+                    placeholder="AA / YY"
+                    maxLength={5}
                     value={cardExpiry}
-                    onChange={(e) => setCardExpiry(e.target.value)}
-                    className="w-full p-2.5 rounded-lg border border-slate-300 font-semibold"
+                    onChange={handleCardExpiryChange}
+                    className="w-full p-2.5 rounded-lg border border-slate-300 font-mono font-bold tracking-wider text-slate-900 focus:border-[#F95700] focus:ring-1 focus:ring-[#F95700] outline-hidden text-sm text-center"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">CVC / CVV</label>
-                  <input
-                    type="text"
-                    required
-                    value={cardCvc}
-                    onChange={(e) => setCardCvc(e.target.value)}
-                    className="w-full p-2.5 rounded-lg border border-slate-300 font-semibold"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      required
+                      placeholder="000"
+                      maxLength={3}
+                      value={cardCvc}
+                      onChange={handleCardCvcChange}
+                      className="w-full p-2.5 rounded-lg border border-slate-300 font-mono font-bold tracking-wider text-slate-900 focus:border-[#F95700] focus:ring-1 focus:ring-[#F95700] outline-hidden text-sm text-center"
+                    />
+                    <Lock className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
                 </div>
+              </div>
+
+              <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 font-medium pt-1">
+                <Lock className="w-3.5 h-3.5 text-emerald-600" />
+                <span>256-Bit SSL ile güvenli ve şifrelenmiş kart doğrulaması</span>
               </div>
             </div>
 
             <div className="pt-4 flex items-center justify-end gap-2">
-              <Button variant="outline" size="sm" onClick={() => setSelectedPlanForTrial(null)}>
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => {
+                  setSelectedPlanForTrial(null);
+                  setCardError('');
+                }}
+              >
                 Vazgeç
               </Button>
               <Button variant="primary" size="md" type="submit" isLoading={isActivating}>

@@ -42,34 +42,122 @@ export default function CarrierMessagesPage() {
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const matchesCarrier = (c: Conversation) => {
     const carrierId = carrier?.userId || carrier?.id || '';
+    const parts = c.participantIds || [];
+    if (carrierId && parts.includes(carrierId)) return true;
+    if (carrier?.id && parts.includes(carrier.id)) return true;
+    if (carrier?.userId && parts.includes(carrier.userId)) return true;
+    if (carrier?.slug && parts.includes(carrier.slug)) return true;
+    if (currentUser?.id && parts.includes(currentUser.id)) return true;
+    if ((currentUser as any)?.uid && parts.includes((currentUser as any).uid)) return true;
+    if (currentUser?.email && parts.some(p => p && p.toLowerCase() === currentUser.email.toLowerCase())) return true;
+    if (c.participantNames && (
+      (carrier?.id && c.participantNames[carrier.id]) ||
+      (carrier?.userId && c.participantNames[carrier.userId]) ||
+      (carrier?.slug && c.participantNames[carrier.slug])
+    )) return true;
+    return false;
+  };
+
+  const loadCarrierConvs = () => {
     const allConvs = db.getConversations();
-    // Bu carrier'a ait konuşmaları filtrele
-    const myConvs = carrierId
-      ? allConvs.filter(c =>
-          c.participantIds.some(pid =>
-            pid === carrierId ||
-            pid === carrier?.id ||
-            pid === currentUser?.id ||
-            ((currentUser as any)?.uid && pid === (currentUser as any).uid)
-          )
-        )
-      : allConvs;
+    const myConvs = carrier ? allConvs.filter(matchesCarrier) : allConvs;
     setConversations(myConvs);
     if (myConvs.length > 0) {
-      setActiveConvId(myConvs[0].id);
-      setMessages(db.getMessages(myConvs[0].id));
-      db.markConversationAsRead(myConvs[0].id, carrierId || 'user_carr_1');
+      setActiveConvId(prev => {
+        if (prev && myConvs.some(c => c.id === prev)) return prev;
+        return myConvs[0].id;
+      });
     }
-  }, []);
+
+    // Sync from server API to bridge cross-window and incognito testing
+    const qCarrier = carrier?.id ? encodeURIComponent(carrier.id) : '';
+    const qUser = carrier?.userId || currentUser?.id ? encodeURIComponent(carrier?.userId || currentUser?.id || '') : '';
+    const qEmail = currentUser?.email ? encodeURIComponent(currentUser.email) : '';
+    fetch(`/api/conversations?carrierId=${qCarrier}&userId=${qUser}&email=${qEmail}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.conversations) && data.conversations.length > 0) {
+          db.bulkMergeConversations(data.conversations);
+          if (Array.isArray(data.messages) && data.messages.length > 0) {
+            db.bulkMergeMessages(data.messages);
+          }
+          const updatedConvs = db.getConversations().filter(matchesCarrier);
+          setConversations(updatedConvs);
+          if (updatedConvs.length > 0) {
+            setActiveConvId(prev => {
+              if (prev && updatedConvs.some(c => c.id === prev)) return prev;
+              return updatedConvs[0].id;
+            });
+          }
+        }
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    loadCarrierConvs();
+    const handleUpdate = () => loadCarrierConvs();
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('offer-added', handleUpdate);
+    window.addEventListener('auth-changed', handleUpdate);
+    window.addEventListener('message-added', handleUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('offer-added', handleUpdate);
+      window.removeEventListener('auth-changed', handleUpdate);
+      window.removeEventListener('message-added', handleUpdate);
+    };
+  }, [carrier?.id, carrier?.userId, currentUser?.email]);
 
   useEffect(() => {
     if (activeConvId) {
       setMessages(db.getMessages(activeConvId));
-      db.markConversationAsRead(activeConvId, 'user_carr_1');
+      db.markConversationAsRead(activeConvId, carrier?.userId || carrier?.id || 'user_carr_1');
     }
   }, [activeConvId]);
+
+  // Poll for new messages from server every 3 seconds (bridges cross-window messaging)
+  useEffect(() => {
+    if (!activeConvId) return;
+
+    const poll = setInterval(() => {
+      fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
+            db.bulkMergeMessages(data.messages);
+            setMessages(db.getMessages(activeConvId));
+          } else {
+            const fresh = db.getMessages(activeConvId);
+            setMessages(prev => fresh.length !== prev.length ? fresh : prev);
+          }
+        })
+        .catch(() => {
+          const fresh = db.getMessages(activeConvId);
+          setMessages(prev => fresh.length !== prev.length ? fresh : prev);
+        });
+    }, 3000);
+
+    const convPoll = setInterval(() => {
+      loadCarrierConvs();
+    }, 6000);
+
+    const handleMsgAdded = () => {
+      if (activeConvId) setMessages(db.getMessages(activeConvId));
+    };
+    window.addEventListener('message-added', handleMsgAdded);
+    window.addEventListener('storage', handleMsgAdded);
+
+    return () => {
+      clearInterval(poll);
+      clearInterval(convPoll);
+      window.removeEventListener('message-added', handleMsgAdded);
+      window.removeEventListener('storage', handleMsgAdded);
+    };
+  }, [activeConvId, carrier?.id, carrier?.userId, currentUser?.email]);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -97,8 +185,14 @@ export default function CarrierMessagesPage() {
     fetch('/api/conversations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId: activeConvId, message: newMsg })
+      body: JSON.stringify({ conversationId: activeConvId, message: newMsg, conversation: activeConv })
     }).catch(() => {/* server yoksa sessizce devam */});
+
+    // Müşteri panelinin güncellenmesi için event'leri tetikle
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('message-added', { detail: newMsg }));
+    }
 
     setMessages(prev => [...prev, newMsg]);
     setInputMessage('');

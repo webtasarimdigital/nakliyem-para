@@ -41,11 +41,11 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
   const isCarrier = currentUser?.role === 'CARRIER';
   const carrier = isCarrier ? (db.getCurrentCarrier() || db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) || null) : null;
 
-  // Evrak & Doğrulama Kontrolü
+  // Evrak & Doğrulama Kontrolü (Onaylı veya evrakları tam)
   const carrierDocs = carrier ? db.getDocumentsForCarrier(carrier.id) : [];
   const hasTaxDoc = carrierDocs.some(d => d.type === 'TAX_CERTIFICATE') || Boolean(carrier?.verificationBadges?.taxVerified);
   const hasIdDoc = carrierDocs.some(d => d.type === 'IDENTITY') || Boolean(carrier?.verificationBadges?.identityVerified);
-  const isApproved = Boolean(carrier && carrier.verificationStatus === 'APPROVED' && hasTaxDoc && hasIdDoc);
+  const isApproved = Boolean(carrier && (carrier.verificationStatus === 'APPROVED' || (hasTaxDoc && hasIdDoc)));
 
   // Günlük Teklif Kotası & Mevcut Teklif Kontrolü
   const carrierSub = carrier ? db.getCarrierSubscription(carrier.id) : null;
@@ -54,9 +54,10 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
   const [activeOffers, setActiveOffers] = useState<Offer[]>(() => carrier ? db.getOffersForCarrier(carrier.id) : []);
   const existingOffer = activeOffers.find(o => o.requestId === req.id && o.status !== 'WITHDRAWN');
 
-  // Müşteri Telefon Görme Yetkisi (Gümüş / Altın Paket veya Kabul Edilmiş Teklif)
+  // Müşteri Telefon Görme Yetkisi (Pro / Gold Paket veya Kabul Edilmiş Teklif)
+  const isProOrGold = carrier?.planId === 'plan_pro' || carrier?.planId === 'plan_gold' || carrier?.planId === 'pro' || carrier?.planId === 'gold' || carrierSub?.planId === 'plan_pro' || carrierSub?.planId === 'plan_gold' || carrierSub?.planId === 'pro' || carrierSub?.planId === 'gold';
   const canViewPhone = Boolean(
-    (carrier && isApproved && carrierPlan?.features?.customerPhoneAccess === true) ||
+    (carrier && isApproved && (isProOrGold || carrierPlan?.features?.customerPhoneAccess === true)) ||
     existingOffer?.status === 'ACCEPTED'
   );
 
@@ -342,12 +343,16 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
                   <button
                     type="button"
                     onClick={() => {
+                      if (isProOrGold || canViewPhone) {
+                        setRevealedPhone(true);
+                        return;
+                      }
                       setWarningModalData({
                         title: '🔒 Müşteri Telefonu Başlangıç Paketinde Gizlidir',
-                        subtitle: 'Müşterilerin doğrudan cep telefonu numarasını görmek ve teklif kabul edilmeden önce doğrudan arayabilmek için Gümüş veya Altın üyelik paketine sahip olmanız gerekmektedir. Mevcut paketinizle müşteriye güvenli mesaj gönderebilir veya doğrudan teklif verebilirsiniz.',
-                        limitBadge: 'Gümüş / Altın Paket Özelliği',
-                        actionLink: '/app/carrier/abonelik',
-                        actionText: 'Paketleri İncele & Yükselt →'
+                        subtitle: 'Müşterilerin cep telefonu numarasını görmek ve doğrudan arayabilmek için Pro veya Gold nakliyeci paketine sahip olmanız gerekmektedir.',
+                        limitBadge: 'Pro / Gold Paket Özelliği',
+                        actionLink: '/nakliyeci/abonelik',
+                        actionText: 'Paketleri İncele & Yükselt'
                       });
                       setWarningModalOpen(true);
                     }}
@@ -632,29 +637,40 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
         onClose={() => setWarningModalOpen(false)}
         title={warningModalData?.title || 'Uyarı'}
       >
-        <div className="space-y-4 text-center py-2">
-          <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
-            <Lock className="w-7 h-7" />
+        <div className="space-y-5 text-center py-1">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
+            <Lock className="w-6 h-6" />
           </div>
 
-          <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed max-w-md mx-auto">
+          <p className="text-sm text-slate-600 font-medium leading-relaxed max-w-sm mx-auto">
             {warningModalData?.subtitle}
           </p>
 
           {warningModalData?.limitBadge && (
-            <div className="inline-block px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-black border border-slate-200">
+            <span className="inline-block px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold border border-slate-200">
               {warningModalData.limitBadge}
-            </div>
+            </span>
           )}
 
-          <div className="flex gap-3 pt-3">
-            <Button variant="outline" size="md" className="flex-1 font-bold" onClick={() => setWarningModalOpen(false)}>
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setWarningModalOpen(false)}
+              className="flex-1 h-10 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-sm transition-colors cursor-pointer"
+            >
               Vazgeç
-            </Button>
-            <Link href={warningModalData?.actionLink || "/paketler"} className="flex-1" onClick={() => setWarningModalOpen(false)}>
-              <Button variant="primary" size="md" className="w-full font-black text-xs" rightIcon={<ArrowRight className="w-4 h-4" />}>
-                {warningModalData?.actionText || "Paketleri İncele & Yükselt"}
-              </Button>
+            </button>
+            <Link
+              href={warningModalData?.actionLink || "/paketler"}
+              className="flex-1"
+              onClick={() => setWarningModalOpen(false)}
+            >
+              <button
+                type="button"
+                className="w-full h-10 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-sm transition-colors cursor-pointer"
+              >
+                {warningModalData?.actionText || "Paketleri İncele"}
+              </button>
             </Link>
           </div>
         </div>

@@ -1620,7 +1620,49 @@ class MockDatabase {
 
   // Offers
   getOffers(): Offer[] {
-    return this.getItem<Offer[]>('offers', SEED_OFFERS).filter(o => o.id !== 'off_1' && o.id !== 'off_2');
+    const rawOffers = this.getItem<Offer[]>('offers', SEED_OFFERS).filter(o => o.id !== 'off_1' && o.id !== 'off_2');
+    if (!this.isClient) return rawOffers;
+
+    let acceptedOffersMap: Record<string, any> = {};
+    let closedReqsMap: Record<string, any> = {};
+
+    try {
+      const rawAcc = localStorage.getItem('tasinteklif_accepted_offers');
+      if (rawAcc) acceptedOffersMap = JSON.parse(rawAcc);
+      const rawClosed = localStorage.getItem('tasinteklif_closed_requests');
+      if (rawClosed) closedReqsMap = JSON.parse(rawClosed);
+    } catch {}
+
+    return rawOffers.map(o => {
+      // Check accepted offers map
+      const acceptedForReq = acceptedOffersMap[o.requestId];
+      if (acceptedForReq) {
+        const isWinningOffer = acceptedForReq.id === o.id || acceptedForReq.assignedOfferId === o.id;
+        return {
+          ...o,
+          status: isWinningOffer ? ('ACCEPTED' as const) : ('REJECTED' as const)
+        };
+      }
+
+      // Check closed requests map
+      const closedInfo = closedReqsMap[o.requestId];
+      if (closedInfo) {
+        if (closedInfo.status === 'ASSIGNED') {
+          const isWinningOffer = closedInfo.assignedOfferId === o.id || (closedInfo.assignedCarrierId && closedInfo.assignedCarrierId === o.carrierId);
+          return {
+            ...o,
+            status: isWinningOffer ? ('ACCEPTED' as const) : ('REJECTED' as const)
+          };
+        } else if (closedInfo.status === 'CLOSED') {
+          return {
+            ...o,
+            status: 'REJECTED' as const
+          };
+        }
+      }
+
+      return o;
+    });
   }
 
   getOffersForRequest(requestId: string): Offer[] {
@@ -1808,9 +1850,12 @@ class MockDatabase {
     const targetOffer = offers.find(o => o.id === offerId);
     if (!targetOffer) return;
 
+    const req = this.getRequestById(requestId);
+    const code = req?.requestCode;
+
     // Update accepted offer
     const updatedOffers = offers.map(o => {
-      if (o.requestId === requestId) {
+      if (o.requestId === requestId || (code && o.requestId === code)) {
         return o.id === offerId 
           ? { ...o, status: 'ACCEPTED' as const }
           : { ...o, status: 'REJECTED' as const };
@@ -1822,9 +1867,18 @@ class MockDatabase {
     // Update request
     this.updateRequest(requestId, {
       status: 'ASSIGNED',
+      closedReason: 'İş Verildi',
       assignedCarrierId: targetOffer.carrierId,
       assignedOfferId: offerId
     });
+    if (code && code !== requestId) {
+      this.updateRequest(code, {
+        status: 'ASSIGNED',
+        closedReason: 'İş Verildi',
+        assignedCarrierId: targetOffer.carrierId,
+        assignedOfferId: offerId
+      });
+    }
   }
 
   // Defter
@@ -2236,8 +2290,9 @@ export function isSeedUser(user: RegisteredUserRecord | User): boolean {
 
 export function isSeedRequest(req: MovingRequest): boolean {
   if (req.isSeed) return true;
-  if (SEED_REQUEST_IDS.has(req.id) || (req.requestCode && SEED_REQUEST_IDS.has(req.requestCode))) return true;
-  if (req.customerId && (req.customerId.startsWith('cust_') || SEED_USER_IDS.has(req.customerId))) return true;
+  if (req.id && (req.id.startsWith('req_seed_') || SEED_REQUEST_IDS.has(req.id))) return true;
+  if (req.requestCode && SEED_REQUEST_IDS.has(req.requestCode)) return true;
+  if (req.customerId && SEED_USER_IDS.has(req.customerId)) return true;
   return false;
 }
 

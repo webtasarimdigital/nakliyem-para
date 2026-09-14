@@ -47,6 +47,18 @@ function getBoolVal(offer: Offer, key: string): boolean | string | number {
   }
 }
 
+function formatPhoneNumber(phone?: string): string {
+  if (!phone) return '';
+  const cleaned = phone.replace(/\D/g, '');
+  if (cleaned.length === 11 && cleaned.startsWith('0')) {
+    return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7, 9)} ${cleaned.slice(9, 11)}`;
+  }
+  if (cleaned.length === 10) {
+    return `0${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6, 8)} ${cleaned.slice(8, 10)}`;
+  }
+  return phone;
+}
+
 import { useAuth } from '@/context/AuthContext';
 
 function CustomerOffersContent() {
@@ -77,17 +89,37 @@ function CustomerOffersContent() {
       }
     }
 
+    // Locally persisted closed/assigned state map
+    let closedMap: Record<string, { status: any; closedReason?: string; assignedCarrierId?: string; assignedOfferId?: string }> = {};
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('tasinteklif_closed_requests');
+        if (raw) closedMap = JSON.parse(raw);
+      } catch {}
+    }
+
     const map = new Map<string, MovingRequest>();
-    firestoreReqs.forEach(fr => map.set(fr.id, fr));
-    localReqs.forEach(lr => {
-      const existing = map.get(lr.id);
-      if (!existing) {
-        map.set(lr.id, lr);
+    firestoreReqs.forEach(fr => {
+      const override = closedMap[fr.id] || (fr.requestCode ? closedMap[fr.requestCode] : null);
+      if (override) {
+        map.set(fr.id, { ...fr, ...override });
       } else {
-        const localTime = new Date(lr.updatedAt || lr.createdAt || 0).getTime();
+        map.set(fr.id, fr);
+      }
+    });
+
+    localReqs.forEach(lr => {
+      const override = closedMap[lr.id] || (lr.requestCode ? closedMap[lr.requestCode] : null);
+      const effectiveLr = override ? { ...lr, ...override } : lr;
+
+      const existing = map.get(effectiveLr.id);
+      if (!existing) {
+        map.set(effectiveLr.id, effectiveLr);
+      } else {
+        const localTime = new Date(effectiveLr.updatedAt || effectiveLr.createdAt || 0).getTime();
         const firestoreTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
-        if (localTime >= firestoreTime || lr.status === 'CLOSED' || lr.status === 'ASSIGNED') {
-          map.set(lr.id, { ...existing, ...lr });
+        if (localTime >= firestoreTime || effectiveLr.status === 'CLOSED' || effectiveLr.status === 'ASSIGNED') {
+          map.set(effectiveLr.id, { ...existing, ...effectiveLr });
         }
       }
     });
@@ -98,11 +130,13 @@ function CustomerOffersContent() {
       const apiData = await apiRes.json();
       if (apiData.success && Array.isArray(apiData.requests)) {
         apiData.requests.forEach((ar: MovingRequest) => {
-          const existing = map.get(ar.id);
+          const override = closedMap[ar.id] || (ar.requestCode ? closedMap[ar.requestCode] : null);
+          const effectiveAr = override ? { ...ar, ...override } : ar;
+          const existing = map.get(effectiveAr.id);
           if (!existing) {
-            map.set(ar.id, ar);
-          } else if ((ar.offersCount || 0) > (existing.offersCount || 0)) {
-            map.set(ar.id, { ...existing, offersCount: ar.offersCount });
+            map.set(effectiveAr.id, effectiveAr);
+          } else if ((effectiveAr.offersCount || 0) > (existing.offersCount || 0) || override) {
+            map.set(effectiveAr.id, { ...existing, ...effectiveAr });
           }
         });
       }
@@ -166,7 +200,9 @@ function CustomerOffersContent() {
     .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
   // Determine which customer requests have offers
-  const requestWithOffers = customerRequests.find(r => db.getOffersForRequest(r.id).length > 0);
+  const requestWithOffers = customerRequests.find(r => 
+    r.status === 'ACTIVE' && (db.getOffersForRequest(r.id).length > 0 || (r.requestCode && db.getOffersForRequest(r.requestCode).length > 0) || (r.offersCount || 0) > 0)
+  );
 
   // If reqIdParam is provided in URL
   const matchedParamReq = reqIdParam 
@@ -179,22 +215,23 @@ function CustomerOffersContent() {
     : null;
 
   // Active request logic:
-  // Prefer explicit URL param, then selectedReqId, but if no URL param was set and no selection made,
-  // automatically default to the request that actually has offers!
+  // Prefer explicit URL param, then selectedReqId, then active request with offers, then any active request, then first request
   const activeReq = matchedParamReq
     || matchedSelectedReq
     || requestWithOffers
+    || customerRequests.find(r => r.status === 'ACTIVE')
     || (customerRequests.length > 0 ? customerRequests[0] : null);
 
   // Alert banner condition: Active request has 0 offers, but another customer request HAS offers!
-  const otherReqWithOffers = activeReq && db.getOffersForRequest(activeReq.id).length === 0
-    ? customerRequests.find(r => r.id !== activeReq.id && db.getOffersForRequest(r.id).length > 0)
+  const otherReqWithOffers = activeReq && db.getOffersForRequest(activeReq.id).length === 0 && (!activeReq.requestCode || db.getOffersForRequest(activeReq.requestCode).length === 0)
+    ? customerRequests.find(r => r.id !== activeReq.id && r.status === 'ACTIVE' && (db.getOffersForRequest(r.id).length > 0 || (r.requestCode && db.getOffersForRequest(r.requestCode).length > 0)))
     : null;
 
   const [offers, setOffers] = useState<Offer[]>([]);
   const [sortBy, setSortBy] = useState<'price' | 'rating' | 'delivery'>('price');
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [successOffer, setSuccessOffer] = useState<Offer | null>(null);
+  const [persistedAcceptedOffer, setPersistedAcceptedOffer] = useState<Offer | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'LIST' | 'TABLE'>('LIST');
   const [liveChatOpen, setLiveChatOpen] = useState(false);
@@ -210,25 +247,35 @@ function CustomerOffersContent() {
     if (!activeReq) return;
 
     const loadOffers = async () => {
-      const localOffers = db.getOffersForRequest(activeReq.id);
+      const localOffers = [
+        ...db.getOffersForRequest(activeReq.id),
+        ...(activeReq.requestCode ? db.getOffersForRequest(activeReq.requestCode) : [])
+      ];
+      const uniqueLocal = Array.from(new Map(localOffers.map(o => [o.id, o])).values());
 
       if (isFirebaseConfigured() && firestoreDb) {
         try {
-          const q = query(collection(firestoreDb, 'offers'), where('requestId', '==', activeReq.id));
-          const snapshot = await getDocs(q);
-          const fbOffers = snapshot.docs.map(doc => ({ ...(doc.data() as Offer), id: doc.id }));
+          const q1 = query(collection(firestoreDb, 'offers'), where('requestId', '==', activeReq.id));
+          const snapshot1 = await getDocs(q1);
+          let fbOffers = snapshot1.docs.map(doc => ({ ...(doc.data() as Offer), id: doc.id }));
+          if (activeReq.requestCode && activeReq.requestCode !== activeReq.id) {
+            const q2 = query(collection(firestoreDb, 'offers'), where('requestId', '==', activeReq.requestCode));
+            const snapshot2 = await getDocs(q2);
+            const fb2 = snapshot2.docs.map(doc => ({ ...(doc.data() as Offer), id: doc.id }));
+            fbOffers = [...fbOffers, ...fb2];
+          }
           const combined = [...fbOffers];
-          localOffers.forEach(lo => {
+          uniqueLocal.forEach(lo => {
             if (!combined.some(o => o.id === lo.id)) {
               combined.push(lo);
             }
           });
           setOffers(combined);
         } catch {
-          setOffers(localOffers);
+          setOffers(uniqueLocal);
         }
       } else {
-        setOffers(localOffers);
+        setOffers(uniqueLocal);
       }
     };
 
@@ -241,7 +288,44 @@ function CustomerOffersContent() {
       window.removeEventListener('storage', handleReloadOffers);
       window.removeEventListener('offer-added', handleReloadOffers);
     };
-  }, [activeReq?.id]);
+  }, [activeReq?.id, activeReq?.requestCode]);
+
+  // Read persisted accepted offer for this request
+  useEffect(() => {
+    if (!activeReq) {
+      setPersistedAcceptedOffer(null);
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('tasinteklif_accepted_offers');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const saved = parsed[activeReq.id] || (activeReq.requestCode ? parsed[activeReq.requestCode] : null);
+          if (saved) {
+            setPersistedAcceptedOffer(saved);
+            return;
+          }
+        }
+      } catch {}
+    }
+
+    if (activeReq.status === 'ASSIGNED') {
+      const allOffers = [...offers, ...db.getOffers()];
+      const match = allOffers.find(o => 
+        (activeReq.assignedOfferId && o.id === activeReq.assignedOfferId) ||
+        (activeReq.assignedCarrierId && o.carrierId === activeReq.assignedCarrierId) ||
+        (o.requestId === activeReq.id || (activeReq.requestCode && o.requestId === activeReq.requestCode))
+      );
+      if (match) {
+        setPersistedAcceptedOffer(match);
+        return;
+      }
+    }
+
+    setPersistedAcceptedOffer(null);
+  }, [activeReq?.id, activeReq?.requestCode, activeReq?.status, activeReq?.assignedOfferId, activeReq?.assignedCarrierId, offers]);
 
   const sorted = [...offers].sort((a, b) => {
     if (sortBy === 'price') return a.price - b.price;
@@ -254,23 +338,52 @@ function CustomerOffersContent() {
 
     // 1. Update mock-db
     db.acceptOffer(activeReq.id, selectedOffer.id);
+    if (activeReq.requestCode) {
+      db.acceptOffer(activeReq.requestCode, selectedOffer.id);
+    }
     db.updateRequest(activeReq.id, {
       status: 'ASSIGNED',
       closedReason: 'İş Verildi',
       assignedCarrierId: selectedOffer.carrierId,
       assignedOfferId: selectedOffer.id
     });
+    if (activeReq.requestCode) {
+      db.updateRequest(activeReq.requestCode, {
+        status: 'ASSIGNED',
+        closedReason: 'İş Verildi',
+        assignedCarrierId: selectedOffer.carrierId,
+        assignedOfferId: selectedOffer.id
+      });
+    }
 
-    // 2. Persist to closed requests map in localStorage
+    // 2. Persist to closed requests and accepted offers in localStorage
     if (typeof window !== 'undefined') {
       try {
-        const raw = localStorage.getItem('tasinteklif_closed_requests') || '{}';
-        const parsed = JSON.parse(raw);
-        parsed[activeReq.id] = { status: 'ASSIGNED', closedReason: 'İş Verildi' };
+        const rawClosed = localStorage.getItem('tasinteklif_closed_requests') || '{}';
+        const parsedClosed = JSON.parse(rawClosed);
+        parsedClosed[activeReq.id] = { 
+          status: 'ASSIGNED', 
+          closedReason: 'İş Verildi',
+          assignedCarrierId: selectedOffer.carrierId,
+          assignedOfferId: selectedOffer.id
+        };
         if (activeReq.requestCode) {
-          parsed[activeReq.requestCode] = { status: 'ASSIGNED', closedReason: 'İş Verildi' };
+          parsedClosed[activeReq.requestCode] = { 
+            status: 'ASSIGNED', 
+            closedReason: 'İş Verildi',
+            assignedCarrierId: selectedOffer.carrierId,
+            assignedOfferId: selectedOffer.id
+          };
         }
-        localStorage.setItem('tasinteklif_closed_requests', JSON.stringify(parsed));
+        localStorage.setItem('tasinteklif_closed_requests', JSON.stringify(parsedClosed));
+
+        const rawAccepted = localStorage.getItem('tasinteklif_accepted_offers') || '{}';
+        const parsedAccepted = JSON.parse(rawAccepted);
+        parsedAccepted[activeReq.id] = selectedOffer;
+        if (activeReq.requestCode) {
+          parsedAccepted[activeReq.requestCode] = selectedOffer;
+        }
+        localStorage.setItem('tasinteklif_accepted_offers', JSON.stringify(parsedAccepted));
       } catch {}
     }
 
@@ -283,6 +396,14 @@ function CustomerOffersContent() {
           assignedCarrierId: selectedOffer.carrierId,
           assignedOfferId: selectedOffer.id
         });
+        if (activeReq.requestCode) {
+          await updateFirestoreRequest(activeReq.requestCode, {
+            status: 'ASSIGNED',
+            closedReason: 'İş Verildi',
+            assignedCarrierId: selectedOffer.carrierId,
+            assignedOfferId: selectedOffer.id
+          });
+        }
       } catch (err) {
         console.warn('Firestore teklif kabul hatası:', err);
       }
@@ -295,6 +416,7 @@ function CustomerOffersContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: activeReq.id,
+          requestCode: activeReq.requestCode,
           status: 'ASSIGNED',
           closedReason: 'İş Verildi',
           assignedCarrierId: selectedOffer.carrierId,
@@ -314,9 +436,11 @@ function CustomerOffersContent() {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('storage'));
       window.dispatchEvent(new Event('request-added'));
+      window.dispatchEvent(new Event('offer-added'));
     }
 
     setSuccessOffer(selectedOffer);
+    setPersistedAcceptedOffer(selectedOffer);
 
     // Send transactional email to carrier
     try {
@@ -342,7 +466,10 @@ function CustomerOffersContent() {
     setSelectedOffer(null);
   };
 
-  if (successOffer) {
+  const currentDisplayOffer = successOffer || (activeReq?.status === 'ASSIGNED' ? persistedAcceptedOffer : null);
+
+  if (currentDisplayOffer) {
+    const successOffer = currentDisplayOffer;
     return (
       <div className="min-h-screen bg-[#F8FAFC] py-6 sm:py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -372,6 +499,33 @@ function CustomerOffersContent() {
                       </p>
                     </div>
                   </div>
+
+                  {customerRequests.length > 1 && (
+                    <div className="shrink-0 bg-white/10 p-3 rounded-2xl backdrop-blur-xs border border-white/20">
+                      <label className="block text-[10px] font-bold text-white/90 uppercase tracking-wider mb-1">
+                        Talepleriniz:
+                      </label>
+                      <select
+                        value={activeReq?.id}
+                        onChange={(e) => {
+                          setSelectedReqId(e.target.value);
+                          setSuccessOffer(null);
+                          router.push(`/app/customer/teklifler?reqId=${e.target.value}`);
+                        }}
+                        className="px-3 py-2 rounded-xl text-xs font-bold bg-white text-slate-900 shadow-sm focus:outline-hidden"
+                      >
+                        {customerRequests.map(r => {
+                          const isAssigned = r.status === 'ASSIGNED';
+                          const count = db.getOffersForRequest(r.id).length + (r.requestCode ? db.getOffersForRequest(r.requestCode).length : 0);
+                          return (
+                            <option key={r.id} value={r.id}>
+                              {r.requestCode || '#TALEP'} · {r.originCity} → {r.destinationCity} {isAssigned ? '(✅ Anlaşma Sağlandı)' : (count > 0 ? `(🔥 ${count} Teklif)` : '(Teklif Bekleniyor)')}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -402,24 +556,42 @@ function CustomerOffersContent() {
                         </div>
                       </div>
                     </div>
-                    <p className="text-xs text-slate-500 font-medium leading-relaxed mb-4">
+                    <p className="text-xs text-slate-500 font-medium leading-relaxed mb-3">
                       Firma yetkilisi taşınma saatini teyit etmek ve bina durumunu netleştirmek için kayıtlı numaranızdan sizinle iletişime geçecektir.
                     </p>
+
+                    {successOffer.carrier.phone && (
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-medium text-slate-600 mb-4">
+                        <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>Yetkili İletişim:</span>
+                        <span className="font-mono font-bold text-slate-900 tracking-wide">
+                          {formatPhoneNumber(successOffer.carrier.phone)}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Carrier Contact Actions */}
-                  <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-2.5">
+                  <div className="pt-3 border-t border-slate-100 flex items-center gap-2.5">
                     {successOffer.carrier.phone ? (
-                      <a href={`tel:${successOffer.carrier.phone}`} className="w-full sm:w-auto flex-1">
-                        <Button variant="navy" size="md" className="w-full font-bold justify-center" leftIcon={<Phone className="w-4 h-4" />}>
-                          Firmayı Ara ({successOffer.carrier.phone})
-                        </Button>
+                      <a href={`tel:${successOffer.carrier.phone}`} className="flex-1">
+                        <button
+                          type="button"
+                          className="w-full inline-flex items-center justify-center gap-2 font-bold text-xs sm:text-sm px-3.5 py-2.5 h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all active:scale-[0.98] cursor-pointer"
+                        >
+                          <Phone className="w-4 h-4 shrink-0" />
+                          <span>Firmayı Ara</span>
+                        </button>
                       </a>
                     ) : null}
-                    <Link href="/app/customer/mesajlar" className="w-full sm:w-auto">
-                      <Button variant="outline" size="md" className="w-full font-bold justify-center" leftIcon={<MessageSquare className="w-4 h-4" />}>
-                        Mesaj Yaz
-                      </Button>
+                    <Link href="/app/customer/mesajlar" className="flex-1">
+                      <button
+                        type="button"
+                        className="w-full inline-flex items-center justify-center gap-2 font-bold text-xs sm:text-sm px-3.5 py-2.5 h-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs transition-all active:scale-[0.98] cursor-pointer"
+                      >
+                        <MessageSquare className="w-4 h-4 text-slate-500 shrink-0" />
+                        <span>Mesaj Yaz</span>
+                      </button>
                     </Link>
                   </div>
                 </div>
@@ -522,12 +694,11 @@ function CustomerOffersContent() {
                       Taşınma Panelime Git →
                     </Button>
                   </Link>
-                  <button
-                    onClick={() => setSuccessOffer(null)}
-                    className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
-                  >
-                    Teklif Sayfasına Geri Dön
-                  </button>
+                  <Link href="/app/customer/taleplerim">
+                    <Button variant="outline" size="md" className="font-bold text-xs sm:text-sm">
+                      Taleplerim Listesine Git
+                    </Button>
+                  </Link>
                 </div>
               </div>
 
@@ -614,10 +785,11 @@ function CustomerOffersContent() {
                     className="px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white text-slate-800 focus:border-[#F95700] focus:outline-none"
                   >
                     {customerRequests.map(r => {
-                      const count = db.getOffersForRequest(r.id).length;
+                      const isAssigned = r.status === 'ASSIGNED';
+                      const count = db.getOffersForRequest(r.id).length + (r.requestCode ? db.getOffersForRequest(r.requestCode).length : 0);
                       return (
                         <option key={r.id} value={r.id}>
-                          {r.requestCode || '#TALEP'} · {r.originCity} → {r.destinationCity} ({count > 0 ? `🔥 ${count} Teklif Alındı` : 'Teklif Bekleniyor'})
+                          {r.requestCode || '#TALEP'} · {r.originCity} → {r.destinationCity} {isAssigned ? '(✅ Anlaşma Sağlandı / İş Verildi)' : (count > 0 ? `(🔥 ${count} Teklif Alındı)` : '(Teklif Bekleniyor)')}
                         </option>
                       );
                     })}

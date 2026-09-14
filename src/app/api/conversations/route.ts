@@ -35,6 +35,7 @@ function writeJson(filename: string, data: any): void {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get('userId');
+  const carrierId = searchParams.get('carrierId');
   const email = searchParams.get('email');
   const requestId = searchParams.get('requestId');
   const convId = searchParams.get('convId');
@@ -42,65 +43,157 @@ export async function GET(req: NextRequest) {
   const conversations = readJson<any[]>('conversations.json', []);
   const allMessages = readJson<any[]>('messages.json', []);
 
-  let filtered = conversations;
-
+  // 1. Direct query by convId: ALWAYS return all messages for this convId!
   if (convId) {
-    filtered = filtered.filter(c => c.id === convId);
-  } else if (requestId) {
-    filtered = filtered.filter(c => c.contextId === requestId);
-  } else if (userId || email) {
-    filtered = filtered.filter(c => {
-      const parts = c.participantIds || [];
-      const matchUserId = userId && (parts.includes(userId) || (c.participantNames && Object.keys(c.participantNames).includes(userId)));
-      const matchEmail = email && parts.some((p: string) => p && p.toLowerCase() === email.toLowerCase());
-      return matchUserId || matchEmail;
+    const matchedConv = conversations.find(c => c.id === convId);
+    const messages = allMessages.filter(m => m.conversationId === convId);
+    return NextResponse.json({
+      success: true,
+      conversations: matchedConv ? [matchedConv] : [],
+      messages
     });
   }
 
-  // Get relevant messages
-  const convIds = new Set(filtered.map(c => c.id));
-  const messages = allMessages.filter(m => convIds.has(m.conversationId));
+  // 2. Query by requestId
+  if (requestId) {
+    const cleanReq = requestId.replace('#', '');
+    const filtered = conversations.filter(c => 
+      c.contextId === requestId || 
+      c.contextId === cleanReq || 
+      c.contextTitle?.includes(cleanReq)
+    );
+    const convIds = new Set(filtered.map(c => c.id));
+    const messages = allMessages.filter(m => 
+      convIds.has(m.conversationId) || 
+      m.conversationId?.includes(cleanReq)
+    );
+    return NextResponse.json({ success: true, conversations: filtered, messages });
+  }
 
-  return NextResponse.json({ success: true, conversations: filtered, messages });
+  // 3. Query by userId, carrierId, or email
+  if (userId || carrierId || email) {
+    const u = userId ? userId.toLowerCase() : '';
+    const carr = carrierId ? carrierId.toLowerCase() : '';
+    const em = email ? email.toLowerCase() : '';
+
+    const filtered = conversations.filter(c => {
+      const parts = (c.participantIds || []).map((p: any) => String(p).toLowerCase());
+      const pNames = c.participantNames ? Object.keys(c.participantNames).map(k => k.toLowerCase()) : [];
+
+      const matchUser = u && (parts.includes(u) || pNames.includes(u));
+      const matchCarrier = carr && (parts.includes(carr) || pNames.includes(carr));
+      const matchEmail = em && (parts.includes(em) || pNames.includes(em));
+
+      return matchUser || matchCarrier || matchEmail;
+    });
+
+    const convIds = new Set(filtered.map(c => c.id));
+    const messages = allMessages.filter(m => 
+      convIds.has(m.conversationId) || 
+      (u && m.senderId && m.senderId.toLowerCase() === u) || 
+      (carr && m.senderId && m.senderId.toLowerCase() === carr)
+    );
+
+    return NextResponse.json({ success: true, conversations: filtered, messages });
+  }
+
+  // 4. Default: return all conversations & all messages
+  return NextResponse.json({ success: true, conversations, messages: allMessages });
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { conversationId, message, conversation } = body;
+    const {
+      conversationId,
+      message,
+      conversation,
+      requestId,
+      carrierName,
+      carrierSlug,
+      carrierId,
+      customerId,
+      customerName,
+      content,
+      senderRole,
+      senderName,
+      senderId
+    } = body;
 
+    let targetConvId = conversationId || (conversation && conversation.id);
+    let targetMessage = message;
+
+    // Handle shortcut payload (e.g. from LiveOfferChatModal or quick forms)
+    if (!targetMessage && content) {
+      targetConvId = targetConvId || `conv_${requestId ? requestId.replace('#', '') : Date.now()}`;
+      targetMessage = {
+        id: `msg_${Date.now()}`,
+        conversationId: targetConvId,
+        senderId: senderId || (senderRole === 'CARRIER' ? (carrierId || 'user_carr_1') : (customerId || 'user_cust_1')),
+        senderName: senderName || (senderRole === 'CARRIER' ? (carrierName || 'Nakliye Firması') : (customerName || 'Müşteri')),
+        senderRole: senderRole || 'CUSTOMER',
+        content: content.trim(),
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    const conversations = readJson<any[]>('conversations.json', []);
+    const messages = readJson<any[]>('messages.json', []);
+
+    // 1. Save or update conversation
     if (conversation && conversation.id) {
-      const conversations = readJson<any[]>('conversations.json', []);
       const convIndex = conversations.findIndex(c => c.id === conversation.id);
       if (convIndex >= 0) {
         conversations[convIndex] = { ...conversations[convIndex], ...conversation };
       } else {
         conversations.unshift(conversation);
       }
-      writeJson('conversations.json', conversations);
-    }
+    } else if (targetConvId) {
+      let conv = conversations.find(c => c.id === targetConvId);
+      const now = new Date().toISOString();
+      const sId = targetMessage?.senderId || customerId || 'user_cust_1';
+      const sName = targetMessage?.senderName || customerName || 'Müşteri';
+      const cId = carrierId || carrierSlug || 'user_carr_1';
+      const cName = carrierName || 'Nakliyat Firması';
 
-    if (message && message.id && conversationId) {
-      const messages = readJson<any[]>('messages.json', []);
-      const existingMsgIndex = messages.findIndex(m => m.id === message.id);
+      if (!conv) {
+        conv = {
+          id: targetConvId,
+          participantIds: Array.from(new Set([sId, cId, 'user_carr_1', 'carr_1', 'carr_saycanlar', 'carr_bogazici', carrierSlug].filter(Boolean))),
+          participantNames: {
+            [sId]: sName,
+            [cId]: cName,
+            'user_carr_1': cName
+          },
+          contextType: 'REQUEST',
+          contextId: requestId || targetConvId,
+          contextTitle: requestId ? `Talep #${requestId}` : 'Taşınma Sohbeti',
+          lastMessage: targetMessage?.content || 'Sohbet başladı.',
+          lastMessageAt: targetMessage?.createdAt || now,
+          unreadCounts: {},
+          createdAt: now
+        };
+        conversations.unshift(conv);
+      } else if (targetMessage) {
+        conv.lastMessage = targetMessage.content || conv.lastMessage;
+        conv.lastMessageAt = targetMessage.createdAt || now;
+      }
+    }
+    writeJson('conversations.json', conversations);
+
+    // 2. Save or update message
+    if (targetMessage && targetMessage.id && targetConvId) {
+      targetMessage.conversationId = targetConvId;
+      const existingMsgIndex = messages.findIndex(m => m.id === targetMessage.id);
       if (existingMsgIndex >= 0) {
-        messages[existingMsgIndex] = { ...messages[existingMsgIndex], ...message };
+        messages[existingMsgIndex] = { ...messages[existingMsgIndex], ...targetMessage };
       } else {
-        messages.push(message);
+        messages.push(targetMessage);
       }
       writeJson('messages.json', messages);
-
-      // Update last message on conversation
-      const conversations = readJson<any[]>('conversations.json', []);
-      const targetConv = conversations.find(c => c.id === conversationId);
-      if (targetConv) {
-        targetConv.lastMessage = message.content || targetConv.lastMessage;
-        targetConv.lastMessageAt = message.createdAt || new Date().toISOString();
-        writeJson('conversations.json', conversations);
-      }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, conversationId: targetConvId, message: targetMessage });
   } catch (err: any) {
     console.error('API /api/conversations error:', err);
     return NextResponse.json({ error: err.message || 'Sunucu hatası' }, { status: 500 });

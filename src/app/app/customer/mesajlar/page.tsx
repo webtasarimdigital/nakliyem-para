@@ -119,12 +119,43 @@ function CustomerMessagesContent() {
     window.addEventListener('storage', handleUpdate);
     window.addEventListener('offer-added', handleUpdate);
     window.addEventListener('auth-changed', handleUpdate);
+    window.addEventListener('message-added', handleUpdate);
+
+    // Poll every 3 seconds for new messages from server (bridges cross-window/cross-browser carrier replies)
+    const pollInterval = setInterval(() => {
+      if (activeConvId) {
+        fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
+              db.bulkMergeMessages(data.messages);
+              setMessages(db.getMessages(activeConvId));
+            } else {
+              const fresh = db.getMessages(activeConvId);
+              setMessages(prev => fresh.length !== prev.length ? fresh : prev);
+            }
+          })
+          .catch(() => {
+            const fresh = db.getMessages(activeConvId);
+            setMessages(prev => fresh.length !== prev.length ? fresh : prev);
+          });
+      }
+    }, 3000);
+
+    // Periodic poll every 6 seconds for any new incoming conversations
+    const convPollInterval = setInterval(() => {
+      loadUserConversations();
+    }, 6000);
+
     return () => {
       window.removeEventListener('storage', handleUpdate);
       window.removeEventListener('offer-added', handleUpdate);
       window.removeEventListener('auth-changed', handleUpdate);
+      window.removeEventListener('message-added', handleUpdate);
+      clearInterval(pollInterval);
+      clearInterval(convPollInterval);
     };
-  }, [targetConvId, userId, currentUser?.email]);
+  }, [targetConvId, userId, currentUser?.email, activeConvId]);
 
   // Load messages when activeConvId changes
   useEffect(() => {
@@ -189,32 +220,25 @@ function CustomerMessagesContent() {
     setMessages(prev => [...prev, userMsg]);
     setInputMessage('');
 
+    // Taşıyıcı mesajlar sayfasının güncellenmesi için event'leri tetikle
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('message-added', { detail: userMsg }));
+    }
+
+    // Server'a sync et
+    fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversationId: activeConvId, message: userMsg, conversation: activeConv })
+    }).catch(() => {});
+
     // Update conversation list item lastMessage
-    const updatedConvs = db.getConversations().filter(c =>
+    setConversations(db.getConversations().filter(c =>
       c.participantIds.includes(userId) ||
       (currentUser?.email && c.participantIds.includes(currentUser.email)) ||
       (c.participantNames && Object.keys(c.participantNames).includes(userId))
-    );
-    setConversations(updatedConvs);
-
-    // Simulate carrier intelligent reply
-    setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      const replyMsg = db.sendMessage(activeConvId, {
-        senderId: activeCarrier.userId || 'user_carr_1',
-        senderName: activeCarrier.companyName,
-        senderRole: 'CARRIER',
-        content: `Mesajınız alındı ${senderDisplayName.split(' ')[0]} Bey/Hanım. Ekiplerimiz talebiniz doğrultusunda gerekli hazırlıkları yapacaktır. Başka bir sorunuz olursa memnuniyetle yanıtlarız.`
-      });
-      setMessages(prev => [...prev, replyMsg]);
-      const refreshedConvs = db.getConversations().filter(c =>
-        c.participantIds.includes(userId) ||
-        (currentUser?.email && c.participantIds.includes(currentUser.email)) ||
-        (c.participantNames && Object.keys(c.participantNames).includes(userId))
-      );
-      setConversations(refreshedConvs);
-    }, 1400);
+    ));
   };
 
   return (

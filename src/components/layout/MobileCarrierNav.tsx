@@ -14,11 +14,12 @@ export const MobileCarrierNav: React.FC = () => {
   const currentUser = db.getCurrentUser();
 
   // Only show on carrier dashboard pages
-  if (!pathname?.startsWith('/app/carrier')) return null;
+  const isCarrierRoute = pathname?.startsWith('/nakliyeci') || pathname?.startsWith('/app/carrier');
+  if (!isCarrierRoute) return null;
 
   const handleQuickAction = (category: string) => {
     setSheetOpen(false);
-    router.push(`/app/carrier/defter?action=create&category=${category}`);
+    router.push(`/nakliyeci/defter?action=create&category=${category}`);
   };
 
   return (
@@ -27,9 +28,9 @@ export const MobileCarrierNav: React.FC = () => {
         <div className="flex items-center justify-around h-15 px-2 relative">
           {/* İşler */}
           <Link
-            href="/app/carrier/isler"
+            href="/nakliyeci/isler"
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 ${
-              pathname?.startsWith('/app/carrier/isler') ? 'text-[#F95700] font-bold' : 'text-slate-500'
+              pathname?.includes('/isler') ? 'text-[#F95700] font-bold' : 'text-slate-500'
             }`}
           >
             <Briefcase className="w-5 h-5" />
@@ -38,9 +39,9 @@ export const MobileCarrierNav: React.FC = () => {
 
           {/* Defter */}
           <Link
-            href="/app/carrier/defter"
+            href="/nakliyeci/defter"
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 ${
-              pathname?.startsWith('/app/carrier/defter') ? 'text-[#F95700] font-bold' : 'text-slate-500'
+              pathname?.includes('/defter') ? 'text-[#F95700] font-bold' : 'text-slate-500'
             }`}
           >
             <BookOpen className="w-5 h-5" />
@@ -60,9 +61,9 @@ export const MobileCarrierNav: React.FC = () => {
 
           {/* Mesajlar */}
           <Link
-            href="/app/carrier/mesajlar"
+            href="/nakliyeci/mesajlar"
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 ${
-              pathname?.startsWith('/app/carrier/mesajlar') ? 'text-[#F95700] font-bold' : 'text-slate-500'
+              pathname?.includes('/mesajlar') ? 'text-[#F95700] font-bold' : 'text-slate-500'
             }`}
           >
             <MessageSquare className="w-5 h-5" />
@@ -71,9 +72,9 @@ export const MobileCarrierNav: React.FC = () => {
 
           {/* Hesabım */}
           <Link
-            href="/app/carrier/profil"
+            href="/nakliyeci/profil"
             className={`flex flex-col items-center justify-center flex-1 h-full py-1 ${
-              pathname?.startsWith('/app/carrier/profil') || pathname?.startsWith('/app/carrier/abonelik') ? 'text-[#146EF5] font-bold' : 'text-slate-500'
+              pathname?.includes('/profil') || pathname?.includes('/abonelik') ? 'text-[#146EF5] font-bold' : 'text-slate-500'
             }`}
           >
             <User className="w-5 h-5" />

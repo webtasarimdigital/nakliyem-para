@@ -29,7 +29,7 @@ import { db, SEED_PLANS } from '@/lib/data/mock-db';
 
 // Gelir hesaplama yardımcıları
 const PLAN_PRICES: Record<string, number> = {
-  plan_starter: 1250,
+  plan_starter: 0, // Ücretsiz Başlangıç paketi
   plan_pro: 2450,
   plan_gold: 4850,
 };
@@ -46,7 +46,6 @@ const PLAN_COLORS: Record<string, string> = {
   plan_gold: 'bg-amber-500',
 };
 
-
 export default function AdminDashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [loginUser, setLoginUser] = useState('');
@@ -58,7 +57,11 @@ export default function AdminDashboardPage() {
   const [notice, setNotice] = useState<string | null>(null);
 
   React.useEffect(() => {
-    fetch('/api/admin/login')
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null;
+    const tokenParam = storedToken ? `?token=${encodeURIComponent(storedToken)}` : '';
+    fetch(`/api/admin/login${tokenParam}`, {
+      headers: storedToken ? { 'Authorization': `Bearer ${storedToken}` } : {}
+    })
       .then(res => res.json())
       .then(data => {
         if (data.authenticated) {
@@ -67,14 +70,11 @@ export default function AdminDashboardPage() {
         } else {
           setIsAuthenticated(false);
           localStorage.removeItem('admin_token_active');
+          localStorage.removeItem('admin_token');
         }
       })
       .catch(() => {
-        if (typeof window !== 'undefined' && localStorage.getItem('admin_token_active') === 'true') {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
+        setIsAuthenticated(false);
       });
   }, []);
 
@@ -294,26 +294,13 @@ export default function AdminDashboardPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => {
-                const newReq = db.generateRandomMockRequest();
-                setRefreshKey(k => k + 1);
-                setNotice(`✅ Yeni gerçekçi taşıma ilanı eklendi: ${newReq.originCity} → ${newReq.destinationCity} (${newReq.requestCode})`);
-                setTimeout(() => setNotice(null), 5000);
-              }}
-              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-black transition-colors shadow-xs cursor-pointer"
-              title="Sisteme nakliyecilerin teklif verebileceği yeni gerçekçi bir ilan ekler"
-            >
-              <span>🎲</span>
-              <span>Yeni İlan Ekle (+1 Fake Talep)</span>
-            </button>
             <Link href="/admin/uyeler">
-              <button className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:border-[#F95700] hover:text-[#F95700] transition-colors">
+              <button className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:border-[#F95700] hover:text-[#F95700] transition-colors shadow-2xs cursor-pointer">
                 <Users className="w-3.5 h-3.5" /> Üye Yönetimi
               </button>
             </Link>
             <Link href="/admin/gelir">
-              <button className="flex items-center gap-1.5 bg-[#F95700] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#e04d00] transition-colors shadow-lg shadow-orange-900/20">
+              <button className="flex items-center gap-1.5 bg-[#F95700] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#e04d00] transition-colors shadow-md shadow-orange-900/20 cursor-pointer">
                 <BarChart3 className="w-3.5 h-3.5" /> Gelir Raporu
               </button>
             </Link>
@@ -553,21 +540,31 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="space-y-2.5">
-              {requests.slice(0, 4).map((req) => (
-                <div key={req.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs gap-2">
-                  <div className="min-w-0">
-                    <span className="font-bold text-[#0A1128] block">{req.customerName}</span>
-                    <span className="text-slate-500">{req.originCity} → {req.destinationCity} • {req.homeSize}</span>
+              {requests.slice(0, 6).map((req) => {
+                const isAssigned = req.status === 'ASSIGNED' || (req.status === 'CLOSED' && req.closedReason === 'İş Verildi');
+                const isClosed = req.status === 'CLOSED' || isAssigned;
+                const statusLabel = isAssigned ? 'İş Verildi (Kapandı)' : isClosed ? 'Kapandı' : 'Aktif';
+                const statusColor = isClosed ? 'bg-slate-200 text-slate-700' : 'bg-emerald-100 text-emerald-700';
+
+                return (
+                  <div key={req.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-[#0A1128] truncate">{req.customerName}</span>
+                        {req.requestCode && (
+                          <span className="text-[10px] font-black text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                            {req.requestCode}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-slate-500 text-[11px] block mt-0.5">{req.originCity} → {req.destinationCity} • {req.homeSize} Ev</span>
+                    </div>
+                    <span className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-black ${statusColor}`}>
+                      {statusLabel}
+                    </span>
                   </div>
-                  <span className={`shrink-0 px-2 py-1 rounded-full text-[10px] font-black ${
-                    req.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700'
-                    : req.status === 'CLOSED' ? 'bg-slate-200 text-slate-600'
-                    : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {req.status === 'ACTIVE' ? 'Aktif' : req.status === 'CLOSED' ? 'Kapandı' : req.status}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

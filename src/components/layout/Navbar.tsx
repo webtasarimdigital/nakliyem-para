@@ -127,7 +127,7 @@ export const Navbar: React.FC = () => {
         {/* Center: Nav Links */}
         <nav className="flex items-center justify-center gap-1">
           <Link
-            href={isCarrier ? '/app/carrier/defter' : '/nakliyeci-defteri'}
+            href={isCarrier ? '/nakliyeci/defter' : '/nakliyeci-defteri'}
             className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.includes('defter') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
           >
             <BookOpen className="w-4 h-4 text-[#F95700] shrink-0" />
@@ -135,7 +135,7 @@ export const Navbar: React.FC = () => {
           </Link>
 
           <Link
-            href={isCarrier ? '/app/carrier/isler' : isCustomer ? '/app/customer/taleplerim' : '/talepler'}
+            href={isCarrier ? '/nakliyeci/isler' : isCustomer ? '/musteri/taleplerim' : '/talepler'}
             className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.includes('talepler') || pathname?.includes('isler') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
           >
             <FileText className="w-4 h-4 text-[#F95700] shrink-0" />
@@ -301,19 +301,19 @@ export const Navbar: React.FC = () => {
 
                   {isCustomer && (
                     <div className="py-1">
-                      <Link href="/app/customer/profil" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-900 hover:bg-orange-50 hover:text-[#F95700] transition-colors border-b border-slate-100 mb-1">
+                      <Link href="/musteri/profil" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-900 hover:bg-orange-50 hover:text-[#F95700] transition-colors border-b border-slate-100 mb-1">
                         <Settings className="w-3.5 h-3.5 text-[#F95700]" />
                         Profilim &amp; Ayarlar
                       </Link>
-                      <Link href="/app/customer/taleplerim" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                      <Link href="/musteri/taleplerim" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
                         <FileText className="w-3.5 h-3.5 text-[#F95700]" />
                         Taşınma Taleplerim
                       </Link>
-                      <Link href="/app/customer/teklifler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                      <Link href="/musteri/teklifler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
                         <Truck className="w-3.5 h-3.5 text-[#F95700]" />
                         Gelen Teklifler
                       </Link>
-                      <Link href="/app/customer/mesajlar" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                      <Link href="/musteri/mesajlar" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
                         <MessageSquare className="w-3.5 h-3.5 text-[#F95700]" />
                         Mesajlarım
                       </Link>
@@ -322,31 +322,31 @@ export const Navbar: React.FC = () => {
 
                   {isCarrier && (
                     <div className="py-1">
-                      <Link href="/app/carrier/profil" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#0A1128] hover:bg-orange-50 hover:text-[#F95700] transition-colors border-b border-slate-100 mb-1">
+                      <Link href="/nakliyeci/profil" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#0A1128] hover:bg-orange-50 hover:text-[#F95700] transition-colors border-b border-slate-100 mb-1">
                         <User className="w-4 h-4 text-[#F95700]" />
                         Firma Profilim &amp; Evraklar
                       </Link>
-                      <Link href="/app/carrier" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                      <Link href="/nakliyeci" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
                         <Truck className="w-3.5 h-3.5 text-[#F95700]" />
                         Operasyon Merkezi
                       </Link>
-                      <Link href="/app/carrier/isler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                      <Link href="/nakliyeci/isler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
                         <Briefcase className="w-3.5 h-3.5 text-[#F95700]" />
                         Açık İşler &amp; Teklif Ver
                       </Link>
-                      <Link href="/app/carrier/defter" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                      <Link href="/nakliyeci/defter" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
                         <BookOpen className="w-3.5 h-3.5 text-[#F95700]" />
                         Nakliyeci Defteri
                       </Link>
-                      <Link href="/app/carrier/mesajlar" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                      <Link href="/nakliyeci/mesajlar" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
                         <MessageSquare className="w-3.5 h-3.5 text-[#F95700]" />
                         Mesajlarım
                       </Link>
-                      <Link href="/app/carrier/abonelik" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                      <Link href="/nakliyeci/abonelik" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
                         <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
                         Abonelik &amp; Paketim
                       </Link>
-                      <Link href="/app/carrier/dijital-hizmetler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                      <Link href="/nakliyeci/dijital-hizmetler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
                         <Sparkles className="w-3.5 h-3.5 text-[#F95700]" />
                         Dijital Hizmetler
                       </Link>
@@ -434,7 +434,7 @@ export const Navbar: React.FC = () => {
         <div className="flex items-center gap-2.5">
           {currentUser ? (
             <Link
-              href={isCarrier ? '/app/carrier/profil' : '/app/customer/profil'}
+              href={isCarrier ? '/nakliyeci/profil' : '/musteri/profil'}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-black text-[#111E38]"
             >
               <div className={`w-5 h-5 rounded-full ${isCarrier ? 'bg-[#111E38]' : 'bg-[#F95700]'} text-white flex items-center justify-center text-[10px]`}>
@@ -463,7 +463,7 @@ export const Navbar: React.FC = () => {
         <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-4 pb-6 space-y-4 animate-fade-in shadow-xl">
           {currentUser && (
             <Link
-              href={isCarrier ? '/app/carrier/profil' : '/app/customer/profil'}
+              href={isCarrier ? '/nakliyeci/profil' : '/musteri/profil'}
               onClick={() => setMobileMenuOpen(false)}
               className="p-3 bg-slate-50 hover:bg-orange-50/50 rounded-2xl border border-slate-200 flex items-center justify-between transition-colors group"
             >
@@ -496,7 +496,7 @@ export const Navbar: React.FC = () => {
           <nav className="space-y-1">
             {isCarrier && (
               <Link
-                href="/app/carrier/profil"
+                href="/nakliyeci/profil"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 px-4 py-3 rounded-2xl text-sm font-black transition-all text-[#111E38] bg-orange-50/60 border border-orange-200/60 text-[#F95700]"
               >
@@ -507,7 +507,7 @@ export const Navbar: React.FC = () => {
 
             {isCustomer && (
               <Link
-                href="/app/customer/profil"
+                href="/musteri/profil"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 px-4 py-3 rounded-2xl text-sm font-black transition-all text-[#111E38] bg-orange-50/60 border border-orange-200/60 text-[#F95700]"
               >
@@ -518,12 +518,12 @@ export const Navbar: React.FC = () => {
 
             {[
               ...(isCarrier ? [
-                { href: '/app/carrier', label: 'Operasyon Merkezi', icon: <Truck className="w-4 h-4 text-[#F95700]" /> },
-                { href: '/app/carrier/tekliflerim', label: 'Verdiğim Teklifler', icon: <Briefcase className="w-4 h-4 text-[#F95700]" /> }
+                { href: '/nakliyeci', label: 'Operasyon Merkezi', icon: <Truck className="w-4 h-4 text-[#F95700]" /> },
+                { href: '/nakliyeci/tekliflerim', label: 'Verdiğim Teklifler', icon: <Briefcase className="w-4 h-4 text-[#F95700]" /> }
               ] : []),
-              { href: isCarrier ? '/app/carrier/defter' : '/nakliyeci-defteri', label: 'Defter', icon: <BookOpen className="w-4 h-4 text-[#F95700]" /> },
-              { href: isCarrier ? '/app/carrier/isler' : isCustomer ? '/app/customer/taleplerim' : '/talepler', label: isCustomer ? 'Taleplerim' : 'Açık İşler & Talepler', icon: <FileText className="w-4 h-4 text-[#F95700]" /> },
-              ...(isCustomer ? [{ href: '/app/customer/teklifler', label: 'Gelen Teklifler', icon: <Truck className="w-4 h-4 text-[#F95700]" /> }] : []),
+              { href: isCarrier ? '/nakliyeci/defter' : '/nakliyeci-defteri', label: 'Defter', icon: <BookOpen className="w-4 h-4 text-[#F95700]" /> },
+              { href: isCarrier ? '/nakliyeci/isler' : isCustomer ? '/musteri/taleplerim' : '/talepler', label: isCustomer ? 'Taleplerim' : 'Açık İşler & Talepler', icon: <FileText className="w-4 h-4 text-[#F95700]" /> },
+              ...(isCustomer ? [{ href: '/musteri/teklifler', label: 'Gelen Teklifler', icon: <Truck className="w-4 h-4 text-[#F95700]" /> }] : []),
               { href: '/teklif-al', label: 'Teklif Al', icon: <Truck className="w-4 h-4 text-[#F95700]" /> },
               ...(!isCustomer ? [{ href: '/pazaryeri', label: 'Pazaryeri', icon: <ShoppingBag className="w-4 h-4 text-[#F95700]" /> }] : []),
             ].map(link => (

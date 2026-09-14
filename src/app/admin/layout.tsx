@@ -98,8 +98,8 @@ export default function AdminRootLayout({
     }
   };
 
-  // If on login page or unauthenticated on /admin, don't show admin navbar
-  if (pathname === '/admin/giris' || (pathname === '/admin' && !isAdminAuth)) {
+  // If on login page, loading state, or unauthenticated: don't show admin navbar
+  if (pathname === '/admin/giris' || isAdminAuth === null || !isAdminAuth) {
     return <>{children}</>;
   }
 

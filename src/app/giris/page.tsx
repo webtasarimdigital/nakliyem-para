@@ -71,12 +71,12 @@ function GirisContent() {
         if (res.user?.role === 'CARRIER' || tab === 'nakliyeci') {
           const existingCarrier = db.getCarriers().find(c => c.userId === res.user?.id || c.id === res.user?.carrierProfileId);
           if (!existingCarrier || !existingCarrier.isProfileCompleted || !existingCarrier.companyName) {
-            router.push('/app/carrier/onboarding');
+            router.push('/nakliyeci/onboarding');
           } else {
-            router.push(redirectTo || '/app/carrier');
+            router.push(redirectTo || '/nakliyeci');
           }
         } else {
-          router.push(redirectTo || '/app/customer');
+          router.push(redirectTo || '/musteri');
         }
       }
     } else {
@@ -103,12 +103,12 @@ function GirisContent() {
         if (userRole === 'CARRIER') {
           const existingCarrier = db.getCarriers().find(c => c.userId === user.id || c.id === user.carrierProfileId);
           if (!existingCarrier || !existingCarrier.isProfileCompleted || !existingCarrier.companyName) {
-            router.push('/app/carrier/onboarding');
+            router.push('/nakliyeci/onboarding');
           } else {
-            router.push(redirectTo || '/app/carrier');
+            router.push(redirectTo || '/nakliyeci');
           }
         } else {
-          router.push(redirectTo || '/app/customer');
+          router.push(redirectTo || '/musteri');
         }
       }, 500);
     }
@@ -140,12 +140,12 @@ function GirisContent() {
     if (res.user.role === 'CARRIER') {
       const existingCarrier = db.getCarriers().find(c => c.userId === res.user?.id || c.id === res.user?.carrierProfileId);
       if (!existingCarrier || !existingCarrier.isProfileCompleted || !existingCarrier.companyName) {
-        router.push('/app/carrier/onboarding');
+        router.push('/nakliyeci/onboarding');
       } else {
-        router.push(redirectTo || '/app/carrier');
+        router.push(redirectTo || '/nakliyeci');
       }
     } else {
-      router.push(redirectTo || '/app/customer');
+      router.push(redirectTo || '/musteri');
     }
   };
 

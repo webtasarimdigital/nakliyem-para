@@ -39,6 +39,7 @@ export const MobileCustomerNav: React.FC = () => {
 
   // Hide on carrier dashboard and admin paths
   if (
+    pathname?.startsWith('/nakliyeci') ||
     pathname?.startsWith('/app/carrier') ||
     pathname?.startsWith('/admin')
   ) {
@@ -46,18 +47,18 @@ export const MobileCustomerNav: React.FC = () => {
   }
 
   const isCustomer = currentUser?.role === 'CUSTOMER';
-  const taleplerHref = isCustomer ? '/app/customer/taleplerim#customer-requests-content' : '/talepler';
+  const taleplerHref = isCustomer ? '/musteri/taleplerim#customer-requests-content' : '/talepler';
 
   const isActive = (href: string, exact: boolean) => {
-    if (href.startsWith('/app/customer/taleplerim') || href === '/talepler') {
-      return pathname?.startsWith('/app/customer/taleplerim') || pathname === '/talepler';
+    if (href.includes('taleplerim') || href === '/talepler') {
+      return pathname?.includes('taleplerim') || pathname === '/talepler';
     }
     if (exact) return pathname === href;
     return pathname?.startsWith(href) ?? false;
   };
 
   const handleTaleplerClick = (e: React.MouseEvent) => {
-    if (pathname === '/app/customer/taleplerim' || pathname === '/app/customer') {
+    if (pathname === '/musteri/taleplerim' || pathname === '/app/customer/taleplerim' || pathname === '/musteri' || pathname === '/app/customer') {
       const targetId = pathname === '/app/customer/taleplerim' ? 'customer-requests-content' : 'customer-dashboard-content';
       const el = document.getElementById(targetId);
       if (el) {

@@ -77,11 +77,11 @@ export default function CarrierDashboard() {
       return;
     }
     if (currentUser.role !== 'CARRIER') {
-      router.push('/app/customer');
+      router.push('/musteri');
       return;
     }
     if (!carrier || !carrier.isProfileCompleted || !carrier.companyName) {
-      router.push('/app/carrier/onboarding');
+      router.push('/nakliyeci/onboarding');
       return;
     }
   }, [currentUser, carrier, router]);
@@ -91,6 +91,22 @@ export default function CarrierDashboard() {
     '2026-09-14': 'DOLU',
     '2026-09-15': 'MUSAIT',
   });
+
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  useEffect(() => {
+    const handleRefresh = () => setRefreshTrigger(k => k + 1);
+    window.addEventListener('storage', handleRefresh);
+    window.addEventListener('offer-added', handleRefresh);
+    window.addEventListener('auth-changed', handleRefresh);
+    window.addEventListener('focus', handleRefresh);
+    return () => {
+      window.removeEventListener('storage', handleRefresh);
+      window.removeEventListener('offer-added', handleRefresh);
+      window.removeEventListener('auth-changed', handleRefresh);
+      window.removeEventListener('focus', handleRefresh);
+    };
+  }, []);
 
   if (!currentUser || !carrier) {
     return (
@@ -106,14 +122,14 @@ export default function CarrierDashboard() {
   const defterPosts = db.getDefterPosts().filter(p => p.carrierId === carrier.id);
   const alarms = db.getAlarmsForCarrier(carrier.id);
 
-  // Evrak ve Onay Kontrolü
+  // Evrak ve Onay Kontrolü (Yönetici onayı varsa firma onaylıdır)
   const carrierDocs = db.getDocumentsForCarrier(carrier.id);
-  const hasTaxDoc = carrierDocs.some(d => d.type === 'TAX_CERTIFICATE') || carrier.verificationBadges.taxVerified;
-  const hasIdDoc = carrierDocs.some(d => d.type === 'IDENTITY') || carrier.verificationBadges.identityVerified;
-  const isApproved = carrier.verificationStatus === 'APPROVED' && hasTaxDoc && hasIdDoc;
+  const hasTaxDoc = carrierDocs.some(d => d.type === 'TAX_CERTIFICATE') || Boolean(carrier.verificationBadges?.taxVerified);
+  const hasIdDoc = carrierDocs.some(d => d.type === 'IDENTITY') || Boolean(carrier.verificationBadges?.identityVerified);
+  const isApproved = carrier.verificationStatus === 'APPROVED' || (hasTaxDoc && hasIdDoc);
 
-  const isGold = carrier.planId === 'plan_gold';
-  const isPro = carrier.planId === 'plan_pro';
+  const isGold = carrier.planId === 'plan_gold' || carrier.planId === 'gold';
+  const isPro = carrier.planId === 'plan_pro' || carrier.planId === 'pro';
   const isStarter = !isGold && !isPro;
 
   // Günlük teklif kotası (Başlangıç paketinde günde 3 teklif)
@@ -129,8 +145,35 @@ export default function CarrierDashboard() {
     return { ...req, matchScore: match.score, matchReasons: match.reasons };
   }).sort((a, b) => b.matchScore - a.matchScore);
 
-  const pendingOffers = Array.from(new Map(myOffers.filter(o => o.status === 'PENDING').map(o => [o.requestId || o.id, o])).values());
-  const acceptedOffers = myOffers.filter(o => o.status === 'ACCEPTED');
+  // Bekleyen teklifler: İlan kapandıysa veya başka firmaya verildiyse bekleyen tekliflerden çıksın
+  const pendingOffers = Array.from(
+    new Map(
+      myOffers
+        .filter(o => {
+          if (o.status !== 'PENDING') return false;
+          const req = db.getRequestById(o.requestId);
+          if (req && (req.status === 'ASSIGNED' || req.status === 'CLOSED')) return false;
+          return true;
+        })
+        .map(o => [o.requestId || o.id, o])
+    ).values()
+  );
+
+  // Kazanılan teklifler
+  const acceptedOffers = Array.from(
+    new Map(
+      myOffers
+        .filter(o => {
+          if (o.status === 'ACCEPTED') return true;
+          const req = db.getRequestById(o.requestId);
+          if (req && (req.status === 'ASSIGNED' || (req.status === 'CLOSED' && req.closedReason === 'İş Verildi')) && (req.assignedCarrierId === carrier.id || req.assignedOfferId === o.id)) {
+            return true;
+          }
+          return false;
+        })
+        .map(o => [o.requestId || o.id, o])
+    ).values()
+  );
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -160,12 +203,12 @@ export default function CarrierDashboard() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link href="/app/carrier/defter?action=create">
+            <Link href="/nakliyeci/defter?action=create">
               <Button variant="outline" size="sm" leftIcon={<Plus className="w-4 h-4" />} className="font-bold">
                 Boş Araç Paylaş
               </Button>
             </Link>
-            <Link href="/app/carrier/isler">
+            <Link href="/nakliyeci/isler">
               <Button variant="primary" size="sm" rightIcon={<ArrowRight className="w-4 h-4" />} className="font-black">
                 Tüm İşler
               </Button>
@@ -219,7 +262,7 @@ export default function CarrierDashboard() {
               </div>
 
               <div className="flex items-center gap-2 shrink-0 md:self-center">
-                <Link href="/app/carrier/profil">
+                <Link href="/nakliyeci/profil">
                   <Button variant="outline" size="sm" className="font-bold text-xs bg-white border-amber-300 text-amber-950 hover:bg-amber-100/60 shadow-xs h-10">
                     Evrakları İncele / Güncelle →
                   </Button>
@@ -237,10 +280,10 @@ export default function CarrierDashboard() {
             {/* ── BUGÜN: İş Özeti ─────────────────────────── */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: 'Yeni Eşleşen İş', value: matchedRequests.length, color: 'text-[#F95700]', bg: 'bg-orange-50', border: 'border-orange-200', href: '/app/carrier/isler' },
-                { label: 'Bugün Kalan Teklif', value: isStarter ? `${remainingFreeOffers}/3 Hak` : 'Sınırsız', color: isStarter && remainingFreeOffers === 0 ? 'text-red-600' : 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', href: isStarter && remainingFreeOffers === 0 ? '/paketler' : '/app/carrier/isler' },
-                { label: 'Bekleyen Teklifim', value: pendingOffers.length, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', href: '/app/carrier/tekliflerim' },
-                { label: 'Kazanılan İş', value: acceptedOffers.length, color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', href: '/app/carrier/tekliflerim' },
+                { label: 'Yeni Eşleşen İş', value: matchedRequests.length, color: 'text-[#F95700]', bg: 'bg-orange-50', border: 'border-orange-200', href: '/nakliyeci/isler' },
+                { label: 'Bugün Kalan Teklif', value: isStarter ? `${remainingFreeOffers}/3 Hak` : 'Sınırsız', color: isStarter && remainingFreeOffers === 0 ? 'text-red-600' : 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', href: isStarter && remainingFreeOffers === 0 ? '/paketler' : '/nakliyeci/isler' },
+                { label: 'Bekleyen Teklifim', value: pendingOffers.length, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', href: '/nakliyeci/tekliflerim' },
+                { label: 'Kazanılan İş', value: acceptedOffers.length, color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', href: '/nakliyeci/tekliflerim' },
               ].map((card, i) => (
                 <Link key={i} href={card.href}
                   className={`${card.bg} border ${card.border} rounded-2xl p-4 hover:shadow-sm transition-all group`}>
@@ -260,14 +303,14 @@ export default function CarrierDashboard() {
                   <Target className="w-5 h-5 text-[#F95700]" />
                   <h2 className="font-black text-[#0A1128] text-base">Rotanıza Eşleşen İşler</h2>
                 </div>
-                <Link href="/app/carrier/isler" className="text-xs font-black text-[#F95700] hover:underline">
+                <Link href="/nakliyeci/isler" className="text-xs font-black text-[#F95700] hover:underline">
                   Tümü →
                 </Link>
               </div>
 
               <div className="p-5 space-y-3">
                 {matchedRequests.slice(0, 3).map((req) => (
-                  <Link key={req.id} href={`/app/carrier/isler/${req.id}`}>
+                  <Link key={req.id} href={`/nakliyeci/isler/${req.id}`}>
                     <div className="border border-slate-200 rounded-xl p-4 hover:border-[#F95700] hover:bg-orange-50/30 transition-all group cursor-pointer">
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex-1">
@@ -304,9 +347,22 @@ export default function CarrierDashboard() {
                         <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
                           <Calendar className="w-3.5 h-3.5" />{req.movingDate}
                         </span>
-                        <Button variant="primary" size="sm" className="font-black text-xs">
-                          Teklif Ver
-                        </Button>
+                        {(() => {
+                          const existingOffer = myOffers.find(o => o.requestId === req.id && o.status !== 'WITHDRAWN');
+                          if (existingOffer) {
+                            return (
+                              <span className="text-xs font-black text-emerald-800 bg-emerald-100 border border-emerald-300 px-3 py-1.5 rounded-xl flex items-center gap-1 shadow-2xs">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>Teklifiniz İletildi ({existingOffer.price.toLocaleString('tr-TR')} TL)</span>
+                              </span>
+                            );
+                          }
+                          return (
+                            <Button variant="primary" size="sm" className="font-black text-xs">
+                              Teklif Ver
+                            </Button>
+                          );
+                        })()}
                       </div>
                     </div>
                   </Link>
@@ -353,7 +409,7 @@ export default function CarrierDashboard() {
                 </div>
               </div>
 
-              <Link href="/app/carrier/defter?action=create">
+              <Link href="/nakliyeci/defter?action=create">
                 <Button variant="primary" size="sm" className="font-black" leftIcon={<Plus className="w-4 h-4" />}>
                   Boş Araç Paylaş
                 </Button>
@@ -365,20 +421,33 @@ export default function CarrierDashboard() {
               <div className="bg-white rounded-2xl border border-slate-200 shadow-xs">
                 <div className="flex items-center justify-between p-5 pb-0">
                   <h2 className="font-black text-[#0A1128] text-base">Bekleyen Tekliflerim ({pendingOffers.length})</h2>
-                  <Link href="/app/carrier/tekliflerim" className="text-xs font-black text-[#F95700] hover:underline">Tümü →</Link>
+                  <Link href="/nakliyeci/tekliflerim" className="text-xs font-black text-[#F95700] hover:underline">Tümü →</Link>
                 </div>
                 <div className="p-5 space-y-3">
-                  {pendingOffers.map(offer => (
-                    <div key={offer.id} className="flex items-center justify-between p-3 rounded-xl bg-amber-50 border border-amber-200">
-                      <div>
-                        <p className="text-xs font-black text-amber-800">{offer.requestId}</p>
-                        <p className="font-bold text-[#0A1128] text-sm">{offer.price.toLocaleString('tr-TR')} TL</p>
-                      </div>
-                      <span className="text-xs font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded-lg">
-                        Yanıt Bekleniyor
-                      </span>
-                    </div>
-                  ))}
+                  {pendingOffers.map(offer => {
+                    const req = db.getRequestById(offer.requestId);
+                    const routeText = req
+                      ? `${req.originCity} → ${req.destinationCity} · ${req.homeSize} Ev`
+                      : offer.requestId;
+                    const codeText = req?.requestCode || '';
+                    const dateText = req?.movingDate ? ` · ${req.movingDate}` : '';
+                    return (
+                      <Link key={offer.id} href={req ? `/nakliyeci/isler/${offer.requestId}` : '/nakliyeci/tekliflerim'}>
+                        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 hover:bg-amber-100/60 transition-all hover:shadow-2xs">
+                          <div>
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              {codeText && <span className="text-[10px] font-black text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200">{codeText}</span>}
+                              <span className="text-xs font-black text-[#0A1128]">{routeText}</span>
+                            </div>
+                            <p className="font-bold text-sm text-[#0A1128]">{offer.price.toLocaleString('tr-TR')} TL <span className="text-[11px] text-slate-400 font-normal">{dateText}</span></p>
+                          </div>
+                          <span className="text-xs font-black text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-xl shrink-0">
+                            Yanıt Bekleniyor
+                          </span>
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -428,7 +497,7 @@ export default function CarrierDashboard() {
                 })}
               </div>
 
-              <Link href="/app/carrier/takvim" className="text-[11px] font-bold text-[#F95700] hover:underline flex items-center gap-1">
+              <Link href="/nakliyeci/takvim" className="text-[11px] font-bold text-[#F95700] hover:underline flex items-center gap-1">
                 Tam Takvim <ChevronRight className="w-3 h-3" />
               </Link>
             </div>
@@ -438,12 +507,12 @@ export default function CarrierDashboard() {
               <h3 className="font-black text-xs text-slate-500 uppercase tracking-wider mb-3">Hızlı Erişim</h3>
               <div className="space-y-0.5">
                 {[
-                  { href: '/app/carrier/isler', icon: Truck, label: 'Tüm İşler' },
-                  { href: '/app/carrier/tekliflerim', icon: CheckCircle2, label: 'Tekliflerim' },
-                  { href: '/app/carrier/defter', icon: BookOpen, label: 'Nakliyeci Defteri' },
-                  { href: '/app/carrier/mesajlar', icon: MessageSquare, label: 'Mesajlar' },
-                  { href: '/app/carrier/alarmlar', icon: Bell, label: 'Alarmlar' },
-                  { href: '/app/carrier/profil', icon: ShieldCheck, label: 'Profilim' },
+                  { href: '/nakliyeci/isler', icon: Truck, label: 'Tüm İşler' },
+                  { href: '/nakliyeci/tekliflerim', icon: CheckCircle2, label: 'Tekliflerim' },
+                  { href: '/nakliyeci/defter', icon: BookOpen, label: 'Nakliyeci Defteri' },
+                  { href: '/nakliyeci/mesajlar', icon: MessageSquare, label: 'Mesajlar' },
+                  { href: '/nakliyeci/alarmlar', icon: Bell, label: 'Alarmlar' },
+                  { href: '/nakliyeci/profil', icon: ShieldCheck, label: 'Profilim' },
                 ].map(item => {
                   const Icon = item.icon;
                   return (

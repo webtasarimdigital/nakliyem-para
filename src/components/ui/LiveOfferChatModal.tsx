@@ -33,17 +33,11 @@ export function LiveOfferChatModal({
   requestId = '#26093',
   offerPrice = 25000
 }: LiveOfferChatModalProps) {
-  const convKey = `live_chat_${requestId}_${carrierSlug || carrierName.replace(/\s+/g, '_')}`;
+  const cleanReqId = requestId.replace('#', '');
+  const convKey = `live_chat_${cleanReqId}_${carrierSlug || carrierName.replace(/\s+/g, '_')}`;
 
-  const [messages, setMessages] = useState<{
-    id: string;
-    sender: 'CARRIER' | 'CUSTOMER';
-    type: 'OFFER_CARD' | 'TEXT' | 'IMAGE';
-    content: string;
-    mediaUrl?: string;
-    time: string;
-  }[]>([]);
-
+  const [activeConvId, setActiveConvId] = useState<string>('');
+  const [messages, setMessages] = useState<any[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -53,44 +47,128 @@ export function LiveOfferChatModal({
   useEffect(() => {
     if (!isOpen) return;
 
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(convKey);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setMessages(parsed);
-            return;
-          }
+    const currentUser = db.getCurrentUser();
+    const customerId = currentUser?.id || 'user_cust_1';
+    const customerName = currentUser?.fullName || 'Müşteri';
+
+    const allCarriers = db.getCarriers();
+    const matchedCarrier = allCarriers.find(c => 
+      (carrierSlug && c.slug === carrierSlug) || 
+      (c.companyName?.toLowerCase() === carrierName?.toLowerCase())
+    ) || allCarriers[0];
+
+    const carrierUserId = matchedCarrier?.userId || 'user_carr_1';
+    const carrierId = matchedCarrier?.id || 'carr_1';
+    const actualCarrierName = matchedCarrier?.companyName || carrierName;
+
+    // 1. Find or create matching conversation in db
+    const allConvs = db.getConversations();
+    let conv = allConvs.find(c => 
+      (c.contextId === requestId || c.contextId === cleanReqId || c.contextTitle?.includes(cleanReqId)) &&
+      (c.participantIds.includes(carrierUserId) || c.participantIds.includes(carrierId) || (carrierSlug && c.participantIds.includes(carrierSlug)))
+    );
+
+    if (!conv) {
+      const pIds = Array.from(new Set([customerId, carrierUserId, carrierId, carrierSlug].filter(Boolean))) as string[];
+      conv = db.createConversation({
+        participantIds: pIds,
+        participantNames: {
+          [customerId]: customerName,
+          [carrierUserId]: actualCarrierName
+        },
+        contextType: 'REQUEST',
+        contextId: cleanReqId,
+        contextTitle: `#${cleanReqId} · ${actualCarrierName}`,
+        initialMessage: `${Number(offerPrice || 0).toLocaleString('tr-TR')} TL teklif iletildi.`
+      });
+
+      // Add offer card message
+      const offerCardMsg = db.sendMessage(conv.id, {
+        senderId: carrierUserId,
+        senderName: actualCarrierName,
+        senderRole: 'CARRIER',
+        content: `#${cleanReqId} · ${actualCarrierName}\n· ${Number(offerPrice || 0).toLocaleString('tr-TR')} TL fiyat teklifi verildi`,
+        isOfferCard: true,
+        offerData: { price: offerPrice, requestId: cleanReqId }
+      });
+
+      // Add intro text message
+      const introMsg = db.sendMessage(conv.id, {
+        senderId: carrierUserId,
+        senderName: actualCarrierName,
+        senderRole: 'CARRIER',
+        content: `Merhaba, talebiniz için ${Number(offerPrice || 0).toLocaleString('tr-TR')} TL teklifimizi ilettik. Sorularınız olursa buradan dilediğiniz an yazabilirsiniz.`
+      });
+
+      // Sync initial conversation to server API
+      fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId: conv.id,
+          conversation: conv,
+          message: introMsg,
+          requestId: cleanReqId,
+          carrierName: actualCarrierName,
+          carrierSlug,
+          carrierId,
+          customerId,
+          customerName
+        })
+      }).catch(() => {});
+    }
+
+    setActiveConvId(conv.id);
+    const existingMsgs = db.getMessages(conv.id);
+    setMessages(existingMsgs);
+
+    // Initial fetch from server API
+    fetch(`/api/conversations?convId=${encodeURIComponent(conv.id)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
+          db.bulkMergeMessages(data.messages);
+          setMessages(db.getMessages(conv!.id));
         }
-      } catch {}
-    }
+      })
+      .catch(() => {});
+  }, [isOpen, carrierName, carrierSlug, requestId, offerPrice, cleanReqId]);
 
-    // Default initial messages for this specific offer
-    const initialList = [
-      {
-        id: `offer_card_${requestId}`,
-        sender: 'CARRIER' as const,
-        type: 'OFFER_CARD' as const,
-        content: `${requestId} · ${carrierName}\n· ${Number(offerPrice || 0).toLocaleString('tr-TR')} TL fiyat teklifi verildi`,
-        time: 'Yeni'
-      },
-      {
-        id: `offer_intro_${requestId}`,
-        sender: 'CARRIER' as const,
-        type: 'TEXT' as const,
-        content: `Merhaba, talebiniz için ${Number(offerPrice || 0).toLocaleString('tr-TR')} TL teklifimizi ilettik. Sorularınız olursa buradan dilediğiniz an yazabilirsiniz.`,
-        time: 'Yeni'
-      }
-    ];
+  // 3-second live polling while modal is open
+  useEffect(() => {
+    if (!isOpen || !activeConvId) return;
 
-    setMessages(initialList);
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(convKey, JSON.stringify(initialList));
-      } catch {}
-    }
-  }, [isOpen, carrierName, carrierSlug, requestId, offerPrice]);
+    const poll = setInterval(() => {
+      fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
+            db.bulkMergeMessages(data.messages);
+            const fresh = db.getMessages(activeConvId);
+            setMessages(fresh);
+          } else {
+            const fresh = db.getMessages(activeConvId);
+            setMessages(prev => fresh.length !== prev.length ? fresh : prev);
+          }
+        })
+        .catch(() => {
+          const fresh = db.getMessages(activeConvId);
+          setMessages(prev => fresh.length !== prev.length ? fresh : prev);
+        });
+    }, 3000);
+
+    const handleMsgAdded = () => {
+      if (activeConvId) setMessages(db.getMessages(activeConvId));
+    };
+    window.addEventListener('message-added', handleMsgAdded);
+    window.addEventListener('storage', handleMsgAdded);
+
+    return () => {
+      clearInterval(poll);
+      window.removeEventListener('message-added', handleMsgAdded);
+      window.removeEventListener('storage', handleMsgAdded);
+    };
+  }, [isOpen, activeConvId]);
 
   useEffect(() => {
     if (isOpen) {
@@ -98,73 +176,49 @@ export function LiveOfferChatModal({
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     }
-  }, [isOpen]);
+  }, [isOpen, messages.length]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || !activeConvId) return;
 
     const trimmed = inputMessage.trim();
-    const newMsg = {
-      id: `cust_${Date.now()}`,
-      sender: 'CUSTOMER' as const,
-      type: 'TEXT' as const,
-      content: trimmed,
-      time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
-    };
+    const currentUser = db.getCurrentUser();
+    const customerId = currentUser?.id || 'user_cust_1';
+    const customerName = currentUser?.fullName || 'Müşteri';
 
-    setMessages(prev => {
-      const updated = [...prev, newMsg];
-      if (typeof window !== 'undefined') {
-        try {
-          localStorage.setItem(convKey, JSON.stringify(updated));
-        } catch {}
-      }
-      return updated;
+    const newMsg = db.sendMessage(activeConvId, {
+      senderId: customerId,
+      senderName: customerName,
+      senderRole: 'CUSTOMER',
+      content: trimmed
     });
 
-    // Save message to mock-db conversation so carrier can see it in /app/carrier/mesajlar
-    try {
-      const allConvs = db.getConversations();
-      let matchedConv = allConvs.find(c => c.contextId === requestId || c.contextTitle?.includes(requestId));
-      if (!matchedConv) {
-        matchedConv = db.createConversation({
-          participantIds: ['user_cust_1', carrierSlug || 'user_carr_1'],
-          participantNames: {
-            'user_cust_1': db.getCurrentUser()?.fullName || 'Müşteri',
-            [carrierSlug || 'user_carr_1']: carrierName
-          },
-          contextType: 'REQUEST',
-          contextId: requestId,
-          contextTitle: `${requestId} - ${carrierName}`,
-          initialMessage: trimmed
-        });
-      } else {
-        db.sendMessage(matchedConv.id, {
-          senderId: db.getCurrentUser()?.id || 'user_cust_1',
-          senderName: db.getCurrentUser()?.fullName || 'Müşteri',
-          senderRole: 'CUSTOMER',
-          content: trimmed
-        });
-      }
-    } catch (err) {
-      console.warn('Mesaj mock-db senkronizasyon hatası:', err);
+    const activeConv = db.getConversationById(activeConvId);
+
+    // Save to server API
+    fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conversationId: activeConvId,
+        message: newMsg,
+        conversation: activeConv,
+        requestId: cleanReqId,
+        carrierName,
+        carrierSlug,
+        customerId,
+        customerName
+      })
+    }).catch(() => {});
+
+    // Dispatch events so carrier page in another tab / window receives notification
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('message-added', { detail: newMsg }));
     }
 
-    // Sync to server API
-    try {
-      fetch('/api/conversations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          requestId,
-          carrierName,
-          content: trimmed,
-          senderRole: 'CUSTOMER'
-        })
-      }).catch(() => {});
-    } catch {}
-
+    setMessages(db.getMessages(activeConvId));
     setInputMessage('');
 
     setTimeout(() => {
@@ -283,9 +337,12 @@ export function LiveOfferChatModal({
 
           {/* Messages Feed */}
           {messages.map((msg) => {
-            const isMe = msg.sender === 'CUSTOMER';
+            const isMe = msg.sender === 'CUSTOMER' || msg.senderRole === 'CUSTOMER';
+            const isOfferCard = msg.type === 'OFFER_CARD' || msg.isOfferCard;
+            const isImage = msg.type === 'IMAGE' || (msg.mediaUrl && !isOfferCard);
+            const timeStr = msg.time || (msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Yeni');
 
-            if (msg.type === 'OFFER_CARD') {
+            if (isOfferCard) {
               return (
                 <div key={msg.id} className="flex justify-start">
                   <div className="bg-orange-50/80 border-l-4 border-[#F95700] rounded-2xl rounded-tl-sm p-3.5 max-w-[85%] shadow-xs space-y-1.5">
@@ -297,14 +354,14 @@ export function LiveOfferChatModal({
                       {msg.content}
                     </p>
                     <div className="text-right">
-                      <span className="text-[10px] text-slate-400 font-medium">{msg.time}</span>
+                      <span className="text-[10px] text-slate-400 font-medium">{timeStr}</span>
                     </div>
                   </div>
                 </div>
               );
             }
 
-            if (msg.type === 'IMAGE') {
+            if (isImage) {
               return (
                 <div key={msg.id} className="flex justify-start">
                   <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-sm p-1.5 max-w-[70%] shadow-xs space-y-1">
@@ -316,7 +373,7 @@ export function LiveOfferChatModal({
                       />
                     </div>
                     <div className="text-right px-1">
-                      <span className="text-[10px] text-slate-400 font-medium">{msg.time}</span>
+                      <span className="text-[10px] text-slate-400 font-medium">{timeStr}</span>
                     </div>
                   </div>
                 </div>
@@ -339,7 +396,7 @@ export function LiveOfferChatModal({
                     {msg.content}
                   </p>
                   <div className={`text-right text-[10px] ${isMe ? 'text-white/70' : 'text-slate-400'}`}>
-                    {msg.time}
+                    {timeStr}
                   </div>
                 </div>
               </div>
