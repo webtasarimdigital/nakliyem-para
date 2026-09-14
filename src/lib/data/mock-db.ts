@@ -1167,9 +1167,37 @@ export const SEED_SETTINGS: SystemSettings = {
   }
 };
 
+export function extractNumericRequestCode(str?: string): string {
+  if (!str) return '';
+  const hashMatch = str.match(/#(\d{4,7})/);
+  if (hashMatch) return hashMatch[1];
+  const numMatches = str.match(/\b\d{4,7}\b/g);
+  if (numMatches && numMatches.length > 0) return numMatches[0];
+  const clean = str.replace(/[^0-9]/g, '');
+  if (clean.length >= 4 && clean.length <= 7) return clean;
+  return '';
+}
+
+export function getCanonicalConvId(requestCodeOrId: string, carrierIdentifier?: string): string {
+  const code = extractNumericRequestCode(requestCodeOrId) || (requestCodeOrId || '').replace(/[^a-zA-Z0-9_-]/g, '');
+  const carrierKey = (carrierIdentifier || 'carrier')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .slice(0, 24);
+  return `conv_req_${code || 'general'}_${carrierKey || 'carr'}`;
+}
+
 // Client-side state hydration & in-memory manager
 class MockDatabase {
   private isClient = typeof window !== 'undefined';
+
+  extractNumericRequestCode(str?: string): string {
+    return extractNumericRequestCode(str);
+  }
+
+  getCanonicalConvId(requestCodeOrId: string, carrierIdentifier?: string): string {
+    return getCanonicalConvId(requestCodeOrId, carrierIdentifier);
+  }
 
   private getItem<T>(key: string, defaultVal: T): T {
     if (!this.isClient) return defaultVal;
@@ -1817,11 +1845,16 @@ class MockDatabase {
       customerPhone
     ].filter(Boolean))) as string[];
 
-    const reqNum = (req?.requestCode || offer.requestId || '').replace(/[^0-9]/g, '');
+    const reqNum = extractNumericRequestCode(req?.requestCode) || 
+                   extractNumericRequestCode(offer.requestId) || 
+                   (req?.requestCode || offer.requestId || '').replace(/[^0-9]/g, '');
+    const canonicalConvId = getCanonicalConvId(reqNum || offer.requestId, carrier?.slug || carrier?.id || offer.carrierId || carrierName);
+
     const conversations = this.getConversations();
     let conv = conversations.find(c => {
-      const cReqNum = (c.contextId || c.contextTitle || '').replace(/[^0-9]/g, '');
-      const reqMatches = (reqNum && cReqNum === reqNum) || c.contextId === offer.requestId;
+      if (c.id === canonicalConvId) return true;
+      const cReqNum = extractNumericRequestCode(c.contextTitle) || extractNumericRequestCode(c.contextId) || extractNumericRequestCode(c.id);
+      const reqMatches = (reqNum && cReqNum === reqNum) || c.contextId === offer.requestId || c.contextId === req?.requestCode;
       if (!reqMatches) return false;
       const parts = (c.participantIds || []).map(p => String(p).toLowerCase());
       const names = Object.values(c.participantNames || {}).map(n => String(n).trim().toLowerCase());
@@ -1843,7 +1876,7 @@ class MockDatabase {
 
     if (!conv) {
       conv = {
-        id: `conv_${Date.now()}`,
+        id: canonicalConvId,
         participantIds,
         participantNames: {
           [customerId]: customerName,
@@ -1854,8 +1887,8 @@ class MockDatabase {
           ...(customerPhone ? { [customerPhone]: customerName } : {})
         },
         contextType: 'REQUEST',
-        contextId: offer.requestId,
-        contextTitle: `${req?.requestCode || ''} · ${req?.originDistrict || req?.originCity || ''} → ${req?.destinationDistrict || req?.destinationCity || ''}`,
+        contextId: reqNum || req?.requestCode || offer.requestId,
+        contextTitle: `#${reqNum || 'TALEP'} · ${carrierName}`,
         lastMessage: carrierNoteText,
         lastMessageAt: now,
         unreadCounts: {
@@ -1869,6 +1902,7 @@ class MockDatabase {
       conv.participantIds = Array.from(new Set([...conv.participantIds, ...participantIds]));
       conv.participantNames = {
         ...conv.participantNames,
+        [customerId]: customerName,
         [carrierUserId]: carrierName,
         ...(carrier?.id ? { [carrier.id]: carrierName } : {}),
         ...(offer.carrierId ? { [offer.carrierId]: carrierName } : {})
@@ -1888,7 +1922,7 @@ class MockDatabase {
       senderId: carrierUserId,
       senderName: carrierName,
       senderRole: 'CARRIER',
-      content: `${req?.requestCode || ''} · ${req?.originDistrict || ''}, ${req?.originCity || ''} → ${req?.destinationDistrict || ''}, ${req?.destinationCity || ''}\n· Evden Eve Nakliyat · ${offer.price.toLocaleString('tr-TR')} TL teklif${offer.notes && offer.notes !== 'Hızlı teklif iletildi.' ? `\n· Firma Notu: "${offer.notes}"` : ''}`,
+      content: `${req?.requestCode || (reqNum ? `#${reqNum}` : '')} · ${req?.originDistrict || ''}, ${req?.originCity || ''} → ${req?.destinationDistrict || ''}, ${req?.destinationCity || ''}\n· Evden Eve Nakliyat · ${offer.price.toLocaleString('tr-TR')} TL teklif${offer.notes && offer.notes !== 'Hızlı teklif iletildi.' ? `\n· Firma Notu: "${offer.notes}"` : ''}`,
       isOfferCard: true,
       offerData: {
         price: offer.price,
@@ -1910,8 +1944,26 @@ class MockDatabase {
 
     this.setItem('messages', [...this.getAllMessages(), offerCardMsg, textMsg]);
 
-    // Background sync to server API so all browsers, incognito windows, and tabs receive this offer & chat!
+    // Dispatch real-time events & background sync to server API
     if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('message-added', { detail: offerCardMsg }));
+      window.dispatchEvent(new CustomEvent('message-added', { detail: textMsg }));
+
+      fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId: conv.id,
+          conversation: conv,
+          message: offerCardMsg,
+          requestId: reqNum || req?.requestCode || offer.requestId,
+          carrierName,
+          carrierId: carrier?.id || offer.carrierId,
+          carrierSlug: carrier?.slug
+        })
+      }).catch(() => {});
+
       fetch('/api/offers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2218,27 +2270,42 @@ class MockDatabase {
     const all = this.getAllMessages();
     let msgs = all.filter(m => m.conversationId === conversationId);
 
-    // If conversation is linked to a request code (e.g. 90198), also include any sibling messages
+    // If conversation is linked to a request code (e.g. 65204), unconditionally find & include any sibling messages
     const conv = this.getConversationById(conversationId);
-    const reqNum = (conv?.contextId || conv?.contextTitle || '').replace(/[^0-9]/g, '');
+    let reqNum = extractNumericRequestCode(conv?.contextTitle) || 
+                 extractNumericRequestCode(conv?.contextId) || 
+                 extractNumericRequestCode(conversationId);
+
+    if (!reqNum && msgs.length > 0) {
+      for (const m of msgs) {
+        reqNum = extractNumericRequestCode(m.offerData?.requestId) || extractNumericRequestCode(m.content);
+        if (reqNum) break;
+      }
+    }
+
     if (reqNum && reqNum.length >= 4) {
-      const siblingConvs = this.getConversations().filter(c => 
-        c.id !== conversationId && 
-        ((c.contextId && c.contextId.replace(/[^0-9]/g, '') === reqNum) || (c.contextTitle && c.contextTitle.includes(reqNum)))
-      );
-      if (siblingConvs.length > 0) {
-        const siblingIds = new Set(siblingConvs.map(sc => sc.id));
-        const extraMsgs = all.filter(m => 
-          siblingIds.has(m.conversationId) || 
-          (m.conversationId && m.conversationId.includes(reqNum)) ||
-          (m.offerData?.requestId && String(m.offerData.requestId).includes(reqNum))
-        );
-        if (extraMsgs.length > 0) {
-          const existingIds = new Set(msgs.map(m => m.id));
-          const toAdd = extraMsgs.filter(m => !existingIds.has(m.id));
-          if (toAdd.length > 0) {
-            msgs = [...msgs, ...toAdd];
-          }
+      const allConvs = this.getConversations();
+      const siblingConvs = allConvs.filter(c => {
+        if (c.id === conversationId) return false;
+        const cReq = extractNumericRequestCode(c.contextTitle) || extractNumericRequestCode(c.contextId) || extractNumericRequestCode(c.id);
+        return cReq === reqNum;
+      });
+      const siblingConvIds = new Set(siblingConvs.map(sc => sc.id));
+
+      const extraMsgs = all.filter(m => {
+        if (m.conversationId === conversationId) return false;
+        if (siblingConvIds.has(m.conversationId)) return true;
+        if (m.conversationId && m.conversationId.includes(reqNum)) return true;
+        if (m.offerData?.requestId && String(m.offerData.requestId).includes(reqNum)) return true;
+        if (m.content && m.content.includes(`#${reqNum}`)) return true;
+        return false;
+      });
+
+      if (extraMsgs.length > 0) {
+        const existingIds = new Set(msgs.map(m => m.id));
+        const toAdd = extraMsgs.filter(m => !existingIds.has(m.id));
+        if (toAdd.length > 0) {
+          msgs = [...msgs, ...toAdd];
         }
       }
     }
@@ -2248,7 +2315,7 @@ class MockDatabase {
 
   sendMessage(conversationId: string, messageData: { senderId: string; senderName: string; senderRole: any; content: string; mediaUrl?: string; isOfferCard?: boolean; offerData?: any }): ConversationMessage {
     const newMsg: ConversationMessage = {
-      id: `msg_${Date.now()}`,
+      id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       conversationId,
       senderId: messageData.senderId,
       senderName: messageData.senderName,
@@ -2276,12 +2343,18 @@ class MockDatabase {
     });
     this.setItem('conversations', convs);
 
+    // Automatically trigger local window events so other components/tabs update immediately
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('message-added', { detail: newMsg }));
+    }
+
     return newMsg;
   }
 
-  createConversation(data: { participantIds: string[]; participantNames: { [id: string]: string }; contextType: 'REQUEST' | 'DEFTER' | 'DIRECT'; contextId: string; contextTitle: string; initialMessage?: string }): Conversation {
+  createConversation(data: { id?: string; participantIds: string[]; participantNames: { [id: string]: string }; contextType: 'REQUEST' | 'DEFTER' | 'DIRECT'; contextId: string; contextTitle: string; initialMessage?: string }): Conversation {
     const newConv: Conversation = {
-      id: `conv_${Date.now()}`,
+      id: data.id || `conv_${Date.now()}`,
       participantIds: data.participantIds,
       participantNames: data.participantNames,
       contextType: data.contextType,
@@ -2293,7 +2366,7 @@ class MockDatabase {
       createdAt: new Date().toISOString()
     };
 
-    const list = [newConv, ...this.getConversations()];
+    const list = [newConv, ...this.getConversations().filter(c => c.id !== newConv.id)];
     this.setItem('conversations', list);
 
     if (data.initialMessage) {

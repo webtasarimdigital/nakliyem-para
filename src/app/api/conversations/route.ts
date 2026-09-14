@@ -32,6 +32,17 @@ function writeJson(filename: string, data: any): void {
   }
 }
 
+function extractNumericRequestCode(str?: string): string {
+  if (!str) return '';
+  const hashMatch = str.match(/#(\d{4,7})/);
+  if (hashMatch) return hashMatch[1];
+  const numMatches = str.match(/\b\d{4,7}\b/g);
+  if (numMatches && numMatches.length > 0) return numMatches[0];
+  const clean = str.replace(/[^0-9]/g, '');
+  if (clean.length >= 4 && clean.length <= 7) return clean;
+  return '';
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get('userId');
@@ -50,13 +61,25 @@ export async function GET(req: NextRequest) {
 
     // Also check for messages sent to sibling conversations for the same request
     const qReq = searchParams.get('requestId') || '';
-    const reqNum = (matchedConv?.contextId || matchedConv?.contextTitle || qReq || convId || '').replace(/[^0-9]/g, '');
+    const reqNum = extractNumericRequestCode(qReq) || 
+                   extractNumericRequestCode(matchedConv?.contextTitle) || 
+                   extractNumericRequestCode(matchedConv?.contextId) || 
+                   extractNumericRequestCode(convId);
+
     if (reqNum && reqNum.length >= 4) {
-      const siblingConvs = conversations.filter(c => c.id !== convId && ((c.contextId || '').includes(reqNum) || (c.contextTitle || '').includes(reqNum)));
+      const siblingConvs = conversations.filter(c => 
+        c.id !== convId && 
+        (extractNumericRequestCode(c.contextTitle) === reqNum || 
+         extractNumericRequestCode(c.contextId) === reqNum || 
+         extractNumericRequestCode(c.id) === reqNum)
+      );
       const siblingIds = new Set(siblingConvs.map(c => c.id));
       const siblingMsgs = allMessages.filter(m => 
         m.conversationId !== convId && 
-        (siblingIds.has(m.conversationId) || m.conversationId?.includes(reqNum) || (m.offerData?.requestId && String(m.offerData.requestId).includes(reqNum)))
+        (siblingIds.has(m.conversationId) || 
+         (m.conversationId && m.conversationId.includes(reqNum)) || 
+         (m.offerData?.requestId && String(m.offerData.requestId).includes(reqNum)) ||
+         (m.content && m.content.includes(`#${reqNum}`)))
       );
       if (siblingMsgs.length > 0) {
         const msgIds = new Set(messages.map(m => m.id));
@@ -65,30 +88,35 @@ export async function GET(req: NextRequest) {
             messages.push({ ...sm, conversationId: convId });
           }
         });
-        messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
       }
     }
 
+    messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
     return NextResponse.json({
       success: true,
-      conversations: matchedConv ? [matchedConv] : [],
+      conversations: matchedConv ? [matchedConv] : (conversations.length > 0 ? conversations.filter(c => extractNumericRequestCode(c.contextTitle) === reqNum) : []),
       messages
     });
   }
 
   // 2. Query by requestId
   if (requestId) {
-    const cleanReq = requestId.replace('#', '');
+    const reqNum = extractNumericRequestCode(requestId) || requestId.replace('#', '');
     const filtered = conversations.filter(c => 
+      extractNumericRequestCode(c.contextId) === reqNum || 
+      extractNumericRequestCode(c.contextTitle) === reqNum ||
       c.contextId === requestId || 
-      c.contextId === cleanReq || 
-      c.contextTitle?.includes(cleanReq)
+      c.contextTitle?.includes(reqNum)
     );
     const convIds = new Set(filtered.map(c => c.id));
     const messages = allMessages.filter(m => 
       convIds.has(m.conversationId) || 
-      m.conversationId?.includes(cleanReq)
+      (m.conversationId && m.conversationId.includes(reqNum)) ||
+      (m.offerData?.requestId && String(m.offerData.requestId).includes(reqNum)) ||
+      (m.content && m.content.includes(`#${reqNum}`))
     );
+    messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     return NextResponse.json({ success: true, conversations: filtered, messages });
   }
 

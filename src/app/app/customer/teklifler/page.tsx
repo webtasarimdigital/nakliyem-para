@@ -476,14 +476,20 @@ function CustomerOffersContent() {
       const customerName = activeReq.customerName || currentUser?.fullName || 'Müşteri';
       const customerPhone = activeReq.customerPhone || currentUser?.phone || '';
       const requestCodeStr = activeReq.requestCode || activeReq.id;
+      const cleanReqNum = db.extractNumericRequestCode(activeReq.requestCode) || 
+                          db.extractNumericRequestCode(activeReq.id) || 
+                          requestCodeStr.replace('#', '');
+      const carrierIdentifier = fullCarrier?.slug || fullCarrier?.id || selectedOffer.carrierId || fullCarrier?.companyName;
+      const canonicalConvId = db.getCanonicalConvId(cleanReqNum, carrierIdentifier);
 
       const conversations = db.getConversations();
       let conv = conversations.find(c => 
-        (c.contextId === activeReq.id || (activeReq.requestCode && c.contextId === activeReq.requestCode) || (c.id && c.id.includes(requestCodeStr))) &&
-        (c.participantIds.includes(carrierUserId) || c.participantIds.includes(fullCarrier?.id || '') || c.participantIds.includes(selectedOffer.carrierId))
+        c.id === canonicalConvId ||
+        ((db.extractNumericRequestCode(c.contextTitle) === cleanReqNum || db.extractNumericRequestCode(c.contextId) === cleanReqNum || (c.id && c.id.includes(cleanReqNum))) &&
+        (c.participantIds.includes(carrierUserId) || c.participantIds.includes(fullCarrier?.id || '') || c.participantIds.includes(selectedOffer.carrierId)))
       );
 
-      const convId = conv ? conv.id : `conv_${requestCodeStr.replace('#', '')}_${selectedOffer.carrierId}`;
+      const convId = conv ? conv.id : canonicalConvId;
 
       const chatAcceptContent = `🎉 TEBRİKLER! Teklifiniz müşteri tarafından KABUL EDİLDİ.\n\n` +
         `Taşıma işi firmanıza verilmiştir:\n` +
@@ -515,8 +521,8 @@ function CustomerOffersContent() {
             [selectedOffer.carrierId]: fullCarrier?.companyName || selectedOffer.carrier?.companyName || 'Nakliyat Firması'
           },
           contextType: 'REQUEST',
-          contextId: activeReq.id,
-          contextTitle: `Talep #${requestCodeStr}`,
+          contextId: cleanReqNum || activeReq.id,
+          contextTitle: `Talep #${cleanReqNum || requestCodeStr.replace('#', '')}`,
           lastMessage: chatAcceptContent,
           lastMessageAt: new Date().toISOString(),
           unreadCounts: { [carrierUserId]: 1 },
@@ -539,7 +545,11 @@ function CustomerOffersContent() {
         body: JSON.stringify({
           conversationId: convId,
           conversation: conv,
-          message: acceptChatMessage
+          message: acceptChatMessage,
+          requestId: cleanReqNum,
+          carrierName: fullCarrier?.companyName || selectedOffer.carrier?.companyName || 'Nakliyat Firması',
+          carrierId: selectedOffer.carrierId,
+          carrierSlug: fullCarrier?.slug
         })
       }).catch(err => console.warn('Chat sync error on accept:', err));
     } catch (chatErr) {

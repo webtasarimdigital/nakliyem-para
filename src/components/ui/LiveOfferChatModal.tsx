@@ -74,14 +74,17 @@ export function LiveOfferChatModal({
     const finalCarrierUserId = actualCarrierUserId || matchedCarrier?.userId || (actualCarrierSlug ? `user_${actualCarrierSlug}` : `user_${actualCarrierName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`);
     const finalCarrierId = actualCarrierId || matchedCarrier?.id || (actualCarrierSlug ? `carr_${actualCarrierSlug}` : `carr_${actualCarrierName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`);
 
+    const cleanReqNum = db.extractNumericRequestCode(cleanReqId) || db.extractNumericRequestCode(requestCode) || cleanReqId;
+    const canonicalConvId = db.getCanonicalConvId(cleanReqNum, actualCarrierSlug || actualCarrierId || actualCarrierName);
+
     // 1. Gather all conversations matching this request code or ID
     const allConvs = db.getConversations();
     const reqConvs = allConvs.filter(c => {
-      const cContext = (c.contextId || '').replace(/[^0-9]/g, '');
-      const cTitle = (c.contextTitle || '');
+      if (c.id === canonicalConvId) return true;
+      const cReq = db.extractNumericRequestCode(c.contextTitle) || db.extractNumericRequestCode(c.contextId) || db.extractNumericRequestCode(c.id);
       return (
-        (cleanReqId && (c.contextId === cleanReqId || c.contextId === requestId || cContext === cleanReqId || cTitle.includes(cleanReqId) || c.id.includes(cleanReqId))) ||
-        (requestId && (c.contextId === requestId || cTitle.includes(requestId)))
+        (cleanReqNum && (cReq === cleanReqNum || c.id.includes(cleanReqNum))) ||
+        (requestId && (c.contextId === requestId || c.contextTitle?.includes(requestId)))
       );
     });
 
@@ -89,6 +92,7 @@ export function LiveOfferChatModal({
 
     // 2. Find conversation specifically matching this carrier
     let conv = reqConvs.find(c => {
+      if (c.id === canonicalConvId) return true;
       const parts = (c.participantIds || []).map(p => String(p).toLowerCase());
       const names = Object.values(c.participantNames || {}).map(n => String(n).trim().toLowerCase());
       const cTitle = (c.contextTitle || '').toLowerCase();
@@ -122,6 +126,7 @@ export function LiveOfferChatModal({
     if (!conv) {
       const pIds = Array.from(new Set([customerId, finalCarrierUserId, finalCarrierId, actualCarrierId, actualCarrierSlug, 'user_carr_1'].filter(Boolean))) as string[];
       conv = db.createConversation({
+        id: canonicalConvId,
         participantIds: pIds,
         participantNames: {
           [customerId]: customerName,
@@ -130,8 +135,8 @@ export function LiveOfferChatModal({
           ...(actualCarrierId ? { [actualCarrierId]: actualCarrierName } : {})
         },
         contextType: 'REQUEST',
-        contextId: cleanReqId,
-        contextTitle: `#${cleanReqId} · ${actualCarrierName}`,
+        contextId: cleanReqNum || cleanReqId,
+        contextTitle: `#${cleanReqNum || cleanReqId} · ${actualCarrierName}`,
         initialMessage: `${Number(offerPrice || 0).toLocaleString('tr-TR')} TL teklif iletildi.`
       });
 
@@ -223,7 +228,7 @@ export function LiveOfferChatModal({
     setMessages(existingMsgs);
 
     // Initial fetch from server API
-    fetch(`/api/conversations?convId=${encodeURIComponent(targetConvId)}&requestId=${encodeURIComponent(cleanReqId)}`)
+    fetch(`/api/conversations?convId=${encodeURIComponent(targetConvId)}&requestId=${encodeURIComponent(cleanReqNum)}`)
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
@@ -258,7 +263,8 @@ export function LiveOfferChatModal({
         return prev;
       });
 
-      fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}&requestId=${encodeURIComponent(cleanReqId)}`)
+      const cleanNum = db.extractNumericRequestCode(cleanReqId) || cleanReqId;
+      fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}&requestId=${encodeURIComponent(cleanNum)}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
@@ -276,13 +282,14 @@ export function LiveOfferChatModal({
         .catch(() => {});
     };
 
-    const poll = setInterval(syncMessages, 2000);
+    const poll = setInterval(syncMessages, 1500);
 
     const handleMsgAdded = (e?: any) => {
       if (e?.detail) {
         const d = e.detail;
-        if (d.conversationId && d.conversationId !== activeConvId && cleanReqId) {
-          if (d.conversationId.includes(cleanReqId) || (d.content && d.content.includes(cleanReqId))) {
+        const cleanNum = db.extractNumericRequestCode(cleanReqId) || cleanReqId;
+        if (d.conversationId && d.conversationId !== activeConvId && cleanNum) {
+          if (d.conversationId.includes(cleanNum) || (d.content && d.content.includes(cleanNum))) {
             d.conversationId = activeConvId;
             db.bulkMergeMessages([d]);
           }
@@ -328,6 +335,8 @@ export function LiveOfferChatModal({
 
     const activeConv = db.getConversationById(activeConvId);
 
+    const cleanReqNum = db.extractNumericRequestCode(cleanReqId) || cleanReqId;
+
     // Save to server API
     fetch('/api/conversations', {
       method: 'POST',
@@ -336,7 +345,7 @@ export function LiveOfferChatModal({
         conversationId: activeConvId,
         message: newMsg,
         conversation: activeConv,
-        requestId: cleanReqId,
+        requestId: cleanReqNum,
         carrierName: actualCarrierName,
         carrierSlug,
         carrierId,

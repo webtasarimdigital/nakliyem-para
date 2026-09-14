@@ -124,19 +124,23 @@ export default function CarrierMessagesPage() {
     if (activeConvId) {
       // Merge any sibling conversations for the same request
       const activeC = db.getConversationById(activeConvId);
-      if (activeC) {
-        const reqNum = (activeC.contextId || activeC.contextTitle || '').replace(/[^0-9]/g, '');
-        if (reqNum && reqNum.length >= 4) {
-          const allConvs = db.getConversations();
-          const siblings = allConvs.filter(c => c.id !== activeConvId && ((c.contextId || '').includes(reqNum) || (c.contextTitle || '').includes(reqNum)));
-          siblings.forEach(sc => {
-            const scMsgs = db.getMessages(sc.id);
-            if (scMsgs.length > 0) {
-              const repointed = scMsgs.map(m => ({ ...m, conversationId: activeConvId }));
-              db.bulkMergeMessages(repointed);
-            }
-          });
-        }
+      const reqNum = db.extractNumericRequestCode(activeC?.contextTitle) || 
+                     db.extractNumericRequestCode(activeC?.contextId) || 
+                     db.extractNumericRequestCode(activeConvId);
+      if (reqNum && reqNum.length >= 4) {
+        const allConvs = db.getConversations();
+        const siblings = allConvs.filter(c => {
+          if (c.id === activeConvId) return false;
+          const cReq = db.extractNumericRequestCode(c.contextTitle) || db.extractNumericRequestCode(c.contextId) || db.extractNumericRequestCode(c.id);
+          return cReq === reqNum;
+        });
+        siblings.forEach(sc => {
+          const scMsgs = db.getMessages(sc.id);
+          if (scMsgs.length > 0) {
+            const repointed = scMsgs.map(m => ({ ...m, conversationId: activeConvId }));
+            db.bulkMergeMessages(repointed);
+          }
+        });
       }
 
       setMessages(db.getMessages(activeConvId));
@@ -144,13 +148,15 @@ export default function CarrierMessagesPage() {
     }
   }, [activeConvId]);
 
-  // Poll for new messages from server every 3 seconds (bridges cross-window messaging)
+  // Poll for new messages from server every 1.5 seconds (bridges cross-window messaging)
   useEffect(() => {
     if (!activeConvId) return;
 
     const poll = setInterval(() => {
       const activeC = db.getConversationById(activeConvId);
-      const reqNum = (activeC?.contextId || activeC?.contextTitle || '').replace(/[^0-9]/g, '');
+      const reqNum = db.extractNumericRequestCode(activeC?.contextTitle) || 
+                     db.extractNumericRequestCode(activeC?.contextId) || 
+                     db.extractNumericRequestCode(activeConvId);
       fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}&requestId=${encodeURIComponent(reqNum)}`)
         .then(res => res.json())
         .then(data => {
@@ -166,7 +172,7 @@ export default function CarrierMessagesPage() {
           const fresh = db.getMessages(activeConvId);
           setMessages(prev => fresh.length !== prev.length ? fresh : prev);
         });
-    }, 3000);
+    }, 1500);
 
     const convPoll = setInterval(() => {
       loadCarrierConvs();
@@ -209,7 +215,9 @@ export default function CarrierMessagesPage() {
       content: inputMessage.trim()
     });
 
-    const reqNum = (activeConv?.contextId || activeConv?.contextTitle || '').replace(/[^0-9]/g, '');
+    const reqNum = db.extractNumericRequestCode(activeConv?.contextTitle) || 
+                   db.extractNumericRequestCode(activeConv?.contextId) || 
+                   db.extractNumericRequestCode(activeConvId);
 
     // Server'a da sync et
     fetch('/api/conversations', {

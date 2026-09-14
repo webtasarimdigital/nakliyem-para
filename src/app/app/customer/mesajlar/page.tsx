@@ -129,7 +129,11 @@ function CustomerMessagesContent() {
     // Poll every 3 seconds for new messages from server (bridges cross-window/cross-browser carrier replies)
     const pollInterval = setInterval(() => {
       if (activeConvId) {
-        fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}`)
+        const activeC = db.getConversationById(activeConvId);
+        const reqNum = db.extractNumericRequestCode(activeC?.contextTitle) || 
+                       db.extractNumericRequestCode(activeC?.contextId) || 
+                       db.extractNumericRequestCode(activeConvId);
+        fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}&requestId=${encodeURIComponent(reqNum)}`)
           .then(res => res.json())
           .then(data => {
             if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
@@ -145,7 +149,7 @@ function CustomerMessagesContent() {
             setMessages(prev => fresh.length !== prev.length ? fresh : prev);
           });
       }
-    }, 3000);
+    }, 1500);
 
     // Periodic poll every 6 seconds for any new incoming conversations
     const convPollInterval = setInterval(() => {
@@ -231,11 +235,22 @@ function CustomerMessagesContent() {
       window.dispatchEvent(new CustomEvent('message-added', { detail: userMsg }));
     }
 
+    const reqNum = db.extractNumericRequestCode(activeConv?.contextTitle) || 
+                   db.extractNumericRequestCode(activeConv?.contextId) || 
+                   db.extractNumericRequestCode(activeConvId);
+
     // Server'a sync et
     fetch('/api/conversations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId: activeConvId, message: userMsg, conversation: activeConv })
+      body: JSON.stringify({
+        conversationId: activeConvId,
+        message: userMsg,
+        conversation: activeConv,
+        requestId: reqNum,
+        customerId: userId,
+        customerName: senderDisplayName
+      })
     }).catch(() => {});
 
     // Update conversation list item lastMessage
