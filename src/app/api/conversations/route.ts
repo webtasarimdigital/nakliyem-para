@@ -1,20 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { db as firestoreDb, auth as firebaseAuth, isFirebaseConfigured } from '@/lib/firebase/config';
+import { doc, getDoc, setDoc, getDocs, collection, query, where } from 'firebase/firestore';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 const DATA_DIR = path.join(process.cwd(), '.data');
 
 function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch {}
 }
 
 function readJson<T>(filename: string, fallback: T): T {
   ensureDataDir();
   const filePath = path.join(DATA_DIR, filename);
-  if (!fs.existsSync(filePath)) return fallback;
   try {
+    if (!fs.existsSync(filePath)) return fallback;
     const raw = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(raw);
   } catch {
@@ -28,19 +33,29 @@ function writeJson(filename: string, data: any): void {
   try {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
   } catch (err) {
-    console.error('writeJson error:', err);
+    // Expected on serverless/read-only environments like Vercel
   }
 }
 
-function extractNumericRequestCode(str?: string): string {
-  if (!str) return '';
-  const hashMatch = str.match(/#(\d{4,7})/);
-  if (hashMatch) return hashMatch[1];
-  const numMatches = str.match(/\b\d{4,7}\b/g);
-  if (numMatches && numMatches.length > 0) return numMatches[0];
-  const clean = str.replace(/[^0-9]/g, '');
-  if (clean.length >= 4 && clean.length <= 7) return clean;
-  return '';
+import { extractNumericRequestCode, extractCarrierRoot, slugifyTurkish } from '@/lib/data/mock-db';
+
+function getCarrierKey(str?: string): string {
+  return extractCarrierRoot(str);
+}
+
+// In-memory cache for serverless execution environment
+let memoryConversations: any[] = [];
+let memoryMessages: any[] = [];
+
+async function ensureWorkerAuth() {
+  if (!isFirebaseConfigured() || !firebaseAuth) return;
+  try {
+    if (!firebaseAuth.currentUser) {
+      await signInWithEmailAndPassword(firebaseAuth, 'sync_service_worker@tasinteklif.com', 'TasinteklifSync2024!');
+    }
+  } catch (err) {
+    console.warn('ensureWorkerAuth error:', err);
+  }
 }
 
 export async function GET(req: NextRequest) {
@@ -51,35 +66,106 @@ export async function GET(req: NextRequest) {
   const requestId = searchParams.get('requestId');
   const convId = searchParams.get('convId');
 
-  const conversations = readJson<any[]>('conversations.json', []);
-  const allMessages = readJson<any[]>('messages.json', []);
+  const fileConvs = readJson<any[]>('conversations.json', []);
+  const fileMsgs = readJson<any[]>('messages.json', []);
 
-  // 1. Direct query by convId: ALWAYS return all messages for this convId!
+  // Merge with memory
+  const convMap = new Map<string, any>();
+  fileConvs.forEach(c => convMap.set(c.id, c));
+  memoryConversations.forEach(c => convMap.set(c.id, c));
+
+  const msgMap = new Map<string, any>();
+  fileMsgs.forEach(m => msgMap.set(m.id, m));
+  memoryMessages.forEach(m => msgMap.set(m.id, m));
+
+  const reqNum = extractNumericRequestCode(requestId || undefined) || 
+                 extractNumericRequestCode(convId || undefined) || 
+                 extractNumericRequestCode(searchParams.get('q') || undefined);
+
+  // Sync from Cloud Firestore if available
+  if (isFirebaseConfigured() && firestoreDb) {
+    try {
+      await ensureWorkerAuth();
+
+      // 1. If reqNum is given, read direct chat docs
+      if (reqNum) {
+        const carrRoot = extractCarrierRoot(carrierId || '');
+        const carrFull = slugifyTurkish(carrierId || '').replace(/[^a-z0-9]/g, '');
+        const chatDocIds = [`chat_${reqNum}`];
+        if (carrRoot && carrRoot !== 'carrier') chatDocIds.push(`chat_${reqNum}_${carrRoot}`);
+        if (carrFull && !chatDocIds.includes(`chat_${reqNum}_${carrFull}`)) chatDocIds.push(`chat_${reqNum}_${carrFull}`);
+
+        for (const docId of chatDocIds) {
+          try {
+            const snap = await getDoc(doc(firestoreDb, 'requests', docId));
+            if (snap.exists()) {
+              const d = snap.data();
+              if (Array.isArray(d.messages)) {
+                d.messages.forEach((m: any) => msgMap.set(m.id, m));
+              }
+              if (d.conversation && d.conversation.id) {
+                convMap.set(d.conversation.id, d.conversation);
+              }
+            }
+          } catch {}
+        }
+      }
+
+      // 2. Query all isChatDoc == true docs from requests collection
+      try {
+        const chatQuery = query(collection(firestoreDb, 'requests'), where('isChatDoc', '==', true));
+        const chatSnaps = await getDocs(chatQuery);
+        chatSnaps.forEach(snap => {
+          const d = snap.data();
+          if (Array.isArray(d.messages)) {
+            d.messages.forEach((m: any) => msgMap.set(m.id, m));
+          }
+          if (d.conversation && d.conversation.id) {
+            convMap.set(d.conversation.id, d.conversation);
+          }
+        });
+      } catch (qErr) {
+        // Continue if query fails
+      }
+
+      // 3. If convId is provided, also check direct conversations collection
+      if (convId) {
+        try {
+          const cSnap = await getDoc(doc(firestoreDb, 'conversations', convId));
+          if (cSnap.exists()) {
+            const cd = cSnap.data();
+            convMap.set(convId, cd);
+            if (Array.isArray(cd.messages)) {
+              cd.messages.forEach((m: any) => msgMap.set(m.id, m));
+            }
+          }
+        } catch {}
+      }
+    } catch (err) {
+      console.warn('Firestore GET sync error:', err);
+    }
+  }
+
+  const allConvs = Array.from(convMap.values());
+  const allMessages = Array.from(msgMap.values());
+
+  // 1. Direct query by convId: return all messages matching convId or request number
   if (convId) {
-    const matchedConv = conversations.find(c => c.id === convId);
+    const matchedConv = allConvs.find(c => c.id === convId);
     let messages = allMessages.filter(m => m.conversationId === convId);
 
-    // Also check for messages sent to sibling conversations for the same request
     const qReq = searchParams.get('requestId') || '';
-    const reqNum = extractNumericRequestCode(qReq) || 
-                   extractNumericRequestCode(matchedConv?.contextTitle) || 
-                   extractNumericRequestCode(matchedConv?.contextId) || 
-                   extractNumericRequestCode(convId);
+    const resolvedReqNum = reqNum || 
+                           extractNumericRequestCode(qReq) || 
+                           extractNumericRequestCode(matchedConv?.contextTitle) || 
+                           extractNumericRequestCode(matchedConv?.contextId);
 
-    if (reqNum && reqNum.length >= 4) {
-      const siblingConvs = conversations.filter(c => 
-        c.id !== convId && 
-        (extractNumericRequestCode(c.contextTitle) === reqNum || 
-         extractNumericRequestCode(c.contextId) === reqNum || 
-         extractNumericRequestCode(c.id) === reqNum)
-      );
-      const siblingIds = new Set(siblingConvs.map(c => c.id));
+    if (resolvedReqNum && resolvedReqNum.length >= 4) {
       const siblingMsgs = allMessages.filter(m => 
         m.conversationId !== convId && 
-        (siblingIds.has(m.conversationId) || 
-         (m.conversationId && m.conversationId.includes(reqNum)) || 
-         (m.offerData?.requestId && String(m.offerData.requestId).includes(reqNum)) ||
-         (m.content && m.content.includes(`#${reqNum}`)))
+        ((m.conversationId && m.conversationId.includes(resolvedReqNum)) || 
+         (m.offerData?.requestId && String(m.offerData.requestId).includes(resolvedReqNum)) ||
+         (m.content && m.content.includes(`#${resolvedReqNum}`)))
       );
       if (siblingMsgs.length > 0) {
         const msgIds = new Set(messages.map(m => m.id));
@@ -95,26 +181,26 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      conversations: matchedConv ? [matchedConv] : (conversations.length > 0 ? conversations.filter(c => extractNumericRequestCode(c.contextTitle) === reqNum) : []),
+      conversations: matchedConv ? [matchedConv] : (allConvs.length > 0 ? allConvs.filter(c => extractNumericRequestCode(c.contextTitle) === resolvedReqNum) : []),
       messages
     });
   }
 
   // 2. Query by requestId
   if (requestId) {
-    const reqNum = extractNumericRequestCode(requestId) || requestId.replace('#', '');
-    const filtered = conversations.filter(c => 
-      extractNumericRequestCode(c.contextId) === reqNum || 
-      extractNumericRequestCode(c.contextTitle) === reqNum ||
+    const rNum = reqNum || requestId.replace('#', '');
+    const filtered = allConvs.filter(c => 
+      extractNumericRequestCode(c.contextId) === rNum || 
+      extractNumericRequestCode(c.contextTitle) === rNum ||
       c.contextId === requestId || 
-      c.contextTitle?.includes(reqNum)
+      c.contextTitle?.includes(rNum)
     );
     const convIds = new Set(filtered.map(c => c.id));
     const messages = allMessages.filter(m => 
       convIds.has(m.conversationId) || 
-      (m.conversationId && m.conversationId.includes(reqNum)) ||
-      (m.offerData?.requestId && String(m.offerData.requestId).includes(reqNum)) ||
-      (m.content && m.content.includes(`#${reqNum}`))
+      (m.conversationId && m.conversationId.includes(rNum)) ||
+      (m.offerData?.requestId && String(m.offerData.requestId).includes(rNum)) ||
+      (m.content && m.content.includes(`#${rNum}`))
     );
     messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     return NextResponse.json({ success: true, conversations: filtered, messages });
@@ -126,7 +212,7 @@ export async function GET(req: NextRequest) {
     const carr = carrierId ? carrierId.toLowerCase() : '';
     const em = email ? email.toLowerCase() : '';
 
-    const filtered = conversations.filter(c => {
+    const filtered = allConvs.filter(c => {
       const parts = (c.participantIds || []).map((p: any) => String(p).toLowerCase());
       const pNames = c.participantNames ? Object.keys(c.participantNames).map(k => k.toLowerCase()) : [];
 
@@ -148,7 +234,7 @@ export async function GET(req: NextRequest) {
   }
 
   // 4. Default: return all conversations & all messages
-  return NextResponse.json({ success: true, conversations, messages: allMessages });
+  return NextResponse.json({ success: true, conversations: allConvs, messages: allMessages });
 }
 
 export async function POST(req: NextRequest) {
@@ -187,60 +273,95 @@ export async function POST(req: NextRequest) {
       };
     }
 
-    const conversations = readJson<any[]>('conversations.json', []);
-    const messages = readJson<any[]>('messages.json', []);
+    const reqNum = extractNumericRequestCode(requestId) || 
+                   extractNumericRequestCode(targetConvId) || 
+                   extractNumericRequestCode(conversation?.contextTitle) || 
+                   extractNumericRequestCode(conversation?.contextId);
+    const carrKey = getCarrierKey(carrierSlug || carrierId || carrierName);
 
-    // 1. Save or update conversation
+    // 1. Update in-memory & local fallback
+    const fileConvs = readJson<any[]>('conversations.json', []);
+    const fileMsgs = readJson<any[]>('messages.json', []);
+
     if (conversation && conversation.id) {
-      const convIndex = conversations.findIndex(c => c.id === conversation.id);
-      if (convIndex >= 0) {
-        conversations[convIndex] = { ...conversations[convIndex], ...conversation };
-      } else {
-        conversations.unshift(conversation);
-      }
-    } else if (targetConvId) {
-      let conv = conversations.find(c => c.id === targetConvId);
-      const now = new Date().toISOString();
-      const sId = targetMessage?.senderId || customerId || 'user_cust_1';
-      const sName = targetMessage?.senderName || customerName || 'Müşteri';
-      const cId = carrierId || carrierSlug || 'user_carr_1';
-      const cName = carrierName || 'Nakliyat Firması';
+      const idx = memoryConversations.findIndex(c => c.id === conversation.id);
+      if (idx >= 0) memoryConversations[idx] = { ...memoryConversations[idx], ...conversation };
+      else memoryConversations.unshift(conversation);
 
-      if (!conv) {
-        conv = {
-          id: targetConvId,
-          participantIds: Array.from(new Set([sId, cId, carrierId, carrierSlug, 'user_carr_1'].filter(Boolean))),
-          participantNames: {
-            [sId]: sName,
-            [cId]: cName,
-            'user_carr_1': cName
-          },
-          contextType: 'REQUEST',
-          contextId: requestId || targetConvId,
-          contextTitle: requestId ? `Talep #${requestId}` : 'Taşınma Sohbeti',
-          lastMessage: targetMessage?.content || 'Sohbet başladı.',
-          lastMessageAt: targetMessage?.createdAt || now,
-          unreadCounts: {},
-          createdAt: now
-        };
-        conversations.unshift(conv);
-      } else if (targetMessage) {
-        conv.lastMessage = targetMessage.content || conv.lastMessage;
-        conv.lastMessageAt = targetMessage.createdAt || now;
-      }
+      const fIdx = fileConvs.findIndex(c => c.id === conversation.id);
+      if (fIdx >= 0) fileConvs[fIdx] = { ...fileConvs[fIdx], ...conversation };
+      else fileConvs.unshift(conversation);
     }
-    writeJson('conversations.json', conversations);
 
-    // 2. Save or update message
-    if (targetMessage && targetMessage.id && targetConvId) {
-      targetMessage.conversationId = targetConvId;
-      const existingMsgIndex = messages.findIndex(m => m.id === targetMessage.id);
-      if (existingMsgIndex >= 0) {
-        messages[existingMsgIndex] = { ...messages[existingMsgIndex], ...targetMessage };
-      } else {
-        messages.push(targetMessage);
+    if (targetMessage && targetMessage.id) {
+      const mIdx = memoryMessages.findIndex(m => m.id === targetMessage.id);
+      if (mIdx >= 0) memoryMessages[mIdx] = { ...memoryMessages[mIdx], ...targetMessage };
+      else memoryMessages.push(targetMessage);
+
+      const fMIdx = fileMsgs.findIndex(m => m.id === targetMessage.id);
+      if (fMIdx >= 0) fileMsgs[fMIdx] = { ...fileMsgs[fMIdx], ...targetMessage };
+      else fileMsgs.push(targetMessage);
+    }
+
+    writeJson('conversations.json', fileConvs);
+    writeJson('messages.json', fileMsgs);
+
+    // 2. Persist to Cloud Firestore for 100% reliable cross-browser / cross-device sync
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        await ensureWorkerAuth();
+
+        const carrRoot = extractCarrierRoot(carrierSlug || carrierId || carrierName);
+        const carrFull = slugifyTurkish(carrierSlug || carrierId || carrierName || '').replace(/[^a-z0-9]/g, '');
+        const chatDocsToUpdate = [];
+        if (reqNum) {
+          chatDocsToUpdate.push(`chat_${reqNum}`);
+          if (carrRoot && carrRoot !== 'carrier') chatDocsToUpdate.push(`chat_${reqNum}_${carrRoot}`);
+          if (carrFull && !chatDocsToUpdate.includes(`chat_${reqNum}_${carrFull}`)) chatDocsToUpdate.push(`chat_${reqNum}_${carrFull}`);
+        }
+
+        for (const docId of chatDocsToUpdate) {
+          const docRef = doc(firestoreDb, 'requests', docId);
+          const snap = await getDoc(docRef);
+          let currentList: any[] = [];
+          if (snap.exists() && Array.isArray(snap.data().messages)) {
+            currentList = snap.data().messages;
+          }
+          if (targetMessage) {
+            const exIdx = currentList.findIndex(m => m.id === targetMessage.id);
+            if (exIdx >= 0) {
+              currentList[exIdx] = targetMessage;
+            } else {
+              currentList.push(targetMessage);
+            }
+          }
+          await setDoc(docRef, {
+            isChatDoc: true,
+            requestId: reqNum,
+            carrierKey: carrKey,
+            conversationId: targetConvId,
+            conversation: conversation || snap.data()?.conversation || null,
+            messages: currentList,
+            lastMessage: targetMessage?.content || '',
+            lastMessageAt: targetMessage?.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+        }
+
+        // Also save to conversations collection directly
+        if (targetConvId) {
+          await setDoc(doc(firestoreDb, 'conversations', targetConvId), {
+            ...(conversation || {}),
+            id: targetConvId,
+            requestId: reqNum || requestId,
+            lastMessage: targetMessage?.content || '',
+            lastMessageAt: targetMessage?.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+        }
+      } catch (fbErr) {
+        console.warn('Firestore POST error:', fbErr);
       }
-      writeJson('messages.json', messages);
     }
 
     return NextResponse.json({ success: true, conversationId: targetConvId, message: targetMessage });

@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { db } from '@/lib/data/mock-db';
 import { ConversationMessage, CarrierProfile } from '@/types';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 interface LiveOfferChatModalProps {
   isOpen: boolean;
@@ -307,6 +309,49 @@ export function LiveOfferChatModal({
       window.removeEventListener('storage', handleMsgAdded);
     };
   }, [isOpen, activeConvId, cleanReqId]);
+
+  // Direct Firestore real-time socket synchronization (sub-second cross-browser delivery)
+  useEffect(() => {
+    if (!isOpen) return;
+    if (!isFirebaseConfigured() || !firestoreDb) return;
+
+    const cleanNum = db.extractNumericRequestCode(cleanReqId) || cleanReqId;
+    const carrRoot = db.extractCarrierRoot(carrierSlug || carrierName || carrierId);
+    const carrFull = db.slugifyTurkish(carrierSlug || carrierName || carrierId || '').replace(/[^a-z0-9]/g, '');
+
+    const docIds = [`chat_${cleanNum}`];
+    if (carrRoot && carrRoot !== 'carrier') docIds.push(`chat_${cleanNum}_${carrRoot}`);
+    if (carrFull && !docIds.includes(`chat_${cleanNum}_${carrFull}`)) docIds.push(`chat_${cleanNum}_${carrFull}`);
+
+    const unsubs = docIds.map(docId => {
+      try {
+        return onSnapshot(doc(firestoreDb, 'requests', docId), (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            if (Array.isArray(data.messages) && data.messages.length > 0) {
+              const canonicalized = data.messages.map((m: any) => ({
+                ...m,
+                conversationId: activeConvId || m.conversationId
+              }));
+              db.bulkMergeMessages(canonicalized);
+              if (activeConvId) {
+                const updated = db.getMessages(activeConvId);
+                setMessages(prev => (updated.length !== prev.length || updated[updated.length - 1]?.id !== prev[prev.length - 1]?.id) ? updated : prev);
+              }
+            }
+          }
+        }, (err) => {
+          console.warn('LiveOfferChatModal onSnapshot error:', err);
+        });
+      } catch {
+        return () => {};
+      }
+    });
+
+    return () => {
+      unsubs.forEach(u => u && u());
+    };
+  }, [isOpen, cleanReqId, carrierSlug, carrierName, carrierId, activeConvId]);
 
   useEffect(() => {
     if (isOpen) {

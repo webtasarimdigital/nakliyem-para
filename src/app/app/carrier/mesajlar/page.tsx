@@ -23,6 +23,8 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { db } from '@/lib/data/mock-db';
 import { Conversation, ConversationMessage } from '@/types';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 const QUICK_TEMPLATES = [
   'Merhaba, teklifimizi ilettik. Eşyalarınız için araç üstü hidrolik asansörümüz ve çift kat patpat ambalaj dahildir.',
@@ -192,6 +194,50 @@ export default function CarrierMessagesPage() {
       window.removeEventListener('storage', handleMsgAdded);
     };
   }, [activeConvId, carrier?.id, carrier?.userId, currentUser?.email]);
+
+  // Direct Firestore real-time socket synchronization for active conversation
+  useEffect(() => {
+    if (!activeConvId) return;
+    if (!isFirebaseConfigured() || !firestoreDb) return;
+
+    const activeC = db.getConversationById(activeConvId);
+    const reqNum = db.extractNumericRequestCode(activeC?.contextTitle) || 
+                   db.extractNumericRequestCode(activeC?.contextId) || 
+                   db.extractNumericRequestCode(activeConvId);
+    const carrRoot = db.extractCarrierRoot(carrier?.slug || carrier?.companyName || carrier?.id || '');
+    const carrFull = db.slugifyTurkish(carrier?.slug || carrier?.companyName || carrier?.id || '').replace(/[^a-z0-9]/g, '');
+
+    const docIds = [`chat_${reqNum}`];
+    if (carrRoot && carrRoot !== 'carrier') docIds.push(`chat_${reqNum}_${carrRoot}`);
+    if (carrFull && !docIds.includes(`chat_${reqNum}_${carrFull}`)) docIds.push(`chat_${reqNum}_${carrFull}`);
+
+    const unsubs = docIds.map(docId => {
+      try {
+        return onSnapshot(doc(firestoreDb, 'requests', docId), (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            if (Array.isArray(data.messages) && data.messages.length > 0) {
+              const canonicalized = data.messages.map((m: any) => ({
+                ...m,
+                conversationId: activeConvId || m.conversationId
+              }));
+              db.bulkMergeMessages(canonicalized);
+              const updated = db.getMessages(activeConvId);
+              setMessages(prev => (updated.length !== prev.length || updated[updated.length - 1]?.id !== prev[prev.length - 1]?.id) ? updated : prev);
+            }
+          }
+        }, (err) => {
+          console.warn('Carrier onSnapshot error:', err);
+        });
+      } catch {
+        return () => {};
+      }
+    });
+
+    return () => {
+      unsubs.forEach(u => u && u());
+    };
+  }, [activeConvId, carrier?.id, carrier?.slug, carrier?.companyName]);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 

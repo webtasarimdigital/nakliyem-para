@@ -28,6 +28,8 @@ import { CustomerSidebar } from '@/components/layout/CustomerSidebar';
 import { Conversation, ConversationMessage, Offer } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { sendNotificationEmail } from '@/lib/services/notification-service';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 function CustomerMessagesContent() {
   const searchParams = useSearchParams();
@@ -176,6 +178,56 @@ function CustomerMessagesContent() {
     }
   }, [activeConvId, userId]);
 
+  const activeConv = conversations.find(c => c.id === activeConvId);
+  const activeCarrier = activeConv 
+    ? (db.getCarriers().find(c => activeConv.participantIds.includes(c.userId) || activeConv.participantIds.includes(c.id)) || (activeConv as any).carrier || null)
+    : null;
+  const activeOffer = activeCarrier ? db.getOffers().find(o => o.carrierId === activeCarrier.id) : null;
+
+  // Direct Firestore real-time socket synchronization for active conversation
+  useEffect(() => {
+    if (!activeConvId) return;
+    if (!isFirebaseConfigured() || !firestoreDb) return;
+
+    const activeC = db.getConversationById(activeConvId);
+    const reqNum = db.extractNumericRequestCode(activeC?.contextTitle) || 
+                   db.extractNumericRequestCode(activeC?.contextId) || 
+                   db.extractNumericRequestCode(activeConvId);
+    const carrRoot = db.extractCarrierRoot(activeCarrier?.slug || activeCarrier?.companyName || activeCarrier?.id || '');
+    const carrFull = db.slugifyTurkish(activeCarrier?.slug || activeCarrier?.companyName || activeCarrier?.id || '').replace(/[^a-z0-9]/g, '');
+
+    const docIds = [`chat_${reqNum}`];
+    if (carrRoot && carrRoot !== 'carrier') docIds.push(`chat_${reqNum}_${carrRoot}`);
+    if (carrFull && !docIds.includes(`chat_${reqNum}_${carrFull}`)) docIds.push(`chat_${reqNum}_${carrFull}`);
+
+    const unsubs = docIds.map(docId => {
+      try {
+        return onSnapshot(doc(firestoreDb, 'requests', docId), (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            if (Array.isArray(data.messages) && data.messages.length > 0) {
+              const canonicalized = data.messages.map((m: any) => ({
+                ...m,
+                conversationId: activeConvId || m.conversationId
+              }));
+              db.bulkMergeMessages(canonicalized);
+              const updated = db.getMessages(activeConvId);
+              setMessages(prev => (updated.length !== prev.length || updated[updated.length - 1]?.id !== prev[prev.length - 1]?.id) ? updated : prev);
+            }
+          }
+        }, (err) => {
+          console.warn('Customer onSnapshot error:', err);
+        });
+      } catch {
+        return () => {};
+      }
+    });
+
+    return () => {
+      unsubs.forEach(u => u && u());
+    };
+  }, [activeConvId, activeCarrier?.id, activeCarrier?.slug, activeCarrier?.companyName]);
+
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom without page jumping
@@ -184,12 +236,6 @@ function CustomerMessagesContent() {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [messages, isTyping]);
-
-  const activeConv = conversations.find(c => c.id === activeConvId);
-  const activeCarrier = activeConv 
-    ? (db.getCarriers().find(c => activeConv.participantIds.includes(c.userId) || activeConv.participantIds.includes(c.id)) || (activeConv as any).carrier || null)
-    : null;
-  const activeOffer = activeCarrier ? db.getOffers().find(o => o.carrierId === activeCarrier.id) : null;
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();

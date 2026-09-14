@@ -1178,18 +1178,46 @@ export function extractNumericRequestCode(str?: string): string {
   return '';
 }
 
+export function slugifyTurkish(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/Ğ/g, 'g').replace(/ğ/g, 'g')
+    .replace(/Ü/g, 'u').replace(/ü/g, 'u')
+    .replace(/Ş/g, 's').replace(/ş/g, 's')
+    .replace(/I/g, 'i').replace(/İ/g, 'i').replace(/ı/g, 'i')
+    .replace(/Ö/g, 'o').replace(/ö/g, 'o')
+    .replace(/Ç/g, 'c').replace(/ç/g, 'c')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+export function extractCarrierRoot(carrierIdentifier?: string): string {
+  if (!carrierIdentifier) return 'carrier';
+  const slug = slugifyTurkish(carrierIdentifier);
+  const clean = slug.replace(/^(carr-|user-)/, '');
+  const root = clean.split('-')[0] || clean;
+  return root.replace(/[^a-z0-9]/g, '').slice(0, 24) || 'carrier';
+}
+
 export function getCanonicalConvId(requestCodeOrId: string, carrierIdentifier?: string): string {
   const code = extractNumericRequestCode(requestCodeOrId) || (requestCodeOrId || '').replace(/[^a-zA-Z0-9_-]/g, '');
-  const carrierKey = (carrierIdentifier || 'carrier')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '')
-    .slice(0, 24);
+  const carrierKey = extractCarrierRoot(carrierIdentifier);
   return `conv_req_${code || 'general'}_${carrierKey || 'carr'}`;
 }
 
 // Client-side state hydration & in-memory manager
 class MockDatabase {
   private isClient = typeof window !== 'undefined';
+
+  slugifyTurkish(text: string): string {
+    return slugifyTurkish(text);
+  }
+
+  extractCarrierRoot(carrierIdentifier?: string): string {
+    return extractCarrierRoot(carrierIdentifier);
+  }
 
   extractNumericRequestCode(str?: string): string {
     return extractNumericRequestCode(str);
