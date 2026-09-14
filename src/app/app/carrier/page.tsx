@@ -30,6 +30,8 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { RouteDisplay } from '@/components/ui/RouteDisplay';
 import { db } from '@/lib/data/mock-db';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+import { collection, onSnapshot } from 'firebase/firestore';
 
 // Rule-based rota eşleşme skoru simülasyonu
 function calcMatchScore(request: { originCity: string; destinationCity: string; serviceCategory: string }, carrier: { city: string; serviceAreas: string[]; services: string[] }) {
@@ -151,12 +153,53 @@ export default function CarrierDashboard() {
     };
 
     syncServerData();
-    const interval = setInterval(syncServerData, 4000);
+    const interval = setInterval(syncServerData, 3000);
     return () => {
       isMounted = false;
       clearInterval(interval);
     };
   }, [carrier?.id]);
+
+  // Real-time Firestore requests listener (instant notification when customer accepts)
+  useEffect(() => {
+    if (!isFirebaseConfigured() || !firestoreDb) return;
+
+    try {
+      const unsub = onSnapshot(collection(firestoreDb, 'requests'), (snap) => {
+        let hasChanges = false;
+        snap.docs.forEach(d => {
+          const data = d.data();
+          if (data && !data.isChatDoc) {
+            const reqId = data.id || d.id;
+            const existing = db.getRequestById(reqId);
+            if (!existing || existing.status !== data.status || existing.assignedCarrierId !== data.assignedCarrierId) {
+              db.updateRequest(reqId, data as any);
+              if (data.requestCode) {
+                db.updateRequest(data.requestCode, data as any);
+              }
+              hasChanges = true;
+            }
+            if (data.assignedOfferId) {
+              const exOffer = db.getOffers().find(o => o.id === data.assignedOfferId);
+              if (!exOffer || exOffer.status !== 'ACCEPTED') {
+                db.updateOffer(data.assignedOfferId, { status: 'ACCEPTED' });
+                hasChanges = true;
+              }
+            }
+          }
+        });
+        if (hasChanges) {
+          setRefreshTrigger(k => k + 1);
+        }
+      }, (err) => {
+        console.warn('Carrier onSnapshot requests error:', err);
+      });
+
+      return () => unsub();
+    } catch {
+      return () => {};
+    }
+  }, []);
 
   if (!currentUser || !carrier) {
     return (
@@ -210,16 +253,19 @@ export default function CarrierDashboard() {
     const req = db.getRequestById(o.requestId);
     const cleanReqId = (o.requestId || req?.requestCode || req?.id || '').replace(/[^0-9]/g, '');
     const myCompanyName = (carrier.companyName || '').trim().toLowerCase();
+    const myCarrierRoot = db.extractCarrierRoot(carrier.slug || carrier.companyName || carrier.id);
 
     // 1. Check request assignment in mock-db
     if (req && (req.status === 'ASSIGNED' || (req.status === 'CLOSED' && req.closedReason === 'İş Verildi'))) {
       if (req.assignedCarrierId === carrier.id || 
           req.assignedCarrierId === carrier.userId || 
-          req.assignedOfferId === o.id) {
+          req.assignedOfferId === o.id ||
+          (req.assignedCarrierId && o.carrierId && req.assignedCarrierId === o.carrierId)) {
         return true;
       }
       const assignedName = ((req as any).assignedCarrierName || '').trim().toLowerCase();
-      if (myCompanyName && assignedName && (myCompanyName === assignedName || myCompanyName.includes(assignedName) || assignedName.includes(myCompanyName))) {
+      const assignedRoot = db.extractCarrierRoot(assignedName || req.assignedCarrierId);
+      if (myCarrierRoot && (myCarrierRoot === assignedRoot || (assignedName && myCompanyName.includes(assignedName)))) {
         return true;
       }
       if (!req.assignedCarrierId && req.assignedOfferId === o.id) {
@@ -227,7 +273,16 @@ export default function CarrierDashboard() {
       }
     }
 
-    // 2. Check localStorage accepted offers
+    // 2. Check celebration message in conversation
+    if (cleanReqId) {
+      const canonicalConvId = db.getCanonicalConvId(cleanReqId, myCarrierRoot);
+      const convMsgs = db.getMessages(canonicalConvId);
+      if (convMsgs.some(m => m.content && (m.content.includes('KABUL EDİLDİ') || m.content.includes('Taşıma işi firmanıza verilmiştir')))) {
+        return true;
+      }
+    }
+
+    // 3. Check localStorage accepted offers
     const acc = localAcceptedMap[o.requestId] 
       || (cleanReqId && Object.entries(localAcceptedMap).find(([k]) => k.replace(/[^0-9]/g, '') === cleanReqId)?.[1])
       || (req?.id && localAcceptedMap[req.id])
@@ -235,7 +290,7 @@ export default function CarrierDashboard() {
 
     if (acc) {
       if (acc.id === o.id || acc.assignedOfferId === o.id) return true;
-      if (acc.carrierId === carrier.id || acc.carrierId === carrier.userId) return true;
+      if (acc.carrierId === carrier.id || acc.carrierId === carrier.userId || (acc.carrierId && o.carrierId && acc.carrierId === o.carrierId)) return true;
       const accCompanyName = (acc.carrier?.companyName || acc.carrierName || '').trim().toLowerCase();
       if (myCompanyName && accCompanyName && (myCompanyName === accCompanyName || myCompanyName.includes(accCompanyName) || accCompanyName.includes(myCompanyName))) {
         return true;
@@ -245,7 +300,7 @@ export default function CarrierDashboard() {
       }
     }
 
-    // 3. Check localStorage closed requests
+    // 4. Check localStorage closed requests
     try {
       const rawClosed = typeof window !== 'undefined' ? localStorage.getItem('tasinteklif_closed_requests') : null;
       if (rawClosed) {
@@ -255,7 +310,7 @@ export default function CarrierDashboard() {
           || (req?.id && closedMap[req.id])
           || (req?.requestCode && closedMap[req.requestCode]);
         if (closedInfo && (closedInfo.status === 'ASSIGNED' || closedInfo.closedReason === 'İş Verildi')) {
-          if (closedInfo.assignedCarrierId === carrier.id || closedInfo.assignedCarrierId === carrier.userId || closedInfo.assignedOfferId === o.id) {
+          if (closedInfo.assignedCarrierId === carrier.id || closedInfo.assignedCarrierId === carrier.userId || closedInfo.assignedOfferId === o.id || (closedInfo.assignedCarrierId && o.carrierId && closedInfo.assignedCarrierId === o.carrierId)) {
             return true;
           }
           const closedCarrierName = (closedInfo.assignedCarrierName || '').trim().toLowerCase();

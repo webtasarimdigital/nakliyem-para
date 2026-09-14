@@ -19,6 +19,8 @@ import { RouteDisplay } from '@/components/ui/RouteDisplay';
 import { db } from '@/lib/data/mock-db';
 import { Offer, OfferStatus, CarrierProfile } from '@/types';
 import { ArrowLeft } from 'lucide-react';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+import { collection, onSnapshot } from 'firebase/firestore';
 
 export default function CarrierOffersTrackerPage() {
   const [carrier, setCarrier] = useState<CarrierProfile | null>(null);
@@ -47,16 +49,19 @@ export default function CarrierOffersTrackerPage() {
         const req = db.getRequestById(o.requestId);
         const cleanReqId = (o.requestId || req?.requestCode || req?.id || '').replace(/[^0-9]/g, '');
         const myCompanyName = (activeCarrier?.companyName || '').trim().toLowerCase();
+        const myCarrierRoot = db.extractCarrierRoot(activeCarrier?.slug || activeCarrier?.companyName || activeCarrier?.id || '');
 
         // 1. Check request assignment in mock-db
         if (req && (req.status === 'ASSIGNED' || (req.status === 'CLOSED' && req.closedReason === 'İş Verildi'))) {
           if (req.assignedCarrierId === activeCarrier?.id || 
               req.assignedCarrierId === activeCarrier?.userId || 
-              req.assignedOfferId === o.id) {
+              req.assignedOfferId === o.id ||
+              (req.assignedCarrierId && o.carrierId && req.assignedCarrierId === o.carrierId)) {
             return true;
           }
           const assignedName = ((req as any).assignedCarrierName || '').trim().toLowerCase();
-          if (myCompanyName && assignedName && (myCompanyName === assignedName || myCompanyName.includes(assignedName) || assignedName.includes(myCompanyName))) {
+          const assignedRoot = db.extractCarrierRoot(assignedName || req.assignedCarrierId);
+          if (myCarrierRoot && (myCarrierRoot === assignedRoot || (assignedName && myCompanyName.includes(assignedName)))) {
             return true;
           }
           if (!req.assignedCarrierId && req.assignedOfferId === o.id) {
@@ -64,7 +69,16 @@ export default function CarrierOffersTrackerPage() {
           }
         }
 
-        // 2. Check localStorage accepted offers
+        // 2. Check celebration message in conversation
+        if (cleanReqId) {
+          const canonicalConvId = db.getCanonicalConvId(cleanReqId, myCarrierRoot);
+          const convMsgs = db.getMessages(canonicalConvId);
+          if (convMsgs.some(m => m.content && (m.content.includes('KABUL EDİLDİ') || m.content.includes('Taşıma işi firmanıza verilmiştir')))) {
+            return true;
+          }
+        }
+
+        // 3. Check localStorage accepted offers
         const acc = localAcceptedMap[o.requestId] 
           || (cleanReqId && Object.entries(localAcceptedMap).find(([k]) => k.replace(/[^0-9]/g, '') === cleanReqId)?.[1])
           || (req?.id && localAcceptedMap[req.id])
@@ -72,7 +86,7 @@ export default function CarrierOffersTrackerPage() {
 
         if (acc) {
           if (acc.id === o.id || acc.assignedOfferId === o.id) return true;
-          if (acc.carrierId === activeCarrier?.id || acc.carrierId === activeCarrier?.userId) return true;
+          if (acc.carrierId === activeCarrier?.id || acc.carrierId === activeCarrier?.userId || (acc.carrierId && o.carrierId && acc.carrierId === o.carrierId)) return true;
           const accCompanyName = (acc.carrier?.companyName || acc.carrierName || '').trim().toLowerCase();
           if (myCompanyName && accCompanyName && (myCompanyName === accCompanyName || myCompanyName.includes(accCompanyName) || accCompanyName.includes(myCompanyName))) {
             return true;
@@ -82,7 +96,7 @@ export default function CarrierOffersTrackerPage() {
           }
         }
 
-        // 3. Check localStorage closed requests
+        // 4. Check localStorage closed requests
         try {
           const rawClosed = typeof window !== 'undefined' ? localStorage.getItem('tasinteklif_closed_requests') : null;
           if (rawClosed) {
@@ -92,7 +106,7 @@ export default function CarrierOffersTrackerPage() {
               || (req?.id && closedMap[req.id])
               || (req?.requestCode && closedMap[req.requestCode]);
             if (closedInfo && (closedInfo.status === 'ASSIGNED' || closedInfo.closedReason === 'İş Verildi')) {
-              if (closedInfo.assignedCarrierId === activeCarrier?.id || closedInfo.assignedCarrierId === activeCarrier?.userId || closedInfo.assignedOfferId === o.id) {
+              if (closedInfo.assignedCarrierId === activeCarrier?.id || closedInfo.assignedCarrierId === activeCarrier?.userId || closedInfo.assignedOfferId === o.id || (closedInfo.assignedCarrierId && o.carrierId && closedInfo.assignedCarrierId === o.carrierId)) {
                 return true;
               }
               const closedCarrierName = (closedInfo.assignedCarrierName || '').trim().toLowerCase();
@@ -131,19 +145,62 @@ export default function CarrierOffersTrackerPage() {
 
     loadOffers();
 
-    // Background sync with server API
-    if (activeCarrier?.id) {
-      fetch('/api/offers')
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && Array.isArray(data.offers)) {
-            data.offers.forEach((ao: any) => {
+    // Background sync with server API (requests & offers)
+    const syncData = () => {
+      Promise.all([
+        fetch('/api/offers').then(r => r.json()).catch(() => ({})),
+        fetch('/api/requests').then(r => r.json()).catch(() => ({}))
+      ]).then(([offersData, reqsData]) => {
+        let changed = false;
+        if (reqsData?.success && Array.isArray(reqsData.requests)) {
+          reqsData.requests.forEach((r: any) => {
+            const ex = db.getRequestById(r.id);
+            if (!ex || ex.status !== r.status || ex.assignedCarrierId !== r.assignedCarrierId) {
+              db.updateRequest(r.id, r);
+              changed = true;
+            }
+          });
+        }
+        if (offersData?.success && Array.isArray(offersData.offers)) {
+          offersData.offers.forEach((ao: any) => {
+            const ex = db.getOffers().find(o => o.id === ao.id);
+            if (!ex || ex.status !== ao.status) {
               db.updateOffer(ao.id, ao);
-            });
-            loadOffers();
-          }
-        })
-        .catch(() => {});
+              changed = true;
+            }
+          });
+        }
+        if (changed) loadOffers();
+      }).catch(() => {});
+    };
+
+    syncData();
+    const pollTimer = setInterval(syncData, 3000);
+
+    // Direct Firestore real-time listener for requests
+    let unsubFirestore = () => {};
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        unsubFirestore = onSnapshot(collection(firestoreDb, 'requests'), (snap) => {
+          let reqChanged = false;
+          snap.docs.forEach(d => {
+            const data = d.data();
+            if (data && !data.isChatDoc) {
+              const reqId = data.id || d.id;
+              const existing = db.getRequestById(reqId);
+              if (!existing || existing.status !== data.status || existing.assignedCarrierId !== data.assignedCarrierId) {
+                db.updateRequest(reqId, data as any);
+                reqChanged = true;
+              }
+              if (data.assignedOfferId) {
+                db.updateOffer(data.assignedOfferId, { status: 'ACCEPTED' });
+                reqChanged = true;
+              }
+            }
+          });
+          if (reqChanged) loadOffers();
+        }, () => {});
+      } catch {}
     }
 
     const handleEvt = () => loadOffers();
@@ -151,6 +208,8 @@ export default function CarrierOffersTrackerPage() {
     window.addEventListener('offer-added', handleEvt);
     window.addEventListener('offer-updated', handleEvt);
     return () => {
+      clearInterval(pollTimer);
+      unsubFirestore();
       window.removeEventListener('storage', handleEvt);
       window.removeEventListener('offer-added', handleEvt);
       window.removeEventListener('offer-updated', handleEvt);
