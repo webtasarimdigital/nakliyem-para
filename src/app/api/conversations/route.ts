@@ -49,13 +49,14 @@ export async function GET(req: NextRequest) {
     let messages = allMessages.filter(m => m.conversationId === convId);
 
     // Also check for messages sent to sibling conversations for the same request
-    const reqNum = (matchedConv?.contextId || matchedConv?.contextTitle || '').replace(/[^0-9]/g, '');
+    const qReq = searchParams.get('requestId') || '';
+    const reqNum = (matchedConv?.contextId || matchedConv?.contextTitle || qReq || convId || '').replace(/[^0-9]/g, '');
     if (reqNum && reqNum.length >= 4) {
       const siblingConvs = conversations.filter(c => c.id !== convId && ((c.contextId || '').includes(reqNum) || (c.contextTitle || '').includes(reqNum)));
       const siblingIds = new Set(siblingConvs.map(c => c.id));
       const siblingMsgs = allMessages.filter(m => 
         m.conversationId !== convId && 
-        (siblingIds.has(m.conversationId) || m.conversationId?.includes(reqNum))
+        (siblingIds.has(m.conversationId) || m.conversationId?.includes(reqNum) || (m.offerData?.requestId && String(m.offerData.requestId).includes(reqNum)))
       );
       if (siblingMsgs.length > 0) {
         const msgIds = new Set(messages.map(m => m.id));

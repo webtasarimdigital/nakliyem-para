@@ -1519,7 +1519,18 @@ class MockDatabase {
   }
 
   getRequestById(id: string): MovingRequest | undefined {
-    return this.getRequests().find(r => r.id === id || r.requestCode === id);
+    if (!id) return undefined;
+    const cleanId = id.replace(/[^0-9]/g, '');
+    return this.getRequests().find(r => {
+      if (r.id === id || r.requestCode === id) return true;
+      if (r.requestCode && (r.requestCode.replace('#', '') === id || id.replace('#', '') === r.requestCode)) return true;
+      if (cleanId && cleanId.length >= 4) {
+        const rCleanCode = (r.requestCode || '').replace(/[^0-9]/g, '');
+        const rCleanId = r.id.replace(/[^0-9]/g, '');
+        if (rCleanCode === cleanId || rCleanId === cleanId) return true;
+      }
+      return false;
+    });
   }
 
   addRequest(req: MovingRequest): void {
@@ -1528,17 +1539,36 @@ class MockDatabase {
   }
 
   updateRequest(id: string, updates: Partial<MovingRequest>): void {
+    const cleanId = id.replace(/[^0-9]/g, '');
     if (updates.status === 'CLOSED' || updates.status === 'ASSIGNED') {
       if (typeof window !== 'undefined') {
         try {
           const raw = localStorage.getItem('tasinteklif_closed_requests') || '{}';
           const parsed = JSON.parse(raw);
-          parsed[id] = { status: updates.status, closedReason: updates.closedReason };
+          const closedPayload = {
+            status: updates.status,
+            closedReason: updates.closedReason,
+            assignedCarrierId: (updates as any).assignedCarrierId,
+            assignedOfferId: (updates as any).assignedOfferId,
+            assignedCarrierName: (updates as any).assignedCarrierName
+          };
+          parsed[id] = closedPayload;
+          if (cleanId) {
+            parsed[cleanId] = closedPayload;
+            parsed[`#${cleanId}`] = closedPayload;
+          }
           localStorage.setItem('tasinteklif_closed_requests', JSON.stringify(parsed));
         } catch {}
       }
     }
-    const list = this.getRequests().map(r => (r.id === id || r.requestCode === id) ? { ...r, ...updates, updatedAt: new Date().toISOString() } : r);
+    const list = this.getRequests().map(r => {
+      const rCleanCode = (r.requestCode || '').replace(/[^0-9]/g, '');
+      const rCleanId = r.id.replace(/[^0-9]/g, '');
+      const isMatch = r.id === id || r.requestCode === id ||
+                      (r.requestCode && (r.requestCode.replace('#', '') === id || id.replace('#', '') === r.requestCode)) ||
+                      (cleanId && cleanId.length >= 4 && (rCleanCode === cleanId || rCleanId === cleanId));
+      return isMatch ? { ...r, ...updates, updatedAt: new Date().toISOString() } : r;
+    });
     this.setItem('requests', list);
   }
 
@@ -1710,7 +1740,17 @@ class MockDatabase {
   }
 
   getOffersForRequest(requestId: string): Offer[] {
-    return this.getOffers().filter(o => o.requestId === requestId);
+    if (!requestId) return [];
+    const cleanId = requestId.replace(/[^0-9]/g, '');
+    return this.getOffers().filter(o => {
+      if (o.requestId === requestId) return true;
+      if (o.requestId && (o.requestId.replace('#', '') === requestId || requestId.replace('#', '') === o.requestId)) return true;
+      if (cleanId && cleanId.length >= 4) {
+        const oClean = (o.requestId || '').replace(/[^0-9]/g, '');
+        if (oClean === cleanId) return true;
+      }
+      return false;
+    });
   }
 
   getOffersForCarrier(carrierId: string): Offer[] {
@@ -1770,16 +1810,31 @@ class MockDatabase {
       carrierUserId,
       carrier?.id,
       offer.carrierId,
+      carrier?.slug,
+      carrier?.companyName,
       customerEmail,
       customerEmail.toLowerCase(),
       customerPhone
     ].filter(Boolean))) as string[];
 
+    const reqNum = (req?.requestCode || offer.requestId || '').replace(/[^0-9]/g, '');
     const conversations = this.getConversations();
-    let conv = conversations.find(c => 
-      c.contextId === offer.requestId && 
-      (c.participantIds.includes(carrierUserId) || c.participantIds.includes(carrier?.id || '') || c.participantIds.includes(offer.carrierId))
-    );
+    let conv = conversations.find(c => {
+      const cReqNum = (c.contextId || c.contextTitle || '').replace(/[^0-9]/g, '');
+      const reqMatches = (reqNum && cReqNum === reqNum) || c.contextId === offer.requestId;
+      if (!reqMatches) return false;
+      const parts = (c.participantIds || []).map(p => String(p).toLowerCase());
+      const names = Object.values(c.participantNames || {}).map(n => String(n).trim().toLowerCase());
+      const cNameLower = carrierName.toLowerCase();
+      return (
+        parts.includes(carrierUserId.toLowerCase()) ||
+        parts.includes((carrier?.id || '').toLowerCase()) ||
+        parts.includes(offer.carrierId.toLowerCase()) ||
+        (carrier?.slug && parts.includes(carrier.slug.toLowerCase())) ||
+        names.some(n => n === cNameLower || n.includes(cNameLower) || cNameLower.includes(n)) ||
+        (c.contextTitle || '').toLowerCase().includes(cNameLower)
+      );
+    });
 
     const now = new Date().toISOString();
     const carrierNoteText = offer.notes && offer.notes !== 'Hızlı teklif iletildi.'
@@ -1793,6 +1848,8 @@ class MockDatabase {
         participantNames: {
           [customerId]: customerName,
           [carrierUserId]: carrierName,
+          ...(carrier?.id ? { [carrier.id]: carrierName } : {}),
+          ...(offer.carrierId ? { [offer.carrierId]: carrierName } : {}),
           ...(customerEmail ? { [customerEmail]: customerName } : {}),
           ...(customerPhone ? { [customerPhone]: customerName } : {})
         },
@@ -1810,6 +1867,12 @@ class MockDatabase {
       this.setItem('conversations', [conv, ...conversations]);
     } else {
       conv.participantIds = Array.from(new Set([...conv.participantIds, ...participantIds]));
+      conv.participantNames = {
+        ...conv.participantNames,
+        [carrierUserId]: carrierName,
+        ...(carrier?.id ? { [carrier.id]: carrierName } : {}),
+        ...(offer.carrierId ? { [offer.carrierId]: carrierName } : {})
+      };
       conv.lastMessage = carrierNoteText;
       conv.lastMessageAt = now;
       conv.unreadCounts = {
@@ -1898,13 +1961,25 @@ class MockDatabase {
 
     const req = this.getRequestById(requestId);
     const code = req?.requestCode;
-    const matchedCarrierId = targetOffer?.carrierId || carrierId;
+    const reqNum = (code || requestId || '').replace(/[^0-9]/g, '');
+    const matchedCarrierId = targetOffer?.carrierId || carrierId || (targetOffer as any)?.carrier?.id;
+    const winningCarrierName = targetOffer?.carrier?.companyName || (targetOffer as any)?.carrierName;
 
     // Update accepted offer
     const updatedOffers = offers.map(o => {
-      if (o.requestId === requestId || (code && o.requestId === code)) {
-        const isMatch = o.id === offerId || (matchedCarrierId && o.carrierId === matchedCarrierId);
-        return isMatch 
+      const isThisOffer = o.id === offerId || (targetOffer && o.id === targetOffer.id);
+      if (isThisOffer) {
+        return { ...o, status: 'ACCEPTED' as const, updatedAt: new Date().toISOString() };
+      }
+
+      const oReqNum = (o.requestId || '').replace(/[^0-9]/g, '');
+      const reqMatches = o.requestId === requestId || 
+                         (code && o.requestId === code) || 
+                         (reqNum && oReqNum === reqNum);
+
+      if (reqMatches) {
+        const isCarrierMatch = matchedCarrierId && (o.carrierId === matchedCarrierId || (o as any).carrier?.id === matchedCarrierId);
+        return isCarrierMatch 
           ? { ...o, status: 'ACCEPTED' as const, updatedAt: new Date().toISOString() }
           : { ...o, status: 'REJECTED' as const, updatedAt: new Date().toISOString() };
       }
@@ -1913,24 +1988,39 @@ class MockDatabase {
     this.setItem('offers', updatedOffers);
 
     // Update request
-    if (matchedCarrierId) {
-      this.updateRequest(requestId, {
-        status: 'ASSIGNED',
-        closedReason: 'İş Verildi',
-        assignedCarrierId: matchedCarrierId,
-        assignedOfferId: offerId
-      });
-      if (code && code !== requestId) {
-        this.updateRequest(code, {
-          status: 'ASSIGNED',
-          closedReason: 'İş Verildi',
-          assignedCarrierId: matchedCarrierId,
-          assignedOfferId: offerId
-        });
-      }
+    const updatePayload = {
+      status: 'ASSIGNED' as const,
+      closedReason: 'İş Verildi',
+      assignedCarrierId: matchedCarrierId,
+      assignedOfferId: offerId,
+      assignedCarrierName: winningCarrierName
+    };
+
+    this.updateRequest(requestId, updatePayload);
+    if (req?.id && req.id !== requestId) {
+      this.updateRequest(req.id, updatePayload);
+    }
+    if (code && code !== requestId) {
+      this.updateRequest(code, updatePayload);
     }
 
     if (typeof window !== 'undefined') {
+      try {
+        const rawAcc = localStorage.getItem('tasinteklif_accepted_offers') || '{}';
+        const parsedAcc = JSON.parse(rawAcc);
+        const winningOffer = updatedOffers.find(o => o.id === offerId || o.status === 'ACCEPTED') || targetOffer;
+        if (winningOffer) {
+          parsedAcc[requestId] = winningOffer;
+          if (req?.id) parsedAcc[req.id] = winningOffer;
+          if (code) parsedAcc[code] = winningOffer;
+          if (reqNum) {
+            parsedAcc[reqNum] = winningOffer;
+            parsedAcc[`#${reqNum}`] = winningOffer;
+          }
+          localStorage.setItem('tasinteklif_accepted_offers', JSON.stringify(parsedAcc));
+        }
+      } catch {}
+
       window.dispatchEvent(new Event('storage'));
       window.dispatchEvent(new Event('offer-added'));
       window.dispatchEvent(new Event('request-added'));
@@ -2126,7 +2216,34 @@ class MockDatabase {
 
   getMessages(conversationId: string): ConversationMessage[] {
     const all = this.getAllMessages();
-    return all.filter(m => m.conversationId === conversationId).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    let msgs = all.filter(m => m.conversationId === conversationId);
+
+    // If conversation is linked to a request code (e.g. 90198), also include any sibling messages
+    const conv = this.getConversationById(conversationId);
+    const reqNum = (conv?.contextId || conv?.contextTitle || '').replace(/[^0-9]/g, '');
+    if (reqNum && reqNum.length >= 4) {
+      const siblingConvs = this.getConversations().filter(c => 
+        c.id !== conversationId && 
+        ((c.contextId && c.contextId.replace(/[^0-9]/g, '') === reqNum) || (c.contextTitle && c.contextTitle.includes(reqNum)))
+      );
+      if (siblingConvs.length > 0) {
+        const siblingIds = new Set(siblingConvs.map(sc => sc.id));
+        const extraMsgs = all.filter(m => 
+          siblingIds.has(m.conversationId) || 
+          (m.conversationId && m.conversationId.includes(reqNum)) ||
+          (m.offerData?.requestId && String(m.offerData.requestId).includes(reqNum))
+        );
+        if (extraMsgs.length > 0) {
+          const existingIds = new Set(msgs.map(m => m.id));
+          const toAdd = extraMsgs.filter(m => !existingIds.has(m.id));
+          if (toAdd.length > 0) {
+            msgs = [...msgs, ...toAdd];
+          }
+        }
+      }
+    }
+
+    return msgs.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }
 
   sendMessage(conversationId: string, messageData: { senderId: string; senderName: string; senderRole: any; content: string; mediaUrl?: string; isOfferCard?: boolean; offerData?: any }): ConversationMessage {

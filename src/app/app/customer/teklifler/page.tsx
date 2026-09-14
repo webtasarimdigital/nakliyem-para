@@ -339,24 +339,35 @@ function CustomerOffersContent() {
   const handleAccept = async () => {
     if (!selectedOffer || !activeReq) return;
 
+    const carrierName = selectedOffer.carrier?.companyName || (selectedOffer as any).carrierName || 'Nakliyat Firması';
+    const cleanCode = (activeReq.requestCode || activeReq.id || '').replace(/[^0-9]/g, '');
+
     // 1. Update mock-db
-    db.acceptOffer(activeReq.id, selectedOffer.id);
+    db.acceptOffer(activeReq.id, selectedOffer.id, selectedOffer.carrierId);
     if (activeReq.requestCode) {
-      db.acceptOffer(activeReq.requestCode, selectedOffer.id);
+      db.acceptOffer(activeReq.requestCode, selectedOffer.id, selectedOffer.carrierId);
     }
-    db.updateRequest(activeReq.id, {
-      status: 'ASSIGNED',
+    if (cleanCode) {
+      db.acceptOffer(cleanCode, selectedOffer.id, selectedOffer.carrierId);
+      db.acceptOffer(`#${cleanCode}`, selectedOffer.id, selectedOffer.carrierId);
+    }
+    db.updateOffer(selectedOffer.id, { status: 'ACCEPTED' });
+
+    const requestUpdatePayload = {
+      status: 'ASSIGNED' as const,
       closedReason: 'İş Verildi',
       assignedCarrierId: selectedOffer.carrierId,
-      assignedOfferId: selectedOffer.id
-    });
+      assignedOfferId: selectedOffer.id,
+      assignedCarrierName: carrierName
+    };
+
+    db.updateRequest(activeReq.id, requestUpdatePayload);
     if (activeReq.requestCode) {
-      db.updateRequest(activeReq.requestCode, {
-        status: 'ASSIGNED',
-        closedReason: 'İş Verildi',
-        assignedCarrierId: selectedOffer.carrierId,
-        assignedOfferId: selectedOffer.id
-      });
+      db.updateRequest(activeReq.requestCode, requestUpdatePayload);
+    }
+    if (cleanCode) {
+      db.updateRequest(cleanCode, requestUpdatePayload);
+      db.updateRequest(`#${cleanCode}`, requestUpdatePayload);
     }
 
     // 2. Persist to closed requests and accepted offers in localStorage
@@ -364,27 +375,29 @@ function CustomerOffersContent() {
       try {
         const rawClosed = localStorage.getItem('tasinteklif_closed_requests') || '{}';
         const parsedClosed = JSON.parse(rawClosed);
-        parsedClosed[activeReq.id] = { 
+        const closedEntry = { 
           status: 'ASSIGNED', 
           closedReason: 'İş Verildi',
           assignedCarrierId: selectedOffer.carrierId,
-          assignedOfferId: selectedOffer.id
+          assignedOfferId: selectedOffer.id,
+          assignedCarrierName: carrierName
         };
-        if (activeReq.requestCode) {
-          parsedClosed[activeReq.requestCode] = { 
-            status: 'ASSIGNED', 
-            closedReason: 'İş Verildi',
-            assignedCarrierId: selectedOffer.carrierId,
-            assignedOfferId: selectedOffer.id
-          };
+        parsedClosed[activeReq.id] = closedEntry;
+        if (activeReq.requestCode) parsedClosed[activeReq.requestCode] = closedEntry;
+        if (cleanCode) {
+          parsedClosed[cleanCode] = closedEntry;
+          parsedClosed[`#${cleanCode}`] = closedEntry;
         }
         localStorage.setItem('tasinteklif_closed_requests', JSON.stringify(parsedClosed));
 
         const rawAccepted = localStorage.getItem('tasinteklif_accepted_offers') || '{}';
         const parsedAccepted = JSON.parse(rawAccepted);
-        parsedAccepted[activeReq.id] = selectedOffer;
-        if (activeReq.requestCode) {
-          parsedAccepted[activeReq.requestCode] = selectedOffer;
+        const acceptedEntry = { ...selectedOffer, status: 'ACCEPTED' as const };
+        parsedAccepted[activeReq.id] = acceptedEntry;
+        if (activeReq.requestCode) parsedAccepted[activeReq.requestCode] = acceptedEntry;
+        if (cleanCode) {
+          parsedAccepted[cleanCode] = acceptedEntry;
+          parsedAccepted[`#${cleanCode}`] = acceptedEntry;
         }
         localStorage.setItem('tasinteklif_accepted_offers', JSON.stringify(parsedAccepted));
       } catch {}

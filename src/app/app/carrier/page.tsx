@@ -119,7 +119,7 @@ export default function CarrierDashboard() {
     const syncServerData = async () => {
       try {
         const [offersRes, reqsRes] = await Promise.all([
-          fetch(`/api/offers?carrierId=${carrier.id}`),
+          fetch('/api/offers'),
           fetch('/api/requests')
         ]);
         const offersData = await offersRes.json();
@@ -206,16 +206,66 @@ export default function CarrierDashboard() {
 
   const isOfferAccepted = (o: any) => {
     if (o.status === 'ACCEPTED') return true;
+
     const req = db.getRequestById(o.requestId);
-    if (req && (req.status === 'ASSIGNED' || (req.status === 'CLOSED' && req.closedReason === 'İş Verildi')) && 
-        (req.assignedCarrierId === carrier.id || req.assignedOfferId === o.id)) {
-      return true;
+    const cleanReqId = (o.requestId || req?.requestCode || req?.id || '').replace(/[^0-9]/g, '');
+    const myCompanyName = (carrier.companyName || '').trim().toLowerCase();
+
+    // 1. Check request assignment in mock-db
+    if (req && (req.status === 'ASSIGNED' || (req.status === 'CLOSED' && req.closedReason === 'İş Verildi'))) {
+      if (req.assignedCarrierId === carrier.id || 
+          req.assignedCarrierId === carrier.userId || 
+          req.assignedOfferId === o.id) {
+        return true;
+      }
+      const assignedName = ((req as any).assignedCarrierName || '').trim().toLowerCase();
+      if (myCompanyName && assignedName && (myCompanyName === assignedName || myCompanyName.includes(assignedName) || assignedName.includes(myCompanyName))) {
+        return true;
+      }
+      if (!req.assignedCarrierId && req.assignedOfferId === o.id) {
+        return true;
+      }
     }
-    const cleanReqId = (o.requestId || '').replace(/[^a-zA-Z0-9]/g, '');
-    const acc = localAcceptedMap[o.requestId] || Object.entries(localAcceptedMap).find(([k]) => k.replace(/[^a-zA-Z0-9]/g, '') === cleanReqId)?.[1];
-    if (acc && (acc.id === o.id || acc.assignedOfferId === o.id || acc.carrierId === carrier.id)) {
-      return true;
+
+    // 2. Check localStorage accepted offers
+    const acc = localAcceptedMap[o.requestId] 
+      || (cleanReqId && Object.entries(localAcceptedMap).find(([k]) => k.replace(/[^0-9]/g, '') === cleanReqId)?.[1])
+      || (req?.id && localAcceptedMap[req.id])
+      || (req?.requestCode && localAcceptedMap[req.requestCode]);
+
+    if (acc) {
+      if (acc.id === o.id || acc.assignedOfferId === o.id) return true;
+      if (acc.carrierId === carrier.id || acc.carrierId === carrier.userId) return true;
+      const accCompanyName = (acc.carrier?.companyName || acc.carrierName || '').trim().toLowerCase();
+      if (myCompanyName && accCompanyName && (myCompanyName === accCompanyName || myCompanyName.includes(accCompanyName) || accCompanyName.includes(myCompanyName))) {
+        return true;
+      }
+      if (acc.price && Number(acc.price) === Number(o.price)) {
+        return true;
+      }
     }
+
+    // 3. Check localStorage closed requests
+    try {
+      const rawClosed = typeof window !== 'undefined' ? localStorage.getItem('tasinteklif_closed_requests') : null;
+      if (rawClosed) {
+        const closedMap = JSON.parse(rawClosed);
+        const closedInfo = closedMap[o.requestId]
+          || (cleanReqId && Object.entries(closedMap).find(([k]) => k.replace(/[^0-9]/g, '') === cleanReqId)?.[1])
+          || (req?.id && closedMap[req.id])
+          || (req?.requestCode && closedMap[req.requestCode]);
+        if (closedInfo && (closedInfo.status === 'ASSIGNED' || closedInfo.closedReason === 'İş Verildi')) {
+          if (closedInfo.assignedCarrierId === carrier.id || closedInfo.assignedCarrierId === carrier.userId || closedInfo.assignedOfferId === o.id) {
+            return true;
+          }
+          const closedCarrierName = (closedInfo.assignedCarrierName || '').trim().toLowerCase();
+          if (myCompanyName && closedCarrierName && (myCompanyName === closedCarrierName || myCompanyName.includes(closedCarrierName) || closedCarrierName.includes(myCompanyName))) {
+            return true;
+          }
+        }
+      }
+    } catch {}
+
     return false;
   };
 

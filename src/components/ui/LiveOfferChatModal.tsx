@@ -74,38 +74,60 @@ export function LiveOfferChatModal({
     const finalCarrierUserId = actualCarrierUserId || matchedCarrier?.userId || (actualCarrierSlug ? `user_${actualCarrierSlug}` : `user_${actualCarrierName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`);
     const finalCarrierId = actualCarrierId || matchedCarrier?.id || (actualCarrierSlug ? `carr_${actualCarrierSlug}` : `carr_${actualCarrierName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`);
 
-    // 1. Find or create matching conversation in db
+    // 1. Gather all conversations matching this request code or ID
     const allConvs = db.getConversations();
-    let conv = allConvs.find(c => {
+    const reqConvs = allConvs.filter(c => {
       const cContext = (c.contextId || '').replace(/[^0-9]/g, '');
       const cTitle = (c.contextTitle || '');
-      const reqMatches = 
-        (cleanReqId && (c.contextId === cleanReqId || c.contextId === requestId || cContext === cleanReqId || cTitle.includes(cleanReqId))) ||
-        (requestId && (c.contextId === requestId || cTitle.includes(requestId)));
+      return (
+        (cleanReqId && (c.contextId === cleanReqId || c.contextId === requestId || cContext === cleanReqId || cTitle.includes(cleanReqId) || c.id.includes(cleanReqId))) ||
+        (requestId && (c.contextId === requestId || cTitle.includes(requestId)))
+      );
+    });
 
-      if (!reqMatches) return false;
+    const cNameLower = actualCarrierName.toLowerCase();
 
+    // 2. Find conversation specifically matching this carrier
+    let conv = reqConvs.find(c => {
       const parts = (c.participantIds || []).map(p => String(p).toLowerCase());
       const names = Object.values(c.participantNames || {}).map(n => String(n).trim().toLowerCase());
-      const cNameLower = actualCarrierName.toLowerCase();
+      const cTitle = (c.contextTitle || '').toLowerCase();
 
       const carrierMatches =
         (finalCarrierId && parts.includes(finalCarrierId.toLowerCase())) ||
         (finalCarrierUserId && parts.includes(finalCarrierUserId.toLowerCase())) ||
+        (actualCarrierId && parts.includes(actualCarrierId.toLowerCase())) ||
+        (actualCarrierUserId && parts.includes(actualCarrierUserId.toLowerCase())) ||
         (actualCarrierSlug && parts.includes(actualCarrierSlug)) ||
         (cNameLower && names.some(n => n === cNameLower || n.includes(cNameLower) || cNameLower.includes(n))) ||
-        (cNameLower && cTitle.toLowerCase().includes(cNameLower));
+        (cNameLower && cTitle.includes(cNameLower));
 
-      return carrierMatches;
+      if (carrierMatches) return true;
+
+      // Check messages inside this conversation
+      const cMsgs = db.getMessages(c.id);
+      return cMsgs.some(m => 
+        (m.senderName && m.senderName.toLowerCase().includes(cNameLower)) ||
+        (m.senderRole === 'CARRIER' && (m.content.toLowerCase().includes(cNameLower) || (actualCarrierId && m.senderId === actualCarrierId)))
+      );
     });
 
+    // 3. Fallback: If no exact carrier match found, but there are candidate conversations for this request,
+    // pick the one with existing messages or the first candidate
+    if (!conv && reqConvs.length > 0) {
+      const withMsgs = reqConvs.filter(c => db.getMessages(c.id).length > 0);
+      conv = withMsgs.length > 0 ? withMsgs[0] : reqConvs[0];
+    }
+
     if (!conv) {
-      const pIds = Array.from(new Set([customerId, finalCarrierUserId, finalCarrierId, actualCarrierSlug, 'user_carr_1'].filter(Boolean))) as string[];
+      const pIds = Array.from(new Set([customerId, finalCarrierUserId, finalCarrierId, actualCarrierId, actualCarrierSlug, 'user_carr_1'].filter(Boolean))) as string[];
       conv = db.createConversation({
         participantIds: pIds,
         participantNames: {
           [customerId]: customerName,
-          [finalCarrierUserId]: actualCarrierName
+          [finalCarrierUserId]: actualCarrierName,
+          ...(finalCarrierId ? { [finalCarrierId]: actualCarrierName } : {}),
+          ...(actualCarrierId ? { [actualCarrierId]: actualCarrierName } : {})
         },
         contextType: 'REQUEST',
         contextId: cleanReqId,
@@ -147,43 +169,47 @@ export function LiveOfferChatModal({
           customerName
         })
       }).catch(() => {});
-    } else {
-      // Ensure carrier participantIds & participantNames contain our actual carrier identifiers
-      const neededIds = [finalCarrierId, finalCarrierUserId, actualCarrierSlug, 'user_carr_1'].filter(Boolean) as string[];
-      conv.participantIds = Array.from(new Set([...conv.participantIds, ...neededIds]));
-      if (actualCarrierName) {
-        conv.participantNames = {
-          ...conv.participantNames,
-          [finalCarrierUserId]: actualCarrierName
-        };
-      }
-      db.bulkMergeConversations([conv]);
-
-      // Check if there are any sibling conversations for this request that held messages (like "40 bin olur mu")
-      const siblingConvs = allConvs.filter(c => 
-        c.id !== conv!.id && 
-        (cleanReqId && ((c.contextId || '').includes(cleanReqId) || (c.contextTitle || '').includes(cleanReqId)))
-      );
-      siblingConvs.forEach(sc => {
-        const scMsgs = db.getMessages(sc.id);
-        if (scMsgs.length > 0) {
-          const repointed = scMsgs.map(m => ({ ...m, conversationId: conv!.id }));
-          db.bulkMergeMessages(repointed);
-          repointed.forEach(m => {
-            fetch('/api/conversations', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ conversationId: conv!.id, message: m, conversation: conv })
-            }).catch(() => {});
-          });
-        }
-      });
     }
 
-    setActiveConvId(conv.id);
+    const targetConvId = conv.id;
+    setActiveConvId(targetConvId);
+
+    // Ensure carrier participantIds & participantNames contain our actual carrier identifiers
+    const neededIds = [customerId, finalCarrierId, finalCarrierUserId, actualCarrierId, actualCarrierSlug, 'user_carr_1'].filter(Boolean) as string[];
+    conv.participantIds = Array.from(new Set([...(conv.participantIds || []), ...neededIds]));
+    if (actualCarrierName) {
+      conv.participantNames = {
+        ...(conv.participantNames || {}),
+        [customerId]: customerName,
+        [finalCarrierUserId]: actualCarrierName,
+        ...(finalCarrierId ? { [finalCarrierId]: actualCarrierName } : {}),
+        ...(actualCarrierId ? { [actualCarrierId]: actualCarrierName } : {})
+      };
+    }
+    db.bulkMergeConversations([conv]);
+
+    // Unconditionally consolidate ANY sibling conversations for this request
+    const siblingConvs = allConvs.filter(c => 
+      c.id !== targetConvId && 
+      (cleanReqId && ((c.contextId || '').includes(cleanReqId) || (c.contextTitle || '').includes(cleanReqId) || c.id.includes(cleanReqId)))
+    );
+    siblingConvs.forEach(sc => {
+      const scMsgs = db.getMessages(sc.id);
+      if (scMsgs.length > 0) {
+        const repointed = scMsgs.map(m => ({ ...m, conversationId: targetConvId }));
+        db.bulkMergeMessages(repointed);
+        repointed.forEach(m => {
+          fetch('/api/conversations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ conversationId: targetConvId, message: m, conversation: conv, requestId: cleanReqId })
+          }).catch(() => {});
+        });
+      }
+    });
 
     // Sanitize any existing messages that may have saved a mismatched carrier name (e.g. Saycanlar)
-    const existingMsgs = db.getMessages(conv.id).map(m => {
+    const existingMsgs = db.getMessages(targetConvId).map(m => {
       if (m.isOfferCard && !m.content.includes(actualCarrierName)) {
         return {
           ...m,
@@ -197,7 +223,7 @@ export function LiveOfferChatModal({
     setMessages(existingMsgs);
 
     // Initial fetch from server API
-    fetch(`/api/conversations?convId=${encodeURIComponent(conv.id)}`)
+    fetch(`/api/conversations?convId=${encodeURIComponent(targetConvId)}&requestId=${encodeURIComponent(cleanReqId)}`)
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
@@ -205,45 +231,66 @@ export function LiveOfferChatModal({
             if (m.isOfferCard && !m.content.includes(actualCarrierName)) {
               return {
                 ...m,
+                conversationId: targetConvId,
                 senderName: actualCarrierName,
                 content: `#${cleanReqId} · ${actualCarrierName}\n· ${Number(offerPrice || (m.offerData?.price) || 0).toLocaleString('tr-TR')} TL fiyat teklifi verildi`
               };
             }
-            return m;
+            return { ...m, conversationId: targetConvId };
           });
           db.bulkMergeMessages(merged);
-          setMessages(db.getMessages(conv!.id));
+          setMessages(db.getMessages(targetConvId));
         }
       })
       .catch(() => {});
   }, [isOpen, carrierName, carrierSlug, carrierId, carrierUserId, requestId, requestCode, offerPrice, cleanReqId]);
 
-  // 3-second live polling while modal is open
+  // 2-second live polling & reactive event sync while modal is open
   useEffect(() => {
     if (!isOpen || !activeConvId) return;
 
-    const poll = setInterval(() => {
-      fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}`)
+    const syncMessages = () => {
+      const freshLocal = db.getMessages(activeConvId);
+      setMessages(prev => {
+        if (freshLocal.length !== prev.length || freshLocal[freshLocal.length - 1]?.id !== prev[prev.length - 1]?.id) {
+          return freshLocal;
+        }
+        return prev;
+      });
+
+      fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}&requestId=${encodeURIComponent(cleanReqId)}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
-            db.bulkMergeMessages(data.messages);
+            const canonicalized = data.messages.map((m: any) => ({ ...m, conversationId: activeConvId }));
+            db.bulkMergeMessages(canonicalized);
             const fresh = db.getMessages(activeConvId);
-            setMessages(fresh);
-          } else {
-            const fresh = db.getMessages(activeConvId);
-            setMessages(prev => fresh.length !== prev.length ? fresh : prev);
+            setMessages(prev => {
+              if (fresh.length !== prev.length || fresh[fresh.length - 1]?.id !== prev[prev.length - 1]?.id) {
+                return fresh;
+              }
+              return prev;
+            });
           }
         })
-        .catch(() => {
-          const fresh = db.getMessages(activeConvId);
-          setMessages(prev => fresh.length !== prev.length ? fresh : prev);
-        });
-    }, 3000);
-
-    const handleMsgAdded = () => {
-      if (activeConvId) setMessages(db.getMessages(activeConvId));
+        .catch(() => {});
     };
+
+    const poll = setInterval(syncMessages, 2000);
+
+    const handleMsgAdded = (e?: any) => {
+      if (e?.detail) {
+        const d = e.detail;
+        if (d.conversationId && d.conversationId !== activeConvId && cleanReqId) {
+          if (d.conversationId.includes(cleanReqId) || (d.content && d.content.includes(cleanReqId))) {
+            d.conversationId = activeConvId;
+            db.bulkMergeMessages([d]);
+          }
+        }
+      }
+      syncMessages();
+    };
+
     window.addEventListener('message-added', handleMsgAdded);
     window.addEventListener('storage', handleMsgAdded);
 
@@ -252,7 +299,7 @@ export function LiveOfferChatModal({
       window.removeEventListener('message-added', handleMsgAdded);
       window.removeEventListener('storage', handleMsgAdded);
     };
-  }, [isOpen, activeConvId]);
+  }, [isOpen, activeConvId, cleanReqId]);
 
   useEffect(() => {
     if (isOpen) {

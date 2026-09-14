@@ -149,7 +149,9 @@ export default function CarrierMessagesPage() {
     if (!activeConvId) return;
 
     const poll = setInterval(() => {
-      fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}`)
+      const activeC = db.getConversationById(activeConvId);
+      const reqNum = (activeC?.contextId || activeC?.contextTitle || '').replace(/[^0-9]/g, '');
+      fetch(`/api/conversations?convId=${encodeURIComponent(activeConvId)}&requestId=${encodeURIComponent(reqNum)}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
@@ -172,6 +174,7 @@ export default function CarrierMessagesPage() {
 
     const handleMsgAdded = () => {
       if (activeConvId) setMessages(db.getMessages(activeConvId));
+      loadCarrierConvs();
     };
     window.addEventListener('message-added', handleMsgAdded);
     window.addEventListener('storage', handleMsgAdded);
@@ -206,11 +209,21 @@ export default function CarrierMessagesPage() {
       content: inputMessage.trim()
     });
 
+    const reqNum = (activeConv?.contextId || activeConv?.contextTitle || '').replace(/[^0-9]/g, '');
+
     // Server'a da sync et
     fetch('/api/conversations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId: activeConvId, message: newMsg, conversation: activeConv })
+      body: JSON.stringify({
+        conversationId: activeConvId,
+        message: newMsg,
+        conversation: activeConv,
+        requestId: reqNum,
+        carrierName: carrier.companyName,
+        carrierId: carrier.id,
+        carrierSlug: carrier.slug
+      })
     }).catch(() => {/* server yoksa sessizce devam */});
 
     // Müşteri panelinin güncellenmesi için event'leri tetikle

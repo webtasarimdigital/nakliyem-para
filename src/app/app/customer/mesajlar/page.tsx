@@ -66,7 +66,12 @@ function CustomerMessagesContent() {
       if ((currentUser as any)?.uid && parts.includes((currentUser as any).uid)) return true;
       if (currentUser?.email && parts.some(p => p && p.toLowerCase() === currentUser.email.toLowerCase())) return true;
       if (currentUser?.phone && parts.some(p => p && p.replace(/\D/g, '').slice(-10) === currentUser.phone.replace(/\D/g, '').slice(-10))) return true;
+      if (currentUser?.fullName && Object.values(c.participantNames || {}).some(n => n && n.toLowerCase().includes(currentUser.fullName!.toLowerCase()))) return true;
       if (c.contextId && userReqIds.has(c.contextId)) return true;
+      if (userRequests.some(r => {
+        const code = (r.requestCode || '').replace('#', '');
+        return code && ((c.contextId && c.contextId.includes(code)) || (c.contextTitle && c.contextTitle.includes(code)) || c.id.includes(code));
+      })) return true;
       if (c.participantNames && userId && Object.keys(c.participantNames).includes(userId)) return true;
       return false;
     };
