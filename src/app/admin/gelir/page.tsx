@@ -65,13 +65,21 @@ export default function GelirPage() {
   const annualRevenue = monthlyRevenue * 12;
   const arpu = approvedCarriers.length > 0 ? Math.round(monthlyRevenue / approvedCarriers.length) : 0;
 
-  const goldCount = carriers.filter(c => c.planId === 'plan_gold').length;
-  const proCount = carriers.filter(c => c.planId === 'plan_pro').length;
-  const starterCount = carriers.filter(c => c.planId === 'plan_starter').length;
+  const goldCount = approvedCarriers.filter(c => c.planId === 'plan_gold').length;
+  const proCount = approvedCarriers.filter(c => c.planId === 'plan_pro').length;
+  const starterCount = approvedCarriers.filter(c => c.planId === 'plan_starter').length;
 
   const goldRevenue = goldCount * PLAN_PRICES.plan_gold;
   const proRevenue = proCount * PLAN_PRICES.plan_pro;
   const starterRevenue = starterCount * PLAN_PRICES.plan_starter;
+
+  const displayChurns = showDemoData ? MOCK_CHURNS : [];
+  const displayNew = showDemoData ? MOCK_NEW : approvedCarriers.slice(0, 4).map(c => ({
+    name: c.companyName,
+    plan: c.planId,
+    date: c.createdAt ? c.createdAt.slice(0, 10) : '2026-09-01',
+    city: c.city || 'İstanbul'
+  }));
 
   const maxMonthlyRevenue = Math.max(...MONTHLY_MOCK.filter(m => m.revenue !== null).map(m => m.revenue as number));
 
@@ -267,31 +275,37 @@ export default function GelirPage() {
               <XCircle className="w-5 h-5 text-red-500" />
               <h2 className="font-bold text-[#0A1128]">Bu Ay İptal Edenler</h2>
               <span className="text-xs font-black bg-red-100 text-red-700 px-2 py-0.5 rounded-full ml-auto">
-                {MOCK_CHURNS.length} firma
+                {displayChurns.length} firma
               </span>
             </div>
 
-            <div className="space-y-3">
-              {MOCK_CHURNS.map((churn, i) => (
-                <div key={i} className="p-3.5 rounded-xl bg-red-50 border border-red-100">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-[#0A1128] text-sm">{churn.name}</span>
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${PLAN_COLORS[churn.plan]?.badge || 'bg-slate-100 text-slate-600'}`}>
-                      {PLAN_LABELS[churn.plan]}
-                    </span>
+            {displayChurns.length === 0 ? (
+              <div className="py-8 text-center text-xs font-bold text-slate-400 bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
+                Bu dönem iptal eden firma kaydı bulunmuyor.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {displayChurns.map((churn, i) => (
+                  <div key={i} className="p-3.5 rounded-xl bg-red-50 border border-red-100">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-[#0A1128] text-sm">{churn.name}</span>
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${PLAN_COLORS[churn.plan]?.badge || 'bg-slate-100 text-slate-600'}`}>
+                        {PLAN_LABELS[churn.plan]}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-slate-500">
+                      <span>{churn.reason}</span>
+                      <span>{new Date(churn.date).toLocaleDateString('tr-TR')}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span>{churn.reason}</span>
-                    <span>{new Date(churn.date).toLocaleDateString('tr-TR')}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-100">
               <p className="text-xs font-bold text-slate-500">Kaybedilen aylık gelir</p>
               <p className="text-lg font-black text-red-600 mt-0.5">
-                -{(PLAN_PRICES.plan_pro + PLAN_PRICES.plan_starter).toLocaleString('tr-TR')}₺
+                {displayChurns.length > 0 ? `-${(PLAN_PRICES.plan_pro + PLAN_PRICES.plan_starter).toLocaleString('tr-TR')}₺` : '0 ₺'}
               </p>
             </div>
           </div>
@@ -302,38 +316,44 @@ export default function GelirPage() {
               <CheckCircle2 className="w-5 h-5 text-emerald-500" />
               <h2 className="font-bold text-[#0A1128]">Son Yeni Üyeler</h2>
               <span className="text-xs font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full ml-auto">
-                +{MOCK_NEW.length} bu ay
+                +{displayNew.length} bu ay
               </span>
             </div>
 
-            <div className="space-y-3">
-              {MOCK_NEW.map((member, i) => (
-                <div key={i} className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-100">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-black text-emerald-700">
-                        {member.name.charAt(0)}
+            {displayNew.length === 0 ? (
+              <div className="py-8 text-center text-xs font-bold text-slate-400 bg-slate-50/60 rounded-xl border border-dashed border-slate-200">
+                Bu ay henüz yeni abone kaydı oluşmadı.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {displayNew.map((member, i) => (
+                  <div key={i} className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-100">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-black text-emerald-700">
+                          {member.name.charAt(0)}
+                        </div>
+                        <span className="font-bold text-[#0A1128] text-sm">{member.name}</span>
                       </div>
-                      <span className="font-bold text-[#0A1128] text-sm">{member.name}</span>
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${PLAN_COLORS[member.plan]?.badge || 'bg-slate-100 text-slate-600'}`}>
+                        {PLAN_LABELS[member.plan]}
+                      </span>
                     </div>
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${PLAN_COLORS[member.plan]?.badge || 'bg-slate-100 text-slate-600'}`}>
-                      {PLAN_LABELS[member.plan]}
-                    </span>
+                    <div className="flex items-center justify-between text-xs text-slate-500 ml-9">
+                      <span className="flex items-center gap-1">
+                        <Users className="w-3 h-3" /> {member.city}
+                      </span>
+                      <span>{new Date(member.date).toLocaleDateString('tr-TR')}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-slate-500 ml-9">
-                    <span className="flex items-center gap-1">
-                      <Users className="w-3 h-3" /> {member.city}
-                    </span>
-                    <span>{new Date(member.date).toLocaleDateString('tr-TR')}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-100">
               <p className="text-xs font-bold text-slate-500">Kazanılan aylık gelir</p>
               <p className="text-lg font-black text-emerald-600 mt-0.5">
-                +{(PLAN_PRICES.plan_gold + PLAN_PRICES.plan_pro * 2 + PLAN_PRICES.plan_starter).toLocaleString('tr-TR')}₺
+                +{monthlyRevenue.toLocaleString('tr-TR')}₺
               </p>
             </div>
           </div>

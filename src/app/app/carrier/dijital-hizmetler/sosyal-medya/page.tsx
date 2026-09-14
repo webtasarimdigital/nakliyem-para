@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -197,48 +197,49 @@ export default function SosyalMedyaServicePage() {
                   <span className="text-slate-400 text-sm font-bold tracking-widest cursor-pointer px-1">•••</span>
                 </div>
 
-                {/* 2. Visual Ad Banner (Real Moving Company Photo Scene) */}
-                <div className="relative bg-slate-900 aspect-square flex flex-col justify-between overflow-hidden text-white">
+                {/* 2. Visual Ad Banner (Aydınlık & Temiz Gerçekçi Nakliyat Sahnesi - Koyu Arka Plan Kaldırıldı) */}
+                <div className="relative bg-gradient-to-b from-amber-50/60 via-orange-50/30 to-slate-50 aspect-square flex flex-col justify-between overflow-hidden text-slate-800 border-y border-slate-200">
                   
-                  {/* Real Moving Truck Scene Image Background */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80 z-10" />
-                  
-                  {/* Background Photo Placeholder with realistic truck overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-slate-800">
-                    <div className="text-center space-y-2 p-6 z-0">
-                      <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 mx-auto flex items-center justify-center text-4xl shadow-inner">
-                        🚛
-                      </div>
-                      <h4 className="text-lg font-black text-white tracking-wide">
-                        YILDIZ NAKLİYAT
-                      </h4>
-                      <p className="text-xs text-slate-300 max-w-xs mx-auto">
-                        Evden Eve Nakliyat & 15. Kat Modüler Asansörlü Taşımacılık
-                      </p>
-                    </div>
-                  </div>
-
                   {/* Top Badges */}
-                  <div className="relative z-20 p-3.5 flex items-center justify-between">
-                    <span className="px-2.5 py-1 rounded-full bg-[#F95700] text-white text-[10px] font-black shadow-sm flex items-center gap-1">
+                  <div className="relative z-10 p-3.5 flex items-center justify-between">
+                    <span className="px-2.5 py-1 rounded-full bg-[#F95700] text-white text-[10px] font-black shadow-xs flex items-center gap-1">
                       <Zap className="w-3 h-3 fill-current" /> %20 Erken Rezervasyon İndirimi
                     </span>
-                    <span className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-xs text-[10px] font-bold text-slate-200">
-                      Kadıköy / Moda
+                    <span className="px-2 py-0.5 rounded-md bg-white/90 border border-slate-200 text-[10px] font-bold text-slate-700 shadow-2xs">
+                      Kadıköy / İstanbul
                     </span>
                   </div>
 
-                  {/* Bottom Features Strip Over Image */}
-                  <div className="relative z-20 p-3.5 bg-gradient-to-t from-black/90 to-transparent space-y-1">
-                    <div className="text-sm font-black text-white">
-                      Çift Kat Patpat Ambalaj · Marangozlu Söküm-Montaj · Sigortalı
+                  {/* Center Content: Realistic daylight transport showcase */}
+                  <div className="relative z-10 text-center space-y-2 p-4">
+                    <div className="w-20 h-20 rounded-2xl bg-white border-2 border-orange-200 shadow-sm mx-auto flex items-center justify-center text-4xl">
+                      🚛
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-300 font-medium">
+                    <div className="space-y-0.5">
+                      <h4 className="text-base sm:text-lg font-black text-[#0A1128] tracking-tight">
+                        YILDIZ NAKLİYAT
+                      </h4>
+                      <p className="text-xs font-semibold text-[#F95700]">
+                        Evden Eve Nakliyat & Asansörlü Taşıma
+                      </p>
+                    </div>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                      <span>K3 Yetki Belgeli · Sigortalı Taşıma</span>
+                    </div>
+                  </div>
+
+                  {/* Bottom Features Strip Over Light Card */}
+                  <div className="relative z-10 p-3 bg-white/95 border-t border-slate-200 space-y-1">
+                    <div className="text-xs font-black text-slate-900">
+                      Çift Kat Patpat Ambalaj · Marangozlu Söküm-Montaj · Asansörlü
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-500 font-semibold">
                       <span>✓ 15 Yıllık Tecrübe</span>
                       <span>•</span>
-                      <span>✓ Sözleşmeli Sabit Fiyat</span>
+                      <span>✓ Sabit Fiyat Garantisi</span>
                       <span>•</span>
-                      <span>★ 4.9 Puan</span>
+                      <span className="text-amber-600 font-bold">★ 4.9 Müşteri Puanı</span>
                     </div>
                   </div>
 

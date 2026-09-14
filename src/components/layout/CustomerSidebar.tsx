@@ -49,23 +49,63 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
       }
     }
 
+    // Locally persisted closed/assigned state map
+    let closedMap: Record<string, { status: any; closedReason?: string }> = {};
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('tasinteklif_closed_requests');
+        if (raw) closedMap = JSON.parse(raw);
+      } catch {}
+    }
+
     const map = new Map<string, MovingRequest>();
-    firestoreReqs.forEach(fr => map.set(fr.id, fr));
-    localReqs.forEach(lr => {
-      const existing = map.get(lr.id);
-      if (!existing) {
-        map.set(lr.id, lr);
+    firestoreReqs.forEach(fr => {
+      const override = closedMap[fr.id] || (fr.requestCode ? closedMap[fr.requestCode] : null);
+      if (override) {
+        map.set(fr.id, { ...fr, status: override.status, closedReason: override.closedReason });
       } else {
-        const localTime = new Date(lr.updatedAt || lr.createdAt || 0).getTime();
+        map.set(fr.id, fr);
+      }
+    });
+
+    localReqs.forEach(lr => {
+      const override = closedMap[lr.id] || (lr.requestCode ? closedMap[lr.requestCode] : null);
+      const effectiveLr = override ? { ...lr, status: override.status, closedReason: override.closedReason } : lr;
+
+      const existing = map.get(effectiveLr.id);
+      if (!existing) {
+        map.set(effectiveLr.id, effectiveLr);
+      } else {
+        const localTime = new Date(effectiveLr.updatedAt || effectiveLr.createdAt || 0).getTime();
         const firestoreTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
-        if (localTime >= firestoreTime || lr.status === 'CLOSED' || lr.status === 'ASSIGNED') {
-          map.set(lr.id, { ...existing, ...lr });
+        if (localTime >= firestoreTime || effectiveLr.status === 'CLOSED' || effectiveLr.status === 'ASSIGNED') {
+          map.set(effectiveLr.id, { ...existing, ...effectiveLr });
         }
       }
     });
 
     setRequests(Array.from(map.values()));
-    setOffers(db.getOffers());
+
+    let firestoreOffers: Offer[] = [];
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        const snapOffers = await getDocs(collection(firestoreDb, 'offers'));
+        firestoreOffers = snapOffers.docs.map(doc => ({
+          ...(doc.data() as Offer),
+          id: doc.id
+        }));
+      } catch (err) {
+        console.warn('Sidebar firestore offers error:', err);
+      }
+    }
+
+    const mergedOffers = [...db.getOffers()];
+    firestoreOffers.forEach(fo => {
+      if (!mergedOffers.some(o => o.id === fo.id)) {
+        mergedOffers.push(fo);
+      }
+    });
+    setOffers(mergedOffers);
   };
 
   useEffect(() => {
@@ -111,8 +151,17 @@ export function CustomerSidebar({ activeTab }: CustomerSidebarProps) {
   // Counts strictly for this logged-in user
   const myRequests = currentUser ? requests.filter((r: MovingRequest) => isUserRequest(r, currentUser)) : [];
   const requestCount = myRequests.filter((r: MovingRequest) => r.status === 'ACTIVE').length;
-  const myOffers = currentUser ? offers.filter((o: Offer) => myRequests.some((r: MovingRequest) => r.id === o.requestId)) : [];
-  const offerCount = myOffers.length;
+  const offerCount = myRequests.reduce((acc, req) => {
+    const matchedOffers = offers.filter(o => 
+      o.requestId === req.id || 
+      (req.requestCode && o.requestId === req.requestCode) ||
+      (o as any).requestContextId === req.id
+    );
+    const localCount = db.getOffersForRequest(req.id).length;
+    const byCodeCount = req.requestCode ? db.getOffersForRequest(req.requestCode).length : 0;
+    const reqOffersCount = req.offersCount || 0;
+    return acc + Math.max(matchedOffers.length, localCount, byCodeCount, reqOffersCount);
+  }, 0);
   const unreadMessagesCount = 0;
   const trackingCount = 0;
 

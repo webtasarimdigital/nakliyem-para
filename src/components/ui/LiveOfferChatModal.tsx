@@ -33,6 +33,8 @@ export function LiveOfferChatModal({
   requestId = '#26093',
   offerPrice = 25000
 }: LiveOfferChatModalProps) {
+  const convKey = `live_chat_${requestId}_${carrierSlug || carrierName.replace(/\s+/g, '_')}`;
+
   const [messages, setMessages] = useState<{
     id: string;
     sender: 'CARRIER' | 'CUSTOMER';
@@ -40,27 +42,55 @@ export function LiveOfferChatModal({
     content: string;
     mediaUrl?: string;
     time: string;
-  }[]>([
-    {
-      id: 'm1',
-      sender: 'CARRIER',
-      type: 'OFFER_CARD',
-      content: `${requestId} · ${carrierName}\n· ${offerPrice.toLocaleString('tr-TR')} TL fiyat teklifi verildi`,
-      time: 'Yeni'
-    },
-    {
-      id: 'm2',
-      sender: 'CARRIER',
-      type: 'TEXT',
-      content: `Merhaba, talebiniz için ${offerPrice.toLocaleString('tr-TR')} TL teklifimizi ilettik. Sorularınız olursa buradan dilediğiniz an yazabilirsiniz.`,
-      time: 'Yeni'
-    }
-  ]);
+  }[]>([]);
 
   const [inputMessage, setInputMessage] = useState('');
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Sync / load messages when modal opens or offer props change
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(convKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setMessages(parsed);
+            return;
+          }
+        }
+      } catch {}
+    }
+
+    // Default initial messages for this specific offer
+    const initialList = [
+      {
+        id: `offer_card_${requestId}`,
+        sender: 'CARRIER' as const,
+        type: 'OFFER_CARD' as const,
+        content: `${requestId} · ${carrierName}\n· ${Number(offerPrice || 0).toLocaleString('tr-TR')} TL fiyat teklifi verildi`,
+        time: 'Yeni'
+      },
+      {
+        id: `offer_intro_${requestId}`,
+        sender: 'CARRIER' as const,
+        type: 'TEXT' as const,
+        content: `Merhaba, talebiniz için ${Number(offerPrice || 0).toLocaleString('tr-TR')} TL teklifimizi ilettik. Sorularınız olursa buradan dilediğiniz an yazabilirsiniz.`,
+        time: 'Yeni'
+      }
+    ];
+
+    setMessages(initialList);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(convKey, JSON.stringify(initialList));
+      } catch {}
+    }
+  }, [isOpen, carrierName, carrierSlug, requestId, offerPrice]);
 
   useEffect(() => {
     if (isOpen) {
@@ -74,35 +104,72 @@ export function LiveOfferChatModal({
     e.preventDefault();
     if (!inputMessage.trim()) return;
 
+    const trimmed = inputMessage.trim();
     const newMsg = {
       id: `cust_${Date.now()}`,
       sender: 'CUSTOMER' as const,
       type: 'TEXT' as const,
-      content: inputMessage.trim(),
+      content: trimmed,
       time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages(prev => [...prev, newMsg]);
+    setMessages(prev => {
+      const updated = [...prev, newMsg];
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(convKey, JSON.stringify(updated));
+        } catch {}
+      }
+      return updated;
+    });
+
+    // Save message to mock-db conversation so carrier can see it in /app/carrier/mesajlar
+    try {
+      const allConvs = db.getConversations();
+      let matchedConv = allConvs.find(c => c.contextId === requestId || c.contextTitle?.includes(requestId));
+      if (!matchedConv) {
+        matchedConv = db.createConversation({
+          participantIds: ['user_cust_1', carrierSlug || 'user_carr_1'],
+          participantNames: {
+            'user_cust_1': db.getCurrentUser()?.fullName || 'Müşteri',
+            [carrierSlug || 'user_carr_1']: carrierName
+          },
+          contextType: 'REQUEST',
+          contextId: requestId,
+          contextTitle: `${requestId} - ${carrierName}`,
+          initialMessage: trimmed
+        });
+      } else {
+        db.sendMessage(matchedConv.id, {
+          senderId: db.getCurrentUser()?.id || 'user_cust_1',
+          senderName: db.getCurrentUser()?.fullName || 'Müşteri',
+          senderRole: 'CUSTOMER',
+          content: trimmed
+        });
+      }
+    } catch (err) {
+      console.warn('Mesaj mock-db senkronizasyon hatası:', err);
+    }
+
+    // Sync to server API
+    try {
+      fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId,
+          carrierName,
+          content: trimmed,
+          senderRole: 'CUSTOMER'
+        })
+      }).catch(() => {});
+    } catch {}
+
     setInputMessage('');
 
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 50);
-
-    // Simulated carrier reply after 1.5 seconds
-    setTimeout(() => {
-      const reply = {
-        id: `carr_${Date.now()}`,
-        sender: 'CARRIER' as const,
-        type: 'TEXT' as const,
-        content: 'Merhabalar! Eşyalarınız profesyonel ekibimiz tarafından çift kat patpat naylonla paketlenecektir. Asansör kurulumu dahildir, gün ve saati kesinleştirebiliriz.',
-        time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, reply]);
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 50);
-    }, 1500);
   };
 
   const scrollToBottom = () => {

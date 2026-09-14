@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, use } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { 
   ChevronLeft, 
@@ -135,7 +135,42 @@ const SAMPLE_LISTINGS = [
 
 export default function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const listing = SAMPLE_LISTINGS.find(l => l.id === id) || SAMPLE_LISTINGS[0];
+
+  const [userListings, setUserListings] = useState<any[]>(() => {
+    if (typeof window !== 'undefined') {
+      return db.getMarketplaceListings();
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    setUserListings(db.getMarketplaceListings());
+  }, []);
+
+  const allListings = [...userListings, ...SAMPLE_LISTINGS];
+  const rawListing = allListings.find(l => String(l.id) === String(id)) || SAMPLE_LISTINGS[0];
+
+  const specs: { label: string; value: string }[] = (rawListing.specs && rawListing.specs.length > 0) ? rawListing.specs : [
+    ...(rawListing.year ? [{ label: 'YIL', value: String(rawListing.year) }] : []),
+    ...(rawListing.km !== undefined && rawListing.km !== null && rawListing.km > 0 ? [{ label: 'KM', value: `${Number(rawListing.km).toLocaleString('tr-TR')} km` }] : []),
+    ...(rawListing.transmission ? [{ label: 'VİTES', value: rawListing.transmission }] : []),
+    ...(rawListing.fuel ? [{ label: 'YAKIT', value: rawListing.fuel }] : []),
+    ...(rawListing.brand ? [{ label: 'MARKA', value: rawListing.brand }] : []),
+    ...(rawListing.model ? [{ label: 'MODEL', value: rawListing.model }] : []),
+    ...(rawListing.category ? [{ label: 'KATEGORİ', value: rawListing.category }] : []),
+  ];
+
+  const photos: string[] = (rawListing.photos && rawListing.photos.length > 0) ? rawListing.photos : ['https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=1200'];
+
+  const listing = {
+    ...rawListing,
+    specs,
+    sellerName: rawListing.sellerName || 'Satıcı Firma',
+    sellerPhone: rawListing.sellerPhone || '0850 000 00 00',
+    city: rawListing.city || 'Belirtilmedi',
+    district: rawListing.district || '',
+    photos,
+  };
   
   const [activePhoto, setActivePhoto] = useState(0);
   const [showPhone, setShowPhone] = useState(false);
@@ -250,7 +285,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       {listing.photos.length} fotoğraf
                     </div>
                     <div className="absolute bottom-3 left-3 flex gap-1.5">
-                      {listing.photos.map((_, i) => (
+                      {listing.photos.map((_: string, i: number) => (
                         <button
                           key={i}
                           onClick={() => setActivePhoto(i)}
@@ -265,7 +300,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
               {/* Thumbnail Strip */}
               {listing.photos.length > 1 && (
                 <div className="flex gap-2 p-3 overflow-x-auto">
-                  {listing.photos.map((photo, i) => (
+                  {listing.photos.map((photo: string, i: number) => (
                     <button
                       key={i}
                       onClick={() => setActivePhoto(i)}
@@ -448,7 +483,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                   Araç Bilgileri
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {listing.specs.map((spec, i) => (
+                  {listing.specs.map((spec: { label: string; value: string }, i: number) => (
                     <div key={i} className="space-y-1">
                       <span className="block text-[11px] text-slate-400 font-black uppercase tracking-wider">
                         {spec.label}

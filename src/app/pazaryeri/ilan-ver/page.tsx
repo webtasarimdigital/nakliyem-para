@@ -13,7 +13,9 @@ import {
   Settings2,
   Wrench,
   AlertCircle,
-  ImagePlus
+  ImagePlus,
+  CheckCircle2,
+  MapPin
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FileUploader } from '@/components/ui/FileUploader';
@@ -121,6 +123,11 @@ export default function IlanVerPage() {
         setValidationError('Lütfen ilçe bilgisini giriniz.');
         return;
       }
+      const words = form.description.trim().split(/\s+/).filter(Boolean);
+      if (words.length < 10) {
+        setValidationError(`Lütfen açıklama alanına en az 10 kelime yazınız. (Şu an: ${words.length} kelime)`);
+        return;
+      }
     } else if (step === 'CONTACT') {
       if (!form.sellerName || form.sellerName.trim().length < 3) {
         setValidationError('Lütfen adınızı ve soyadınızı eksiksiz giriniz.');
@@ -131,8 +138,9 @@ export default function IlanVerPage() {
         setValidationError('Lütfen en az 10 haneli geçerli bir telefon numarası giriniz.');
         return;
       }
-      if (!form.description || form.description.trim().length < 10) {
-        setValidationError('Lütfen en az 10 karakterlik bir ilan açıklaması giriniz.');
+      const words = form.description.trim().split(/\s+/).filter(Boolean);
+      if (words.length < 10) {
+        setValidationError(`Lütfen açıklama alanına en az 10 kelime yazınız. (Şu an: ${words.length} kelime)`);
         return;
       }
     }
@@ -154,6 +162,7 @@ export default function IlanVerPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [createdListing, setCreatedListing] = useState<any | null>(null);
 
   const handleSubmit = () => {
     setIsSubmitting(true);
@@ -186,6 +195,7 @@ export default function IlanVerPage() {
     };
 
     db.addMarketplaceListing(newListing);
+    setCreatedListing(newListing);
 
     setTimeout(() => {
       setIsSubmitting(false);
@@ -193,29 +203,154 @@ export default function IlanVerPage() {
     }, 600);
   };
 
-  if (submitted) {
+  if (submitted && createdListing) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4">
-        <div className="bg-white rounded-3xl border border-slate-200 p-10 sm:p-14 max-w-md w-full text-center shadow-xl">
-          <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
-            <Check className="w-10 h-10 text-emerald-600" />
+      <div className="min-h-screen bg-[#F8FAFC] py-8 sm:py-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-6">
+            <Link href="/" className="hover:text-[#F95700]">Ana Sayfa</Link>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <Link href="/pazaryeri" className="hover:text-[#F95700]">Pazaryeri</Link>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span className="text-[#111E38] font-bold">İlan Onayı</span>
+          </nav>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Left Column (7 cols): Confirmation, Details & Actions */}
+            <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-xs space-y-6">
+              
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
+                  <Check className="w-8 h-8 stroke-[3]" />
+                </div>
+                <div>
+                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold mb-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Başarıyla Yayına Alındı</span>
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-black text-[#111E38] tracking-tight">
+                    İlanınız Yayında!
+                  </h1>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-sm text-slate-600 font-medium">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-500 pb-2 border-b border-slate-200/60">
+                  <span>İlan Numarası</span>
+                  <span className="font-mono text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                    #{createdListing.id}
+                  </span>
+                </div>
+                <p className="leading-relaxed pt-1">
+                  İlanınız TaşınTeklif Pazaryeri sisteminde aktif hale getirildi. İlgilenen alıcılar ve nakliyeciler ilan sayfanızdaki mesajlaşma veya telefon butonuyla doğrudan sizinle irtibata geçebilir.
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <Link href={`/pazaryeri/${createdListing.id}`} className="block">
+                  <Button variant="primary" size="lg" className="w-full font-black text-sm justify-center">
+                    İlanımı Pazaryerinde Gör
+                  </Button>
+                </Link>
+                <Link href="/pazaryeri" className="block">
+                  <Button variant="outline" size="lg" className="w-full font-bold text-sm justify-center border-2">
+                    Tüm Pazaryerini İncele
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSubmitted(false);
+                    setCreatedListing(null);
+                    setStep('CATEGORY');
+                    setForm({
+                      category: '',
+                      condition: 'IKINCI_EL',
+                      title: '',
+                      brand: '',
+                      model: '',
+                      year: '2020',
+                      km: '',
+                      transmission: 'Manuel',
+                      fuel: 'Dizel',
+                      bodyType: '',
+                      price: '',
+                      isNegotiable: false,
+                      city: 'İstanbul',
+                      district: '',
+                      description: '',
+                      photos: [],
+                      sellerName: '',
+                      sellerPhone: '',
+                      isPhoneVisible: true,
+                    });
+                  }}
+                  className="text-xs font-bold text-[#F95700] hover:underline cursor-pointer inline-flex items-center gap-1"
+                >
+                  <span>+ Yeni Bir İlan Daha Ver</span>
+                </button>
+                <Link href="/" className="text-xs font-bold text-slate-500 hover:text-slate-800">
+                  Ana Sayfaya Dön
+                </Link>
+              </div>
+
+            </div>
+
+            {/* Right Column (5 cols): Live Preview Card */}
+            <div className="lg:col-span-5 space-y-3">
+              <div className="text-xs font-black text-slate-500 uppercase tracking-wider px-1">
+                İlan Önizlemesi
+              </div>
+
+              <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-shadow">
+                <div className="relative aspect-video bg-slate-900 overflow-hidden">
+                  <img
+                    src={createdListing.photos[0]}
+                    alt={createdListing.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white text-xs font-bold">
+                    {createdListing.condition === 'SIFIR' ? 'Sıfır' : 'İkinci El'}
+                  </div>
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-emerald-500 text-white text-xs font-black">
+                    Yayında
+                  </div>
+                </div>
+
+                <div className="p-5 space-y-3">
+                  <div className="text-2xl font-black text-[#F95700]">
+                    {createdListing.priceLabel}
+                    {createdListing.isNegotiable && (
+                      <span className="text-xs font-bold text-slate-500 ml-2">Pazarlıklı</span>
+                    )}
+                  </div>
+
+                  <h3 className="font-bold text-[#111E38] text-base leading-snug line-clamp-2">
+                    {createdListing.title}
+                  </h3>
+
+                  <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{createdListing.city}{createdListing.district ? `, ${createdListing.district}` : ''}</span>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-600">
+                    <span>Satıcı: {createdListing.sellerName}</span>
+                    <span>{createdListing.sellerPhone}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
-          <h2 className="text-2xl font-black text-[#111E38] mb-3">İlanınız Alındı!</h2>
-          <p className="text-slate-600 font-medium leading-relaxed mb-8">
-            İlanınız incelemeye alındı. Onaylanması birkaç saat içinde gerçekleşecek ve yayına girecek.
-          </p>
-          <div className="space-y-3">
-            <Link href="/pazaryeri">
-              <Button variant="primary" size="lg" className="w-full font-black">
-                Pazaryerini İncele
-              </Button>
-            </Link>
-            <Link href="/">
-              <Button variant="outline" size="lg" className="w-full font-bold">
-                Ana Sayfaya Dön
-              </Button>
-            </Link>
-          </div>
+
         </div>
       </div>
     );
@@ -412,14 +547,23 @@ export default function IlanVerPage() {
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Fiyat (TL)</label>
                   <div className="flex gap-3">
-                    <input
-                      type="number"
-                      value={form.price}
-                      onChange={(e) => update('price', e.target.value)}
-                      placeholder="1.500.000"
-                      className="flex-1 border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111E38] focus:border-[#F95700] focus:outline-none"
-                    />
-                    <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={form.price ? Number(String(form.price).replace(/\D/g, '')).toLocaleString('tr-TR') : ''}
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, '');
+                          update('price', digits);
+                        }}
+                        placeholder="1.200.000"
+                        className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 pr-10 text-sm font-black text-[#111E38] focus:border-[#F95700] focus:outline-none"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400 pointer-events-none">
+                        TL
+                      </span>
+                    </div>
+                    <label className="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer select-none">
                       <input 
                         type="checkbox" 
                         checked={form.isNegotiable}
@@ -456,14 +600,32 @@ export default function IlanVerPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Açıklama</label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Açıklama</label>
+                    <span className={`text-xs font-black px-2 py-0.5 rounded-full ${
+                      form.description.trim().split(/\s+/).filter(Boolean).length >= 10
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-slate-100 text-slate-500'
+                    }`}>
+                      {form.description.trim().split(/\s+/).filter(Boolean).length}/10 kelime
+                    </span>
+                  </div>
                   <textarea
                     value={form.description}
                     onChange={(e) => update('description', e.target.value)}
                     rows={4}
-                    placeholder="Araç veya ürün hakkında detaylı açıklama yazın..."
-                    className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111E38] focus:border-[#F95700] focus:outline-none resize-none"
+                    placeholder="Araç veya ürün hakkında detaylı açıklama yazın... (En az 10 kelime olmalıdır)"
+                    className={`w-full border-2 rounded-xl px-3 py-2.5 text-sm font-medium text-[#111E38] focus:outline-none resize-none ${
+                      form.description.trim().split(/\s+/).filter(Boolean).length < 10 && form.description.length > 0
+                        ? 'border-amber-300 focus:border-amber-500'
+                        : 'border-slate-200 focus:border-[#F95700]'
+                    }`}
                   />
+                  {form.description.trim().split(/\s+/).filter(Boolean).length < 10 && (
+                    <p className="text-[11px] text-amber-600 font-semibold mt-1">
+                      İlanınızın yayına girmesi için en az 10 kelime açıklama yazmalısınız.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

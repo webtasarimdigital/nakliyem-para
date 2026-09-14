@@ -19,6 +19,7 @@ import { openSupportChat } from '@/components/ui/SupportChatWidget';
 import { Offer, MovingRequest } from '@/types';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+import { updateFirestoreRequest } from '@/lib/firebase/firestore';
 import { sendNotificationEmail } from '@/lib/services/notification-service';
 
 const CRITERIA = [
@@ -248,9 +249,73 @@ function CustomerOffersContent() {
     return 0;
   });
 
-  const handleAccept = () => {
+  const handleAccept = async () => {
     if (!selectedOffer || !activeReq) return;
+
+    // 1. Update mock-db
     db.acceptOffer(activeReq.id, selectedOffer.id);
+    db.updateRequest(activeReq.id, {
+      status: 'ASSIGNED',
+      closedReason: 'İş Verildi',
+      assignedCarrierId: selectedOffer.carrierId,
+      assignedOfferId: selectedOffer.id
+    });
+
+    // 2. Persist to closed requests map in localStorage
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('tasinteklif_closed_requests') || '{}';
+        const parsed = JSON.parse(raw);
+        parsed[activeReq.id] = { status: 'ASSIGNED', closedReason: 'İş Verildi' };
+        if (activeReq.requestCode) {
+          parsed[activeReq.requestCode] = { status: 'ASSIGNED', closedReason: 'İş Verildi' };
+        }
+        localStorage.setItem('tasinteklif_closed_requests', JSON.stringify(parsed));
+      } catch {}
+    }
+
+    // 3. Update Firestore if configured
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        await updateFirestoreRequest(activeReq.id, {
+          status: 'ASSIGNED',
+          closedReason: 'İş Verildi',
+          assignedCarrierId: selectedOffer.carrierId,
+          assignedOfferId: selectedOffer.id
+        });
+      } catch (err) {
+        console.warn('Firestore teklif kabul hatası:', err);
+      }
+    }
+
+    // 4. Update Server API
+    try {
+      await fetch('/api/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: activeReq.id,
+          status: 'ASSIGNED',
+          closedReason: 'İş Verildi',
+          assignedCarrierId: selectedOffer.carrierId,
+          assignedOfferId: selectedOffer.id
+        })
+      });
+    } catch {}
+
+    // 5. Update local state
+    setRequests(prev => prev.map(r => 
+      (r.id === activeReq.id || (activeReq.requestCode && r.requestCode === activeReq.requestCode))
+        ? { ...r, status: 'ASSIGNED' as const, closedReason: 'İş Verildi', assignedCarrierId: selectedOffer.carrierId, assignedOfferId: selectedOffer.id }
+        : r
+    ));
+
+    // 6. Notify sidebar and other views
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('request-added'));
+    }
+
     setSuccessOffer(selectedOffer);
 
     // Send transactional email to carrier

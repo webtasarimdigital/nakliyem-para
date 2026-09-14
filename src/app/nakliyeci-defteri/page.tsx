@@ -25,6 +25,7 @@ import {
 import { IntentAuthModal } from '@/components/ui/IntentAuthModal';
 import { db } from '@/lib/data/mock-db';
 import { DefterPost, DefterPostCategory } from '@/types';
+import { createFirestoreDefterPost, subscribeToFirestoreDefterPosts } from '@/lib/firebase/firestore';
 
 // Helper: Canlı göreceli zaman formatı
 function formatRelativeTime(dateString?: string): string {
@@ -69,24 +70,46 @@ export default function NakliyeciDefteriPage() {
 
   const [posts, setPosts] = useState<DefterPost[]>(() => db.getDefterPosts());
 
-  // Sayfa yüklenince server'dan defter postlarını çek ve merge et
+  // Gerçek zamanlı Firestore aboneliği ve API senkronizasyonu
   useEffect(() => {
+    // 1. Canlı Firestore Dinleyicisi (Gizli sekme, müşteri veya diğer cihazlar anında görür)
+    const unsub = subscribeToFirestoreDefterPosts((livePosts) => {
+      if (livePosts && livePosts.length > 0) {
+        setPosts(prev => {
+          const map = new Map<string, DefterPost>();
+          livePosts.forEach(p => map.set(p.id, p));
+          prev.forEach(p => {
+            if (!map.has(p.id)) map.set(p.id, p);
+          });
+          return Array.from(map.values()).sort(
+            (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+          );
+        });
+      }
+    });
+
+    // 2. Server API fallback/ilk yükleme
     fetch('/api/defter-posts')
       .then(r => r.json())
       .then(data => {
         if (data.success && Array.isArray(data.posts) && data.posts.length > 0) {
           setPosts(prev => {
-            const merged = [...data.posts, ...prev];
-            const seen = new Set<string>();
-            return merged.filter(p => {
-              if (seen.has(p.id)) return false;
-              seen.add(p.id);
-              return true;
-            }).sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+            const map = new Map<string, DefterPost>();
+            data.posts.forEach((p: DefterPost) => map.set(p.id, p));
+            prev.forEach(p => {
+              if (!map.has(p.id)) map.set(p.id, p);
+            });
+            return Array.from(map.values()).sort(
+              (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+            );
           });
         }
       })
       .catch(() => {/* server yoksa sadece localStorage */});
+
+    return () => {
+      if (unsub) unsub();
+    };
   }, []);
 
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
@@ -192,14 +215,32 @@ export default function NakliyeciDefteriPage() {
       expiresAt: new Date(Date.now() + 3 * 86400000).toISOString()
     };
 
+    // 1. Canlı Firestore yayını (tüm istemciler ve gizli sekmeler anında görür)
+    createFirestoreDefterPost(newPost).catch(err => {
+      console.warn('createFirestoreDefterPost publish error:', err);
+    });
+
+    // 2. Mock DB (yerel depolama)
     db.addDefterPost(newPost);
-    // Server'a da kaydet
+
+    // 3. Server API senkronizasyonu
     fetch('/api/defter-posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ post: newPost })
     }).catch(() => {/* server yoksa sessizce devam */});
-    setPosts([newPost, ...db.getDefterPosts()]);
+
+    // 4. Anında yerel state güncellemesi
+    setPosts(prev => {
+      const map = new Map<string, DefterPost>();
+      map.set(newPost.id, newPost);
+      prev.forEach(p => {
+        if (!map.has(p.id)) map.set(p.id, p);
+      });
+      return Array.from(map.values()).sort(
+        (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+      );
+    });
     setInlineContent('');
     setPublishSuccess(true);
     setTimeout(() => setPublishSuccess(false), 5000);
@@ -453,7 +494,9 @@ export default function NakliyeciDefteriPage() {
             </div>
           ) : (
             filteredPosts.map((post) => {
-              const initials = getInitials(post.carrier.companyName);
+              const carrierName = post.carrier?.companyName || 'Nakliye Firması';
+              const carrierSlug = post.carrier?.slug || 'nakliye-firmasi';
+              const initials = getInitials(carrierName);
               const isPhoneRevealed = revealedPhones[post.id];
 
               return (
@@ -470,17 +513,17 @@ export default function NakliyeciDefteriPage() {
                       <div>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <Link
-                            href={`/firma/${post.carrier.slug}`}
+                            href={`/firma/${carrierSlug}`}
                             className="font-bold text-sm sm:text-base text-[#111E38] hover:text-[#F95700] transition-colors"
                           >
-                            {post.carrier.companyName}
+                            {carrierName}
                           </Link>
-                          {post.carrier.verificationStatus === 'APPROVED' && (
+                          {post.carrier?.verificationStatus === 'APPROVED' && (
                             <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                           )}
                         </div>
                         <div className="text-xs text-slate-400 font-medium">
-                          {post.carrier.joinedAt ? `${new Date(post.carrier.joinedAt).getFullYear()} katıldı` : 'Onaylı Nakliyeci'} · {post.originCity} · {formatRelativeTime(post.createdAt)}
+                          {post.carrier?.joinedAt ? `${new Date(post.carrier.joinedAt).getFullYear()} katıldı` : 'Onaylı Nakliyeci'} · {post.originCity} · {formatRelativeTime(post.createdAt)}
                         </div>
                       </div>
                     </div>
@@ -542,7 +585,7 @@ export default function NakliyeciDefteriPage() {
                       >
                         <Phone className="w-3.5 h-3.5 text-[#F95700]" />
                         <span>
-                          {isPhoneRevealed ? (post.carrier.phone || 'Numara Belirtilmedi') : 'Numarayı Göster'}
+                          {isPhoneRevealed ? (post.carrier?.phone || 'Numara Belirtilmedi') : 'Numarayı Göster'}
                         </span>
                       </button>
                     </div>

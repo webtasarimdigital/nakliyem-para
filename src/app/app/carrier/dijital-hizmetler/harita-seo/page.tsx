@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -16,14 +16,14 @@ import {
   Check,
   X,
   ChevronDown,
-  Navigation,
-  Globe,
   TrendingUp,
   Award,
   Clock,
   Search,
+  Navigation,
+  Globe,
   Flame,
-  AlertTriangle
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { CarrierDigitalSidebar } from '@/components/layout/CarrierDigitalSidebar';
@@ -31,81 +31,84 @@ import { db } from '@/lib/data/mock-db';
 
 const PACKAGES = [
   {
-    name: "Harita Kurulum & Onay",
-    desc: "Google Haritalar kaydı hiç olmayan veya onaylanamayanlar için",
-    price: "1.200 TL",
-    period: "tek seferlik",
+    name: 'İlçe Harita Liderliği',
+    desc: 'Kendi ilçesinde Google Haritalar ilk 3 sırada yer almak isteyen nakliyeciler',
+    price: '950 TL',
+    period: '/ ay',
     isFeatured: false,
     badge: null,
     features: [
-      "Google Business Profil Resmi Açılışı",
-      "Doğru Pin Konumu & K3 Hizmet Alanı Tanımı",
-      "Kategori Optimizasyonu (Evden Eve Nakliyat)",
-      "Logo, Araç & Ambalajlama Fotoğraf Yüklemesi",
-      "Hızlı Doğrulama Süreç Yönetimi"
+      'Google İşletme Profili (Google Business) Kurulumu ve Doğrulama',
+      '1 İlçe Odaklı Harita SEO ve Konum Optimizasyonu',
+      'Doğru Kategori Seçimi (Evden Eve Nakliyat, Şehirlerarası)',
+      'Hizmet Alanları ve Mahalle Tanımlamaları',
+      'Aylık Harita Görüntülenme & Arama Raporu'
     ]
   },
   {
-    name: "Harita 1. Sıra Yükseltme",
-    desc: "İl ve ilçesinde haritalarda ilk 3 sıra (Google 3-Pack) hedefleyenler",
-    price: "2.200 TL",
-    period: "tek seferlik",
+    name: 'Bölgesel Harita Dominasyonu',
+    desc: 'İstanbul veya büyükşehirde birden fazla ilçede haritada 1. sırada çıkmak isteyenler',
+    price: '1.950 TL',
+    period: '/ ay',
     isFeatured: true,
-    badge: "EN ÇOK TERCİH EDİLEN",
+    badge: 'EN ÇOK TERCİH EDİLEN',
     features: [
-      "Yerel Harita SEO Algoritma Optimizasyonu",
-      "İlçe Bazlı Anahtar Kelime Yerleşimi",
-      "Müşteri Yorum Toplama Şablonu & QR Kod",
-      "Rakipleri Geride Bırakan Hizmet Etiketleri",
-      "Doğrudan Telefon Arama Çağrısı Artışı",
-      "1 Ay Boyunca Sıralama Takibi & Destek"
+      'Ana Konum + Çevre 5 İlçe Harita Eşleşmesi',
+      'Google Haritalar Yerel Arama Sıralama Yükseltme',
+      'Organik Müşteri Yorum Toplama Sistemi (Yıldız Puanı 4.9+)',
+      'Yerel Dizin ve Navigasyon Kayıtları (Yandex, Apple Maps vb.)',
+      'Fotoğraf, Logo ve Yetki Belgesi Zengin İçerik Yüklemesi',
+      'Haftalık Arama ve Doğrudan Çağrı Raporu'
     ]
   },
   {
-    name: "Sürekli Harita Yönetimi & Koruma",
-    desc: "Zirveyi bırakmak istemeyen ve düzenli yorum akışı isteyenler",
-    price: "1.000 TL",
-    period: "/ aylık",
+    name: 'Mega Şehir & Çoklu Şube Harita Ağı',
+    desc: 'Büyük filolar ve birden fazla garaj/şube konumu olan kurumsal nakliyat firmaları',
+    price: '3.450 TL',
+    period: '/ ay',
     isFeatured: false,
-    badge: "SÜREKLİ BÜYÜME",
+    badge: 'FİLOLAR İÇİN',
     features: [
-      "Haftalık Düzenli Gönderi & Fotoğraf Paylaşımı",
-      "Olumsuz Yorum Kriz & Silme Yönetimi",
-      "Sahte & Spam Rakip Haritalarını Google'a Şikayet",
-      "Aylık Arama & Çağrı Performans Raporu",
-      "Öncelikli 7/24 Harita Danışmanı"
+      'Tüm Şehir Geneli ve Çoklu Şube / Garaj Harita Ağ Kurulumu',
+      'Google Harita Reklamları (Promoted Pin) Entegrasyonu',
+      'Negatif ve Sahte Yorum Temizleme / İtiraz Desteği',
+      '7/24 Harita Pozisyon İzleme ve Rakip Hamle Takibi',
+      'Özel Yerel SEO Danışmanı ve Öncelikli Destek'
     ]
   }
 ];
 
 const FAQS = [
   {
-    q: "Google Haritalarda 1. sıraya çıkmam ne kadar sürer?",
-    a: "Doğrulama ve yerel optimizasyon çalışmalarımızın ardından ortalama 7 ila 14 gün içinde işletmeniz bulunduğunuz ilçe ve çevre lokasyonlarda ilk 3 sıraya (Google Maps 3-Pack) yükselir."
+    q: 'Google Haritalar\'da üst sıralara çıkmak neden bu kadar önemli?',
+    a: 'Telefonundan "en yakın nakliyeci" veya "Kadıköy evden eve nakliyat" araması yapan müşterilerin %78\'i doğrudan harita sonuçlarında ilk 3 sırada çıkan firmayı arar. Haritada üst sırada olmak, her gün ücretsiz ve komisyonsuz onlarca telefon çağrısı demektir.'
   },
   {
-    q: "Harita kaydım askıya alındı (suspended), kurtarabilir misiniz?",
-    a: "Evet! Google yönergelerine uygun resmi itiraz dosyası hazırlayarak, vergi levhası ve yetki belgelerinizle Google Türkiye destek ekibiyle iletişime geçiyor ve askıdaki profillerimizi yeniden aktif ediyoruz."
+    q: 'Haritada yükselmek için fiziksel bir dükkan veya ofis şart mı?',
+    a: 'Hayır. Google İşletme Profilinde "Hizmet Verilen Bölge" olarak kayıt açarak dükkan adresi göstermeden de bölgenizde haritalarda 1. sırada yer alabilirsiniz.'
   },
   {
-    q: "Arayan müşteriler doğrudan benim telefonuma mı gelir?",
-    a: "Evet. Harita üzerindeki 'Ara' butonu doğrudan sizin belirlediğiniz şirket telefonunuza veya cep numaranıza bağlanır. Hiçbir aracı veya komisyon olmadan müşterilerle doğrudan anlaşırsınız."
+    q: 'Rakiplerimin yüzlerce yorumu var, onları geçebilir miyim?',
+    a: 'Google Haritalar sadece yorum sayısına değil; profil doluluğuna, doğru kategori eşleşmesine, yanıt hızına, fotoğraf güncelliğine ve yerel SEO sinyallerine bakar. Doğru optimizasyonla 2-4 hafta içinde rakiplerinizi geride bırakabilirsiniz.'
   },
   {
-    q: "Sahte rakip haritaları şikayet edip kaldırtabilir miyiz?",
-    a: "Bölgenizde fiziksel varlığı veya yetki belgesi olmayan, sadece spam arama çekmek için açılmış sahte harita profillerini tespit edip Google kuralları çerçevesinde şikayet ederek kaldırtıyoruz; böylece gerçek sıralama size kalıyor."
+    q: 'Haritadan gelen aramalar için Google\'a para öder miyim?',
+    a: 'Hayır. Harita optimizasyonu organik bir yerel SEO çalışmasıdır. Gelen yüzlerce çağrı ve yol tarifi tamamen ücretsizdir.'
   }
 ];
 
-export default function HaritaSeoPage() {
+export default function HaritaSeoServicePage() {
   const router = useRouter();
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
     const user = db.getCurrentUser();
-    if (!user || user.role !== 'CARRIER') {
+    if (!user) {
       router.push('/giris?role=nakliyeci');
+      return;
     }
+    setCurrentUser(user);
   }, [router]);
 
   return (
@@ -121,15 +124,15 @@ export default function HaritaSeoPage() {
 
         {/* Page Header */}
         <div className="mb-8">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold mb-2">
-            <MapPin className="w-3.5 h-3.5" />
-            <span>Google Haritalarda Yerel Liderlik</span>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold mb-2">
+            <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Google Haritalar Yerel Arama Optimizasyonu</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
-            Google Haritalarda 1. Sıraya Çıkın, Telefonlarınız Hiç Susmasın
+            Google Haritalar'da 1. Sırada Çıkın, Bölgenizdeki Müşterileri Toplayın
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1 max-w-3xl leading-relaxed">
-            İlçenizde veya şehrinizde nakliyeci arayan yüzlerce müşteri doğrudan haritadaki 'Ara' butonuna basarak yetkili telefonunuza ulaşsın.
+            Telefonundan "en yakın nakliyeci" arayan müşterilerin karşısına ilk siz çıkın. Reklam ücreti ödemeden, her hafta doğrudan telefonunuza gelen onlarca aramayla işlerinizi katlayın.
           </p>
         </div>
 
@@ -144,31 +147,31 @@ export default function HaritaSeoPage() {
           {/* Sağ Ana İçerik */}
           <div className="lg:col-span-8 space-y-8">
             
-            {/* ── BÖLÜM 1: GOOGLE HARİTALAR CANLI SIRALAMA MOCKUP ── */}
-            <div className="bg-gradient-to-br from-[#0B132B] via-[#1C2541] to-[#0B132B] rounded-3xl p-5 sm:p-8 text-white shadow-xl relative overflow-hidden border border-slate-800">
+            {/* BÖLÜM 1: GOOGLE HARİTALAR CANLI SIRALAMA MOCKUP (TEMİZ BEYAZ KART - KOYU ARKA PLAN KALDIRILDI) */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 text-slate-800 shadow-sm border border-slate-200 space-y-6">
               
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 relative z-10">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     Canlı Google Maps Arama Simülasyonu
                   </span>
-                  <h2 className="text-lg sm:text-2xl font-black mt-2 text-white">
+                  <h2 className="text-lg sm:text-2xl font-black mt-2 text-[#0A1128]">
                     "İstanbul Nakliyeci" Aramasında 1. Sırada Siz Olun
                   </h2>
-                  <p className="text-xs text-slate-300 mt-0.5">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     Haritada ilk 3'e giren firmalar, bölgedeki telefon aramalarının %78'ini tek başına toplar.
                   </p>
                 </div>
 
-                <div className="hidden sm:flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-300">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <div className="hidden sm:flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1.5 rounded-xl text-xs font-bold">
+                  <TrendingUp className="w-4 h-4 text-emerald-600" />
                   <span>+5 Sıra Yükselme Garantisi</span>
                 </div>
               </div>
 
               {/* Google Maps Realistic Interface Mockup */}
-              <div className="w-full max-w-2xl mx-auto rounded-2xl bg-white text-slate-800 shadow-2xl overflow-hidden border border-slate-300">
+              <div className="w-full max-w-2xl mx-auto rounded-2xl bg-white text-slate-800 shadow-md overflow-hidden border border-slate-300">
                 
                 {/* Search Bar */}
                 <div className="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-2">
@@ -183,24 +186,24 @@ export default function HaritaSeoPage() {
                   </div>
                 </div>
 
-                {/* Simulated Map Strip */}
-                <div className="h-20 bg-slate-100 relative overflow-hidden border-b border-slate-200 flex items-center justify-center">
-                  <div className="absolute inset-0 opacity-25 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:12px_12px]" />
+                {/* Simulated Map Strip (Temiz Aydınlık Harita) */}
+                <div className="h-24 bg-gradient-to-r from-emerald-50 via-blue-50 to-orange-50 relative overflow-hidden border-b border-slate-200 flex items-center justify-center">
+                  <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:12px_12px]" />
                   {/* Pin 1 (You - Big & Highlighted) */}
-                  <div className="relative z-10 flex flex-col items-center animate-bounce">
-                    <span className="bg-[#111E38] text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-md border border-orange-500">
+                  <div className="relative z-10 flex flex-col items-center">
+                    <span className="bg-[#0A1128] text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-md border border-[#F95700]">
                       ★ 1. SIRA SİZİN İŞLETME
                     </span>
                     <MapPin className="w-8 h-8 text-[#F95700] fill-[#F95700] -mt-1 drop-shadow-md" />
                   </div>
                   {/* Pin 2 & 3 (Competitors) */}
-                  <div className="absolute left-1/4 top-3 opacity-40 flex flex-col items-center">
-                    <span className="bg-slate-700 text-white text-[8px] px-1.5 rounded">Rakip B</span>
-                    <MapPin className="w-5 h-5 text-slate-500 fill-slate-400" />
+                  <div className="absolute left-1/4 top-3 opacity-50 flex flex-col items-center">
+                    <span className="bg-slate-600 text-white text-[8px] px-1.5 rounded">Rakip B</span>
+                    <MapPin className="w-5 h-5 text-slate-400 fill-slate-400" />
                   </div>
-                  <div className="absolute right-1/4 top-4 opacity-40 flex flex-col items-center">
-                    <span className="bg-slate-700 text-white text-[8px] px-1.5 rounded">Rakip C</span>
-                    <MapPin className="w-5 h-5 text-slate-500 fill-slate-400" />
+                  <div className="absolute right-1/4 top-4 opacity-50 flex flex-col items-center">
+                    <span className="bg-slate-600 text-white text-[8px] px-1.5 rounded">Rakip C</span>
+                    <MapPin className="w-5 h-5 text-slate-400 fill-slate-400" />
                   </div>
                 </div>
 
@@ -208,7 +211,7 @@ export default function HaritaSeoPage() {
                 <div className="p-3 sm:p-4 space-y-3">
                   
                   {/* 1. SIRA: SİZİN İŞLETMENİZ (VURGULANMIŞ KUTUCUK) */}
-                  <div className="rounded-2xl border-2 border-[#F95700] bg-orange-50/40 p-3.5 sm:p-4 shadow-sm relative space-y-2.5 transition-all">
+                  <div className="rounded-2xl border-2 border-[#F95700] bg-orange-50/20 p-3.5 sm:p-4 shadow-xs relative space-y-2.5 transition-all">
                     
                     {/* Yükseliş & 1. Sıra Rozeti */}
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -218,44 +221,41 @@ export default function HaritaSeoPage() {
                       </div>
                       <div className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-md">
                         <Flame className="w-3 h-3 text-[#F95700]" />
-                        <span>En Çok Aranan İşletme</span>
+                        <span>En Çok Çağrı Alan Konum</span>
                       </div>
                     </div>
 
-                    {/* İşletme Başlık & Puan */}
+                    {/* İşletme Başlığı & Yıldızlar */}
                     <div>
-                      <div className="flex items-center gap-1.5">
-                        <h3 className="font-black text-sm sm:text-base text-[#111E38]">
-                          ⭐ SİZİN İŞLETMENİZ · Evden Eve Nakliyat
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-black text-slate-900 text-sm sm:text-base">
+                          Yıldız Evden Eve Nakliyat & Asansörlü Taşıma
                         </h3>
-                        <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
-                      </div>
-                      <div className="flex items-center gap-2 text-xs mt-0.5">
-                        <span className="font-bold text-amber-600 flex items-center">
-                          4.9 ★★★★★
+                        <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                          ✓ Onaylı
                         </span>
-                        <span className="text-slate-400">(198 Gerçek Yorum)</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1 text-xs">
+                        <span className="font-black text-amber-600 flex items-center gap-0.5">
+                          4.9 <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                        </span>
+                        <span className="text-slate-500">(148 Yorum)</span>
                         <span className="text-slate-300">•</span>
-                        <span className="text-slate-600 font-medium">Doğrulanmış İşletme</span>
+                        <span className="text-slate-600 font-medium">Evden Eve Nakliyat Şirketi</span>
                       </div>
                     </div>
 
-                    {/* Açıklama & Konum */}
-                    <div className="text-[11px] text-slate-600 space-y-0.5">
-                      <p className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span>Kadıköy, İstanbul ve Çevresi · <strong>Şimdi Açık (24 Saat)</strong></span>
-                      </p>
-                      <p className="text-slate-500 pl-5">
-                        Hizmetler: Sigortalı Taşıma, Asansörlü Araç Filosu, Şehirlerarası Nakliye
-                      </p>
+                    {/* Konum ve Çalışma Saatleri */}
+                    <div className="text-xs text-slate-600 space-y-0.5">
+                      <p>📍 Kadıköy / İstanbul · 15 yılı aşkın tecrübe</p>
+                      <p className="text-emerald-700 font-bold">● Açık 24 saat · (0850) 308 XX XX</p>
                     </div>
 
-                    {/* Aksiyon Butonları (Google Maps Tarzı) */}
-                    <div className="pt-2 border-t border-orange-200/70 flex flex-wrap items-center gap-2">
-                      <div className="flex-1 min-w-[130px] bg-[#F95700] hover:bg-[#E04D00] text-white py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
-                        <PhoneCall className="w-3.5 h-3.5" />
-                        <span>📞 Ara (0850 308...)</span>
+                    {/* Hızlı Aksiyon Butonları */}
+                    <div className="grid grid-cols-3 gap-2 pt-1">
+                      <div className="bg-[#F95700] hover:bg-[#e04d00] text-white py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-xs cursor-pointer">
+                        <PhoneCall className="w-3 h-3" />
+                        <span>Hemen Ara</span>
                       </div>
                       <div className="bg-white border border-slate-300 text-slate-700 py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1 shadow-2xs">
                         <Navigation className="w-3 h-3 text-blue-600" />
@@ -302,95 +302,89 @@ export default function HaritaSeoPage() {
               </div>
 
               {/* Alt Metrikler */}
-              <div className="mt-6 pt-4 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              <div className="pt-4 border-t border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                 <div>
-                  <span className="text-base sm:text-lg font-black text-emerald-400">%78</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">İlk 3'e Tıklama Oranı</span>
+                  <span className="text-base sm:text-lg font-black text-emerald-600">%78</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">İlk 3'e Tıklama Oranı</span>
                 </div>
                 <div>
                   <span className="text-base sm:text-lg font-black text-[#F95700]">0 TL</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Tıklama Başı Maliyet</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">Tıklama Başı Maliyet</span>
                 </div>
                 <div>
-                  <span className="text-base sm:text-lg font-black text-blue-400">7 - 14 Gün</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Sıralama Yükselme</span>
+                  <span className="text-base sm:text-lg font-black text-blue-600">7 - 14 Gün</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">Sıralama Yükselme</span>
                 </div>
                 <div>
-                  <span className="text-base sm:text-lg font-black text-amber-400">Mavi Rozet</span>
-                  <span className="text-[10px] text-slate-400 block font-medium">Resmi Doğrulama</span>
+                  <span className="text-base sm:text-lg font-black text-amber-600">Mavi Rozet</span>
+                  <span className="text-[10px] text-slate-500 block font-medium">Resmi Doğrulama</span>
                 </div>
               </div>
 
             </div>
 
-            {/* ── BÖLÜM 2: ÖNCESİ / SONRASI KARŞILAŞTIRMASI ── */}
+            {/* BÖLÜM 2: ARTILARI VE EKSİLERİ (HİZMET ANALİZİ) */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
               <div>
-                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">İş Hacminizdeki Değişim</span>
+                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Şeffaf Hizmet Analizi</span>
                 <h3 className="text-lg sm:text-2xl font-black text-[#0A1128] mt-1">
-                  Öncesi vs. Harita SEO Sonrası
+                  Google Harita SEO'nun Artıları ve Dikkat Edilmesi Gerekenler
                 </h3>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  Evini taşıtacak insanların %80'i önce Google Haritalar'dan en yakın ve en yüksek puanlı nakliyeciyi arar.
+                  Yerel aramalarda 1. sıraya yerleşmenin faydaları ve dikkat edilmesi gereken noktalar.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 
-                {/* ÖNCESİ */}
-                <div className="rounded-2xl bg-red-50/70 border-2 border-red-200/80 p-5 space-y-4">
-                  <div className="flex items-center gap-2 text-red-700 font-bold text-sm border-b border-red-200 pb-2.5">
-                    <div className="w-6 h-6 rounded-full bg-red-200/80 flex items-center justify-center text-red-700 font-black text-xs">
-                      ✕
-                    </div>
-                    <span>Harita SEO Yapılmamış İşletme</span>
-                  </div>
-
-                  <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span>Haritada 15. sayfada veya kaydı hiç yok; yakınınızdaki müşteri sizi göremez.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span>Yanlış kategori ve eksik anahtar kelimeler yüzünden Google haritada göstermez.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span>Askıya alınmış (suspended) veya doğrulanamamış hesap riski.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                      <span><strong>Aylık doğrudan arama:</strong> Yalnızca 0 - 3 tesadüfi çağrı.</span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* SONRASI */}
-                <div className="rounded-2xl bg-emerald-50/70 border-2 border-emerald-300 p-5 space-y-4 shadow-xs">
-                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm border-b border-emerald-200 pb-2.5">
+                {/* ARTILARI */}
+                <div className="rounded-2xl bg-emerald-50/50 border border-emerald-200 p-5 space-y-3">
+                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm border-b border-emerald-200/80 pb-2.5">
                     <div className="w-6 h-6 rounded-full bg-emerald-200 flex items-center justify-center text-emerald-800 font-black text-xs">
                       ✓
                     </div>
-                    <span>TaşınTeklif ile 1. Sıra Harita SEO Sonrası</span>
+                    <span>Güçlü Yanları (Artıları)</span>
                   </div>
-
                   <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>İl ve ilçenizde nakliye arayan herkesin karşısına 1. sırada ve harita pininizle çıkarsınız.</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>Doğrudan Telefon Çağrısı:</strong> Müşteri web sitesine bile girmeden haritadaki "Ara" butonuna basıp sizi arar.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>Müşteriler doğrudan 'Ara' butonuna basar; komisyonsuz, sıcak müşteri yetkilinize bağlanır.</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>0 TL Reklam Maliyeti:</strong> Haritadan gelen yüzlerce arama için Google'a tek bir kuruş tıklama parası ödemezsiniz.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>5 yıldızlı gerçek yorum toplama QR sistemiyle güvenilirlik en tepeye çıkar.</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>Bölgesel Güven:</strong> Yüksek puanlı ve onaylı harita profili müşteri gözünde firmanızı o bölgenin en yetkili nakliyecisi yapar.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span><strong>Aylık doğrudan arama:</strong> 60 - 150+ karlı doğrudan taşıma çağrısı!</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span><strong>Hızlı Yükselme:</strong> Web SEO'suna göre haritalarda doğru adımlarla 1-2 hafta içinde ilk 3'e çıkmak mümkündür.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* DİKKAT EDİLMESİ GEREKENLER (EKSİLERİ) */}
+                <div className="rounded-2xl bg-amber-50/50 border border-amber-200 p-5 space-y-3">
+                  <div className="flex items-center gap-2 text-amber-900 font-bold text-sm border-b border-amber-200/80 pb-2.5">
+                    <div className="w-6 h-6 rounded-full bg-amber-200 flex items-center justify-center text-amber-900 font-black text-xs">
+                      !
+                    </div>
+                    <span>Dikkat Edilmesi Gerekenler (Eksileri)</span>
+                  </div>
+                  <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span><strong>Yorum Yönetimi Önemlidir:</strong> 1 yıldızlı kötü yorumlar puanı düşürebilir; düzenli memnun müşteri yorumu toplanmalıdır.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span><strong>Mesafe Etkisi:</strong> Google arayan kişinin konumuna göre sonuç verir; bu nedenle çevre ilçelere hizmet verildiği doğru kodlanmalıdır.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span><strong>Profil Güncelliği:</strong> Çalışma saatleri ve fotoğraflar güncel tutulmazsa Google profili geriye itebilir.</span>
                     </li>
                   </ul>
                 </div>
@@ -398,81 +392,38 @@ export default function HaritaSeoPage() {
               </div>
             </div>
 
-            {/* ── BÖLÜM 3: HARİTA SEO'DA NELER YAPIYORUZ? (4 TEMEL GÜÇ) ── */}
-            <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
-              <h3 className="text-lg font-black text-[#0A1128]">Harita SEO Hizmetimizde Neler Yapıyoruz?</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
-                  <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
-                    1
-                  </div>
-                  <h4 className="font-bold text-xs sm:text-sm text-[#0A1128]">Profil Onayı & Askı Kurtarma</h4>
-                  <p className="text-xs text-slate-500 font-normal">
-                    Google İşletme profilinizi resmi belgelerle onaylatıyor, askıdaki hesapları hızlıca açtırıyoruz.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
-                  <div className="w-7 h-7 rounded-lg bg-orange-100 text-[#F95700] flex items-center justify-center font-bold text-xs">
-                    2
-                  </div>
-                  <h4 className="font-bold text-xs sm:text-sm text-[#0A1128]">İlçe İlçe Hizmet Alanı Tanımı</h4>
-                  <p className="text-xs text-slate-500 font-normal">
-                    Yalnızca dükkanın olduğu sokakta değil, hedeflediğiniz tüm çevre ilçelerde haritada çıkmanızı sağlıyoruz.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
-                    3
-                  </div>
-                  <h4 className="font-bold text-xs sm:text-sm text-[#0A1128]">Otomatik 5 Yıldız Yorum Sistemi</h4>
-                  <p className="text-xs text-slate-500 font-normal">
-                    Taşıma bittiğinde müşterilerinize tek tıkla 5 yıldız vermesini sağlayan özel SMS & WhatsApp bağlantıları kuruyoruz.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1.5">
-                  <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">
-                    4
-                  </div>
-                  <h4 className="font-bold text-xs sm:text-sm text-[#0A1128]">Spam Rakip Haritalarını Temizleme</h4>
-                  <p className="text-xs text-slate-500 font-normal">
-                    Bölgenizde korsan şekilde sahte adreslerle açılmış rakip haritalರನ್ನು tespit edip sildiriyoruz.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* ── BÖLÜM 4: PAKETLER & FİYATLANDIRMA ── */}
-            <div className="space-y-4">
+            {/* BÖLÜM 3: PAKETLER VE FİYATLANDIRMA */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
               <div>
-                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Şeffaf Fiyatlar</span>
+                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Şeffaf Harita Paketleri</span>
                 <h3 className="text-lg sm:text-2xl font-black text-[#0A1128] mt-1">
-                  Harita SEO Paketleri
+                  Haritada Rakiplerinizin Önüne Geçin
                 </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  İlk 3 sırada yer alarak bölgenizdeki evden eve taşıma taleplerini toplamaya başlayın.
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {PACKAGES.map((pkg, idx) => (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {PACKAGES.map((pkg, i) => (
                   <div 
-                    key={idx}
-                    className={`rounded-3xl p-5 sm:p-6 transition-all flex flex-col justify-between border-2 ${
-                      pkg.isFeatured
-                        ? 'bg-white border-[#F95700] shadow-md relative'
-                        : 'bg-white border-slate-200 shadow-xs hover:border-slate-300'
+                    key={i} 
+                    className={`rounded-2xl p-5 sm:p-6 border transition-all flex flex-col justify-between ${
+                      pkg.isFeatured 
+                        ? 'border-2 border-[#F95700] bg-orange-50/20 shadow-md relative' 
+                        : 'border-slate-200 bg-white hover:border-slate-300'
                     }`}
                   >
                     {pkg.badge && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-[#F95700] text-white text-[10px] font-black uppercase tracking-wider shadow-xs">
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F95700] text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">
                         {pkg.badge}
-                      </div>
+                      </span>
                     )}
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div>
-                        <h3 className="font-black text-base text-[#0A1128]">{pkg.name}</h3>
-                        <p className="text-xs text-slate-400 font-medium mt-0.5">{pkg.desc}</p>
+                        <h4 className="font-black text-base text-[#0A1128]">{pkg.name}</h4>
+                        <p className="text-xs text-slate-500 mt-1 min-h-[36px]">{pkg.desc}</p>
                       </div>
 
                       <div className="pt-2 border-t border-slate-100">
@@ -492,7 +443,7 @@ export default function HaritaSeoPage() {
 
                     <div className="pt-6">
                       <a 
-                        href={`https://wa.me/908503080000?text=Merhaba,%20${encodeURIComponent(pkg.name)}%20harita%20paketi%20hakkında%20bilgi%20almak%20istiyorum.`}
+                        href={`https://wa.me/908503080000?text=${encodeURIComponent(`Merhaba, ${pkg.name} harita SEO paketi hakkında bilgi almak istiyorum.`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block w-full"
@@ -511,7 +462,7 @@ export default function HaritaSeoPage() {
               </div>
             </div>
 
-            {/* ── BÖLÜM 5: SIKÇA SORULAN SORULAR (SSS) ── */}
+            {/* BÖLÜM 4: SSS */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
               <h3 className="text-lg font-black text-[#0A1128]">Sıkça Sorulan Sorular</h3>
               <div className="space-y-2.5 pt-2">
@@ -538,17 +489,17 @@ export default function HaritaSeoPage() {
               </div>
             </div>
 
-            {/* ── BÖLÜM 6: DOĞRUDAN İLETİŞİM & WHATSAPP ÇAĞRISI ── */}
+            {/* BÖLÜM 5: WHATSAPP ÇAĞRISI */}
             <div className="bg-[#0A1128] text-white rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
               <div className="space-y-2 text-center sm:text-left relative z-10">
-                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Ücretsiz Harita Analizi</span>
-                <h3 className="text-xl font-black text-white">Haritanızı Birlikte İnceleyelim</h3>
+                <span className="text-[11px] font-bold text-[#F95700] uppercase tracking-wider">Ücretsiz Konum Analizi</span>
+                <h3 className="text-xl font-black text-white">Google Harita Konumunuzu İnceleyelim</h3>
                 <p className="text-xs text-slate-300 font-normal max-w-md">
-                  Firmanızın Google Haritalar'daki mevcut konumunu ve rakiplerinizi ücretsiz analiz edelim.
+                  Firmanızın Google Haritalar'daki mevcut konumunu ve bölgenizdeki ilk 3 rakibin durumunu ücretsiz analiz edelim.
                 </p>
               </div>
               <a 
-                href="https://wa.me/908503080000?text=Merhaba,%20harita%20SEO%20ücretsiz%20analiz%20için%20yazıyorum." 
+                href="https://wa.me/908503080000?text=Merhaba,%20Google%20Harita%20SEO%20analizi%20için%20yazıyorum." 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="shrink-0 relative z-10"

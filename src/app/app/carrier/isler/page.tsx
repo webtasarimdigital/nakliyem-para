@@ -40,7 +40,7 @@ import { IntentAuthModal } from '@/components/ui/IntentAuthModal';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { db, SEED_PLANS } from '@/lib/data/mock-db';
 import { MovingRequest, ServiceCategory } from '@/types';
-import { collection, getDocs, query, where, orderBy, doc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, doc, setDoc, onSnapshot, limit } from 'firebase/firestore';
 import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
 import { sendNotificationEmail, shouldSendCarrierFirstOfferEmail } from '@/lib/services/notification-service';
 import { formatOfferInputOnType, parseOfferInput } from '@/lib/utils/offer-format';
@@ -97,63 +97,86 @@ export default function CarrierJobsPage() {
   const hasIdDoc = carrierDocs.some(d => d.type === 'IDENTITY') || Boolean(carrier?.verificationBadges?.identityVerified);
   const isApproved = Boolean(carrier && carrier.verificationStatus === 'APPROVED' && hasTaxDoc && hasIdDoc);
 
-  const [requests, setRequests] = useState<MovingRequest[]>(() =>
-    db.getRequests()
+  const [requests, setRequests] = useState<MovingRequest[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('tasinteklif_cached_requests');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.filter((r: MovingRequest) => r.status === 'ACTIVE');
+          }
+        }
+      } catch {}
+    }
+    return db.getRequests()
       .filter(r => r.status === 'ACTIVE')
-      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-  );
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+  });
 
   useEffect(() => {
-    const loadRequests = async () => {
-      let combined: MovingRequest[] = [];
-      if (isFirebaseConfigured() && firestoreDb) {
-        try {
-          const snapshot = await getDocs(collection(firestoreDb, 'requests'));
-          const firestoreDocs = snapshot.docs.map(doc => ({
-            ...(doc.data() as MovingRequest),
-            id: doc.id,
-          }));
+    const processAndSetRequests = (firestoreDocs: MovingRequest[]) => {
+      // Filter out defter posts and closed items
+      const cleanFirestore = firestoreDocs.filter(d => !(d as any).isDefterPost);
+      const closedOrInactiveIds = new Set(
+        cleanFirestore.filter(r => r.status !== 'ACTIVE').map(r => r.id)
+      );
 
-          // Track any request explicitly marked as NOT active in Firestore so we don't pull it from mock-db
-          const closedOrInactiveIds = new Set(
-            firestoreDocs.filter(r => r.status !== 'ACTIVE').map(r => r.id)
-          );
+      // Only take ACTIVE requests from Firestore
+      const activeFirestore = cleanFirestore.filter(r => r.status === 'ACTIVE');
+      const combined: MovingRequest[] = [...activeFirestore];
 
-          // Only take ACTIVE requests from Firestore
-          const activeFirestore = firestoreDocs.filter(r => r.status === 'ACTIVE');
-          combined = [...activeFirestore];
-
-          // Add mock requests only if ACTIVE and not marked closed/inactive in Firestore
-          const mockRequests = db.getRequests().filter(r => r.status === 'ACTIVE' && !closedOrInactiveIds.has(r.id));
-          mockRequests.forEach(mr => {
-            if (!combined.some(r => r.id === mr.id)) {
-              combined.push(mr);
-            }
-          });
-        } catch (err) {
-          console.warn('Firestore talep yüklenemedi, mock-db kullanılıyor:', err);
-          combined = db.getRequests().filter(r => r.status === 'ACTIVE');
+      // Add mock requests only if ACTIVE and not marked closed/inactive in Firestore
+      const mockRequests = db.getRequests().filter(r => r.status === 'ACTIVE' && !closedOrInactiveIds.has(r.id));
+      mockRequests.forEach(mr => {
+        if (!combined.some(r => r.id === mr.id)) {
+          combined.push(mr);
         }
-      } else {
-        combined = db.getRequests().filter(r => r.status === 'ACTIVE');
-      }
+      });
 
-      // Strictly filter ACTIVE and sort newest to oldest
       const sorted = combined
         .filter(r => r.status === 'ACTIVE')
         .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
       setRequests(sorted);
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('tasinteklif_cached_requests', JSON.stringify(sorted));
+        } catch {}
+      }
     };
 
-    loadRequests();
+    let unsubscribe: (() => void) | null = null;
+
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        const q = query(collection(firestoreDb, 'requests'), limit(60));
+        unsubscribe = onSnapshot(q, (snapshot) => {
+          const firestoreDocs = snapshot.docs.map(doc => ({
+            ...(doc.data() as MovingRequest),
+            id: doc.id,
+          }));
+          processAndSetRequests(firestoreDocs);
+        }, (err) => {
+          console.warn('Firestore snapshot notice:', err);
+          processAndSetRequests([]);
+        });
+      } catch (err) {
+        console.warn('Firestore subscription error:', err);
+        processAndSetRequests([]);
+      }
+    } else {
+      processAndSetRequests([]);
+    }
 
     const handleReload = () => {
-      loadRequests();
+      processAndSetRequests([]);
     };
+
     window.addEventListener('storage', handleReload);
     window.addEventListener('request-added', handleReload);
     return () => {
+      if (unsubscribe) unsubscribe();
       window.removeEventListener('storage', handleReload);
       window.removeEventListener('request-added', handleReload);
     };

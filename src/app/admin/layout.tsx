@@ -42,21 +42,31 @@ export default function AdminRootLayout({
 
   useEffect(() => {
     const checkAuth = () => {
-      if (typeof window !== 'undefined' && localStorage.getItem('admin_token_active') === 'true') {
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null;
+      const storedActive = typeof window !== 'undefined' && localStorage.getItem('admin_token_active') === 'true';
+      if (storedActive) {
         setIsAdminAuth(true);
       }
-      fetch('/api/admin/login')
+      const tokenParam = storedToken ? `?token=${encodeURIComponent(storedToken)}` : '';
+      fetch(`/api/admin/login${tokenParam}`, {
+        headers: storedToken ? { 'Authorization': `Bearer ${storedToken}` } : {}
+      })
         .then(res => res.json())
         .then(data => {
-          setIsAdminAuth(Boolean(data.authenticated));
           if (data.authenticated) {
+            setIsAdminAuth(true);
             localStorage.setItem('admin_token_active', 'true');
-          } else {
+            if (data.token) {
+              localStorage.setItem('admin_token', data.token);
+            }
+          } else if (!storedActive) {
+            setIsAdminAuth(false);
             localStorage.removeItem('admin_token_active');
+            localStorage.removeItem('admin_token');
           }
         })
         .catch(() => {
-          setIsAdminAuth(localStorage.getItem('admin_token_active') === 'true');
+          setIsAdminAuth(storedActive);
         });
     };
 
@@ -65,10 +75,18 @@ export default function AdminRootLayout({
     return () => window.removeEventListener('storage', checkAuth);
   }, [pathname]);
 
+  useEffect(() => {
+    const storedActive = typeof window !== 'undefined' && localStorage.getItem('admin_token_active') === 'true';
+    if (isAdminAuth === false && !storedActive && pathname !== '/admin' && pathname !== '/admin/giris') {
+      router.push('/admin');
+    }
+  }, [isAdminAuth, pathname, router]);
+
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
       localStorage.removeItem('admin_token_active');
+      localStorage.removeItem('admin_token');
       await fetch('/api/admin/logout', { method: 'POST' });
     } catch {
       // ignore

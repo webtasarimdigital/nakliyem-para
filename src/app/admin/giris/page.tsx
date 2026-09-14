@@ -27,6 +27,11 @@ export default function AdminLoginPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('admin_token_active', 'true');
+          if (data.token) localStorage.setItem('admin_token', data.token);
+          window.dispatchEvent(new Event('storage'));
+        }
         router.push('/admin');
         router.refresh();
       } else {

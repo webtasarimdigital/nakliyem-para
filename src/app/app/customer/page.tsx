@@ -57,17 +57,37 @@ export default function CustomerDashboard() {
       }
     }
 
+    // Locally persisted closed/assigned state map
+    let closedMap: Record<string, { status: any; closedReason?: string }> = {};
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('tasinteklif_closed_requests');
+        if (raw) closedMap = JSON.parse(raw);
+      } catch {}
+    }
+
     const map = new Map<string, MovingRequest>();
-    firestoreReqs.forEach(fr => map.set(fr.id, fr));
-    localReqs.forEach(lr => {
-      const existing = map.get(lr.id);
-      if (!existing) {
-        map.set(lr.id, lr);
+    firestoreReqs.forEach(fr => {
+      const override = closedMap[fr.id] || (fr.requestCode ? closedMap[fr.requestCode] : null);
+      if (override) {
+        map.set(fr.id, { ...fr, status: override.status, closedReason: override.closedReason });
       } else {
-        const localTime = new Date(lr.updatedAt || lr.createdAt || 0).getTime();
+        map.set(fr.id, fr);
+      }
+    });
+
+    localReqs.forEach(lr => {
+      const override = closedMap[lr.id] || (lr.requestCode ? closedMap[lr.requestCode] : null);
+      const effectiveLr = override ? { ...lr, status: override.status, closedReason: override.closedReason } : lr;
+
+      const existing = map.get(effectiveLr.id);
+      if (!existing) {
+        map.set(effectiveLr.id, effectiveLr);
+      } else {
+        const localTime = new Date(effectiveLr.updatedAt || effectiveLr.createdAt || 0).getTime();
         const firestoreTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
-        if (localTime >= firestoreTime || lr.status === 'CLOSED' || lr.status === 'ASSIGNED') {
-          map.set(lr.id, { ...existing, ...lr });
+        if (localTime >= firestoreTime || effectiveLr.status === 'CLOSED' || effectiveLr.status === 'ASSIGNED') {
+          map.set(effectiveLr.id, { ...existing, ...effectiveLr });
         }
       }
     });
@@ -170,11 +190,23 @@ export default function CustomerDashboard() {
 
   // Talebi Kapatma işlemi (İptal / İhtiyaç kalmadı)
   const handleCloseRequestDirect = async (reqId: string) => {
-    setAllRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'CLOSED' as const, closedReason: 'Talebi kapattım' } : r));
+    setAllRequests(prev => prev.map(r => (r.id === reqId || r.requestCode === reqId) ? { ...r, status: 'CLOSED' as const, closedReason: 'Talebi kapattım' } : r));
+
+    // Persist in local closed map
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('tasinteklif_closed_requests') || '{}';
+        const parsed = JSON.parse(raw);
+        parsed[reqId] = { status: 'CLOSED', closedReason: 'Talebi kapattım' };
+        localStorage.setItem('tasinteklif_closed_requests', JSON.stringify(parsed));
+      } catch {}
+    }
+
     db.updateRequest(reqId, {
       status: 'CLOSED',
       closedReason: 'Talebi kapattım'
     });
+
     if (isFirebaseConfigured() && firestoreDb) {
       try {
         await updateFirestoreRequest(reqId, {
@@ -185,17 +217,46 @@ export default function CustomerDashboard() {
         console.warn('Firestore kapatma hatası:', err);
       }
     }
+
+    try {
+      fetch('/api/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: reqId,
+          status: 'CLOSED',
+          closedReason: 'Talebi kapattım'
+        })
+      }).catch(() => {});
+    } catch {}
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('request-added'));
+    }
   };
 
   // İş Verildi diyerek talebi Anlaşıldı olarak işaretleme işlemi
   const handleCloseRequestAsGiven = async (reqId: string) => {
     // Önce local state'i güncelle (UI anında tepki versin)
-    setAllRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'ASSIGNED' as const, closedReason: 'İş Verildi' } : r));
+    setAllRequests(prev => prev.map(r => (r.id === reqId || r.requestCode === reqId) ? { ...r, status: 'ASSIGNED' as const, closedReason: 'İş Verildi' } : r));
+
+    // Persist in local closed map
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('tasinteklif_closed_requests') || '{}';
+        const parsed = JSON.parse(raw);
+        parsed[reqId] = { status: 'ASSIGNED', closedReason: 'İş Verildi' };
+        localStorage.setItem('tasinteklif_closed_requests', JSON.stringify(parsed));
+      } catch {}
+    }
+
     // mock-db'yi güncelle
     db.updateRequest(reqId, {
       status: 'ASSIGNED',
       closedReason: 'İş Verildi'
     });
+
     if (isFirebaseConfigured() && firestoreDb) {
       try {
         await updateFirestoreRequest(reqId, {
@@ -206,26 +267,71 @@ export default function CustomerDashboard() {
         console.warn('Firestore kapatma hatası:', err);
       }
     }
+
+    try {
+      fetch('/api/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: reqId,
+          status: 'ASSIGNED',
+          closedReason: 'İş Verildi'
+        })
+      }).catch(() => {});
+    } catch {}
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('request-added'));
+    }
   };
 
   // Talebi tekrar yayına alma
   const handleReopenRequest = async (reqId: string) => {
     // Önce local state'i güncelle
-    setAllRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'ACTIVE' as const, closedReason: undefined } : r));
+    setAllRequests(prev => prev.map(r => (r.id === reqId || r.requestCode === reqId) ? { ...r, status: 'ACTIVE' as const, closedReason: undefined } : r));
+
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('tasinteklif_closed_requests') || '{}';
+        const parsed = JSON.parse(raw);
+        delete parsed[reqId];
+        localStorage.setItem('tasinteklif_closed_requests', JSON.stringify(parsed));
+      } catch {}
+    }
+
     // mock-db'yi güncelle
     db.updateRequest(reqId, {
       status: 'ACTIVE',
       closedReason: undefined
     });
+
     if (isFirebaseConfigured() && firestoreDb) {
       try {
         await updateFirestoreRequest(reqId, {
           status: 'ACTIVE',
-          closedReason: undefined
+          closedReason: ''
         });
       } catch (err) {
         console.warn('Firestore açma hatası:', err);
       }
+    }
+
+    try {
+      fetch('/api/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: reqId,
+          status: 'ACTIVE',
+          closedReason: ''
+        })
+      }).catch(() => {});
+    } catch {}
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('request-added'));
     }
   };
 

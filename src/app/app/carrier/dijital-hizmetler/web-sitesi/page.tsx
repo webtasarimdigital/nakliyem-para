@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -130,15 +130,15 @@ export default function WebSitesiServicePage() {
 
         {/* Page Header */}
         <div className="mb-8">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold mb-2">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold mb-2.5">
             <Globe className="w-3.5 h-3.5 text-blue-600" />
-            <span>Nakliyat Web Sitesi Hizmeti (İç Sayfa URL SEO Uyumlu)</span>
+            <span>SEO Uyumlu İlçe Mimarisi</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
-            Firmanıza Özel Web Sitesi: İlçe URL Mimarisiyle Donatılmış Satış Makinesi
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#0A1128] tracking-tight">
+            Nakliyat Firmalarına Özel Web Tasarım Hizmeti
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1 max-w-3xl leading-relaxed">
-            Sadece bir kartvizit değil; Google'da her ilçe aramasında ilk sayfalarda çıkan, mobil cihazlarda tek tıkla arama ve WhatsApp teklifi getiren anahtar teslim nakliyat sitesi.
+          <p className="text-xs sm:text-sm text-slate-600 font-normal mt-1.5 max-w-3xl leading-relaxed">
+            Google SEO uyumlu ilçe sayfaları, hızlı açılan mobil arayüz ve tek tıkla arama & WhatsApp teklif butonlarıyla firmanıza özel modern nakliyat web sitesi.
           </p>
         </div>
 

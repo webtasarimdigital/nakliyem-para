@@ -1469,6 +1469,15 @@ class MockDatabase {
     
     // Dynamic seeds pool with fresh relative dates
     const seeds = getDynamicSeedRequests();
+
+    // Check closed map override
+    let closedMap: Record<string, { status: any; closedReason?: string }> = {};
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('tasinteklif_closed_requests');
+        if (raw) closedMap = JSON.parse(raw);
+      } catch {}
+    }
     
     // Preserve any updates made to seeds (e.g. status closed or assigned)
     const userSeedMap = new Map<string, Partial<MovingRequest>>();
@@ -1476,6 +1485,15 @@ class MockDatabase {
 
     const mergedSeeds = seeds.map(s => {
       const existing = userSeedMap.get(s.id);
+      const override = closedMap[s.id] || (s.requestCode ? closedMap[s.requestCode] : null);
+      if (override) {
+        return {
+          ...s,
+          status: override.status,
+          closedReason: override.closedReason,
+          offersCount: existing?.offersCount !== undefined ? existing.offersCount : s.offersCount
+        };
+      }
       if (existing) {
         return {
           ...s,
@@ -1487,7 +1505,15 @@ class MockDatabase {
       return s;
     });
 
-    return [...realUserReqs, ...mergedSeeds].sort(
+    const effectiveRealUserReqs = realUserReqs.map(r => {
+      const override = closedMap[r.id] || (r.requestCode ? closedMap[r.requestCode] : null);
+      if (override) {
+        return { ...r, status: override.status, closedReason: override.closedReason };
+      }
+      return r;
+    });
+
+    return [...effectiveRealUserReqs, ...mergedSeeds].sort(
       (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
     );
   }
@@ -1502,7 +1528,17 @@ class MockDatabase {
   }
 
   updateRequest(id: string, updates: Partial<MovingRequest>): void {
-    const list = this.getRequests().map(r => r.id === id ? { ...r, ...updates, updatedAt: new Date().toISOString() } : r);
+    if (updates.status === 'CLOSED' || updates.status === 'ASSIGNED') {
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem('tasinteklif_closed_requests') || '{}';
+          const parsed = JSON.parse(raw);
+          parsed[id] = { status: updates.status, closedReason: updates.closedReason };
+          localStorage.setItem('tasinteklif_closed_requests', JSON.stringify(parsed));
+        } catch {}
+      }
+    }
+    const list = this.getRequests().map(r => (r.id === id || r.requestCode === id) ? { ...r, ...updates, updatedAt: new Date().toISOString() } : r);
     this.setItem('requests', list);
   }
 

@@ -93,6 +93,9 @@ export default function AdminDashboardPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         localStorage.setItem('admin_token_active', 'true');
+        if (data.token) {
+          localStorage.setItem('admin_token', data.token);
+        }
         setIsAuthenticated(true);
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('storage'));
