@@ -46,7 +46,28 @@ export async function GET(req: NextRequest) {
   // 1. Direct query by convId: ALWAYS return all messages for this convId!
   if (convId) {
     const matchedConv = conversations.find(c => c.id === convId);
-    const messages = allMessages.filter(m => m.conversationId === convId);
+    let messages = allMessages.filter(m => m.conversationId === convId);
+
+    // Also check for messages sent to sibling conversations for the same request
+    const reqNum = (matchedConv?.contextId || matchedConv?.contextTitle || '').replace(/[^0-9]/g, '');
+    if (reqNum && reqNum.length >= 4) {
+      const siblingConvs = conversations.filter(c => c.id !== convId && ((c.contextId || '').includes(reqNum) || (c.contextTitle || '').includes(reqNum)));
+      const siblingIds = new Set(siblingConvs.map(c => c.id));
+      const siblingMsgs = allMessages.filter(m => 
+        m.conversationId !== convId && 
+        (siblingIds.has(m.conversationId) || m.conversationId?.includes(reqNum))
+      );
+      if (siblingMsgs.length > 0) {
+        const msgIds = new Set(messages.map(m => m.id));
+        siblingMsgs.forEach(sm => {
+          if (!msgIds.has(sm.id)) {
+            messages.push({ ...sm, conversationId: convId });
+          }
+        });
+        messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      }
+    }
+
     return NextResponse.json({
       success: true,
       conversations: matchedConv ? [matchedConv] : [],
@@ -159,7 +180,7 @@ export async function POST(req: NextRequest) {
       if (!conv) {
         conv = {
           id: targetConvId,
-          participantIds: Array.from(new Set([sId, cId, 'user_carr_1', 'carr_1', 'carr_saycanlar', 'carr_bogazici', carrierSlug].filter(Boolean))),
+          participantIds: Array.from(new Set([sId, cId, carrierId, carrierSlug, 'user_carr_1'].filter(Boolean))),
           participantNames: {
             [sId]: sName,
             [cId]: cName,

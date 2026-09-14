@@ -19,21 +19,28 @@ import { ConversationMessage, CarrierProfile } from '@/types';
 interface LiveOfferChatModalProps {
   isOpen: boolean;
   onClose: () => void;
+  carrierId?: string;
+  carrierUserId?: string;
   carrierName?: string;
   carrierSlug?: string;
   requestId?: string;
+  requestCode?: string;
   offerPrice?: number;
 }
 
 export function LiveOfferChatModal({
   isOpen,
   onClose,
+  carrierId = '',
+  carrierUserId = '',
   carrierName = 'Nakliyat Firması',
   carrierSlug = '',
   requestId = '#26093',
+  requestCode = '',
   offerPrice = 25000
 }: LiveOfferChatModalProps) {
-  const cleanReqId = requestId.replace('#', '');
+  const targetReqCode = (requestCode || requestId || '').replace(/[^0-9]/g, '');
+  const cleanReqId = targetReqCode || requestId.replace('#', '');
   const convKey = `live_chat_${cleanReqId}_${carrierSlug || carrierName.replace(/\s+/g, '_')}`;
 
   const [activeConvId, setActiveConvId] = useState<string>('');
@@ -51,30 +58,54 @@ export function LiveOfferChatModal({
     const customerId = currentUser?.id || 'user_cust_1';
     const customerName = currentUser?.fullName || 'Müşteri';
 
+    const actualCarrierName = (carrierName || 'Nakliyat Firması').trim();
+    const actualCarrierSlug = (carrierSlug || '').trim().toLowerCase();
+    const actualCarrierId = (carrierId || '').trim();
+    const actualCarrierUserId = (carrierUserId || '').trim();
+
     const allCarriers = db.getCarriers();
     const matchedCarrier = allCarriers.find(c => 
-      (carrierSlug && c.slug === carrierSlug) || 
-      (c.companyName?.toLowerCase() === carrierName?.toLowerCase())
-    ) || allCarriers[0];
+      (actualCarrierSlug && c.slug === actualCarrierSlug) || 
+      (actualCarrierId && c.id === actualCarrierId) ||
+      (actualCarrierUserId && c.userId === actualCarrierUserId) ||
+      (actualCarrierName && c.companyName?.trim().toLowerCase() === actualCarrierName.toLowerCase())
+    );
 
-    const carrierUserId = matchedCarrier?.userId || 'user_carr_1';
-    const carrierId = matchedCarrier?.id || 'carr_1';
-    const actualCarrierName = matchedCarrier?.companyName || carrierName;
+    const finalCarrierUserId = actualCarrierUserId || matchedCarrier?.userId || (actualCarrierSlug ? `user_${actualCarrierSlug}` : `user_${actualCarrierName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`);
+    const finalCarrierId = actualCarrierId || matchedCarrier?.id || (actualCarrierSlug ? `carr_${actualCarrierSlug}` : `carr_${actualCarrierName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`);
 
     // 1. Find or create matching conversation in db
     const allConvs = db.getConversations();
-    let conv = allConvs.find(c => 
-      (c.contextId === requestId || c.contextId === cleanReqId || c.contextTitle?.includes(cleanReqId)) &&
-      (c.participantIds.includes(carrierUserId) || c.participantIds.includes(carrierId) || (carrierSlug && c.participantIds.includes(carrierSlug)))
-    );
+    let conv = allConvs.find(c => {
+      const cContext = (c.contextId || '').replace(/[^0-9]/g, '');
+      const cTitle = (c.contextTitle || '');
+      const reqMatches = 
+        (cleanReqId && (c.contextId === cleanReqId || c.contextId === requestId || cContext === cleanReqId || cTitle.includes(cleanReqId))) ||
+        (requestId && (c.contextId === requestId || cTitle.includes(requestId)));
+
+      if (!reqMatches) return false;
+
+      const parts = (c.participantIds || []).map(p => String(p).toLowerCase());
+      const names = Object.values(c.participantNames || {}).map(n => String(n).trim().toLowerCase());
+      const cNameLower = actualCarrierName.toLowerCase();
+
+      const carrierMatches =
+        (finalCarrierId && parts.includes(finalCarrierId.toLowerCase())) ||
+        (finalCarrierUserId && parts.includes(finalCarrierUserId.toLowerCase())) ||
+        (actualCarrierSlug && parts.includes(actualCarrierSlug)) ||
+        (cNameLower && names.some(n => n === cNameLower || n.includes(cNameLower) || cNameLower.includes(n))) ||
+        (cNameLower && cTitle.toLowerCase().includes(cNameLower));
+
+      return carrierMatches;
+    });
 
     if (!conv) {
-      const pIds = Array.from(new Set([customerId, carrierUserId, carrierId, carrierSlug].filter(Boolean))) as string[];
+      const pIds = Array.from(new Set([customerId, finalCarrierUserId, finalCarrierId, actualCarrierSlug, 'user_carr_1'].filter(Boolean))) as string[];
       conv = db.createConversation({
         participantIds: pIds,
         participantNames: {
           [customerId]: customerName,
-          [carrierUserId]: actualCarrierName
+          [finalCarrierUserId]: actualCarrierName
         },
         contextType: 'REQUEST',
         contextId: cleanReqId,
@@ -84,7 +115,7 @@ export function LiveOfferChatModal({
 
       // Add offer card message
       const offerCardMsg = db.sendMessage(conv.id, {
-        senderId: carrierUserId,
+        senderId: finalCarrierUserId,
         senderName: actualCarrierName,
         senderRole: 'CARRIER',
         content: `#${cleanReqId} · ${actualCarrierName}\n· ${Number(offerPrice || 0).toLocaleString('tr-TR')} TL fiyat teklifi verildi`,
@@ -94,7 +125,7 @@ export function LiveOfferChatModal({
 
       // Add intro text message
       const introMsg = db.sendMessage(conv.id, {
-        senderId: carrierUserId,
+        senderId: finalCarrierUserId,
         senderName: actualCarrierName,
         senderRole: 'CARRIER',
         content: `Merhaba, talebiniz için ${Number(offerPrice || 0).toLocaleString('tr-TR')} TL teklifimizi ilettik. Sorularınız olursa buradan dilediğiniz an yazabilirsiniz.`
@@ -110,16 +141,59 @@ export function LiveOfferChatModal({
           message: introMsg,
           requestId: cleanReqId,
           carrierName: actualCarrierName,
-          carrierSlug,
-          carrierId,
+          carrierSlug: actualCarrierSlug,
+          carrierId: finalCarrierId,
           customerId,
           customerName
         })
       }).catch(() => {});
+    } else {
+      // Ensure carrier participantIds & participantNames contain our actual carrier identifiers
+      const neededIds = [finalCarrierId, finalCarrierUserId, actualCarrierSlug, 'user_carr_1'].filter(Boolean) as string[];
+      conv.participantIds = Array.from(new Set([...conv.participantIds, ...neededIds]));
+      if (actualCarrierName) {
+        conv.participantNames = {
+          ...conv.participantNames,
+          [finalCarrierUserId]: actualCarrierName
+        };
+      }
+      db.bulkMergeConversations([conv]);
+
+      // Check if there are any sibling conversations for this request that held messages (like "40 bin olur mu")
+      const siblingConvs = allConvs.filter(c => 
+        c.id !== conv!.id && 
+        (cleanReqId && ((c.contextId || '').includes(cleanReqId) || (c.contextTitle || '').includes(cleanReqId)))
+      );
+      siblingConvs.forEach(sc => {
+        const scMsgs = db.getMessages(sc.id);
+        if (scMsgs.length > 0) {
+          const repointed = scMsgs.map(m => ({ ...m, conversationId: conv!.id }));
+          db.bulkMergeMessages(repointed);
+          repointed.forEach(m => {
+            fetch('/api/conversations', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ conversationId: conv!.id, message: m, conversation: conv })
+            }).catch(() => {});
+          });
+        }
+      });
     }
 
     setActiveConvId(conv.id);
-    const existingMsgs = db.getMessages(conv.id);
+
+    // Sanitize any existing messages that may have saved a mismatched carrier name (e.g. Saycanlar)
+    const existingMsgs = db.getMessages(conv.id).map(m => {
+      if (m.isOfferCard && !m.content.includes(actualCarrierName)) {
+        return {
+          ...m,
+          senderName: actualCarrierName,
+          content: `#${cleanReqId} · ${actualCarrierName}\n· ${Number(offerPrice || (m.offerData?.price) || 0).toLocaleString('tr-TR')} TL fiyat teklifi verildi`
+        };
+      }
+      return m;
+    });
+    db.bulkMergeMessages(existingMsgs);
     setMessages(existingMsgs);
 
     // Initial fetch from server API
@@ -127,12 +201,22 @@ export function LiveOfferChatModal({
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
-          db.bulkMergeMessages(data.messages);
+          const merged = data.messages.map((m: any) => {
+            if (m.isOfferCard && !m.content.includes(actualCarrierName)) {
+              return {
+                ...m,
+                senderName: actualCarrierName,
+                content: `#${cleanReqId} · ${actualCarrierName}\n· ${Number(offerPrice || (m.offerData?.price) || 0).toLocaleString('tr-TR')} TL fiyat teklifi verildi`
+              };
+            }
+            return m;
+          });
+          db.bulkMergeMessages(merged);
           setMessages(db.getMessages(conv!.id));
         }
       })
       .catch(() => {});
-  }, [isOpen, carrierName, carrierSlug, requestId, offerPrice, cleanReqId]);
+  }, [isOpen, carrierName, carrierSlug, carrierId, carrierUserId, requestId, requestCode, offerPrice, cleanReqId]);
 
   // 3-second live polling while modal is open
   useEffect(() => {
@@ -186,6 +270,7 @@ export function LiveOfferChatModal({
     const currentUser = db.getCurrentUser();
     const customerId = currentUser?.id || 'user_cust_1';
     const customerName = currentUser?.fullName || 'Müşteri';
+    const actualCarrierName = (carrierName || 'Nakliyat Firması').trim();
 
     const newMsg = db.sendMessage(activeConvId, {
       senderId: customerId,
@@ -205,8 +290,9 @@ export function LiveOfferChatModal({
         message: newMsg,
         conversation: activeConv,
         requestId: cleanReqId,
-        carrierName,
+        carrierName: actualCarrierName,
         carrierSlug,
+        carrierId,
         customerId,
         customerName
       })
@@ -343,6 +429,11 @@ export function LiveOfferChatModal({
             const timeStr = msg.time || (msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Yeni');
 
             if (isOfferCard) {
+              const actualCarrier = carrierName || 'Nakliyat Firması';
+              let displayContent = msg.content;
+              if (actualCarrier && (!displayContent.includes(actualCarrier) || displayContent.includes('SAYCANLAR') || displayContent.includes('Saycanlar'))) {
+                displayContent = `#${cleanReqId} · ${actualCarrier}\n· ${Number(offerPrice || (msg.offerData?.price) || 0).toLocaleString('tr-TR')} TL fiyat teklifi verildi`;
+              }
               return (
                 <div key={msg.id} className="flex justify-start">
                   <div className="bg-orange-50/80 border-l-4 border-[#F95700] rounded-2xl rounded-tl-sm p-3.5 max-w-[85%] shadow-xs space-y-1.5">
@@ -351,7 +442,7 @@ export function LiveOfferChatModal({
                       <span>Taşınma Talebi</span>
                     </div>
                     <p className="text-xs font-bold text-[#0A1128] leading-relaxed whitespace-pre-line">
-                      {msg.content}
+                      {displayContent}
                     </p>
                     <div className="text-right">
                       <span className="text-[10px] text-slate-400 font-medium">{timeStr}</span>

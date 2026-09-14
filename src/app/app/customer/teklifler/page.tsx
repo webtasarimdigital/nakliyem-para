@@ -236,9 +236,12 @@ function CustomerOffersContent() {
   const [viewMode, setViewMode] = useState<'LIST' | 'TABLE'>('LIST');
   const [liveChatOpen, setLiveChatOpen] = useState(false);
   const [chatData, setChatData] = useState({
+    carrierId: '',
+    carrierUserId: '',
     carrierName: 'TaşınTeklif Nakliyat',
     carrierSlug: 'tasinteklif-nakliyat',
     requestId: activeReq?.requestCode || '#26093',
+    requestCode: activeReq?.requestCode || '#26093',
     price: 25000
   });
 
@@ -1020,9 +1023,12 @@ function CustomerOffersContent() {
                                 type="button"
                                 onClick={() => {
                                   setChatData({
+                                    carrierId: offer.carrierId || carrier.id || '',
+                                    carrierUserId: (carrier as any).userId || offer.carrierId || '',
                                     carrierName: carrier.companyName,
                                     carrierSlug: carrier.slug || 'tasinteklif',
-                                    requestId: activeReq?.requestCode || '#TALEP',
+                                    requestId: offer.requestId || activeReq?.id || activeReq?.requestCode || '#TALEP',
+                                    requestCode: activeReq?.requestCode || '#TALEP',
                                     price: offer.price
                                   });
                                   setLiveChatOpen(true);
@@ -1217,9 +1223,12 @@ function CustomerOffersContent() {
       <LiveOfferChatModal
         isOpen={liveChatOpen}
         onClose={() => setLiveChatOpen(false)}
+        carrierId={chatData.carrierId}
+        carrierUserId={chatData.carrierUserId}
         carrierName={chatData.carrierName}
         carrierSlug={chatData.carrierSlug}
         requestId={chatData.requestId}
+        requestCode={chatData.requestCode}
         offerPrice={chatData.price}
       />
 

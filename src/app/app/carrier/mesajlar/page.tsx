@@ -43,20 +43,28 @@ export default function CarrierMessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const matchesCarrier = (c: Conversation) => {
-    const carrierId = carrier?.userId || carrier?.id || '';
-    const parts = c.participantIds || [];
+    const carrierId = (carrier?.userId || carrier?.id || '').toLowerCase();
+    const myName = (carrier?.companyName || '').trim().toLowerCase();
+    const parts = (c.participantIds || []).map(p => String(p).toLowerCase());
+    const cNames = Object.values(c.participantNames || {}).map(n => String(n).trim().toLowerCase());
+
     if (carrierId && parts.includes(carrierId)) return true;
-    if (carrier?.id && parts.includes(carrier.id)) return true;
-    if (carrier?.userId && parts.includes(carrier.userId)) return true;
-    if (carrier?.slug && parts.includes(carrier.slug)) return true;
-    if (currentUser?.id && parts.includes(currentUser.id)) return true;
-    if ((currentUser as any)?.uid && parts.includes((currentUser as any).uid)) return true;
+    if (carrier?.id && parts.includes(carrier.id.toLowerCase())) return true;
+    if (carrier?.userId && parts.includes(carrier.userId.toLowerCase())) return true;
+    if (carrier?.slug && parts.includes(carrier.slug.toLowerCase())) return true;
+    if (currentUser?.id && parts.includes(currentUser.id.toLowerCase())) return true;
+    if ((currentUser as any)?.uid && parts.includes((currentUser as any).uid.toLowerCase())) return true;
     if (currentUser?.email && parts.some(p => p && p.toLowerCase() === currentUser.email.toLowerCase())) return true;
+
+    // Match by company name in participantNames
+    if (myName && cNames.some(n => n === myName || n.includes(myName) || myName.includes(n))) return true;
+
     if (c.participantNames && (
       (carrier?.id && c.participantNames[carrier.id]) ||
       (carrier?.userId && c.participantNames[carrier.userId]) ||
       (carrier?.slug && c.participantNames[carrier.slug])
     )) return true;
+
     return false;
   };
 
@@ -114,6 +122,23 @@ export default function CarrierMessagesPage() {
 
   useEffect(() => {
     if (activeConvId) {
+      // Merge any sibling conversations for the same request
+      const activeC = db.getConversationById(activeConvId);
+      if (activeC) {
+        const reqNum = (activeC.contextId || activeC.contextTitle || '').replace(/[^0-9]/g, '');
+        if (reqNum && reqNum.length >= 4) {
+          const allConvs = db.getConversations();
+          const siblings = allConvs.filter(c => c.id !== activeConvId && ((c.contextId || '').includes(reqNum) || (c.contextTitle || '').includes(reqNum)));
+          siblings.forEach(sc => {
+            const scMsgs = db.getMessages(sc.id);
+            if (scMsgs.length > 0) {
+              const repointed = scMsgs.map(m => ({ ...m, conversationId: activeConvId }));
+              db.bulkMergeMessages(repointed);
+            }
+          });
+        }
+      }
+
       setMessages(db.getMessages(activeConvId));
       db.markConversationAsRead(activeConvId, carrier?.userId || carrier?.id || 'user_carr_1');
     }

@@ -182,9 +182,12 @@ export default function CustomerDashboard() {
   const displayRequests = customerRequests;
   const [liveChatOpen, setLiveChatOpen] = useState(false);
   const [chatData, setChatData] = useState({
+    carrierId: '',
+    carrierUserId: '',
     carrierName: 'Teklif Veren Firma',
     carrierSlug: '',
     requestId: '#26093',
+    requestCode: '#26093',
     price: 25000
   });
 
@@ -520,9 +523,12 @@ export default function CustomerDashboard() {
                                   const firstOffer = offers[0];
                                   const carrier = firstOffer ? db.getCarrierById(firstOffer.carrierId) : null;
                                   setChatData({
+                                    carrierId: firstOffer?.carrierId || carrier?.id || '',
+                                    carrierUserId: carrier?.userId || (firstOffer?.carrier as any)?.userId || '',
                                     carrierName: carrier?.companyName || firstOffer?.carrier?.companyName || 'Teklif Veren Firma',
                                     carrierSlug: carrier?.slug || '',
-                                    requestId: req.requestCode || '#26093',
+                                    requestId: req.id || req.requestCode || '#26093',
+                                    requestCode: req.requestCode || '#26093',
                                     price: firstOffer?.price || 25000
                                   });
                                   setLiveChatOpen(true);
@@ -706,9 +712,12 @@ export default function CustomerDashboard() {
         <LiveOfferChatModal
           isOpen={liveChatOpen}
           onClose={() => setLiveChatOpen(false)}
+          carrierId={chatData.carrierId}
+          carrierUserId={chatData.carrierUserId}
           carrierName={chatData.carrierName}
           carrierSlug={chatData.carrierSlug}
           requestId={chatData.requestId}
+          requestCode={chatData.requestCode}
           offerPrice={chatData.price}
         />
 
