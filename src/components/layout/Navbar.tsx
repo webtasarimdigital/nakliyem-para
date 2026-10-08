@@ -25,7 +25,8 @@ import {
   Megaphone,
   Share2,
   Sparkles,
-  Headphones
+  Headphones,
+  Calculator
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { db } from '@/lib/data/mock-db';
@@ -149,6 +150,14 @@ export const Navbar: React.FC = () => {
           >
             <Truck className="w-4 h-4 text-[#F95700] shrink-0" />
             Teklif Al
+          </Link>
+
+          <Link
+            href="/fiyatlar"
+            className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${pathname?.startsWith('/fiyatlar') ? 'bg-orange-50 text-[#F95700]' : 'text-slate-700 hover:bg-slate-100'}`}
+          >
+            <Calculator className="w-4 h-4 text-[#F95700] shrink-0" />
+            Fiyatlar
           </Link>
 
           {!isCustomer && (
@@ -517,6 +526,7 @@ export const Navbar: React.FC = () => {
               { href: isCarrier ? '/nakliyeci/isler' : isCustomer ? '/musteri/taleplerim' : '/talepler', label: isCustomer ? 'Taleplerim' : 'Açık İşler & Talepler', icon: <FileText className="w-4 h-4 text-[#F95700]" /> },
               ...(isCustomer ? [{ href: '/musteri/teklifler', label: 'Gelen Teklifler', icon: <Truck className="w-4 h-4 text-[#F95700]" /> }] : []),
               { href: '/teklif-al', label: 'Teklif Al', icon: <Truck className="w-4 h-4 text-[#F95700]" /> },
+              { href: '/fiyatlar', label: 'Fiyatlar & Tarifeler', icon: <Calculator className="w-4 h-4 text-[#F95700]" /> },
               ...(!isCustomer ? [{ href: '/pazaryeri', label: 'Pazaryeri', icon: <ShoppingBag className="w-4 h-4 text-[#F95700]" /> }] : []),
             ].map(link => (
               <Link

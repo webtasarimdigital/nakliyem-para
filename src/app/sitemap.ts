@@ -29,6 +29,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/nakliyat-rehberi', priority: 0.8, changeFreq: 'weekly' as const },
     { path: '/blog', priority: 0.9, changeFreq: 'daily' as const },
     { path: '/mesafe-hesaplama', priority: 0.7, changeFreq: 'monthly' as const },
+    { path: '/fiyatlar', priority: 0.9, changeFreq: 'weekly' as const },
+    { path: '/site-haritasi', priority: 0.8, changeFreq: 'weekly' as const },
     { path: '/kullanim-kosullari', priority: 0.5, changeFreq: 'yearly' as const },
     { path: '/gizlilik', priority: 0.5, changeFreq: 'yearly' as const },
     { path: '/kvkk', priority: 0.5, changeFreq: 'yearly' as const },

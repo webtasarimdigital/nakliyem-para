@@ -94,6 +94,7 @@ export const Footer: React.FC = () => {
               <li><Link href="/parca-esya-tasima" className="hover:text-[#F95700] transition-colors">Parça Eşya Taşıma</Link></li>
               <li><Link href="/esya-depolama" className="hover:text-[#F95700] transition-colors">Eşya Depolama</Link></li>
               <li><Link href="/mesafe-hesaplama" className="hover:text-[#F95700] transition-colors">Mesafe Hesaplama</Link></li>
+              <li><Link href="/fiyatlar" className="hover:text-[#F95700] transition-colors font-bold text-orange-300">2026 Fiyat Tarifeleri</Link></li>
             </ul>
           </div>
 
@@ -118,6 +119,7 @@ export const Footer: React.FC = () => {
               <li><Link href="/nakliyeciler-icin" className="hover:text-[#F95700] transition-colors">Nakliyeciler İçin</Link></li>
               <li><Link href="/musteriler-icin" className="hover:text-[#F95700] transition-colors">Müşteriler İçin</Link></li>
               <li><Link href="/iletisim" className="hover:text-[#F95700] transition-colors">İletişim</Link></li>
+              <li><Link href="/site-haritasi" className="hover:text-[#F95700] transition-colors font-bold text-orange-300">Site Haritası</Link></li>
               <li><Link href="/nakliyat-rehberi" className="hover:text-[#F95700] transition-colors">Taşınma Rehberi</Link></li>
               <li><Link href="/blog" className="hover:text-[#F95700] transition-colors">Blog & İpuçları</Link></li>
               <li><Link href="/kullanim-kosullari" className="hover:text-[#F95700] transition-colors">Kullanım Koşulları</Link></li>
@@ -288,7 +290,11 @@ export const Footer: React.FC = () => {
 
         {/* Bottom Legal Disclaimer */}
         <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-medium">
-          <p>© {new Date().getFullYear()} TaşınTeklif. Tüm hakları saklıdır.</p>
+          <p>
+            © {new Date().getFullYear()} TaşınTeklif. Tüm hakları saklıdır. ·{' '}
+            <Link href="/site-haritasi" className="hover:text-[#F95700] underline decoration-slate-600">Site Haritası</Link> ·{' '}
+            <Link href="/fiyatlar" className="hover:text-[#F95700] underline decoration-slate-600">Fiyat Tarifeleri</Link>
+          </p>
           <p className="text-[11px] text-slate-500 text-center md:text-right">
             TaşınTeklif bir aracı hizmet sağlayıcıdır. Taşıma ücreti doğrudan anlaşmalı nakliyeciye ödenir.
           </p>
