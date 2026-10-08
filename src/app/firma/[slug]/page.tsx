@@ -30,6 +30,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { db } from '@/lib/data/mock-db';
+import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 
 // Gallery photos for demo
 const SAMPLE_FLEET_PHOTOS = [
@@ -338,11 +339,27 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                     Bu iller arasında düzenli seferler ve araç üstü nakliyat sağlanmaktadır.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {carrier.serviceAreas.map((city, i) => (
-                      <span key={i} className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 font-bold text-xs">
-                        📍 {city}
-                      </span>
-                    ))}
+                    {carrier.serviceAreas.map((city, i) => {
+                      const matchedCityObj = TURKEY_CITIES.find(
+                        c => c.name.toLowerCase() === city.toLowerCase()
+                      );
+                      return matchedCityObj ? (
+                        <Link
+                          key={i}
+                          href={`/nakliyat-firmalari/${matchedCityObj.slug}`}
+                          className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-orange-50 hover:text-[#F95700] hover:border-orange-200 border border-slate-200 text-slate-800 font-bold text-xs transition-colors flex items-center gap-1"
+                        >
+                          <span>📍 {city} Nakliyat Firmaları →</span>
+                        </Link>
+                      ) : (
+                        <span
+                          key={i}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 font-bold text-xs"
+                        >
+                          📍 {city}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

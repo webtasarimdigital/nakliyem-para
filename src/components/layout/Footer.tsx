@@ -113,6 +113,11 @@ export const Footer: React.FC = () => {
           <div className="col-span-2 lg:col-span-1 space-y-3">
             <h3 className="font-black text-sm text-[#F95700] uppercase tracking-wider">Kurumsal & Yasal</h3>
             <ul className="grid grid-cols-2 lg:grid-cols-1 gap-x-4 gap-y-2 text-xs sm:text-sm text-slate-300 font-medium">
+              <li><Link href="/hakkimizda" className="hover:text-[#F95700] transition-colors">Hakkımızda</Link></li>
+              <li><Link href="/nasil-calisir" className="hover:text-[#F95700] transition-colors">Nasıl Çalışır?</Link></li>
+              <li><Link href="/nakliyeciler-icin" className="hover:text-[#F95700] transition-colors">Nakliyeciler İçin</Link></li>
+              <li><Link href="/musteriler-icin" className="hover:text-[#F95700] transition-colors">Müşteriler İçin</Link></li>
+              <li><Link href="/iletisim" className="hover:text-[#F95700] transition-colors">İletişim</Link></li>
               <li><Link href="/nakliyat-rehberi" className="hover:text-[#F95700] transition-colors">Taşınma Rehberi</Link></li>
               <li><Link href="/blog" className="hover:text-[#F95700] transition-colors">Blog & İpuçları</Link></li>
               <li><Link href="/kullanim-kosullari" className="hover:text-[#F95700] transition-colors">Kullanım Koşulları</Link></li>
@@ -132,6 +137,63 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
+        </div>
+
+        {/* SEO Internal Link Directory (Cities & Routes) */}
+        <div className="py-8 border-b border-slate-800/80 space-y-6 text-xs">
+          <div>
+            <span className="font-extrabold text-[#F95700] uppercase tracking-wider block mb-2.5">
+              Popüler Şehirler Evden Eve Nakliyat
+            </span>
+            <div className="flex flex-wrap gap-2 text-slate-300">
+              {[
+                { name: 'İstanbul Evden Eve Nakliyat', url: '/evden-eve-nakliyat/istanbul' },
+                { name: 'Ankara Evden Eve Nakliyat', url: '/evden-eve-nakliyat/ankara' },
+                { name: 'İzmir Evden Eve Nakliyat', url: '/evden-eve-nakliyat/izmir' },
+                { name: 'Bursa Evden Eve Nakliyat', url: '/evden-eve-nakliyat/bursa' },
+                { name: 'Antalya Evden Eve Nakliyat', url: '/evden-eve-nakliyat/antalya' },
+                { name: 'Adana Nakliyat', url: '/nakliyat-firmalari/adana' },
+                { name: 'Konya Nakliyat', url: '/nakliyat-firmalari/konya' },
+                { name: 'Gaziantep Nakliyat', url: '/nakliyat-firmalari/gaziantep' },
+                { name: 'Kocaeli Nakliyat', url: '/nakliyat-firmalari/kocaeli' },
+                { name: 'Eskişehir Nakliyat', url: '/nakliyat-firmalari/eskisehir' },
+              ].map(city => (
+                <Link
+                  key={city.url}
+                  href={city.url}
+                  className="hover:text-[#F95700] transition-colors bg-slate-800/60 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700/60"
+                >
+                  {city.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <span className="font-extrabold text-[#F95700] uppercase tracking-wider block mb-2.5">
+              Popüler Şehirlerarası Nakliyat Rotaları
+            </span>
+            <div className="flex flex-wrap gap-2 text-slate-300">
+              {[
+                { name: 'İstanbul ➔ Ankara Nakliyat', url: '/rota/istanbul-ankara-nakliyat' },
+                { name: 'İstanbul ➔ İzmir Nakliyat', url: '/rota/istanbul-izmir-nakliyat' },
+                { name: 'İstanbul ➔ Antalya Nakliyat', url: '/rota/istanbul-antalya-nakliyat' },
+                { name: 'Ankara ➔ İstanbul Nakliyat', url: '/rota/ankara-istanbul-nakliyat' },
+                { name: 'İzmir ➔ İstanbul Nakliyat', url: '/rota/izmir-istanbul-nakliyat' },
+                { name: '2026 Nakliyat Fiyatları', url: '/blog/evden-eve-nakliyat-fiyatlari-2026' },
+                { name: 'Şehirlerarası Nakliye Fiyatları', url: '/blog/sehirlerarasi-nakliyat-fiyatlari-2026' },
+                { name: 'K3 Belgesi Nedir?', url: '/blog/k3-belgesi-nedir' },
+              ].map(route => (
+                <Link
+                  key={route.url}
+                  href={route.url}
+                  className="hover:text-[#F95700] transition-colors bg-slate-800/60 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700/60"
+                >
+                  {route.name}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Middle Bar: Social Icons (Left) & Payment / Trust Badges (Right) from Image 2 */}

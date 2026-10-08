@@ -4,19 +4,55 @@ import { Metadata } from 'next';
 import { Building2, ShieldCheck, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { DynamicAdSlot } from '@/components/ui/DynamicAdSlot';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { buildServiceSchema, buildFAQSchema } from '@/lib/seo/schema';
 
 export const metadata: Metadata = {
-  title: 'Ofis ve İşyeri Taşıma Fiyat Teklifi Al | TaşınTeklif',
+  title: 'Ofis ve İşyeri Taşıma Fiyat Teklifi Al',
   description: 'Kurumsal ofis, işyeri, fabrika ve arşiv taşımacılığı için profesyonel nakliyat firmalarından teklif alın. Sigortalı ve sözleşmeli nakliye.',
-  keywords: ['ofis taşıma', 'işyeri nakliyesi', 'kurumsal taşımacılık', 'büro nakliyatı']
+  keywords: ['ofis taşıma', 'işyeri nakliyesi', 'kurumsal taşımacılık', 'büro nakliyatı'],
+  alternates: {
+    canonical: '/ofis-tasima',
+  },
 };
 
+const OFIS_FAQS = [
+  {
+    question: 'Ofis taşımacılığı hafta sonu veya mesai saatleri dışında yapılabilir mi?',
+    answer: 'Evet, anlaşacağınız nakliyat ekipleri iş akışınızı kesintiye uğratmamak için cumartesi, pazar veya gece saatlerinde taşıma yapabilir.',
+  },
+  {
+    question: 'Bilişim ve sunucu ekipmanları için özel ambalajlama yapılıyor mu?',
+    answer: 'Evet, bilgisayarlar, monitörler ve sunucular antistatik balonlu patpat malzemeler ve özel köpük kasalarla güvenceye alınır.',
+  },
+];
+
 export default function OfisTasimaPage() {
+  const serviceSchema = buildServiceSchema({
+    name: 'Ofis ve Kurumsal Taşıma',
+    serviceType: 'OfficeMoving',
+    description: 'Bilişim altyapısı, arşiv ve mobilyalar için sıfır iş kaybı odaklı profesyonel ofis taşıma hizmeti.',
+    url: '/ofis-tasima',
+  });
+  const faqSchema = buildFAQSchema(OFIS_FAQS);
+
   return (
     <div className="flex flex-col min-h-screen bg-[#F8FAFC]">
+      <JsonLd data={serviceSchema} />
+      <JsonLd data={faqSchema} />
       {/* Hero Section */}
-      <section className="bg-white border-b border-slate-100 py-10 sm:py-14 relative overflow-hidden">
+      <section className="bg-white border-b border-slate-100 py-8 sm:py-12 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+          <div className="mb-4">
+            <Breadcrumb
+              items={[
+                { name: 'Ana Sayfa', url: '/' },
+                { name: 'Hizmetler', url: '/ofis-tasima' },
+                { name: 'Ofis Taşıma', url: '/ofis-tasima' },
+              ]}
+            />
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             {/* Left Column (7 cols) */}

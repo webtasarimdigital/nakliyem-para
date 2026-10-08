@@ -16,9 +16,12 @@ import {
 import { Button } from '@/components/ui/Button';
 
 export const metadata: Metadata = {
-  title: 'Nakliyat Firmaları İçin İş Ağı & 7 Gün Ücretsiz Deneme | TaşınTeklif',
+  title: 'Nakliyat Firmaları İçin İş Ağı & 7 Gün Ücretsiz Deneme',
   description: 'Bölgenizdeki ev ve ofis taşıma taleplerine anında teklif verin. Nakliyeci Defteri ile boş dönüşlerinizi paraya çevirin. 7 gün ücretsiz deneyin.',
-  keywords: ['nakliyeci üyeliği', 'nakliye işleri', 'boş araç yük bulma', 'nakliyeci iş ağı']
+  keywords: ['nakliyeci üyeliği', 'nakliye işleri', 'boş araç yük bulma', 'nakliyeci iş ağı'],
+  alternates: {
+    canonical: '/nakliyeciler',
+  },
 };
 
 export default function NakliyecilerLandingPage() {

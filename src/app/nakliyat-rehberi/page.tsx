@@ -2,17 +2,29 @@ import React from 'react';
 import Link from 'next/link';
 import { Metadata } from 'next';
 import { BookOpen, CheckCircle2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Button } from '@/components/ui/Button';
 
 export const metadata: Metadata = {
-  title: 'Kapsamlı Ev ve Ofis Taşınma Rehberi | TaşınTeklif',
+  title: 'Kapsamlı Ev ve Ofis Taşınma Rehberi',
   description: 'Taşınma öncesinde, taşınma gününde ve sonrasında yapılması gereken tüm adımları içeren pratik rehber.',
-  keywords: ['nakliyat rehberi', 'ev taşınma tavsiyeleri', 'koli hazırlama rehberi']
+  keywords: ['nakliyat rehberi', 'ev taşınma tavsiyeleri', 'koli hazırlama rehberi'],
+  alternates: {
+    canonical: '/nakliyat-rehberi',
+  },
 };
 
 export default function NakliyatRehberiPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <div className="mb-4">
+        <Breadcrumb
+          items={[
+            { name: 'Ana Sayfa', url: '/' },
+            { name: 'Taşınma Rehberi', url: '/nakliyat-rehberi' },
+          ]}
+        />
+      </div>
       <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-12 shadow-xs space-y-8 text-xs sm:text-sm text-slate-700 leading-relaxed">
         <div className="border-b border-slate-100 pb-6">
           <span className="text-xs font-bold text-[#146EF5] uppercase tracking-wider block mb-1">

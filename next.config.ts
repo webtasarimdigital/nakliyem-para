@@ -1,8 +1,58 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+  },
   async redirects() {
     return [
+      // 301 Kalıcı SEO Yönlendirmeleri (Legacy & Alternatif URL'ler)
+      {
+        source: '/ev-tasima',
+        destination: '/evden-eve-nakliyat',
+        permanent: true,
+      },
+      {
+        source: '/ofis-tasimaciligi',
+        destination: '/ofis-tasima',
+        permanent: true,
+      },
+      {
+        source: '/parca-esya',
+        destination: '/parca-esya-tasima',
+        permanent: true,
+      },
+      {
+        source: '/depolama',
+        destination: '/esya-depolama',
+        permanent: true,
+      },
+      {
+        source: '/defter',
+        destination: '/nakliyeci-defteri',
+        permanent: true,
+      },
+      {
+        source: '/firmalar',
+        destination: '/nakliyat-firmalari',
+        permanent: true,
+      },
+      {
+        source: '/nakliyeci-ol',
+        destination: '/kayit?role=nakliyeci',
+        permanent: true,
+      },
+      {
+        source: '/nakliyatci-kayit',
+        destination: '/kayit?role=nakliyeci',
+        permanent: true,
+      },
       // Eski /app/carrier ve /app/customer yollarını Türkçe SEO uyumlu yollara yönlendir
       {
         source: '/app/carrier',

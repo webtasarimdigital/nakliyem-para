@@ -4,9 +4,12 @@ import { Metadata } from 'next';
 import { Cookie, ShieldCheck, ArrowLeft, Settings, Info } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Çerez (Cookie) Politikası | TaşınTeklif',
+  title: 'Çerez (Cookie) Politikası',
   description: 'TaşınTeklif çerez kullanım ilkeleri, zorunlu ve işlevsel çerezler, çerezlerin nasıl yönetileceği ve tarayıcı ayarları rehberi.',
-  keywords: ['çerez politikası', 'cookie politikası', 'taşınteklif çerez tercihleri', 'gizlilik ve çerezler']
+  keywords: ['çerez politikası', 'cookie politikası', 'taşınteklif çerez tercihleri', 'gizlilik ve çerezler'],
+  alternates: {
+    canonical: '/cerez-politikasi',
+  },
 };
 
 export default function CerezPolitikasiPage() {

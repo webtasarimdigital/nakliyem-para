@@ -13,25 +13,49 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { DynamicAdSlot } from '@/components/ui/DynamicAdSlot';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { buildItemListSchema } from '@/lib/seo/schema';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { db } from '@/lib/data/mock-db';
 
 export const metadata: Metadata = {
-  title: 'Onaylı Nakliyat Firmaları | TaşınTeklif',
+  title: 'Onaylı Nakliyat Firmaları Rehberi',
   description: 'Türkiye genelinde 81 ilde hizmet veren onaylı, belgeli ve müşteri puanı yüksek evden eve nakliyat firmalarını listeleyin.',
-  keywords: ['nakliyat firmaları', 'evden eve nakliyeciler', 'güvenilir nakliyat firmaları', 'en iyi nakliyat']
+  keywords: ['nakliyat firmaları', 'evden eve nakliyeciler', 'güvenilir nakliyat firmaları', 'en iyi nakliyat'],
+  alternates: {
+    canonical: '/nakliyat-firmalari',
+  },
 };
 
 export default function NakliyatFirmalariDirectoryPage() {
   const carriers = db.getCarriers().filter(c => c.verificationStatus === 'APPROVED');
   const popularCities = TURKEY_CITIES.filter(c => c.isPopular);
 
+  const itemListSchema = buildItemListSchema(
+    carriers.slice(0, 20).map(c => ({
+      name: c.companyName,
+      url: `/firma/${c.slug || c.id}`,
+      description: `${c.city} evden eve nakliyat ve taşımacılık firması`,
+    })),
+    'Türkiye Onaylı Nakliyat Firmaları Listesi'
+  );
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <JsonLd data={itemListSchema} />
+      <div className="mb-4">
+        <Breadcrumb
+          items={[
+            { name: 'Ana Sayfa', url: '/' },
+            { name: 'Nakliyat Firmaları', url: '/nakliyat-firmalari' },
+          ]}
+        />
+      </div>
       {/* Header */}
       <div className="max-w-3xl mb-10">
         <h1 className="text-3xl sm:text-4xl font-black text-[#111E38] mb-3">
-          Onaylı & Belgeli Nakliyat Firmaları
+          Onaylı &amp; Belgeli Nakliyat Firmaları
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
           Platformumuzda kayıtlı tüm firmaların vergi levhası ve yetkili kimlikleri kontrol edilmektedir. Şehrinizi seçerek bölgenizdeki en yüksek puanlı nakliyecileri inceleyin.

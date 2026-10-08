@@ -4,9 +4,12 @@ import { Metadata } from 'next';
 import { Lock, ShieldCheck, Mail, ArrowLeft, EyeOff, CreditCard, UserCheck } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Gizlilik ve Güvenlik Politikası | TaşınTeklif',
+  title: 'Gizlilik ve Güvenlik Politikası',
   description: 'TaşınTeklif müşteri ve nakliyeci gizlilik taahhüdü, telefon numarası koruma protokolü, SSL güvenliği ve veri saklama standartları.',
-  keywords: ['gizlilik politikası', 'veri güvenliği', 'müşteri gizliliği', 'nakliyat telefon koruması']
+  keywords: ['gizlilik politikası', 'veri güvenliği', 'müşteri gizliliği', 'nakliyat telefon koruması'],
+  alternates: {
+    canonical: '/gizlilik',
+  },
 };
 
 export default function GizlilikPage() {

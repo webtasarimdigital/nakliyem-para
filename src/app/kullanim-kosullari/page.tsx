@@ -4,9 +4,12 @@ import { Metadata } from 'next';
 import { Scale, FileText, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Kullanım Koşulları ve Hizmet Şartları | TaşınTeklif',
+  title: 'Kullanım Koşulları ve Hizmet Şartları',
   description: 'TaşınTeklif platform kullanım koşulları, aracı hizmet sağlayıcı yasal statüsü, müşteri ve nakliyeci sorumluluk maddeleri.',
-  keywords: ['kullanım koşulları', 'taşınteklif sözleşmesi', 'nakliyat hizmet şartları', 'pazaryeri sorumluluk reddi']
+  keywords: ['kullanım koşulları', 'taşınteklif sözleşmesi', 'nakliyat hizmet şartları', 'pazaryeri sorumluluk reddi'],
+  alternates: {
+    canonical: '/kullanim-kosullari',
+  },
 };
 
 export default function KullanimKosullariPage() {

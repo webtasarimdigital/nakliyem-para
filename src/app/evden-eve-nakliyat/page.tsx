@@ -13,19 +13,59 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { DynamicAdSlot } from '@/components/ui/DynamicAdSlot';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { buildServiceSchema, buildFAQSchema } from '@/lib/seo/schema';
 
 export const metadata: Metadata = {
-  title: 'Evden Eve Nakliyat Fiyat Teklifi Al | TaşınTeklif',
+  title: 'Evden Eve Nakliyat Fiyat Teklifi Al',
   description: 'Türkiye genelinde profesyonel ve sigortalı evden eve nakliyat firmalarından ücretsiz fiyat teklifi alın. Fiyatları karşılaştırın, en uygun nakliyeciyi seçin.',
-  keywords: ['evden eve nakliyat', 'ev taşıma fiyatları', 'asansörlü ev taşıma', 'şehirler arası evden eve']
+  keywords: ['evden eve nakliyat', 'ev taşıma fiyatları', 'asansörlü ev taşıma', 'şehirler arası evden eve'],
+  alternates: {
+    canonical: '/evden-eve-nakliyat',
+  },
 };
 
+const SERVICE_FAQS = [
+  {
+    question: 'Evden eve nakliyat teklifi almak ücretli mi?',
+    answer: 'Hayır, TaşınTeklif üzerinden talep oluşturmak ve teklif almak %100 ücretsiz ve komisyonsuzdur.',
+  },
+  {
+    question: 'Eşyalar nakliye sırasında sigortalanıyor mu?',
+    answer: 'Evet, platformumuzdaki tüm onaylı firmalar emtia nakliyat sigortası ile taşıma yapmaktadır.',
+  },
+  {
+    question: 'Mobil asansör fiyata dahil mi?',
+    answer: 'Talep oluştururken kat durumunuza göre asansörlü taşıma seçebilir ve gelen tekliflerde asansörün fiyata dahil olup olmadığını net şekilde görebilirsiniz.',
+  },
+];
+
 export default function EvdenEveNakliyatPage() {
+  const serviceSchema = buildServiceSchema({
+    name: 'Evden Eve Nakliyat',
+    serviceType: 'ResidentialMoving',
+    description: 'Profesyonel ambalajlama, marangozlu mobilya montajı, sigortalı ve asansörlü evden eve nakliyat hizmeti.',
+    url: '/evden-eve-nakliyat',
+  });
+  const faqSchema = buildFAQSchema(SERVICE_FAQS);
+
   return (
     <div className="flex flex-col min-h-screen">
+      <JsonLd data={serviceSchema} />
+      <JsonLd data={faqSchema} />
       {/* Hero */}
-      <section className="bg-white border-b border-slate-100 py-10 sm:py-14 relative overflow-hidden">
+      <section className="bg-white border-b border-slate-100 py-8 sm:py-12 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+          <div className="mb-4">
+            <Breadcrumb
+              items={[
+                { name: 'Ana Sayfa', url: '/' },
+                { name: 'Hizmetler', url: '/evden-eve-nakliyat' },
+                { name: 'Evden Eve Nakliyat', url: '/evden-eve-nakliyat' },
+              ]}
+            />
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             {/* Left Column (7 cols) */}

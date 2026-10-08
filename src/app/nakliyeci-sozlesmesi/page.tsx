@@ -4,9 +4,12 @@ import { Metadata } from 'next';
 import { Truck, ShieldCheck, CheckCircle2, ArrowLeft, Zap, Award } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Nakliyeci Üyelik ve Hizmet Sözleşmesi | TaşınTeklif',
+  title: 'Nakliyeci Üyelik ve Hizmet Sözleşmesi',
   description: 'TaşınTeklif nakliyat firması katılım şartları, K3 belge doğrulama protokolü, abonelik planları, komisyonsuz çalışma esasları ve hizmet sözleşmesi.',
-  keywords: ['nakliyeci sözleşmesi', 'nakliyat üyelik şartları', 'k3 yetki belgesi doğrulama', 'komisyonsuz nakliye pazaryeri']
+  keywords: ['nakliyeci sözleşmesi', 'nakliyat üyelik şartları', 'k3 yetki belgesi doğrulama', 'komisyonsuz nakliye pazaryeri'],
+  alternates: {
+    canonical: '/nakliyeci-sozlesmesi',
+  },
 };
 
 export default function NakliyeciSozlesmesiPage() {

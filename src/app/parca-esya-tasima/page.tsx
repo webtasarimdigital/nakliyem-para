@@ -4,19 +4,55 @@ import { Metadata } from 'next';
 import { Package, Warehouse, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { DynamicAdSlot } from '@/components/ui/DynamicAdSlot';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { buildServiceSchema, buildFAQSchema } from '@/lib/seo/schema';
 
 export const metadata: Metadata = {
-  title: 'Parça Eşya Taşıma & Parsiyel Nakliye | TaşınTeklif',
+  title: 'Parça Eşya Taşıma & Parsiyel Nakliye',
   description: 'Tek koltuk, beyaz eşya veya birkaç koli eşyanız için uygun fiyatlı şehirler arası ve şehir içi parça eşya nakliye teklifleri alın.',
-  keywords: ['parça eşya taşıma', 'parsiyel nakliye', 'parça ev eşyası', 'tek eşya taşıma']
+  keywords: ['parça eşya taşıma', 'parsiyel nakliye', 'parça ev eşyası', 'tek eşya taşıma'],
+  alternates: {
+    canonical: '/parca-esya-tasima',
+  },
 };
 
+const PARCA_FAQS = [
+  {
+    question: 'Parça eşya taşıma nedir?',
+    answer: 'Aynı güzergaha giden bir nakliye kamyonundaki boş alanın birden fazla müşterinin parça eşyasıyla paylaşılarak taşınmasıdır. Komple araç ücreti ödemezsiniz.',
+  },
+  {
+    question: 'Eşyalar diğer müşterilerin eşyalarıyla karışır mı?',
+    answer: 'Hayır, tüm parça eşyalar özel olarak etiketlenir ve araç içerisinde bölmelerle ayrılarak güvenle teslim edilir.',
+  },
+];
+
 export default function ParcaEsyaTasimaPage() {
+  const serviceSchema = buildServiceSchema({
+    name: 'Parça Eşya Taşıma & Parsiyel Nakliyat',
+    serviceType: 'PartialMoving',
+    description: 'Tek eşya, mobilya veya birkaç koli için bütçe dostu paylaşımlı nakliyat hizmeti.',
+    url: '/parca-esya-tasima',
+  });
+  const faqSchema = buildFAQSchema(PARCA_FAQS);
+
   return (
     <div className="flex flex-col min-h-screen bg-[#F8FAFC]">
+      <JsonLd data={serviceSchema} />
+      <JsonLd data={faqSchema} />
       {/* Hero Section */}
-      <section className="bg-white border-b border-slate-100 py-10 sm:py-14 relative overflow-hidden">
+      <section className="bg-white border-b border-slate-100 py-8 sm:py-12 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+          <div className="mb-4">
+            <Breadcrumb
+              items={[
+                { name: 'Ana Sayfa', url: '/' },
+                { name: 'Hizmetler', url: '/parca-esya-tasima' },
+                { name: 'Parça Eşya Taşıma', url: '/parca-esya-tasima' },
+              ]}
+            />
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             {/* Left Column (7 cols) */}

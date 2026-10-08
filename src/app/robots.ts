@@ -6,7 +6,18 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin/', '/app/', '/api/'],
+        disallow: [
+          '/admin/',
+          '/app/',
+          '/api/',
+          '/nakliyeci/',
+          '/musteri/',
+          '/giris',
+          '/kayit',
+          '/sifremi-unuttum',
+          '/dogrula',
+          '/*?*', // Filtreleme ve arama parametrelerinin gereksiz taranmasını önler
+        ],
       },
     ],
     sitemap: 'https://tasinteklif.com/sitemap.xml',

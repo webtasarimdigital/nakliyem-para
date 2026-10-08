@@ -7,14 +7,29 @@ import { MobileCustomerNav } from '@/components/layout/MobileCustomerNav';
 import { MobileCarrierNav } from '@/components/layout/MobileCarrierNav';
 import { SupportChatWidget } from '@/components/ui/SupportChatWidget';
 
+import { buildOrganizationSchema, buildWebSiteSchema } from '@/lib/seo/schema';
+import { JsonLd } from '@/components/seo/JsonLd';
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://tasinteklif.com'),
   title: {
-    default: 'Evden Eve Nakliyat Teklifi Al | TaşınTeklif',
+    default: 'Evden Eve Nakliyat Fiyat Teklifi Al | TaşınTeklif',
     template: '%s | TaşınTeklif',
   },
   description: 'Evden eve nakliyat, ofis taşıma, parça eşya ve depolama için talep oluşturun; onaylı nakliyat firmalarından komisyonsuz fiyat teklifi alın ve karşılaştırın.',
-  keywords: ['evden eve nakliyat', 'nakliyat teklifi', 'nakliyat firmaları', 'ev taşıma', 'şehirler arası nakliyat', 'nakliyeci defteri', 'nakliyat pazaryeri'],
+  keywords: [
+    'evden eve nakliyat',
+    'nakliyat teklifi',
+    'nakliyat firmaları',
+    'ev taşıma fiyatları',
+    'şehirler arası nakliyat',
+    'nakliyeci defteri',
+    'asansörlü nakliyat',
+    'parça eşya taşıma',
+  ],
+  alternates: {
+    canonical: '/',
+  },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '32x32' },
@@ -48,6 +63,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr">
+      <head>
+        <JsonLd data={buildOrganizationSchema()} />
+        <JsonLd data={buildWebSiteSchema()} />
+      </head>
       <body className="min-h-screen flex flex-col bg-[#F7F9FC] text-[#172033] antialiased">
         <GlobalAppBand />
         <Navbar />
