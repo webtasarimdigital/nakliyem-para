@@ -132,6 +132,7 @@ export const Footer: React.FC = () => {
             <h3 className="font-black text-sm text-[#F95700] uppercase tracking-wider">Nakliyeci İş Ağı</h3>
             <ul className="space-y-2 text-xs sm:text-sm text-slate-300 font-medium">
               <li><Link href="/nakliyeci-defteri" className="hover:text-[#F95700] transition-colors font-bold text-orange-300">Nakliyeci Defteri</Link></li>
+              <li><Link href="/hizmetler" className="hover:text-[#F95700] transition-colors font-bold text-orange-300">Dijital Hizmetler & Web</Link></li>
               <li><Link href="/pazaryeri" className="hover:text-[#F95700] transition-colors">Pazaryeri & Asansör</Link></li>
               <li><Link href="/nakliyeciler" className="hover:text-[#F95700] transition-colors">Nakliyeci Başvurusu</Link></li>
               <li><Link href="/paketler" className="hover:text-[#F95700] transition-colors">Abonelik Paketleri</Link></li>

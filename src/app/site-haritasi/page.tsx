@@ -314,6 +314,12 @@ export default function SiteHaritasiPage() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/hizmetler" className="group flex items-center justify-between text-sm font-semibold text-slate-700 hover:text-[#F95700] transition-colors">
+                    <span className="font-bold text-[#F95700]">Dijital Hizmetler &amp; Web Tasarım</span>
+                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#F95700] group-hover:translate-x-0.5 transition-all" />
+                  </Link>
+                </li>
+                <li>
                   <Link href="/nakliyeciler" className="group flex items-center justify-between text-sm font-semibold text-slate-700 hover:text-[#F95700] transition-colors">
                     <span>Nakliyeci Ol (Kayıt)</span>
                     <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#F95700] group-hover:translate-x-0.5 transition-all" />

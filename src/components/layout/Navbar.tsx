@@ -170,113 +170,111 @@ export const Navbar: React.FC = () => {
             </Link>
           )}
 
-          {/* Dijital Hizmetler Dropdown for Carrier */}
-          {isCarrier && (
-            <div className="relative" ref={digitalDropdownRef}>
-              <button
-                type="button"
-                onClick={() => setDigitalDropdownOpen(!digitalDropdownOpen)}
-                className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
-                  pathname?.includes('dijital-hizmetler')
-                    ? 'bg-orange-50 text-[#F95700]'
-                    : 'text-slate-700 hover:bg-slate-100 hover:text-[#111E38]'
-                }`}
-              >
-                <Sparkles className="w-4 h-4 text-[#F95700] shrink-0" />
-                <span>Dijital</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${digitalDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+          {/* Hizmetler Dropdown (Public for all visitors & carriers) */}
+          <div className="relative" ref={digitalDropdownRef}>
+            <button
+              type="button"
+              onClick={() => setDigitalDropdownOpen(!digitalDropdownOpen)}
+              className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                pathname?.startsWith('/hizmetler')
+                  ? 'bg-orange-50 text-[#F95700]'
+                  : 'text-slate-700 hover:bg-slate-100 hover:text-[#111E38]'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 text-[#F95700] shrink-0" />
+              <span>Hizmetler</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${digitalDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
 
-              {digitalDropdownOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-white rounded-3xl shadow-xl border border-slate-200 p-2 z-50 animate-fade-in space-y-1">
-                  <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Firmanızı İnternette Büyütün
-                  </div>
-
-                  <Link
-                    href="/app/carrier/dijital-hizmetler/web-sitesi"
-                    onClick={() => setDigitalDropdownOpen(false)}
-                    className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
-                  >
-                    <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#F95700] flex items-center justify-center shrink-0">
-                      <Globe className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Web Sitesi Hizmeti</div>
-                      <div className="text-[10px] text-slate-400">Mobil uyumlu & formlu</div>
-                    </div>
-                  </Link>
-
-                  <Link
-                    href="/app/carrier/dijital-hizmetler/google-seo"
-                    onClick={() => setDigitalDropdownOpen(false)}
-                    className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
-                  >
-                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                      <Search className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Google SEO</div>
-                      <div className="text-[10px] text-slate-400">Aramalarda 1. sayfa</div>
-                    </div>
-                  </Link>
-
-                  <Link
-                    href="/app/carrier/dijital-hizmetler/harita-seo"
-                    onClick={() => setDigitalDropdownOpen(false)}
-                    className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
-                  >
-                    <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                      <MapPin className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Harita SEO (Google Maps)</div>
-                      <div className="text-[10px] text-slate-400">Bölgenizde ilk sırada</div>
-                    </div>
-                  </Link>
-
-                  <Link
-                    href="/app/carrier/dijital-hizmetler/google-reklamlari"
-                    onClick={() => setDigitalDropdownOpen(false)}
-                    className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
-                  >
-                    <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-                      <Megaphone className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Google Reklamları</div>
-                      <div className="text-[10px] text-slate-400">Anında arayan müşteriler</div>
-                    </div>
-                  </Link>
-
-                  <Link
-                    href="/app/carrier/dijital-hizmetler/sosyal-medya"
-                    onClick={() => setDigitalDropdownOpen(false)}
-                    className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
-                  >
-                    <div className="w-8 h-8 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center shrink-0">
-                      <Share2 className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Sosyal Medya Reklamları</div>
-                      <div className="text-[10px] text-slate-400">Instagram & Facebook</div>
-                    </div>
-                  </Link>
-
-                  <div className="pt-1.5 border-t border-slate-100">
-                    <Link
-                      href="/app/carrier/dijital-hizmetler"
-                      onClick={() => setDigitalDropdownOpen(false)}
-                      className="flex items-center justify-between px-3 py-2 text-xs font-bold text-[#F95700] hover:bg-orange-50 rounded-xl"
-                    >
-                      <span>Tüm Dijital Hizmetler</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
+            {digitalDropdownOpen && (
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-white rounded-3xl shadow-xl border border-slate-200 p-2 z-50 animate-fade-in space-y-1">
+                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Dijital Büyüme Hizmetleri
                 </div>
-              )}
-            </div>
-          )}
+
+                <Link
+                  href="/hizmetler/web-tasarim"
+                  onClick={() => setDigitalDropdownOpen(false)}
+                  className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#F95700] flex items-center justify-center shrink-0">
+                    <Globe className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Web Sitesi Tasarımı</div>
+                    <div className="text-[10px] text-slate-400">Mobil uyumlu & formlu</div>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/hizmetler/google-seo"
+                  onClick={() => setDigitalDropdownOpen(false)}
+                  className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Search className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Google SEO</div>
+                    <div className="text-[10px] text-slate-400">Aramalarda 1. sayfa</div>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/hizmetler/harita-seo"
+                  onClick={() => setDigitalDropdownOpen(false)}
+                  className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Harita SEO (Google Maps)</div>
+                    <div className="text-[10px] text-slate-400">Bölgenizde ilk sırada</div>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/hizmetler/google-reklamlari"
+                  onClick={() => setDigitalDropdownOpen(false)}
+                  className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                    <Megaphone className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Google Reklamları (Ads)</div>
+                    <div className="text-[10px] text-slate-400">Anında arayan müşteriler</div>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/hizmetler/sosyal-medya"
+                  onClick={() => setDigitalDropdownOpen(false)}
+                  className="flex items-center gap-2.5 p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center shrink-0">
+                    <Share2 className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-[#111E38] group-hover:text-[#F95700] truncate">Sosyal Medya Reklamları</div>
+                    <div className="text-[10px] text-slate-400">Instagram & Facebook</div>
+                  </div>
+                </Link>
+
+                <div className="pt-1.5 border-t border-slate-100">
+                  <Link
+                    href="/hizmetler"
+                    onClick={() => setDigitalDropdownOpen(false)}
+                    className="flex items-center justify-between px-3 py-2 text-xs font-bold text-[#F95700] hover:bg-orange-50 rounded-xl"
+                  >
+                    <span>Tüm Hizmetleri İncele</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* Right: Auth Profile or Login/Register */}
@@ -527,6 +525,7 @@ export const Navbar: React.FC = () => {
               ...(isCustomer ? [{ href: '/musteri/teklifler', label: 'Gelen Teklifler', icon: <Truck className="w-4 h-4 text-[#F95700]" /> }] : []),
               { href: '/teklif-al', label: 'Teklif Al', icon: <Truck className="w-4 h-4 text-[#F95700]" /> },
               { href: '/fiyatlar', label: 'Fiyatlar & Tarifeler', icon: <Calculator className="w-4 h-4 text-[#F95700]" /> },
+              { href: '/hizmetler', label: 'Hizmetler (Web, SEO & Reklam)', icon: <Sparkles className="w-4 h-4 text-[#F95700]" /> },
               ...(!isCustomer ? [{ href: '/pazaryeri', label: 'Pazaryeri', icon: <ShoppingBag className="w-4 h-4 text-[#F95700]" /> }] : []),
             ].map(link => (
               <Link

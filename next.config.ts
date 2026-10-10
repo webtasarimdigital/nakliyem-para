@@ -83,6 +83,11 @@ const nextConfig: NextConfig = {
         destination: '/pazaryeri',
         permanent: true,
       },
+      {
+        source: '/hizmetler/web-sitesi',
+        destination: '/hizmetler/web-tasarim',
+        permanent: true,
+      },
       // Eski blog slug'ları kalıcı 301 yönlendirmesi
       {
         source: '/blog/nakliyat-firmasi-secerken-dikkat-edilmesi-gerekenler',
