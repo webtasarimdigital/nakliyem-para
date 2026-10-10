@@ -865,7 +865,7 @@ export default function PaketlerPage() {
                 Ücretsiz Taşınma Talebi Oluştur →
               </Button>
             </Link>
-            <Link href="/kayit/nakliyeci" className="block w-full">
+            <Link href="/kayit?role=nakliyeci" rel="nofollow" className="block w-full">
               <Button variant="outline" size="md" className="w-full font-bold text-xs text-slate-700">
                 Nakliye Firması Hesabı Aç
               </Button>

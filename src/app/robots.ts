@@ -20,6 +20,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://tasinteklif.com/sitemap.xml',
+    sitemap: 'https://www.tasinteklif.com/sitemap.xml',
   };
 }

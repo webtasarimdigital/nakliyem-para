@@ -1,15 +1,15 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Ekibimiz & Yönetim Kadrosu | TaşınTeklif',
-  description: 'TaşınTeklif\'in arkasındaki lojistik uzmanları, yazılım mühendisleri ve müşteri deneyimi ekibimizle tanışın. 81 ilde güvenilir ve şeffaf nakliyat deneyimi.',
+  title: 'Ekibimiz & Yönetim Kadrosu',
+  description: 'TaşınTeklif lojistik uzmanları, yazılım mühendisleri ve müşteri deneyimi kadrosuyla tanışın. 81 ilde güvenilir ve şeffaf taşınma deneyimi.',
   alternates: {
     canonical: '/ekibimiz',
   },
   openGraph: {
     title: 'Ekibimiz & Yönetim Kadrosu | TaşınTeklif',
-    description: 'TaşınTeklif\'in arkasındaki lojistik uzmanları, yazılım mühendisleri ve müşteri deneyimi ekibimizle tanışın.',
-    url: 'https://tasinteklif.com/ekibimiz',
+    description: 'TaşınTeklif lojistik uzmanları, yazılım mühendisleri ve müşteri deneyimi kadrosuyla tanışın.',
+    url: 'https://www.tasinteklif.com/ekibimiz',
     type: 'website',
   },
 };

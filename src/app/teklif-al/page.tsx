@@ -477,11 +477,11 @@ function RequestWizardContent() {
         {step === 1 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-[#111E38] tracking-tight">
-                Ne tür bir nakliyat hizmeti arıyorsunuz?
-              </h2>
+              <h1 className="text-xl sm:text-2xl font-bold text-[#111E38] tracking-tight">
+                Ücretsiz Nakliyat Fiyat Teklifi Al
+              </h1>
               <p className="text-xs sm:text-sm text-slate-500 font-normal mt-1">
-                İhtiyacınıza en uygun taşıma tipini seçin.
+                Ne tür bir nakliyat hizmeti arıyorsunuz? İhtiyacınıza en uygun taşıma tipini seçin.
               </p>
             </div>
 

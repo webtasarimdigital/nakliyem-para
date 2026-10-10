@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/Button';
 
 export const metadata: Metadata = {
-  title: 'Nakliyat Firmaları İçin İş Ağı & 7 Gün Ücretsiz Deneme',
+  title: 'Nakliyat Firmaları İş Ağı & Ücretsiz Deneme',
   description: 'Bölgenizdeki ev ve ofis taşıma taleplerine anında teklif verin. Nakliyeci Defteri ile boş dönüşlerinizi paraya çevirin. 7 gün ücretsiz deneyin.',
   keywords: ['nakliyeci üyeliği', 'nakliye işleri', 'boş araç yük bulma', 'nakliyeci iş ağı'],
   alternates: {
@@ -46,7 +46,7 @@ export default function NakliyecilerLandingPage() {
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <Link href="/kayit/nakliyeci">
+              <Link href="/kayit?role=nakliyeci" rel="nofollow">
                 <Button variant="gold" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>
                   7 Gün Ücretsiz Dene
                 </Button>
@@ -130,7 +130,7 @@ export default function NakliyecilerLandingPage() {
           <p className="text-xs sm:text-sm text-slate-600 mb-8 max-w-xl mx-auto">
             Firmanızı kaydedin, belgelerinizi yükleyin ve bugün onay alarak yeni taşıma işlerine teklif vermeye başlayın.
           </p>
-          <Link href="/kayit/nakliyeci">
+          <Link href="/kayit?role=nakliyeci" rel="nofollow">
             <Button variant="primary" size="lg" className="px-8 font-bold">
               Hemen Nakliyeci Hesabı Aç
             </Button>

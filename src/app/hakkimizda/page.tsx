@@ -17,7 +17,7 @@ import { Breadcrumb } from '@/components/ui/Breadcrumb';
 
 export const metadata: Metadata = {
   title: 'Hakkımızda & Vizyonumuz',
-  description: 'TaşınTeklif nedir? Türkiye genelinde 81 ilde K3 belgeli nakliyecileri ve taşınmak isteyen müşterileri buluşturan komisyonsuz yeni nesil nakliyat pazaryeri.',
+  description: 'Türkiye genelinde 81 ilde belgeli nakliyecileri ve taşınacak müşterileri buluşturan komisyonsuz yeni nesil dijital nakliyat platformu.',
   alternates: {
     canonical: '/hakkimizda',
   },

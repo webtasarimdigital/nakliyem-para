@@ -19,7 +19,7 @@ import { buildServiceSchema, buildFAQSchema } from '@/lib/seo/schema';
 
 export const metadata: Metadata = {
   title: 'Evden Eve Nakliyat Fiyat Teklifi Al',
-  description: 'Türkiye genelinde profesyonel ve sigortalı evden eve nakliyat firmalarından ücretsiz fiyat teklifi alın. Fiyatları karşılaştırın, en uygun nakliyeciyi seçin.',
+  description: 'Türkiye genelinde onaylı ve sigortalı evden eve nakliyat firmalarından ücretsiz fiyat teklifi toplayın, en uygun nakliyeciyi güvenle seçin.',
   keywords: ['evden eve nakliyat', 'ev taşıma fiyatları', 'asansörlü ev taşıma', 'şehirler arası evden eve'],
   alternates: {
     canonical: '/evden-eve-nakliyat',

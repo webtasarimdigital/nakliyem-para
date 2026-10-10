@@ -286,38 +286,14 @@ export const Footer: React.FC = () => {
             </a>
           </div>
 
-          {/* Payment & Trust Badges (Mastercard, VISA, Dodo Payments) */}
-          <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-slate-200/80 shadow-xs">
-            {/* Mastercard */}
-            <div className="flex items-center" title="Mastercard Güvenli Ödeme">
-              <svg className="h-6 w-9 shrink-0" viewBox="0 0 38 24" fill="none">
-                <circle cx="14" cy="12" r="10" fill="#EB001B" />
-                <circle cx="24" cy="12" r="10" fill="#F79E1B" fillOpacity="0.88" />
-              </svg>
+          {/* Payment & Trust Badge (Dodo Payments) */}
+          <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-slate-200/80 shadow-xs" title="Dodo Payments Güvenli Ödeme Altyapısı">
+            <div className="w-5 h-5 rounded-md bg-[#F95700] text-white flex items-center justify-center font-black text-[11px] leading-none shadow-2xs">
+              d
             </div>
-
-            <div className="w-px h-5 bg-slate-200" />
-
-            {/* VISA */}
-            <div className="flex items-center px-1" title="Visa Güvenli Ödeme">
-              <svg className="h-5 w-12 shrink-0" viewBox="0 0 60 20" fill="none">
-                <text x="0" y="16" fontFamily="system-ui, -apple-system, sans-serif" fontSize="18" fontWeight="900" fontStyle="italic" fill="#1434CB" letterSpacing="0.5">
-                  VISA
-                </text>
-              </svg>
-            </div>
-
-            <div className="w-px h-5 bg-slate-200" />
-
-            {/* Dodo Payments */}
-            <div className="flex items-center gap-1.5 pl-1 shrink-0" title="Dodo Payments Güvenli Ödeme Altyapısı">
-              <div className="w-5 h-5 rounded-md bg-[#F95700] text-white flex items-center justify-center font-black text-[11px] leading-none shadow-2xs">
-                d
-              </div>
-              <div className="flex flex-col leading-none">
-                <span className="font-black text-slate-900 text-xs tracking-tight">dodo<span className="text-[#F95700]">payments</span></span>
-                <span className="text-[9px] text-slate-400 font-bold">Güvenli Ödeme</span>
-              </div>
+            <div className="flex flex-col leading-none">
+              <span className="font-black text-slate-900 text-xs tracking-tight">dodo<span className="text-[#F95700]">payments</span></span>
+              <span className="text-[9px] text-slate-400 font-bold">Güvenli Ödeme Altyapısı</span>
             </div>
           </div>
 

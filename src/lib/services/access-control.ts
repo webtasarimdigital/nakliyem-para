@@ -42,7 +42,7 @@ export function checkAccess(options: {
         title: 'Bu özellik nakliyecilere özeldir',
         message: 'Taşıma taleplerine teklif vermek ve Nakliyeci Defteri\'ni kullanmak için firma hesabı oluşturmanız gerekmektedir.',
         ctaText: 'Nakliyeci Hesabı Aç',
-        ctaAction: '/kayit/nakliyeci'
+        ctaAction: '/kayit?role=nakliyeci'
       };
     }
     return {

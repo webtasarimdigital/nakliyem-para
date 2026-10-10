@@ -5,7 +5,7 @@ import { Truck, ShieldCheck, CheckCircle2, ArrowLeft, Zap, Award } from 'lucide-
 
 export const metadata: Metadata = {
   title: 'Nakliyeci Üyelik ve Hizmet Sözleşmesi',
-  description: 'TaşınTeklif nakliyat firması katılım şartları, K3 belge doğrulama protokolü, abonelik planları, komisyonsuz çalışma esasları ve hizmet sözleşmesi.',
+  description: 'TaşınTeklif nakliyat firması üyelik şartları, belge doğrulama esasları, abonelik planları ve komisyonsuz hizmet sözleşmesi maddeleri.',
   keywords: ['nakliyeci sözleşmesi', 'nakliyat üyelik şartları', 'k3 yetki belgesi doğrulama', 'komisyonsuz nakliye pazaryeri'],
   alternates: {
     canonical: '/nakliyeci-sozlesmesi',

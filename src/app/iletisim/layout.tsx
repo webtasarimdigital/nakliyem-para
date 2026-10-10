@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'İletişim & Müşteri Hizmetleri',
-  description: 'TaşınTeklif müşteri destek ekibine 7/24 canlı sohbet, e-posta veya iletişim formu üzerinden ulaşın. Sorularınız ve destek talepleriniz için buradayız.',
+  description: 'TaşınTeklif destek ekibine 7/24 canlı sohbet, e-posta veya telefonla ulaşın. Sorularınız ve nakliye talepleriniz için buradayız.',
   alternates: {
     canonical: '/iletisim',
   },

@@ -4,7 +4,12 @@ export const metadata: Metadata = {
   title: 'Ücretsiz Nakliyat Fiyat Teklifi Al',
   description: 'Evinizi veya ofisinizi taşımak için 2 dakikada talep oluşturun, 81 ildeki onaylı nakliyecilerden anında teklif toplayın.',
   alternates: {
-    canonical: '/teklif-al',
+    canonical: 'https://www.tasinteklif.com/teklif-al',
+  },
+  openGraph: {
+    title: 'Ücretsiz Nakliyat Fiyat Teklifi Al | TaşınTeklif',
+    description: 'Evinizi veya ofisinizi taşımak için 2 dakikada talep oluşturun, onaylı nakliyecilerden teklif toplayın.',
+    url: 'https://www.tasinteklif.com/teklif-al',
   },
 };
 

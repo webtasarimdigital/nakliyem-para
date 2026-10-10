@@ -53,6 +53,52 @@ const nextConfig: NextConfig = {
         destination: '/kayit?role=nakliyeci',
         permanent: true,
       },
+      {
+        source: '/bize-ulasin',
+        destination: '/iletisim',
+        permanent: true,
+      },
+      {
+        source: '/kayit/nakliyeci',
+        destination: '/kayit?role=nakliyeci',
+        permanent: true,
+      },
+      {
+        source: '/kayit/musteri',
+        destination: '/kayit?role=musteri',
+        permanent: true,
+      },
+      {
+        source: '/nakliyat-fiyatlari',
+        destination: '/fiyatlar',
+        permanent: true,
+      },
+      {
+        source: '/pazaryeri/v4',
+        destination: '/pazaryeri',
+        permanent: true,
+      },
+      {
+        source: '/pazaryeri/v5',
+        destination: '/pazaryeri',
+        permanent: true,
+      },
+      // Eski blog slug'ları kalıcı 301 yönlendirmesi
+      {
+        source: '/blog/nakliyat-firmasi-secerken-dikkat-edilmesi-gerekenler',
+        destination: '/blog/nakliyat-firmasi-nasil-secilir',
+        permanent: true,
+      },
+      {
+        source: '/blog/evden-eve-nakliyat-fiyatlari-nasil-belirlenir',
+        destination: '/blog/evden-eve-nakliyat-fiyatlari-2026',
+        permanent: true,
+      },
+      {
+        source: '/blog/tasinma-oncesi-yapilmasi-gerekenler-kontrol-listesi',
+        destination: '/blog/tasinma-oncesi-yapilacaklar-kontrol-listesi',
+        permanent: true,
+      },
       // Eski /app/carrier ve /app/customer yollarını Türkçe SEO uyumlu yollara yönlendir
       {
         source: '/app/carrier',

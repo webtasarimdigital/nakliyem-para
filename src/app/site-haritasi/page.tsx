@@ -26,7 +26,7 @@ import { INTERCITY_ROUTES } from '@/lib/data/routes-data';
 
 export const metadata: Metadata = {
   title: 'Site Haritası — Tüm Sayfalar, Şehirler ve Nakliyat Hizmetleri',
-  description: 'TaşınTeklif üzerindeki tüm sayfalar tek yerde: evden eve nakliyat, şehirlerarası rotalar, 81 il firma rehberleri, hesaplayıcılar, blog ve kurumsal sayfalar.',
+  description: 'TaşınTeklif tüm sayfaları: evden eve nakliyat hizmetleri, 81 il rehberleri, şehirlerarası rotalar, hesaplayıcılar, blog ve kurumsal bağlantılar.',
   keywords: ['taşınteklif site haritası', 'nakliyat sayfaları', '81 il evden eve nakliyat', 'nakliyat firmaları dizini'],
   alternates: {
     canonical: '/site-haritasi',

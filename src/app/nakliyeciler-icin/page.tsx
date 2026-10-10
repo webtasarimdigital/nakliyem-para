@@ -18,7 +18,7 @@ import { Breadcrumb } from '@/components/ui/Breadcrumb';
 
 export const metadata: Metadata = {
   title: 'Nakliyat Firmaları İçin İş ve Müşteri Bulma Platformu',
-  description: 'Nakliyeciler için %0 komisyonlu müşteri bulma platformu. 7 gün ücretsiz deneme üyeliği, Nakliyeci Defteri dönüş yükleri ve kurumsal firma vitrini.',
+  description: 'Nakliyeciler için %0 komisyonlu müşteri bulma platformu. 7 gün ücretsiz deneme, Nakliyeci Defteri dönüş yükleri ve kurumsal profil vitrini.',
   alternates: {
     canonical: '/nakliyeciler-icin',
   },

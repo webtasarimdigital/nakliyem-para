@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { notFound, permanentRedirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import {
   MapPin,
@@ -15,16 +16,19 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { db } from '@/lib/data/mock-db';
 import { buildItemListSchema } from '@/lib/seo/schema';
+import { getDistrictSlug, isMatchingDistrict } from '@/lib/utils/slug';
 
-function normalizeDistrictSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/ğ/g, 'g')
-    .replace(/ü/g, 'u')
-    .replace(/ş/g, 's')
-    .replace(/ı/g, 'i')
-    .replace(/ö/g, 'o')
-    .replace(/ç/g, 'c');
+export async function generateStaticParams() {
+  const params: { city: string; district: string }[] = [];
+  for (const city of TURKEY_CITIES) {
+    for (const d of city.districts) {
+      params.push({
+        city: city.slug,
+        district: getDistrictSlug(d),
+      });
+    }
+  }
+  return params;
 }
 
 export async function generateMetadata({
@@ -33,14 +37,29 @@ export async function generateMetadata({
   params: Promise<{ city: string; district: string }>;
 }): Promise<Metadata> {
   const { city, district } = await params;
-  const cityObj = TURKEY_CITIES.find(c => c.slug === city) || TURKEY_CITIES[0];
-  const matchedDistrict =
-    cityObj.districts.find(d => normalizeDistrictSlug(d) === district.toLowerCase()) ||
-    district;
+  const cityObj = TURKEY_CITIES.find(c => c.slug === city);
+  if (!cityObj) {
+    return {
+      title: 'İlçe Bulunamadı',
+      robots: { index: false },
+    };
+  }
+
+  const decodedDistrict = decodeURIComponent(district);
+  const matchedDistrict = cityObj.districts.find(d => isMatchingDistrict(d, decodedDistrict));
+
+  if (!matchedDistrict) {
+    return {
+      title: 'İlçe Bulunamadı',
+      robots: { index: false },
+    };
+  }
+
+  const canonicalSlug = getDistrictSlug(matchedDistrict);
 
   return {
     title: `${matchedDistrict} Nakliyat Firmaları & Evden Eve Taşıma (${cityObj.name})`,
-    description: `${cityObj.name} ${matchedDistrict} evden eve nakliyat firmaları, asansörlü taşıma ve sigortalı nakliye fiyat teklifleri. En uygun fiyatlı onaylı ${matchedDistrict} nakliyecileri.`,
+    description: `${cityObj.name} ${matchedDistrict} evden eve nakliyat firmaları, asansörlü taşıma ve sigortalı nakliye fiyat teklifleri. En uygun onaylı ${matchedDistrict} nakliyecileri.`,
     keywords: [
       `${matchedDistrict} nakliyat`,
       `${matchedDistrict} evden eve nakliyat`,
@@ -48,7 +67,12 @@ export async function generateMetadata({
       `${matchedDistrict} asansörlü nakliyat`,
     ],
     alternates: {
-      canonical: `/nakliyat-firmalari/${cityObj.slug}/${district}`,
+      canonical: `/nakliyat-firmalari/${cityObj.slug}/${canonicalSlug}`,
+    },
+    openGraph: {
+      title: `${cityObj.name} ${matchedDistrict} Nakliyat Firmaları | TaşınTeklif`,
+      description: `${matchedDistrict} bölgesinde onaylı, sigortalı nakliyecilerden komisyonsuz teklif alın.`,
+      url: `https://www.tasinteklif.com/nakliyat-firmalari/${cityObj.slug}/${canonicalSlug}`,
     },
   };
 }
@@ -59,11 +83,24 @@ export default async function DistrictDirectoryPage({
   params: Promise<{ city: string; district: string }>;
 }) {
   const { city, district } = await params;
-  const cityObj = TURKEY_CITIES.find(c => c.slug === city) || TURKEY_CITIES[0];
-  const matchedDistrict =
-    cityObj.districts.find(d => normalizeDistrictSlug(d) === district.toLowerCase()) ||
-    cityObj.districts[0] ||
-    'Merkez';
+  const cityObj = TURKEY_CITIES.find(c => c.slug === city);
+  if (!cityObj) {
+    notFound();
+  }
+
+  const decodedDistrict = decodeURIComponent(district);
+  const matchedDistrict = cityObj.districts.find(d => isMatchingDistrict(d, decodedDistrict));
+
+  if (!matchedDistrict) {
+    notFound();
+  }
+
+  const canonicalSlug = getDistrictSlug(matchedDistrict);
+
+  // If accessed with a non-canonical, encoded or malformed slug, permanently 301 redirect
+  if (district !== canonicalSlug) {
+    permanentRedirect(`/nakliyat-firmalari/${cityObj.slug}/${canonicalSlug}`);
+  }
 
   const carriers = db.getCarriers().filter(
     c =>
@@ -93,7 +130,7 @@ export default async function DistrictDirectoryPage({
             { name: 'Ana Sayfa', url: '/' },
             { name: 'Nakliyat Firmaları', url: '/nakliyat-firmalari' },
             { name: cityObj.name, url: `/nakliyat-firmalari/${cityObj.slug}` },
-            { name: `${matchedDistrict} Nakliyat`, url: `/nakliyat-firmalari/${cityObj.slug}/${district}` },
+            { name: `${matchedDistrict} Nakliyat`, url: `/nakliyat-firmalari/${cityObj.slug}/${canonicalSlug}` },
           ]}
         />
       </div>
@@ -124,6 +161,7 @@ export default async function DistrictDirectoryPage({
         </div>
         <Link
           href={`/teklif-al?originCity=${encodeURIComponent(cityObj.name)}&originDistrict=${encodeURIComponent(matchedDistrict)}`}
+          rel="nofollow"
           className="w-full sm:w-auto shrink-0"
         >
           <Button variant="primary" size="md" className="w-full font-bold">
@@ -132,19 +170,18 @@ export default async function DistrictDirectoryPage({
         </Link>
       </div>
 
-      {/* Nearby Districts */}
+      {/* All Sibling Districts of City (Guarantees multi-link internal graph) */}
       <div className="mb-10 p-5 rounded-2xl bg-white border border-slate-200 shadow-xs">
         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-3">
-          {cityObj.name} Diğer İlçeleri
+          {cityObj.name} Diğer İlçeleri ({cityObj.districts.filter(d => d !== matchedDistrict).length})
         </span>
         <div className="flex flex-wrap gap-2">
           {cityObj.districts
             .filter(d => d !== matchedDistrict)
-            .slice(0, 12)
             .map(d => (
               <Link
                 key={d}
-                href={`/nakliyat-firmalari/${cityObj.slug}/${normalizeDistrictSlug(d)}`}
+                href={`/nakliyat-firmalari/${cityObj.slug}/${getDistrictSlug(d)}`}
                 className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-orange-50 hover:text-[#F95700] text-xs font-semibold text-slate-700 border border-slate-200 transition-colors"
               >
                 {d} Nakliyat
@@ -196,6 +233,7 @@ export default async function DistrictDirectoryPage({
               <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
                 <Link
                   href={`/teklif-al?originCity=${encodeURIComponent(cityObj.name)}&originDistrict=${encodeURIComponent(matchedDistrict)}&preferredCarrier=${c.id}`}
+                  rel="nofollow"
                 >
                   <Button variant="primary" size="sm">
                     Teklif İste

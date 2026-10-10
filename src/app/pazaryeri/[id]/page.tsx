@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -159,7 +160,11 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
   }, [id]);
 
   const allListings = remoteListing ? [remoteListing, ...userListings, ...SAMPLE_LISTINGS] : [...userListings, ...SAMPLE_LISTINGS];
-  const rawListing = allListings.find(l => String(l.id) === String(id)) || SAMPLE_LISTINGS[0];
+  const rawListing = allListings.find(l => String(l.id) === String(id));
+
+  if (!rawListing) {
+    notFound();
+  }
 
   const specs: { label: string; value: string }[] = (rawListing.specs && rawListing.specs.length > 0) ? rawListing.specs : [
     ...(rawListing.year ? [{ label: 'YIL', value: String(rawListing.year) }] : []),

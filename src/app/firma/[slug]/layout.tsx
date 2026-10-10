@@ -23,7 +23,7 @@ export async function generateMetadata({
 
   return {
     title: `${carrier.companyName} - ${carrier.city} Evden Eve Nakliyat`,
-    description: `${carrier.companyName} ${carrier.city} ve çevre illerde K3 belgeli, sigortalı ve asansörlü evden eve nakliyat hizmeti. Müşteri yorumları, puanları ve ücretsiz fiyat teklifi.`,
+    description: `${carrier.companyName} ${carrier.city} onaylı nakliyat firması. Sigortalı ve asansörlü ev taşıma, müşteri puanları ve ücretsiz fiyat teklifi.`,
     keywords: [
       `${carrier.companyName}`,
       `${carrier.companyName} nakliyat`,
@@ -37,7 +37,7 @@ export async function generateMetadata({
       title: `${carrier.companyName} | TaşınTeklif`,
       description:
         carrier.shortBio || `${carrier.city} onaylı nakliyat firması profili.`,
-      url: `https://tasinteklif.com/firma/${carrier.slug || carrier.id}`,
+      url: `https://www.tasinteklif.com/firma/${carrier.slug || carrier.id}`,
     },
   };
 }

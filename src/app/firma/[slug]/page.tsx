@@ -131,7 +131,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
 
               {/* Header Action Buttons */}
               <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3">
-                <Link href={`/teklif-al?preferredCarrier=${carrier.id}`}>
+                <Link href={`/teklif-al?preferredCarrier=${carrier.id}`} rel="nofollow">
                   <button className="h-[52px] px-7 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm sm:text-base shadow-lg shadow-orange-950/30 transition-all cursor-pointer">
                     Ücretsiz Teklif İste
                   </button>
@@ -528,7 +528,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                 Talebinizi oluşturduğunuzda {carrier.companyName} bildirim alarak en avantajlı teklifini size iletecektir.
               </p>
 
-              <Link href={`/teklif-al?preferredCarrier=${carrier.id}`}>
+              <Link href={`/teklif-al?preferredCarrier=${carrier.id}`} rel="nofollow">
                 <Button variant="primary" size="lg" className="w-full font-black shadow-md shadow-orange-900/30" rightIcon={<ArrowRight className="w-4 h-4" />}>
                   Hemen Teklif Oluştur
                 </Button>

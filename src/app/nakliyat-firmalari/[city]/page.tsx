@@ -18,6 +18,7 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { db } from '@/lib/data/mock-db';
 import { buildItemListSchema, buildFAQSchema } from '@/lib/seo/schema';
+import { getDistrictSlug } from '@/lib/utils/slug';
 
 export async function generateStaticParams() {
   return TURKEY_CITIES.map(city => ({
@@ -48,7 +49,7 @@ export async function generateMetadata({
     openGraph: {
       title: `${cityObj.name} Nakliyat Firmaları | TaşınTeklif`,
       description: `${cityObj.name} genelinde onaylı, K3 belgeli evden eve nakliye firmalarından teklif toplayın.`,
-      url: `https://tasinteklif.com/nakliyat-firmalari/${cityObj.slug}`,
+      url: `https://www.tasinteklif.com/nakliyat-firmalari/${cityObj.slug}`,
     },
   };
 }
@@ -131,6 +132,7 @@ export default async function CityDirectoryPage({
         </div>
         <Link
           href={`/teklif-al?originCity=${encodeURIComponent(cityObj.name)}`}
+          rel="nofollow"
           className="w-full sm:w-auto shrink-0"
         >
           <Button
@@ -153,14 +155,7 @@ export default async function CityDirectoryPage({
           {cityObj.districts.map(dist => (
             <Link
               key={dist}
-              href={`/nakliyat-firmalari/${cityObj.slug}/${dist
-                .toLowerCase()
-                .replace(/ğ/g, 'g')
-                .replace(/ü/g, 'u')
-                .replace(/ş/g, 's')
-                .replace(/ı/g, 'i')
-                .replace(/ö/g, 'o')
-                .replace(/ç/g, 'c')}`}
+              href={`/nakliyat-firmalari/${cityObj.slug}/${getDistrictSlug(dist)}`}
               className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-[#EAF3FF] hover:text-[#F95700] text-xs font-semibold text-slate-700 border border-slate-200 transition-colors"
             >
               {dist} Nakliyat
@@ -182,7 +177,7 @@ export default async function CityDirectoryPage({
               Bu şehir için doğrudan kayıtlı firma bulunamadı. Ancak Türkiye geneli hizmet veren onaylı filolarımız güzergahınıza teklif verebilir.
             </p>
             <div className="mt-4">
-              <Link href={`/teklif-al?originCity=${encodeURIComponent(cityObj.name)}`}>
+              <Link href={`/teklif-al?originCity=${encodeURIComponent(cityObj.name)}`} rel="nofollow">
                 <Button variant="primary" size="sm">
                   Genel Talep Oluştur
                 </Button>
@@ -250,6 +245,7 @@ export default async function CityDirectoryPage({
                 <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
                   <Link
                     href={`/teklif-al?originCity=${encodeURIComponent(cityObj.name)}&preferredCarrier=${c.id}`}
+                    rel="nofollow"
                   >
                     <Button variant="primary" size="sm">
                       Teklif İste

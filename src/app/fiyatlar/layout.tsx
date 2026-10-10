@@ -5,7 +5,7 @@ import { buildBreadcrumbSchema, buildFAQSchema, buildServiceSchema } from '@/lib
 
 export const metadata: Metadata = {
   title: 'Nakliyat Yazılımı ve Nakliyeci Paket Fiyatları',
-  description: 'TaşınTeklif nakliyeci abonelik paketleri, aylık ve yıllık fiyatlandırma, 7 gün ücretsiz Gold deneme, komisyonsuz iş ağı ve özellik karşılaştırma tablosu.',
+  description: 'TaşınTeklif nakliyeci paketleri, aylık ve yıllık fiyatlar, 7 gün ücretsiz Gold deneme ve komisyonsuz iş ağı özellik karşılaştırma tablosu.',
   keywords: [
     'nakliyeci paket fiyatları',
     'nakliyat yazılımı fiyatları',

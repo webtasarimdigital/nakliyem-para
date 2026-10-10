@@ -5,7 +5,7 @@ import { ShieldCheck, Mail, CheckCircle2, ArrowLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'KVKK Aydınlatma Metni',
-  description: '6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) uyarınca TaşınTeklif veri işleme ilkeleri, müşteri ve nakliyeci hakları, veri güvenliği ve aydınlatma metni.',
+  description: '6698 sayılı KVKK uyarınca TaşınTeklif veri işleme ilkeleri, müşteri ve nakliyeci hakları ile veri güvenliği aydınlatma metni.',
   keywords: ['kvkk aydınlatma metni', 'kişisel verilerin korunması', 'taşınteklif veri güvenliği', 'nakliyat gizlilik hakları'],
   alternates: {
     canonical: '/kvkk',

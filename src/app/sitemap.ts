@@ -3,9 +3,10 @@ import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { BLOG_POSTS } from '@/lib/data/blog-posts';
 import { INTERCITY_ROUTES } from '@/lib/data/routes-data';
 import { db } from '@/lib/data/mock-db';
+import { getDistrictSlug } from '@/lib/utils/slug';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://tasinteklif.com';
+  const baseUrl = 'https://www.tasinteklif.com';
   const now = new Date();
 
   // 1. Ana Statik Rotalar
@@ -19,8 +20,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/nakliyat-firmalari', priority: 0.9, changeFreq: 'daily' as const },
     { path: '/nakliyeci-defteri', priority: 0.9, changeFreq: 'daily' as const },
     { path: '/pazaryeri', priority: 0.8, changeFreq: 'daily' as const },
+    { path: '/pazaryeri/ilan-ver', priority: 0.7, changeFreq: 'weekly' as const },
     { path: '/nakliyeciler', priority: 0.8, changeFreq: 'weekly' as const },
     { path: '/paketler', priority: 0.8, changeFreq: 'weekly' as const },
+    { path: '/fiyatlar', priority: 0.9, changeFreq: 'weekly' as const },
     { path: '/hakkimizda', priority: 0.7, changeFreq: 'monthly' as const },
     { path: '/ekibimiz', priority: 0.7, changeFreq: 'monthly' as const },
     { path: '/nasil-calisir', priority: 0.8, changeFreq: 'monthly' as const },
@@ -30,7 +33,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/nakliyat-rehberi', priority: 0.8, changeFreq: 'weekly' as const },
     { path: '/blog', priority: 0.9, changeFreq: 'daily' as const },
     { path: '/mesafe-hesaplama', priority: 0.7, changeFreq: 'monthly' as const },
-    { path: '/fiyatlar', priority: 0.9, changeFreq: 'weekly' as const },
+    { path: '/talepler', priority: 0.8, changeFreq: 'daily' as const },
     { path: '/site-haritasi', priority: 0.8, changeFreq: 'weekly' as const },
     { path: '/kullanim-kosullari', priority: 0.5, changeFreq: 'yearly' as const },
     { path: '/gizlilik', priority: 0.5, changeFreq: 'yearly' as const },
@@ -68,7 +71,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: city.isPopular ? 0.9 : 0.7,
   }));
 
-  // 5. Hizmet + Şehir Sayfaları (/evden-eve-nakliyat/[city])
+  // 5. İlçe Dizinleri (/nakliyat-firmalari/[city]/[district]) - 909 İlçe
+  const districtUrls = TURKEY_CITIES.flatMap(city =>
+    city.districts.map(d => ({
+      url: `${baseUrl}/nakliyat-firmalari/${city.slug}/${getDistrictSlug(d)}`,
+      lastModified: now,
+      changeFrequency: 'weekly' as const,
+      priority: city.isPopular ? 0.75 : 0.6,
+    }))
+  );
+
+  // 6. Şehir Nakliyat Fiyatları (/nakliyat-fiyatlari/[city])
+  const cityPriceUrls = TURKEY_CITIES.map(city => ({
+    url: `${baseUrl}/nakliyat-fiyatlari/${city.slug}`,
+    lastModified: now,
+    changeFrequency: 'weekly' as const,
+    priority: city.isPopular ? 0.8 : 0.65,
+  }));
+
+  // 7. Hizmet + Şehir Sayfaları (/evden-eve-nakliyat/[city])
   const cityServiceUrls = TURKEY_CITIES.slice(0, 20).map(city => ({
     url: `${baseUrl}/evden-eve-nakliyat/${city.slug}`,
     lastModified: now,
@@ -76,7 +97,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: city.isPopular ? 0.85 : 0.65,
   }));
 
-  // 6. Onaylı Firma Profilleri (/firma/[slug])
+  // 8. Onaylı Firma Profilleri (/firma/[slug])
   const carriers = db.getCarriers().filter(c => c.verificationStatus === 'APPROVED');
   const carrierUrls = carriers.map(c => ({
     url: `${baseUrl}/firma/${c.slug || c.id}`,
@@ -85,12 +106,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
+  // 9. Pazaryeri Detay Sayfaları (/pazaryeri/[id])
+  const marketplaceListings = ['v1', 'v2', 'v3'];
+  const marketplaceUrls = marketplaceListings.map(id => ({
+    url: `${baseUrl}/pazaryeri/${id}`,
+    lastModified: now,
+    changeFrequency: 'weekly' as const,
+    priority: 0.6,
+  }));
+
   return [
     ...staticRoutes,
     ...routeUrls,
     ...blogUrls,
     ...cityDirectoryUrls,
+    ...districtUrls,
+    ...cityPriceUrls,
     ...cityServiceUrls,
     ...carrierUrls,
+    ...marketplaceUrls,
   ];
 }

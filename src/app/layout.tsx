@@ -11,12 +11,12 @@ import { buildOrganizationSchema, buildWebSiteSchema } from '@/lib/seo/schema';
 import { JsonLd } from '@/components/seo/JsonLd';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://tasinteklif.com'),
+  metadataBase: new URL('https://www.tasinteklif.com'),
   title: {
     default: 'Evden Eve Nakliyat Fiyat Teklifi Al | TaşınTeklif',
     template: '%s | TaşınTeklif',
   },
-  description: 'Evden eve nakliyat, ofis taşıma, parça eşya ve depolama için talep oluşturun; onaylı nakliyat firmalarından komisyonsuz fiyat teklifi alın ve karşılaştırın.',
+  description: 'Evden eve nakliyat, ofis taşıma ve depolama için anında talep oluşturun, onaylı nakliyecilerden komisyonsuz en uygun fiyat tekliflerini karşılaştırın.',
   keywords: [
     'evden eve nakliyat',
     'nakliyat teklifi',
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'tr_TR',
-    url: 'https://tasinteklif.com',
+    url: 'https://www.tasinteklif.com',
     siteName: 'TaşınTeklif',
     title: 'TaşınTeklif — Güvenilir Nakliyat ve Fiyat Teklifi Karşılaştırma',
     description: '81 ilde onaylı nakliyecilerden anında fiyat teklifi alın. Komisyon yok, sürpriz yok.',
