@@ -22,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/nakliyeciler', priority: 0.8, changeFreq: 'weekly' as const },
     { path: '/paketler', priority: 0.8, changeFreq: 'weekly' as const },
     { path: '/hakkimizda', priority: 0.7, changeFreq: 'monthly' as const },
+    { path: '/ekibimiz', priority: 0.7, changeFreq: 'monthly' as const },
     { path: '/nasil-calisir', priority: 0.8, changeFreq: 'monthly' as const },
     { path: '/nakliyeciler-icin', priority: 0.8, changeFreq: 'weekly' as const },
     { path: '/musteriler-icin', priority: 0.8, changeFreq: 'weekly' as const },

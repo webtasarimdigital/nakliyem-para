@@ -284,6 +284,12 @@ export default function SiteHaritasiPage() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/ekibimiz" className="group flex items-center justify-between text-sm font-semibold text-slate-700 hover:text-[#F95700] transition-colors">
+                    <span>Ekibimiz &amp; Yönetim</span>
+                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#F95700] group-hover:translate-x-0.5 transition-all" />
+                  </Link>
+                </li>
+                <li>
                   <Link href="/nasil-calisir" className="group flex items-center justify-between text-sm font-semibold text-slate-700 hover:text-[#F95700] transition-colors">
                     <span>Nasıl Çalışır?</span>
                     <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#F95700] group-hover:translate-x-0.5 transition-all" />

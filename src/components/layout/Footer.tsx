@@ -144,6 +144,7 @@ export const Footer: React.FC = () => {
             <h3 className="font-black text-sm text-[#F95700] uppercase tracking-wider">Kurumsal & Yasal</h3>
             <ul className="grid grid-cols-2 lg:grid-cols-1 gap-x-4 gap-y-2 text-xs sm:text-sm text-slate-300 font-medium">
               <li><Link href="/hakkimizda" className="hover:text-[#F95700] transition-colors">Hakkımızda</Link></li>
+              <li><Link href="/ekibimiz" className="hover:text-[#F95700] transition-colors font-bold text-orange-300">Ekibimiz</Link></li>
               <li><Link href="/nasil-calisir" className="hover:text-[#F95700] transition-colors">Nasıl Çalışır?</Link></li>
               <li><Link href="/nakliyeciler-icin" className="hover:text-[#F95700] transition-colors">Nakliyeciler İçin</Link></li>
               <li><Link href="/musteriler-icin" className="hover:text-[#F95700] transition-colors">Müşteriler İçin</Link></li>

@@ -110,6 +110,30 @@ export default function HakkimizdaPage() {
             </div>
           </div>
         </div>
+
+        {/* Ekibimiz Teaser Banner */}
+        <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-2 max-w-xl text-center md:text-left">
+            <span className="text-xs font-black uppercase tracking-wider text-[#F95700]">
+              Çekirdek Kadromuz
+            </span>
+            <h3 className="text-2xl font-black text-[#111E38] tracking-tight">
+              TaşınTeklif&apos;in Arkasındaki Ekiple Tanışın
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+              Lojistik yöneticileri, yazılım mimarları, operasyon uzmanları ve müşteri danışmanlarımızla 81 ilde kesintisiz hizmet sunuyoruz.
+            </p>
+          </div>
+
+          <Link
+            href="/ekibimiz"
+            className="px-6 py-3.5 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white text-xs sm:text-sm font-black transition-all shadow-md flex items-center gap-2 shrink-0"
+          >
+            <Users className="w-4 h-4" />
+            <span>Ekibimiz Sayfasını İncele</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
     </div>
   );
