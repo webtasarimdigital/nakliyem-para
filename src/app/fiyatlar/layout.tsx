@@ -4,11 +4,11 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { buildBreadcrumbSchema, buildFAQSchema, buildServiceSchema } from '@/lib/seo/schema';
 
 export const metadata: Metadata = {
-  title: 'Nakliyat Yazılımı ve Nakliyeci Paket Fiyatları',
+  title: 'TaşınTeklif Nakliyeci Planları ve Üyelik Paket Fiyatları',
   description: 'TaşınTeklif nakliyeci paketleri, aylık ve yıllık fiyatlar, 7 gün ücretsiz Gold deneme ve komisyonsuz iş ağı özellik karşılaştırma tablosu.',
   keywords: [
     'nakliyeci paket fiyatları',
-    'nakliyat yazılımı fiyatları',
+    'nakliyeci üyelik paketleri',
     'nakliyeci abonelik ücretleri',
     'evden eve nakliyat müşteri bulma',
     'nakliyeci defteri paketleri',
