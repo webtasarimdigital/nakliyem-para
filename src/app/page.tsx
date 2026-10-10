@@ -153,7 +153,7 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen bg-white">
 
       {/* ── 1. HERO — Ferah, Odaklı ve Yüksek Dönüşümlü ── */}
-      <section className="relative overflow-hidden bg-white border-b border-slate-100 py-12 sm:py-16 lg:py-20">
+      <section className="relative overflow-hidden bg-white border-b border-slate-100 py-3.5 sm:py-16 lg:py-20">
 
         {/* Subtle decorative background */}
         <div className="absolute inset-0 z-0 pointer-events-none">
@@ -161,57 +161,57 @@ export default function HomePage() {
           <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] rounded-full opacity-[0.04]" style={{ background: 'radial-gradient(circle, #111E38 0%, transparent 70%)' }} />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-8 lg:gap-12 items-center">
 
             {/* ── SOL KOLON: Başlık, Nakliyeci Ücretsiz Müşteri Bul Alanı & Rozetler ── */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+            <div className="lg:col-span-7 space-y-2.5 sm:space-y-6 text-center lg:text-left">
               {/* Üst Canlı Rozet */}
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold border border-orange-200/90 bg-orange-50/80 text-[#F95700] shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-[#F95700] animate-pulse" />
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold border border-orange-200/90 bg-orange-50/80 text-[#F95700] shadow-2xs">
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#F95700] animate-pulse" />
                 <span>Türkiye&apos;nin 81 İlinde Aktif · 10.000+ Güvenli Taşınma</span>
               </div>
 
               {/* H1 Başlık & Açıklama */}
-              <div className="space-y-3.5">
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-[#111E38] tracking-tight leading-[1.15]">
+              <div className="space-y-1.5 sm:space-y-3.5">
+                <h1 className="text-xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-[#111E38] tracking-tight leading-[1.18]">
                   Taşınmanın ve Nakliyenin <br className="hidden sm:inline" />
                   <span className="text-[#F95700]">En Hızlı &amp; Güvenilir</span> Yolu
                 </h1>
-                <p className="text-sm sm:text-base lg:text-lg text-slate-600 font-normal leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                <p className="text-[11px] sm:text-base lg:text-lg text-slate-600 font-normal leading-snug sm:leading-relaxed max-w-2xl mx-auto lg:mx-0">
                   Müşteriler için ücretsiz ve komisyonsuz anında fiyat teklifleri; nakliyeciler için tek kayıtla doğrudan müşteri bulma ve kazanma merkezi.
                 </p>
               </div>
 
               {/* NAKLİYECİ VURGU ALANI (Ücretsiz Müşteri Bul Butonu) */}
-              <div className="bg-gradient-to-r from-orange-50/90 via-amber-50/70 to-orange-50/90 border-2 border-orange-200/90 rounded-2xl p-4 sm:p-5 shadow-xs text-left">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-2xl bg-[#F95700] text-white flex items-center justify-center shrink-0 shadow-md shadow-orange-950/20">
-                      <Truck className="w-6 h-6" />
+              <div className="bg-gradient-to-r from-orange-50/90 via-amber-50/70 to-orange-50/90 border-2 border-orange-200/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-5 shadow-xs text-left">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-4">
+                  <div className="flex items-center gap-2.5 sm:gap-3.5">
+                    <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-[#F95700] text-white flex items-center justify-center shrink-0 shadow-md shadow-orange-950/20">
+                      <Truck className="w-4 h-4 sm:w-6 sm:h-6" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-sm sm:text-base text-[#111E38]">Nakliyeci misiniz?</span>
-                        <span className="px-2 py-0.5 rounded-full bg-[#F95700] text-white text-[10px] font-black uppercase tracking-wider">Ücretsiz Kayıt</span>
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <span className="font-extrabold text-xs sm:text-base text-[#111E38]">Nakliyeci misiniz?</span>
+                        <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-[#F95700] text-white text-[9px] sm:text-[10px] font-black uppercase tracking-wider">Ücretsiz Kayıt</span>
                       </div>
-                      <p className="text-xs sm:text-sm text-slate-600 font-medium mt-0.5">
+                      <p className="text-[10px] sm:text-sm text-slate-600 font-medium mt-0.5 leading-tight sm:leading-snug">
                         Ücretsiz kartınızı ekleyin, hemen müşteri bulun ve komisyonsuz kazanın!
                       </p>
                     </div>
                   </div>
-                  <Link href="/kayit?role=nakliyeci" className="w-full sm:w-auto shrink-0">
-                    <button className="w-full sm:w-auto bg-[#111E38] hover:bg-[#1A2E56] text-white font-extrabold text-xs sm:text-sm py-3.5 px-5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap">
-                      <Truck className="w-4 h-4 text-[#F95700]" />
+                  <Link href="/kayit?role=nakliyeci" rel="nofollow" className="w-full sm:w-auto shrink-0">
+                    <button className="w-full sm:w-auto bg-[#111E38] hover:bg-[#1A2E56] text-white font-extrabold text-xs sm:text-sm py-2 sm:py-3.5 px-3.5 sm:px-5 rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap">
+                      <Truck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#F95700]" />
                       <span>Ücretsiz Müşteri Bul</span>
-                      <ArrowRight className="w-4 h-4 text-[#F95700]" />
+                      <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#F95700]" />
                     </button>
                   </Link>
                 </div>
               </div>
 
-              {/* Alt Güven Rozetleri */}
-              <div className="flex flex-wrap justify-center lg:justify-start items-center gap-4 sm:gap-6 pt-1 text-xs text-slate-500 font-semibold">
+              {/* Alt Güven Rozetleri (Mobilde Gizlendi, Masaüstünde Gösterilir) */}
+              <div className="hidden lg:flex flex-wrap justify-center lg:justify-start items-center gap-4 sm:gap-6 pt-1 text-xs text-slate-500 font-semibold">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
                   <span>T.C. K3 Belgeli Nakliyeciler</span>
@@ -231,8 +231,9 @@ export default function HomePage() {
 
             {/* ── SAĞ KOLON: Müşteriler İçin Nereden Nereye Teklifi Kartı ── */}
             <div className="lg:col-span-5 w-full">
-              <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-xl shadow-slate-200/80 border border-slate-200 text-left">
-                <div className="flex items-center justify-between mb-4">
+              <div className="bg-white rounded-xl sm:rounded-3xl p-3.5 sm:p-7 shadow-xl shadow-slate-200/80 border border-slate-200 text-left">
+                {/* Mobilde Yer Tasarrufu İçin Gizlenen Üst Rozet */}
+                <div className="hidden sm:flex items-center justify-between mb-4">
                   <span className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-[#F95700]" />
                     Hızlı Fiyat Teklifi Al
@@ -242,52 +243,52 @@ export default function HomePage() {
                   </span>
                 </div>
 
-                <h2 className="text-lg font-black text-[#111E38] mb-1">
+                <h2 className="text-sm sm:text-lg font-black text-[#111E38] mb-0.5 sm:mb-1">
                   Nereden Nereye Taşınacaksınız?
                 </h2>
-                <p className="text-xs text-slate-500 font-medium mb-5">
+                <p className="text-xs text-slate-500 font-medium mb-3 sm:mb-5 hidden sm:block">
                   İlleri seçin, doğrulanmış K3 belgeli nakliyecilerden dakikalar içinde fiyat teklifleri gelsin.
                 </p>
 
                 {/* Şehir Seçimleri */}
-                <div className="space-y-3.5 mb-6">
+                <div className="space-y-2 sm:space-y-3.5 mb-3 sm:mb-6">
                   <div className="relative">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                    <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5 sm:mb-1">
                       Kalkış İli (Nereden)
                     </span>
                     <div className="relative">
-                      <CircleDot className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#F95700] pointer-events-none z-10" />
+                      <CircleDot className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#F95700] pointer-events-none z-10" />
                       <select
                         value={heroOriginCity}
                         onChange={e => setHeroOriginCity(e.target.value)}
                         style={{ WebkitAppearance: 'none' }}
-                        className="w-full appearance-none bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl pl-10 pr-8 py-3.5 text-sm font-bold text-[#111E38] focus:border-[#F95700] focus:bg-white focus:outline-none cursor-pointer transition-colors"
+                        className="w-full appearance-none bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl pl-9 pr-8 py-2 sm:py-3.5 text-xs sm:text-sm font-bold text-[#111E38] focus:border-[#F95700] focus:bg-white focus:outline-none cursor-pointer transition-colors"
                       >
                         {TURKEY_CITIES.map(c => (
                           <option key={c.id} value={c.name}>{c.name}</option>
                         ))}
                       </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none z-10" />
                     </div>
                   </div>
 
                   <div className="relative">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                    <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5 sm:mb-1">
                       Varış İli (Nereye)
                     </span>
                     <div className="relative">
-                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#F95700] pointer-events-none z-10" />
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#F95700] pointer-events-none z-10" />
                       <select
                         value={heroDestCity}
                         onChange={e => setHeroDestCity(e.target.value)}
                         style={{ WebkitAppearance: 'none' }}
-                        className="w-full appearance-none bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl pl-10 pr-8 py-3.5 text-sm font-bold text-[#111E38] focus:border-[#F95700] focus:bg-white focus:outline-none cursor-pointer transition-colors"
+                        className="w-full appearance-none bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl pl-9 pr-8 py-2 sm:py-3.5 text-xs sm:text-sm font-bold text-[#111E38] focus:border-[#F95700] focus:bg-white focus:outline-none cursor-pointer transition-colors"
                       >
                         {TURKEY_CITIES.map(c => (
                           <option key={c.id} value={c.name}>{c.name}</option>
                         ))}
                       </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none z-10" />
                     </div>
                   </div>
                 </div>
@@ -297,15 +298,15 @@ export default function HomePage() {
                   href={`/teklif-al?originCity=${encodeURIComponent(heroOriginCity)}&destCity=${encodeURIComponent(heroDestCity)}`}
                   className="w-full block"
                 >
-                  <button className="w-full bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm sm:text-base py-4 px-6 rounded-xl shadow-lg shadow-orange-950/20 transition-all flex items-center justify-center gap-2 cursor-pointer group">
+                  <button className="w-full bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs sm:text-base py-2.5 sm:py-4 px-4 sm:px-6 rounded-xl shadow-lg shadow-orange-950/20 transition-all flex items-center justify-center gap-2 cursor-pointer group">
                     <span>Teklif Al</span>
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </Link>
 
-                <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between text-[11px] font-semibold text-slate-500">
+                <div className="mt-2.5 sm:mt-4 pt-2 sm:pt-3.5 border-t border-slate-100 flex items-center justify-between text-[9px] sm:text-[11px] font-semibold text-slate-500">
                   <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-emerald-600" /> İlk 8 dakikada 3+ teklif
+                    <Clock className="w-3 h-3 text-emerald-600" /> İlk 8 dakikada 3+ teklif
                   </span>
                   <span>Sabit fiyat garantisi</span>
                 </div>
