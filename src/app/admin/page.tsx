@@ -29,7 +29,7 @@ import { db, SEED_PLANS } from '@/lib/data/mock-db';
 
 // Gelir hesaplama yardımcıları
 const PLAN_PRICES: Record<string, number> = {
-  plan_starter: 0, // Ücretsiz Başlangıç paketi
+  plan_starter: 1250,
   plan_pro: 2450,
   plan_gold: 4850,
 };

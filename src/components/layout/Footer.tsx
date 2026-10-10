@@ -94,7 +94,7 @@ export const Footer: React.FC = () => {
               <li><Link href="/parca-esya-tasima" className="hover:text-[#F95700] transition-colors">Parça Eşya Taşıma</Link></li>
               <li><Link href="/esya-depolama" className="hover:text-[#F95700] transition-colors">Eşya Depolama</Link></li>
               <li><Link href="/mesafe-hesaplama" className="hover:text-[#F95700] transition-colors">Mesafe Hesaplama</Link></li>
-              <li><Link href="/fiyatlar" className="hover:text-[#F95700] transition-colors font-bold text-orange-300">2026 Fiyat Tarifeleri</Link></li>
+              <li><Link href="/fiyatlar" className="hover:text-[#F95700] transition-colors font-bold text-orange-300">Yazılım & Paket Fiyatları</Link></li>
             </ul>
           </div>
 

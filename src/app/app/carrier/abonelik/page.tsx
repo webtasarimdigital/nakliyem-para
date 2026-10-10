@@ -207,7 +207,7 @@ export default function CarrierSubscriptionPage() {
                 <Badge variant="pro" size="md" />
               ) : (
                 <span className="text-xs font-black text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
-                  Başlangıç (Ücretsiz)
+                  Başlangıç
                 </span>
               )}
 
@@ -233,9 +233,9 @@ export default function CarrierSubscriptionPage() {
             </h2>
 
             <p className="text-xs sm:text-sm text-slate-600">
-              {currentPlan.priceMonthly === 0 ? (
+              {sub?.status === 'TRIALING' || carrier.planId === 'trial' ? (
                 <>
-                  Ücretsiz Başlangıç paketindesiniz. Her gün <strong className="text-[#0A1128]">3 adet ücretsiz teklif verme hakkınız</strong> bulunmaktadır. Daha fazla teklif ve telefon erişimi için paket yükseltebilirsiniz.
+                  7 günlük ücretsiz deneme sürecindesiniz. Deneme süresi boyunca tüm Gold özelliklerini ücretsiz kullanabilirsiniz.
                 </>
               ) : isCanceled ? (
                 <>

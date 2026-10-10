@@ -38,7 +38,7 @@ const PLAN_BADGE: Record<string, string> = {
 };
 
 const PLAN_PRICES: Record<string, number> = {
-  plan_starter: 0,
+  plan_starter: 1250,
   plan_pro: 2450,
   plan_gold: 4850,
 };

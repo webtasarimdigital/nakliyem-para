@@ -4,17 +4,16 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { buildBreadcrumbSchema, buildFAQSchema, buildServiceSchema } from '@/lib/seo/schema';
 
 export const metadata: Metadata = {
-  title: '2026 Evden Eve Nakliyat Fiyatları ve Hizmet Tarifeleri',
-  description: '2026 yılı güncel evden eve nakliyat fiyat tarifeleri: 1+1, 2+1, 3+1 daire taşıma, şehirlerarası km fiyatları, asansör kiralama ve eşya depolama maliyetleri.',
+  title: 'Nakliyat Yazılımı ve Nakliyeci Paket Fiyatları',
+  description: 'TaşınTeklif nakliyeci abonelik paketleri, aylık ve yıllık fiyatlandırma, 7 gün ücretsiz Gold deneme, komisyonsuz iş ağı ve özellik karşılaştırma tablosu.',
   keywords: [
-    'nakliyat fiyatları 2026',
-    'evden eve nakliyat ücretleri',
-    'şehirlerarası nakliyat fiyat hesaplama',
-    '1+1 ev taşıma fiyatı',
-    '2+1 ev taşıma fiyatı',
-    'asansörlü nakliyat fiyatları',
-    'eşya depolama ücretleri',
-    'nakliyeci abonelik fiyatları',
+    'nakliyeci paket fiyatları',
+    'nakliyat yazılımı fiyatları',
+    'nakliyeci abonelik ücretleri',
+    'evden eve nakliyat müşteri bulma',
+    'nakliyeci defteri paketleri',
+    'taşınteklif fiyatlandırma',
+    'nakliyeci gold üyelik',
   ],
   alternates: {
     canonical: '/fiyatlar',
@@ -23,24 +22,24 @@ export const metadata: Metadata = {
 
 const pricingFaqs = [
   {
-    question: 'Evden eve nakliyat fiyatları neye göre belirlenir?',
-    answer: 'Taşınma fiyatları evdeki oda sayısı (eşya hacmi), taşınılacak mesafe (km), kat sayıları, bina asansörü durumu ve özel paketleme gereksinimlerine göre hesaplanır.',
+    question: 'Gold paketteki 7 günlük ücretsiz deneme nasıl çalışır?',
+    answer: 'En üst paketimiz olan Gold paketi seçtiğinizde ilk 7 gün boyunca hiçbir ücret ödemeden sınırsız teklif, doğrudan müşteri telefonu ve ana sayfa vitrini gibi tüm ayrıcalıkları kullanabilirsiniz. Memnun kalmazsanız süre bitmeden tek tıkla iptal edebilirsiniz.',
   },
   {
-    question: 'Taşınma günü anlaşılan fiyata ek ücret çıkar mı?',
-    answer: 'TaşınTeklif üzerindeki onaylı nakliyeciler ile anlaşılan fiyatlar sözleşmeli ve sabit fiyat garantilidir. Bilgilendirilmeyen ekstra kat veya oda olmadığı sürece sonradan sürpriz ek ücret talep edilemez.',
+    question: 'Yıllık ödeme avantajı nasıl çalışır?',
+    answer: 'Yıllık peşin ödemeyi tercih ettiğinizde 12 ay yerine sadece 10 ay ücreti ödersiniz. Tam 2 ay (%20 avantaj) platform kullanımınız hediye edilir.',
   },
   {
-    question: 'Teklif almak ücretli midir? Komisyon kesilir mi?',
-    answer: 'Müşteriler için teklif almak %100 ücretsizdir. Hiçbir aracı komisyonu veya gizli hizmet bedeli ödemezsiniz.',
+    question: 'Teklif hakkım biterse ne olur?',
+    answer: 'Aylık teklif kotanız dolduğunda dilediğiniz zaman üst pakete geçebilir veya hesabınızdan ek teklif hakkı satın alarak iş almaya kesintisiz devam edebilirsiniz.',
   },
   {
-    question: 'Paketleme ve mobilya montajı fiyata dahil midir?',
-    answer: 'Standart ve anahtar teslim paketlerimizde büyük mobilyaların sökümü, montajı, beyaz eşyaların ambalajlanması fiyata dahildir.',
+    question: 'Aldığım taşıma işlerinden komisyon kesilir mi?',
+    answer: 'Kesinlikle hayır! TaşınTeklif\'te kazancınızdan yüzde veya komisyon alınmaz. İş bedelinin %100\'ünü doğrudan müşteriden tahsil edersiniz.',
   },
   {
-    question: 'Şehirlerarası taşımada eşya sigortası yapılıyor mu?',
-    answer: 'Evet, tüm şehirlerarası ev ve ofis taşımacılıklarında eşyalarınız sefer boyunca emtia nakliyat sigortası ile güvence altındadır.',
+    question: 'Aboneliğimi istediğim zaman iptal edebilir miyim?',
+    answer: 'Evet. Hiçbir taahhüt veya ceza yoktur. Dilediğiniz an aboneliğinizi iptal edebilirsiniz; dönem sonuna kadar tüm haklarınızı kullanmaya devam edersiniz.',
   },
 ];
 
@@ -51,13 +50,13 @@ export default function FiyatlarLayout({
 }) {
   const breadcrumbSchema = buildBreadcrumbSchema([
     { name: 'Ana Sayfa', url: '/' },
-    { name: 'Fiyatlar & Tarifeler', url: '/fiyatlar' },
+    { name: 'Fiyatlandırma', url: '/fiyatlar' },
   ]);
 
   const serviceSchema = buildServiceSchema({
-    name: '2026 Evden Eve Nakliyat Fiyatları ve Taşıma Tarifeleri',
-    description: 'Şeffaf ev taşıma, ofis ve şehirlerarası nakliyat fiyat tarifeleri.',
-    serviceType: 'MovingServicesPricing',
+    name: 'TaşınTeklif Nakliyeci Yazılımı ve Abonelik Paketleri',
+    description: 'Taşıyıcı ve nakliyeci firmalar için komisyonsuz müşteri bulma ve iş yönetim yazılımı paketleri.',
+    serviceType: 'CarrierSoftwareSubscription',
     url: 'https://tasinteklif.com/fiyatlar',
   });
 
