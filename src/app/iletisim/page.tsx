@@ -120,31 +120,55 @@ export default function IletisimPage() {
             <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-4">
               <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider">İletişim Bilgilerimiz</h4>
               
-              <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
+              <div className="flex items-start gap-3 text-xs font-bold text-slate-700">
                 <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#F95700] flex items-center justify-center shrink-0">
-                  <Mail className="w-4 h-4" />
+                  <MapPin className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block">E-posta Destek</span>
-                  <a href="mailto:tasinteklif@gmail.com" className="hover:text-[#F95700] transition-colors">
-                    tasinteklif@gmail.com
-                  </a>
+                  <span className="text-[10px] text-slate-400 block">Şirket Adresi</span>
+                  <span className="text-slate-800 leading-snug block">
+                    DSO-IFZA, IFZA Properties, Dubai Silicon Oasis
+                  </span>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                  <Clock className="w-4 h-4" />
+                  <Phone className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block">Çalışma Saatleri</span>
-                  <span>7/24 Online Destek &amp; Talep Takibi</span>
+                  <span className="text-[10px] text-slate-400 block">Telefon / WhatsApp</span>
+                  <a href="tel:+971585188543" className="hover:text-[#F95700] transition-colors">
+                    +971 58 518 8543
+                  </a>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
                 <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-4 h-4" />
+                  <Mail className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block">E-posta Destek</span>
+                  <a href="mailto:bilgi@tasinteklif.com" className="hover:text-[#F95700] transition-colors">
+                    bilgi@tasinteklif.com
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block">Çalışma Saatleri</span>
+                  <span>Hafta İçi &amp; Cumartesi: 09:00 - 19:00</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 text-xs font-bold text-slate-700">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 block">Hızlı Dönüş Garantisi</span>

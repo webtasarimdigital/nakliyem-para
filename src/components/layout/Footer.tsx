@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShieldCheck, Mail, MessageSquare } from 'lucide-react';
+import { ShieldCheck, Mail, MessageSquare, MapPin, Clock, Phone } from 'lucide-react';
 import { openSupportChat } from '@/components/ui/SupportChatWidget';
 
 export const Footer: React.FC = () => {
@@ -19,7 +19,7 @@ export const Footer: React.FC = () => {
         {/* Main Grid: 2 cols on mobile, 5 cols on lg */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10 pb-10 border-b border-slate-800/80">
           
-          {/* Col 1: Brand & Apps (Spans 2 cols on mobile, 2 cols on lg) */}
+          {/* Col 1: Brand, Address & Contact (Spans 2 cols on mobile, 2 cols on lg) */}
           <div className="col-span-2 lg:col-span-2 space-y-4">
             <Link href="/" className="inline-block group">
               <img 
@@ -33,17 +33,46 @@ export const Footer: React.FC = () => {
               Türkiye&apos;nin en güvenilir evden eve nakliyat, kurumsal taşımacılık, Nakliyeci Defteri ve lojistik pazaryeri platformu.
             </p>
 
-            <div className="flex flex-col gap-2 pt-1 text-xs font-bold text-slate-300">
-              <div className="flex items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            {/* İletişim, Adres ve Çalışma Saatleri Bilgileri */}
+            <div className="flex flex-col gap-2.5 pt-1 text-xs text-slate-300">
+              <div className="flex items-start gap-2.5">
+                <MapPin className="w-4 h-4 text-[#F95700] shrink-0 mt-0.5" />
+                <span className="font-medium text-slate-200 leading-snug">
+                  DSO-IFZA, IFZA Properties, Dubai Silicon Oasis
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <Clock className="w-4 h-4 text-[#F95700] shrink-0" />
+                <span className="font-medium">
+                  Çalışma Saatleri: <strong className="text-white">09:00 - 19:00</strong>
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-0.5">
+                <a 
+                  href="tel:+971585188543" 
+                  className="inline-flex items-center gap-1.5 text-slate-300 hover:text-[#F95700] transition-colors font-bold"
+                >
+                  <Phone className="w-4 h-4 text-[#F95700]" />
+                  <span>+971 58 518 8543</span>
+                </a>
+
+                <a 
+                  href="mailto:bilgi@tasinteklif.com" 
+                  className="inline-flex items-center gap-1.5 text-slate-300 hover:text-[#F95700] transition-colors font-semibold"
+                >
+                  <Mail className="w-4 h-4 text-[#F95700]" />
+                  <span>bilgi@tasinteklif.com</span>
+                </a>
+              </div>
+
+              <div className="pt-1">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-[11px] font-bold text-emerald-400">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                   %100 Doğrulanmış Firmalar
                 </span>
               </div>
-              <a href="mailto:bilgi@tasinteklif.com" className="inline-flex items-center gap-2 text-slate-300 hover:text-[#F95700] transition-colors font-semibold">
-                <Mail className="w-4 h-4 text-[#F95700]" />
-                bilgi@tasinteklif.com
-              </a>
             </div>
 
             {/* Mobil Uygulamalarımız — App Store & Google Play */}
@@ -256,7 +285,7 @@ export const Footer: React.FC = () => {
             </a>
           </div>
 
-          {/* Payment & Trust Badges (Mastercard, VISA, iyzico) */}
+          {/* Payment & Trust Badges (Mastercard, VISA, Dodo Payments) */}
           <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-slate-200/80 shadow-xs">
             {/* Mastercard */}
             <div className="flex items-center" title="Mastercard Güvenli Ödeme">
@@ -279,10 +308,15 @@ export const Footer: React.FC = () => {
 
             <div className="w-px h-5 bg-slate-200" />
 
-            {/* iyzico ile Öde */}
-            <div className="flex items-baseline gap-1 pl-1 shrink-0" title="iyzico ile Güvenli Ödeme">
-              <span className="font-black text-[#1E3A8A] text-sm tracking-tight">iyzico</span>
-              <span className="text-[10px] text-slate-600 font-bold whitespace-nowrap">ile Öde</span>
+            {/* Dodo Payments */}
+            <div className="flex items-center gap-1.5 pl-1 shrink-0" title="Dodo Payments Güvenli Ödeme Altyapısı">
+              <div className="w-5 h-5 rounded-md bg-[#F95700] text-white flex items-center justify-center font-black text-[11px] leading-none shadow-2xs">
+                d
+              </div>
+              <div className="flex flex-col leading-none">
+                <span className="font-black text-slate-900 text-xs tracking-tight">dodo<span className="text-[#F95700]">payments</span></span>
+                <span className="text-[9px] text-slate-400 font-bold">Güvenli Ödeme</span>
+              </div>
             </div>
           </div>
 
