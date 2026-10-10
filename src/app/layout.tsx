@@ -30,6 +30,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
   },
+  verification: {
+    google: 'rAxXjBMm7tcfUxApZNe6cXnI70C_FwvNMhU0oBfmHrA',
+  },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '32x32' },
