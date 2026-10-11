@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 150" width="100%" height="100%">
+  <defs>
+    <linearGradient id="eg-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="50%" stop-color="#0369a1"/>
+      <stop offset="100%" stop-color="#075985"/>
+    </linearGradient>
+    <linearGradient id="eg-orange" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#EA580C"/>
+      <stop offset="100%" stop-color="#F97316"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="400" height="150" rx="10" fill="url(#eg-bg)" stroke="#38bdf8" stroke-width="1.5"/>
+
+  <path d="M 0 0 L 115 0 L 75 150 L 0 150 Z" fill="#ffffff" fill-opacity="0.06"/>
+  <circle cx="350" cy="35" r="55" fill="#F97316" fill-opacity="0.08"/>
+
+  <g transform="translate(14, 18)">
+    <rect x="0" y="6" width="62" height="46" rx="4" fill="#ffffff"/>
+    <rect x="5" y="10" width="52" height="16" fill="#0284c7" rx="2"/>
+    <text x="31" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="900" fill="#ffffff" text-anchor="middle">EGETUR</text>
+    
+    <path d="M 62 24 L 80 24 L 85 34 L 85 52 L 62 52 Z" fill="#F3F4F6"/>
+    <path d="M 66 28 L 77 28 L 81 35 L 66 35 Z" fill="#1F2937"/>
+    
+    <circle cx="16" cy="52" r="6.5" fill="#111827" stroke="#9CA3AF" stroke-width="1.8"/>
+    <circle cx="48" cy="52" r="6.5" fill="#111827" stroke="#9CA3AF" stroke-width="1.8"/>
+    <circle cx="75" cy="52" r="6.5" fill="#111827" stroke="#9CA3AF" stroke-width="1.8"/>
+
+    <rect x="2" y="66" width="84" height="20" rx="10" fill="#0C4A6E" stroke="#38BDF8" stroke-width="1"/>
+    <text x="44" y="79" font-family="system-ui, -apple-system, sans-serif" font-size="8.5" font-weight="900" fill="#BAE6FD" text-anchor="middle">K3 BELGELİ FİLO</text>
+  </g>
+
+  <g transform="translate(112, 16)">
+    <text x="0" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="17" font-weight="900" fill="#ffffff" letter-spacing="0.5">
+      EGETUR
+    </text>
+    <text x="82" y="19" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="800" fill="#FDBA74">
+      EVDEN EVE NAKLİYAT
+    </text>
+
+    <g transform="translate(0, 27)">
+      <rect x="0" y="0" width="270" height="20" rx="4" fill="url(#eg-orange)"/>
+      <text x="135" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="0.4">
+        SABİT FİYAT GARANTİSİ &amp; MARMARA-EGE HATTI
+      </text>
+    </g>
+
+    <text x="0" y="62" font-family="system-ui, -apple-system, sans-serif" font-size="9.5" font-weight="600" fill="#E0F2FE">
+      İzmir ⇄ İstanbul ⇄ Ankara Günlük Düzenli Seferler
+    </text>
+  </g>
+
+  <g transform="translate(0, 114)">
+    <rect width="400" height="36" fill="url(#eg-orange)"/>
+    <rect x="0" y="0" width="115" height="36" fill="#C2410C"/>
+    <text x="57" y="23" font-family="system-ui, -apple-system, sans-serif" font-size="10.5" font-weight="900" fill="#ffffff" text-anchor="middle">
+      İZMİR - İSTANBUL
+    </text>
+    <text x="256" y="23" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1">
+      ☎ 444 7 343 · 0232 455 10 20
+    </text>
+  </g>
+</svg>

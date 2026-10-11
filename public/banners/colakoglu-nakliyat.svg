@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 150" width="100%" height="100%">
+  <defs>
+    <linearGradient id="cl-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7f1d1d"/>
+      <stop offset="60%" stop-color="#991b1b"/>
+      <stop offset="100%" stop-color="#b91c1c"/>
+    </linearGradient>
+    <linearGradient id="cl-gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FCD34D"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="400" height="150" rx="10" fill="url(#cl-bg)" stroke="#ef4444" stroke-width="1.5"/>
+
+  <!-- Geometrik Vurgular -->
+  <path d="M 0 0 L 110 0 L 70 150 L 0 150 Z" fill="#000000" fill-opacity="0.15"/>
+  <circle cx="340" cy="40" r="60" fill="#ffffff" fill-opacity="0.04"/>
+
+  <!-- Sol Kamyon / Amblem -->
+  <g transform="translate(14, 18)">
+    <rect x="0" y="6" width="60" height="46" rx="4" fill="#ffffff"/>
+    <rect x="4" y="10" width="52" height="16" fill="#1E3A8A" rx="2"/>
+    <text x="30" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="7.5" font-weight="900" fill="#ffffff" text-anchor="middle">ÇOLAKOĞLU</text>
+    
+    <path d="M 60 24 L 78 24 L 83 34 L 83 52 L 60 52 Z" fill="#F3F4F6"/>
+    <path d="M 64 28 L 75 28 L 79 35 L 64 35 Z" fill="#1F2937"/>
+    
+    <circle cx="15" cy="52" r="6.5" fill="#111827" stroke="#9CA3AF" stroke-width="1.8"/>
+    <circle cx="46" cy="52" r="6.5" fill="#111827" stroke="#9CA3AF" stroke-width="1.8"/>
+    <circle cx="73" cy="52" r="6.5" fill="#111827" stroke="#9CA3AF" stroke-width="1.8"/>
+
+    <rect x="0" y="66" width="84" height="20" rx="10" fill="#000000" fill-opacity="0.4" stroke="#FBBF24" stroke-width="1"/>
+    <text x="42" y="79" font-family="system-ui, -apple-system, sans-serif" font-size="8.5" font-weight="900" fill="#FCD34D" text-anchor="middle">1956'DAN BERİ</text>
+  </g>
+
+  <!-- Sağ Bilgiler -->
+  <g transform="translate(112, 16)">
+    <text x="0" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="17" font-weight="900" fill="#ffffff" letter-spacing="0.5">
+      ÇOLAKOĞLU
+    </text>
+    <text x="122" y="19" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="800" fill="#FCD34D">
+      NAKLİYAT
+    </text>
+
+    <g transform="translate(0, 27)">
+      <rect x="0" y="0" width="270" height="20" rx="4" fill="#111827"/>
+      <text x="135" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="800" fill="#FCD34D" text-anchor="middle" letter-spacing="0.4">
+        TÜRKİYE'NİN KÖKLÜ EVDEN EVE FİRMASI
+      </text>
+    </g>
+
+    <text x="0" y="62" font-family="system-ui, -apple-system, sans-serif" font-size="9.5" font-weight="600" fill="#FEE2E2">
+      Kurumsal Ev, Villa, Ofis Taşımacılığı &amp; Eşya Depolama
+    </text>
+  </g>
+
+  <!-- Alt Bant -->
+  <g transform="translate(0, 114)">
+    <rect width="400" height="36" fill="#111827"/>
+    <rect x="0" y="0" width="115" height="36" fill="#F59E0B"/>
+    <text x="57" y="23" font-family="system-ui, -apple-system, sans-serif" font-size="10.5" font-weight="900" fill="#111827" text-anchor="middle">
+      TÜRKİYE GENELİ
+    </text>
+    <text x="256" y="23" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1">
+      ☎ 444 65 90 · 0532 411 22 33
+    </text>
+  </g>
+</svg>

@@ -26,6 +26,7 @@ import { IntentAuthModal } from '@/components/ui/IntentAuthModal';
 import { db } from '@/lib/data/mock-db';
 import { DefterPost, DefterPostCategory } from '@/types';
 import { createFirestoreDefterPost, subscribeToFirestoreDefterPosts } from '@/lib/firebase/firestore';
+import { DefterRightRail } from '@/components/defter/DefterRightRail';
 
 // Helper: Canlı göreceli zaman formatı
 function formatRelativeTime(dateString?: string): string {
@@ -282,7 +283,11 @@ export default function NakliyeciDefteriPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          
+          {/* ── SOL / ANA DEFTER AKIŞI ── */}
+          <div className="lg:col-span-8 min-w-0">
 
         {/* ── 1. ÜST BANNER (Masaüstünde Gösterilir, Mobilde Yer Kaplamaması İçin Gizlendi) ── */}
         <Link href="/teklif-al" className="hidden md:block mb-5 group">
@@ -596,7 +601,14 @@ export default function NakliyeciDefteriPage() {
             })
           )}
         </div>
+          </div>
 
+          {/* ── SAĞ / SPONSORLU BANNER VİTRİNİ (Desktop Sticky, Mobilde Akışın Altında) ── */}
+          <aside className="lg:col-span-4 min-w-0 lg:sticky lg:top-20">
+            <DefterRightRail />
+          </aside>
+
+        </div>
       </div>
 
       {/* ── AUTH GİRİŞ/KAYIT MODALI ── */}

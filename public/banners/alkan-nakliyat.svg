@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 150" width="100%" height="100%">
+  <defs>
+    <linearGradient id="al-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#991b1b"/>
+      <stop offset="60%" stop-color="#b91c1c"/>
+      <stop offset="100%" stop-color="#7f1d1d"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="400" height="150" rx="10" fill="url(#al-bg)" stroke="#ef4444" stroke-width="1.5"/>
+
+  <path d="M 0 0 L 115 0 L 75 150 L 0 150 Z" fill="#000000" fill-opacity="0.12"/>
+
+  <g transform="translate(14, 18)">
+    <rect x="0" y="6" width="62" height="46" rx="4" fill="#ffffff"/>
+    <!-- ALKAN Kırmızı Logo -->
+    <rect x="4" y="10" width="54" height="20" fill="#DC2626" rx="2"/>
+    <text x="31" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="900" fill="#ffffff" text-anchor="middle">ALKAN</text>
+    <text x="31" y="42" font-family="system-ui, -apple-system, sans-serif" font-size="6.5" font-weight="700" fill="#1F2937" text-anchor="middle">Evden Eve</text>
+    
+    <path d="M 62 24 L 80 24 L 85 34 L 85 52 L 62 52 Z" fill="#F3F4F6"/>
+    <path d="M 66 28 L 77 28 L 81 35 L 66 35 Z" fill="#1F2937"/>
+    
+    <circle cx="16" cy="52" r="6.5" fill="#111827" stroke="#9CA3AF" stroke-width="1.8"/>
+    <circle cx="48" cy="52" r="6.5" fill="#111827" stroke="#9CA3AF" stroke-width="1.8"/>
+    <circle cx="75" cy="52" r="6.5" fill="#111827" stroke="#9CA3AF" stroke-width="1.8"/>
+
+    <rect x="2" y="66" width="84" height="20" rx="10" fill="#FBBF24"/>
+    <text x="44" y="79" font-family="system-ui, -apple-system, sans-serif" font-size="8.5" font-weight="900" fill="#78350F" text-anchor="middle">AYDIN MERKEZ</text>
+  </g>
+
+  <g transform="translate(112, 16)">
+    <text x="0" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="17" font-weight="900" fill="#ffffff" letter-spacing="0.5">
+      ALKAN NAKLİYAT
+    </text>
+
+    <g transform="translate(0, 27)">
+      <rect x="0" y="0" width="270" height="20" rx="4" fill="#000000" fill-opacity="0.35"/>
+      <text x="135" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="800" fill="#FEF08A" text-anchor="middle" letter-spacing="0.4">
+        GÜVENLİ · HIZLI · PROFESYONEL TAŞIMA
+      </text>
+    </g>
+
+    <text x="0" y="62" font-family="system-ui, -apple-system, sans-serif" font-size="9.5" font-weight="600" fill="#FEE2E2">
+      Aydın, Kuşadası, Didim, Nazilli &amp; Ege Bölgesi Nakliyat
+    </text>
+  </g>
+
+  <g transform="translate(0, 114)">
+    <rect width="400" height="36" fill="#000000" fill-opacity="0.85"/>
+    <rect x="0" y="0" width="90" height="36" fill="#DC2626"/>
+    <text x="45" y="23" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="900" fill="#ffffff" text-anchor="middle">
+      AYDIN
+    </text>
+    <text x="245" y="23" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">
+      0256 614 50 32 · 0532 739 66 73
+    </text>
+  </g>
+</svg>

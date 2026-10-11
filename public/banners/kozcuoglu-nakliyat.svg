@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 150" width="100%" height="100%">
+  <defs>
+    <linearGradient id="kz-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a192f"/>
+      <stop offset="60%" stop-color="#112240"/>
+      <stop offset="100%" stop-color="#1b3a60"/>
+    </linearGradient>
+    <linearGradient id="kz-gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#FBBF24"/>
+    </linearGradient>
+    <linearGradient id="kz-red" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#DC2626"/>
+      <stop offset="100%" stop-color="#EF4444"/>
+    </linearGradient>
+    <filter id="kz-shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Arka Plan -->
+  <rect width="400" height="150" rx="10" fill="url(#kz-bg)" stroke="#233554" stroke-width="2"/>
+
+  <!-- Yan Dekoratif Çizgiler -->
+  <path d="M 0 0 L 120 0 L 80 150 L 0 150 Z" fill="#ffffff" fill-opacity="0.03"/>
+  <circle cx="360" cy="30" r="70" fill="#F59E0B" fill-opacity="0.05"/>
+
+  <!-- Sol Kamyon / İkon Alanı -->
+  <g transform="translate(14, 18)">
+    <!-- Kamyon Kabini & Kasası -->
+    <rect x="0" y="8" width="62" height="46" rx="4" fill="#ffffff" filter="url(#kz-shadow)"/>
+    <rect x="5" y="13" width="52" height="18" fill="#DC2626" rx="2"/>
+    <text x="31" y="26" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="900" fill="#ffffff" text-anchor="middle">KOZCUOĞLU</text>
+    
+    <!-- Kamyon Çekici Kısmı -->
+    <path d="M 62 26 L 82 26 L 87 36 L 87 54 L 62 54 Z" fill="#F3F4F6"/>
+    <path d="M 66 30 L 78 30 L 82 37 L 66 37 Z" fill="#1F2937"/>
+    
+    <!-- Tekerlekler -->
+    <circle cx="16" cy="54" r="7" fill="#111827" stroke="#9CA3AF" stroke-width="2"/>
+    <circle cx="16" cy="54" r="2.5" fill="#E5E7EB"/>
+    <circle cx="48" cy="54" r="7" fill="#111827" stroke="#9CA3AF" stroke-width="2"/>
+    <circle cx="48" cy="54" r="2.5" fill="#E5E7EB"/>
+    <circle cx="76" cy="54" r="7" fill="#111827" stroke="#9CA3AF" stroke-width="2"/>
+    <circle cx="76" cy="54" r="2.5" fill="#E5E7EB"/>
+
+    <!-- Yıldız & Garanti Rozeti -->
+    <rect x="2" y="68" width="84" height="18" rx="9" fill="#1E293B" stroke="#F59E0B" stroke-width="1.2"/>
+    <text x="44" y="80" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="800" fill="#FBBF24" text-anchor="middle">★ GOOGLE 1. SIRA</text>
+  </g>
+
+  <!-- Sağ Metin & Başlık Alanı -->
+  <g transform="translate(112, 16)">
+    <!-- Firma Adı -->
+    <text x="0" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="900" fill="#ffffff" letter-spacing="0.5">
+      KOZCUOĞLU
+    </text>
+    <text x="110" y="19" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="800" fill="#FBBF24">
+      EVDEN EVE
+    </text>
+
+    <!-- Şerit / Rozet -->
+    <g transform="translate(0, 27)">
+      <rect x="0" y="0" width="270" height="20" rx="4" fill="url(#kz-red)"/>
+      <text x="135" y="14" font-family="system-ui, -apple-system, sans-serif" font-size="9" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="0.4">
+        SİGORTALI &amp; ASANSÖRLÜ TAŞIMACILIK
+      </text>
+    </g>
+
+    <!-- Hizmet Açıklaması -->
+    <text x="0" y="62" font-family="system-ui, -apple-system, sans-serif" font-size="9.5" font-weight="600" fill="#94A3B8">
+      İstanbul İçi &amp; Tüm Türkiye Şehirlerarası Ev Taşıma
+    </text>
+  </g>
+
+  <!-- Alt Kırmızı / Sarı İletişim Şeridi -->
+  <g transform="translate(0, 114)">
+    <rect width="400" height="36" fill="url(#kz-red)"/>
+    <rect x="0" y="0" width="95" height="36" fill="#B91C1C"/>
+    <text x="47" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="900" fill="#FEF08A" text-anchor="middle">
+      İSTANBUL
+    </text>
+    <text x="245" y="23" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1">
+      ☎ 444 65 84 · 0216 493 84 84
+    </text>
+  </g>
+</svg>
