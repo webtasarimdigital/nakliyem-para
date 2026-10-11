@@ -186,74 +186,48 @@ const FAQS = [
 export default function HizmetlerHubPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      {/* ── BREADCRUMB ── */}
+      {/* ── HEADER & GİRİŞ BİLGİ ── */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-          <nav className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-            <Link href="/" className="hover:text-[#F95700] transition-colors">Ana Sayfa</Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-[#111E38] font-bold">Hizmetler</span>
-          </nav>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="mb-3">
+            <nav className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+              <Link href="/" className="hover:text-[#F95700] transition-colors">Ana Sayfa</Link>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-[#111E38] font-bold">Hizmetler</span>
+            </nav>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-5">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-bold text-[#F95700] uppercase tracking-wider mb-1.5">
+                <Sparkles className="w-4 h-4" />
+                <span>Dijital Büyüme Çözümleri</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black text-[#111E38] tracking-tight">
+                Dijital Hizmetler
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1 max-w-2xl leading-relaxed">
+                Nakliyat firmanızı internette büyütün, aracı komisyonu olmadan doğrudan müşteri kazanın. Web sitesi, Google SEO, Harita kaydı, Google Ads ve sosyal medya reklamları.
+              </p>
+            </div>
+
+            <div className="shrink-0 self-start md:self-end">
+              <a
+                href={createWhatsAppLink('Tüm Dijital Büyüme Hizmetleri')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-xs shadow-sm transition-all"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>WhatsApp ile Teklif Al</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ── HERO SECTION ── */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-white via-orange-50/20 to-[#F8FAFC] pt-12 pb-16 sm:pt-16 sm:pb-20 border-b border-slate-200/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
-          
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200 text-[#F95700] text-xs font-black tracking-wide uppercase mb-6 shadow-xs">
-            <Sparkles className="w-4 h-4 text-[#F95700]" />
-            <span>TaşınTeklif Dijital Büyüme Ajansı</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-[#111E38] tracking-tight leading-tight max-w-4xl mx-auto">
-            Nakliyat Firmanızı İnternette Büyütün, <span className="text-[#F95700]">Komisyonsuz Doğrudan Müşteri</span> Kazanın
-          </h1>
-
-          <p className="mt-5 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
-            Aracı komisyonlarına son verin! Web sitesi, Google 1. sayfa SEO, Harita kaydı, Google Ads ve Instagram reklamlarıyla firmanızın telefonu aralıksız çalsın.
-          </p>
-
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">
-            <a
-              href={createWhatsAppLink('Tüm Dijital Büyüme Hizmetleri')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm shadow-lg shadow-orange-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>WhatsApp ile Hemen Teklif Al</span>
-            </a>
-
-            <a
-              href="#hizmetler-listesi"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-[#111E38] font-bold text-sm border border-slate-200 shadow-xs transition-all"
-            >
-              <span>Hizmetleri İncele</span>
-              <ArrowRight className="w-4 h-4" />
-            </a>
-          </div>
-
-          {/* Dubai & WhatsApp Direct Bar */}
-          <div className="mt-8 pt-6 border-t border-slate-200/60 max-w-xl mx-auto flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-semibold text-slate-600">
-            <div className="flex items-center gap-1.5 text-slate-700">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Dubai İletişim Hattı:</span>
-              <a href="tel:+971585188543" className="font-black text-[#111E38] hover:text-[#F95700] transition-colors">
-                {DUBAI_PHONE}
-              </a>
-            </div>
-            <div className="flex items-center gap-1.5 text-slate-500">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>DSO-IFZA, Dubai Silicon Oasis</span>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
       {/* ── 5 HİZMET KARTLARI ── */}
-      <section id="hizmetler-listesi" className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
+      <section id="hizmetler-listesi" className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
           <span className="text-xs font-black uppercase tracking-wider text-[#F95700]">Profesyonel Çözümler</span>
           <h2 className="text-2xl sm:text-4xl font-black text-[#111E38] tracking-tight mt-1">

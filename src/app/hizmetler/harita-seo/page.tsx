@@ -126,67 +126,50 @@ export default function HaritaSeoPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      {/* ── BREADCRUMB ── */}
+      {/* ── HEADER & GİRİŞ BİLGİ ── */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-          <nav className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-            <Link href="/" className="hover:text-[#F95700] transition-colors">Ana Sayfa</Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <Link href="/hizmetler" className="hover:text-[#F95700] transition-colors">Hizmetler</Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-[#111E38] font-bold">Harita SEO (Google Maps)</span>
-          </nav>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="mb-3">
+            <nav className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+              <Link href="/" className="hover:text-[#F95700] transition-colors">Ana Sayfa</Link>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              <Link href="/hizmetler" className="hover:text-[#F95700] transition-colors">Hizmetler</Link>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-[#111E38] font-bold">Harita SEO</span>
+            </nav>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-5">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-bold text-[#F95700] uppercase tracking-wider mb-1.5">
+                <MapPin className="w-4 h-4" />
+                <span>Google Haritalar &amp; Yerel SEO</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black text-[#111E38] tracking-tight">
+                Harita SEO (Google Maps)
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1 max-w-2xl leading-relaxed">
+                Bölgenizde haritada ilk 3 sırada (Local 3-Pack) yer alın. Yakınınızdaki müşteriler doğrudan sizin telefonunuzu arasın.
+              </p>
+            </div>
+
+            <div className="shrink-0 self-start md:self-end">
+              <a
+                href={createWhatsAppLink()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-xs shadow-sm transition-all"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>WhatsApp ile Teklif Al</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ── HERO SECTION ── */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-white via-orange-50/20 to-[#F8FAFC] pt-12 pb-16 sm:pt-16 sm:pb-20 border-b border-slate-200/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
-          
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-black tracking-wide uppercase mb-6 shadow-xs">
-            <MapPin className="w-4 h-4 text-blue-600" />
-            <span>Google Haritalar & Yerel İşletme Görünürlüğü</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-[#111E38] tracking-tight leading-tight max-w-4xl mx-auto">
-            Bölgenizde Haritada İlk 3 Sıraya Çıkın, <span className="text-[#F95700]">Telefonunuz Doğrudan</span> Çalsın
-          </h1>
-
-          <p className="mt-5 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
-            Yakınınızda evden eve nakliyeci arayan müşteriler harita sonuçlarında sizi görsün. Tek tuşla arama ve rota alma özellikleriyle sıcak müşterileri anında yakalayın.
-          </p>
-
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">
-            <a
-              href={createWhatsAppLink()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm shadow-lg shadow-orange-500/20 transition-all hover:scale-[1.02]"
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>WhatsApp ile Teklif Al</span>
-            </a>
-
-            <a
-              href="#paketler"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-[#111E38] font-bold text-sm border border-slate-200 shadow-xs transition-all"
-            >
-              <span>Paketleri İncele</span>
-              <ArrowRight className="w-4 h-4" />
-            </a>
-          </div>
-
-          <div className="mt-8 flex items-center justify-center gap-6 text-xs text-slate-500 font-semibold">
-            <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-600" /> Profil Doğrulama</span>
-            <span className="flex items-center gap-1.5"><Navigation className="w-4 h-4 text-blue-600" /> İlk 3 Sıra Hedefi</span>
-            <span className="flex items-center gap-1.5"><PhoneCall className="w-4 h-4 text-orange-500" /> Doğrudan Arama Artışı</span>
-          </div>
-
-        </div>
-      </section>
-
       {/* ── PACKAGES SECTION ── */}
-      <section id="paketler" className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
+      <section id="paketler" className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
           <span className="text-xs font-black uppercase tracking-wider text-[#F95700]">Harita SEO Paketleri</span>
           <h2 className="text-2xl sm:text-4xl font-black text-[#111E38] tracking-tight mt-1">
