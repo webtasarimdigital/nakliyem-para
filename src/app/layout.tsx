@@ -33,6 +33,9 @@ export const metadata: Metadata = {
   verification: {
     google: 'rAxXjBMm7tcfUxApZNe6cXnI70C_FwvNMhU0oBfmHrA',
     yandex: '332af9c4b673dc9a',
+    other: {
+      'msvalidate.01': '343467E9DEC8139D33916AA31F3527BF',
+    },
   },
   icons: {
     icon: [
