@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Briefcase, BookOpen, Plus, MessageSquare, User, Truck, Package, Edit3 } from 'lucide-react';
@@ -11,10 +11,30 @@ export const MobileCarrierNav: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
-  const currentUser = db.getCurrentUser();
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
-  // Only show on carrier dashboard pages
-  const isCarrierRoute = pathname?.startsWith('/nakliyeci') || pathname?.startsWith('/app/carrier');
+  useEffect(() => {
+    setCurrentUser(db.getCurrentUser());
+    const handleAuth = () => setCurrentUser(db.getCurrentUser());
+    window.addEventListener('auth-changed', handleAuth);
+    window.addEventListener('storage', handleAuth);
+    return () => {
+      window.removeEventListener('auth-changed', handleAuth);
+      window.removeEventListener('storage', handleAuth);
+    };
+  }, []);
+
+  // Üye girişi yapmamış veya CARRIER rolünde olmayanlara nakliyeci paneli alt menüsü asla gösterilmez
+  if (!currentUser || currentUser.role !== 'CARRIER') {
+    return null;
+  }
+
+  // Yalnızca nakliyeci paneli sayfalarında (/nakliyeci/ veya /app/carrier/) gösterilir
+  // /nakliyeci-defteri, /nakliyeciler gibi halka açık sayfalarda kesinlikle gösterilmez
+  const isCarrierRoute = 
+    (pathname === '/nakliyeci' || pathname?.startsWith('/nakliyeci/')) ||
+    (pathname === '/app/carrier' || pathname?.startsWith('/app/carrier/'));
+
   if (!isCarrierRoute) return null;
 
   const handleQuickAction = (category: string) => {

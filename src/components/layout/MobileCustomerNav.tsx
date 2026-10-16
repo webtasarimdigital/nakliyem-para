@@ -37,12 +37,13 @@ export const MobileCustomerNav: React.FC = () => {
     };
   }, []);
 
-  // Hide on carrier dashboard and admin paths
-  if (
-    pathname?.startsWith('/nakliyeci') ||
-    pathname?.startsWith('/app/carrier') ||
-    pathname?.startsWith('/admin')
-  ) {
+  // Yalnızca nakliyeci paneli (/nakliyeci/, /app/carrier/) ve admin sayfalarında gizle
+  // /nakliyeci-defteri, /nakliyeciler gibi halka açık sayfalarda gizlenmez
+  const isCarrierDashboard =
+    (pathname === '/nakliyeci' || pathname?.startsWith('/nakliyeci/')) ||
+    (pathname === '/app/carrier' || pathname?.startsWith('/app/carrier/'));
+
+  if (isCarrierDashboard || pathname?.startsWith('/admin')) {
     return null;
   }
 
