@@ -32,6 +32,7 @@ export const metadata: Metadata = {
   },
   verification: {
     google: 'rAxXjBMm7tcfUxApZNe6cXnI70C_FwvNMhU0oBfmHrA',
+    yandex: '332af9c4b673dc9a',
   },
   icons: {
     icon: [
