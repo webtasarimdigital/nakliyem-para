@@ -36,7 +36,7 @@ const PACKAGES = [
   {
     name: 'Yerel SEO Başlangıç',
     desc: 'Kendi ilçesinde ve çevre ilçelerde 1. sayfaya çıkmak isteyen nakliyeciler',
-    price: '1.250 TL',
+    price: '3.750 TL',
     period: '/ ay',
     isFeatured: false,
     badge: null,
@@ -51,7 +51,7 @@ const PACKAGES = [
   {
     name: 'İl Geneli SEO Liderliği',
     desc: 'Büyükşehirde (örn: İstanbul geneli) tüm ilçelerde 1. sayfayı hedefleyenler',
-    price: '2.500 TL',
+    price: '7.500 TL',
     period: '/ ay',
     isFeatured: true,
     badge: 'EN ÇOK TERCİH EDİLEN',
@@ -67,7 +67,7 @@ const PACKAGES = [
   {
     name: 'Türkiye Geneli Kurumsal SEO',
     desc: '81 ilde ve tüm anahtar kelimelerde zirveyi hedefleyen filo firmaları',
-    price: '4.500 TL',
+    price: '13.500 TL',
     period: '/ ay',
     isFeatured: false,
     badge: 'FİLOLAR İÇİN',

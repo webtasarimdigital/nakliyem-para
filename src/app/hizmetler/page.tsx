@@ -40,7 +40,7 @@ const SERVICES = [
     icon: Globe,
     badge: 'En Çok Tercih Edilen',
     badgeClass: 'bg-orange-100 text-[#C23E00] border-orange-200',
-    startingPrice: '3.500 TL\'den başlayan fiyatlarla',
+    startingPrice: '10.500 TL\'den başlayan fiyatlarla',
     points: [
       'Domain & Yüksek Hızlı SSL Hosting dahil',
       '39 İlçe için özel SEO alt sayfaları',
@@ -57,7 +57,7 @@ const SERVICES = [
     icon: Search,
     badge: 'Kalıcı Müşteri Akışı',
     badgeClass: 'bg-slate-100 text-slate-800 border-slate-200',
-    startingPrice: '1.250 TL / ay',
+    startingPrice: '3.750 TL / ay',
     points: [
       'İl & ilçe bazlı yerel anahtar kelime optimizasyonu',
       'Google Search Console & Schema zengin veri kurulumu',
@@ -74,7 +74,7 @@ const SERVICES = [
     icon: MapPin,
     badge: 'Doğrudan Telefon Çağrısı',
     badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
-    startingPrice: '950 TL / ay',
+    startingPrice: '2.850 TL / ay',
     points: [
       'Google Business işletme profili kurulumu ve doğrulama',
       'Haritada ilk 3 sıra (Local Pack) yerel optimizasyonu',
@@ -91,7 +91,7 @@ const SERVICES = [
     icon: Megaphone,
     badge: 'Anında İş Garantisi',
     badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
-    startingPrice: '750 TL / ay (yönetim)',
+    startingPrice: '4.500 TL / ay (yönetim)',
     points: [
       '450+ negatif kelime listesiyle gereksiz tıklamalara son',
       'Tıkla-Ara (Call-Only) mobil dönüşüm kampanyaları',
@@ -108,7 +108,7 @@ const SERVICES = [
     icon: Share2,
     badge: 'Marka & Güven Artışı',
     badgeClass: 'bg-pink-50 text-pink-700 border-pink-200',
-    startingPrice: '1.250 TL / ay (yönetim)',
+    startingPrice: '3.750 TL / ay (yönetim)',
     points: [
       'Özel tasarım video reels ve görsel afiş hazırlığı',
       'Taşınma aşamasındaki kitleye nokta atışı demografik hedefleme',

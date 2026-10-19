@@ -36,7 +36,7 @@ const PACKAGES = [
   {
     name: 'Başlangıç Web Sitesi',
     desc: 'Bireysel ve tek araçlı nakliyeciler için kurumsal dijital vitrin',
-    price: '3.500 TL',
+    price: '10.500 TL',
     period: 'tek seferlik',
     isFeatured: false,
     badge: null,
@@ -52,7 +52,7 @@ const PACKAGES = [
   {
     name: 'Profesyonel SEO Nakliyat Sitesi',
     desc: 'İlçe aramalarından doğrudan müşteri toplamak isteyen nakliyat firmaları',
-    price: '6.500 TL',
+    price: '19.500 TL',
     period: 'tek seferlik',
     isFeatured: true,
     badge: 'EN ÇOK TERCİH EDİLEN',
@@ -69,7 +69,7 @@ const PACKAGES = [
   {
     name: 'Kurumsal Filo & Lojistik Portalı',
     desc: 'Çok şubeli, geniş araç filolu ve Türkiye geneli çalışan lojistik firmaları',
-    price: '12.000 TL',
+    price: '36.000 TL',
     period: 'tek seferlik',
     isFeatured: false,
     badge: 'FİLOLAR İÇİN',

@@ -32,19 +32,19 @@ const SERVICES_LIST = [
     icon: Globe,
     badge: 'En Çok Tercih Edilen',
     badgeColor: 'bg-orange-100 text-[#C23E00]',
-    price: '3.500 TL\'den başlayan fiyatlarla',
+    price: '10.500 TL\'den başlayan fiyatlarla',
     points: ['Domain & Hosting dahil', 'WhatsApp hızlı teklif butonu', 'Mobil & tablet %100 uyumlu', 'SEO altyapısı hazır']
   },
   {
     id: 'google-seo',
     title: 'Google SEO Hizmeti',
     subtitle: 'Şehrinizde Google Arama Sonuçlarında 1. Sayfa',
-    desc: 'Google\'da \"evden eve nakliyat\", \"şehirlerarası nakliyat\" gibi aramalarda firmanızı üst sıralara taşıyarak komisyonsuz doğrudan müşteri kazandırıyoruz.',
+    desc: 'Google\'da "evden eve nakliyat", "şehirlerarası nakliyat" gibi aramalarda firmanızı üst sıralara taşıyarak komisyonsuz doğrudan müşteri kazandırıyoruz.',
     href: '/app/carrier/dijital-hizmetler/google-seo',
     icon: Search,
     badge: 'Organik Trafik',
     badgeColor: 'bg-emerald-100 text-emerald-800',
-    price: '1.500 TL / aylık',
+    price: '3.750 TL / aylık',
     points: ['Anahtar kelime analizi', 'İl & ilçe bazlı yerel optimizasyon', 'Aylık şeffaf sıralama raporu', 'Rakiplerin önüne geçme garantisi']
   },
   {
@@ -56,7 +56,7 @@ const SERVICES_LIST = [
     icon: MapPin,
     badge: 'Hızlı Çağrı',
     badgeColor: 'bg-blue-100 text-blue-800',
-    price: '1.200 TL / tek seferlik kurulum',
+    price: '2.850 TL / ay',
     points: ['Google Business profil kurulumu', 'Harita kategori optimizasyonu', 'Olumlu yorum yönetimi kılavuzu', 'Doğrudan arama çağrısı artışı']
   },
   {
@@ -68,7 +68,7 @@ const SERVICES_LIST = [
     icon: Megaphone,
     badge: 'Anında Müşteri',
     badgeColor: 'bg-purple-100 text-purple-800',
-    price: 'Yönetim: 750 TL / ay + Reklam Bütçesi',
+    price: 'Yönetim: 4.500 TL / ay + Reklam Bütçesi',
     points: ['Negatif anahtar kelime filtreleme', 'Dönüşüm odaklı arama reklamları', 'Haftalık harcama ve arama raporu', 'Yüksek teklif verme verimliliği']
   },
   {
@@ -80,7 +80,7 @@ const SERVICES_LIST = [
     icon: Share2,
     badge: 'Marka Değeri',
     badgeColor: 'bg-pink-100 text-pink-800',
-    price: '1.800 TL / aylık',
+    price: '3.750 TL / aylık',
     points: ['Özel tasarım video ve bannerlar', 'Yeni ev tutan hedef kitle seçimi', 'Instagram & Facebook entegrasyonu', 'Aylık performans raporu']
   }
 ];

@@ -34,7 +34,7 @@ const PACKAGES = [
   {
     name: "Sosyal Medya Başlangıç",
     desc: "Instagram'da kurumsal profil görünümü ve ilk reklamını vermek isteyenler",
-    price: "1.250 TL",
+    price: "3.750 TL",
     period: "/ ay (yönetim)",
     isFeatured: false,
     badge: null,
@@ -49,7 +49,7 @@ const PACKAGES = [
   {
     name: "Profesyonel Büyüme & Lead",
     desc: "Her hafta düzenli evden eve taşıma rezervasyonu almak isteyen nakliyeciler",
-    price: "2.250 TL",
+    price: "6.750 TL",
     period: "/ ay (yönetim)",
     isFeatured: true,
     badge: "EN ÇOK TERCİH EDİLEN",
@@ -65,7 +65,7 @@ const PACKAGES = [
   {
     name: "Tam Kapsamlı Sosyal Medya & Filo",
     desc: "Bölgesinde marka olmak ve sürekli rezervasyon doldurmak isteyen büyük filolar",
-    price: "3.750 TL",
+    price: "11.250 TL",
     period: "/ ay (yönetim)",
     isFeatured: false,
     badge: "FİLOLAR İÇİN",

@@ -35,7 +35,7 @@ const PACKAGES = [
   {
     name: 'Başlangıç Ads Yönetimi',
     desc: 'Düşük bütçeyle aynı gün telefonunun çalmasını isteyenler',
-    price: '750 TL',
+    price: '4.500 TL',
     period: '/ ay (yönetim)',
     isFeatured: false,
     badge: null,
@@ -50,7 +50,7 @@ const PACKAGES = [
   {
     name: 'Profesyonel Ads Yönetimi',
     desc: 'Haftanın her günü düzenli ev ve ofis taşıma bağlayan firmalar',
-    price: '1.500 TL',
+    price: '9.000 TL',
     period: '/ ay (yönetim)',
     isFeatured: true,
     badge: 'EN ÇOK TERCİH EDİLEN',
@@ -66,7 +66,7 @@ const PACKAGES = [
   {
     name: 'Kurumsal & Filo Büyüme',
     desc: 'Çoklu araç filosu olan ve günlük 10+ ev taşıma hedefleyen kurumsal firmalar',
-    price: '2.750 TL',
+    price: '16.500 TL',
     period: '/ ay (yönetim)',
     isFeatured: false,
     badge: 'FİLOLAR İÇİN',
