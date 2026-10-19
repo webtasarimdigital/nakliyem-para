@@ -1,12 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { Lock, ShieldCheck, Mail, ArrowLeft, EyeOff, CreditCard, UserCheck } from 'lucide-react';
+import { Lock, ShieldCheck, Mail, ArrowLeft, EyeOff, CreditCard, UserCheck, Smartphone } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Gizlilik ve Güvenlik Politikası',
-  description: 'TaşınTeklif müşteri ve nakliyeci gizlilik taahhüdü, telefon numarası koruma protokolü, SSL güvenliği ve veri saklama standartları.',
-  keywords: ['gizlilik politikası', 'veri güvenliği', 'müşteri gizliliği', 'nakliyat telefon koruması'],
+  description: 'TaşınTeklif web sitesi ve iOS/Android mobil uygulamaları gizlilik taahhüdü, telefon numarası koruma protokolü, SSL güvenliği ve veri saklama standartları.',
+  keywords: ['gizlilik politikası', 'veri güvenliği', 'müşteri gizliliği', 'nakliyat telefon koruması', 'mobil uygulama gizlilik'],
   alternates: {
     canonical: '/gizlilik',
   },
@@ -36,8 +36,13 @@ export default function GizlilikPage() {
             Son Güncelleme: 1 Eylül 2026 • TaşınTeklif Güvencesi
           </p>
 
-          <div className="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-            TaşınTeklif olarak kullanıcılarımızın gizliliğini en temel hak olarak görüyoruz. Bu metin, platformumuzu kullanan ev &amp; ofis sahipleri ile nakliyeci iş ortaklarımızın kişisel ve kurumsal bilgilerinin nasıl korunduğunu şeffaf bir biçimde açıklamaktadır.
+          <div className="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed font-medium space-y-2">
+            <p>
+              TaşınTeklif olarak kullanıcılarımızın gizliliğini en temel hak olarak görüyoruz. İşbu Gizlilik ve Güvenlik Politikası; <strong>tasinteklif.com</strong> web sitemiz ile birlikte App Store ve Google Play Store üzerinden sunulan resmi <strong>TaşınTeklif iOS ve Android mobil uygulamalarımızın</strong> tümünü kapsamaktadır.
+            </p>
+            <p className="text-xs text-slate-500 font-semibold">
+              Platformumuzu web veya mobil uygulama üzerinden kullanan ev/ofis sahipleri ile nakliyeci iş ortaklarımızın kişisel ve kurumsal bilgilerinin nasıl işlendiği ve korunduğu aşağıda şeffaf şekilde açıklanmıştır.
+            </p>
           </div>
         </div>
 
@@ -121,11 +126,60 @@ export default function GizlilikPage() {
               <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#F95700] flex items-center justify-center font-bold text-sm">
                 5
               </div>
-              <h2 className="text-lg sm:text-xl font-bold">Hesap Silme ve Verilerin Temizlenmesi</h2>
+              <h2 className="text-lg sm:text-xl font-bold">Hesap Silme ve Verilerin Temizlenmesi (Web &amp; Mobil Uygulama)</h2>
             </div>
             <p>
-              Müşteriler veya nakliyeci firmalar diledikleri zaman hesaplarının ve kişisel verilerinin sistemlerimizden kalıcı olarak silinmesini talep edebilir. Talebiniz üzerine mevzuattaki yasal muhasebe saklama süreleri haricindeki tüm taşınma talepleri, mesaj geçmişi ve profil bilgileri sistemlerimizden geri döndürülemez şekilde silinir.
+              Müşteriler veya nakliyeci firmalar diledikleri zaman hesaplarının ve kişisel verilerinin sistemlerimizden kalıcı olarak silinmesini talep edebilir. Web sitemiz veya <strong>iOS / Android mobil uygulamalarımızdaki Profil &gt; Ayarlar &gt; Hesabı Sil</strong> adımı üzerinden anında hesap silme işlemini başlatabilirsiniz. Talebiniz üzerine mevzuattaki yasal muhasebe saklama süreleri haricindeki tüm taşınma talepleri, mesaj geçmişi, yüklenen belgeler ve profil bilgileri sistemlerimizden geri döndürülemez şekilde silinir.
             </p>
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex items-center gap-2.5 text-[#111E38]">
+              <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#F95700] flex items-center justify-center font-bold text-sm">
+                6
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold">Mobil Uygulama Kapsamı ve Cihaz İzinleri (iOS &amp; Android)</h2>
+            </div>
+            <p>
+              TaşınTeklif mobil uygulaması (Apple App Store ve Google Play Store sürümleri), kullanıcılara daha hızlı ve kesintisiz bir nakliyat deneyimi sunmak amacıyla tasarlanmıştır. Mobil uygulamalarımız kapsamında toplanan veriler ve talep edilen cihaz izinleri şu şekildedir:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                <div className="flex items-center gap-2 font-bold text-[#111E38] text-sm">
+                  <Smartphone className="w-4 h-4 text-[#F95700]" /> Kamera ve Fotoğraf Galerisi İzni
+                </div>
+                <p className="text-xs text-slate-600">
+                  Müşterilerin taşınacak eşyalarının fotoğraflarını çekip ilanlara yükleyebilmesi veya nakliyecilerin yetki/araç evraklarını sisteme yükleyebilmesi amacıyla kullanılır. Galeriye izinsiz erişim sağlanmaz.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                <div className="flex items-center gap-2 font-bold text-[#111E38] text-sm">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" /> Anlık Bildirimler (Push Notifications)
+                </div>
+                <p className="text-xs text-slate-600">
+                  Yeni fiyat teklifleri, mesajlaşmalar ve sipariş durum güncellemelerini anında iletmek amacıyla kullanılır. Bildirim tercihleri cihaz ayarlarından istendiğinde kapatılabilir.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                <div className="flex items-center gap-2 font-bold text-[#111E38] text-sm">
+                  <UserCheck className="w-4 h-4 text-blue-600" /> Konum Erişimi (Opsiyonel)
+                </div>
+                <p className="text-xs text-slate-600">
+                  Taşınma başlangıç veya varış il/ilçesini otomatik ve kolay seçebilmeniz için kullanılır. Arka planda sürekli konum takibi kesinlikle yapılmaz.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                <div className="flex items-center gap-2 font-bold text-[#111E38] text-sm">
+                  <Lock className="w-4 h-4 text-purple-600" /> Apple &amp; Google Mağaza Uyumluluğu
+                </div>
+                <p className="text-xs text-slate-600">
+                  Uygulama çökme ve hata analizleri (Crash Analytics) hariç üçüncü taraflara veri aktarımı yapılmaz. Kullanıcı kimliğini hedefleyen reklam izleme kimlikleri (IDFA/GAID) pazarlama amacıyla paylaşılmaz.
+                </p>
+              </div>
+            </div>
           </section>
 
           <section className="pt-4 border-t border-slate-200">

@@ -326,5 +326,38 @@ export async function checkEmailAlreadyRegistered(email: string): Promise<boolea
   }
 }
 
+/**
+ * Permanently delete the currently logged-in user from Firebase Auth & Firestore
+ */
+export async function deleteCurrentUserFirebase(): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!isFirebaseConfigured() || !auth || !auth.currentUser) {
+      return { success: true };
+    }
+    const user = auth.currentUser;
+    const uid = user.uid;
 
+    if (db) {
+      try {
+        const { deleteDoc } = await import('firebase/firestore');
+        await deleteDoc(doc(db, 'users', uid)).catch(() => {});
+        await deleteDoc(doc(db, 'carriers', `carrier_${uid}`)).catch(() => {});
+      } catch (err) {
+        console.warn('Firestore deletion warning:', err);
+      }
+    }
 
+    const { deleteUser } = await import('firebase/auth');
+    await deleteUser(user);
+    return { success: true };
+  } catch (err: any) {
+    console.warn('Firebase user delete error:', err);
+    if (err.code === 'auth/requires-recent-login') {
+      return { 
+        success: false, 
+        error: 'Güvenlik nedeniyle hesabınızı silebilmek için lütfen önce çıkış yapıp tekrar giriş yapın ve ardından hesap silme işlemini tekrarlayın.' 
+      };
+    }
+    return { success: false, error: err.message || 'Hesap silinemedi.' };
+  }
+}

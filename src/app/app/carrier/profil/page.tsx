@@ -25,14 +25,18 @@ import {
   X,
   Plus,
   Star,
-  MessageSquare
+  MessageSquare,
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { Modal } from '@/components/ui/Modal';
 import { db, SEED_PLANS } from '@/lib/data/mock-db';
 import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+import { deleteCurrentUserFirebase } from '@/lib/firebase/auth';
 import { updateFirestoreUserProfile } from '@/lib/firebase/firestore';
 import { CarrierProfile, CarrierSubscription, CarrierDocument } from '@/types';
 
@@ -56,6 +60,8 @@ export default function CarrierProfileEditorPage() {
   const [editBioOpen, setEditBioOpen] = useState(false);
   const [editContactOpen, setEditContactOpen] = useState(false);
   const [editServicesOpen, setEditServicesOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form states for modals
   const [tempCompanyName, setTempCompanyName] = useState('');
@@ -282,6 +288,37 @@ export default function CarrierProfileEditorPage() {
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteCurrentUserFirebase();
+      const currentUser = db.getCurrentUser();
+      if (currentUser) {
+        const remaining = db.getRegisteredUsers().filter(
+          ru => ru.id !== currentUser.id && ru.email?.toLowerCase() !== currentUser.email?.toLowerCase()
+        );
+        db.setItem('registeredUsers', remaining);
+      }
+      if (carrier) {
+        const remainingCarriers = db.getCarriers().filter(c => c.id !== carrier.id);
+        db.setItem('carriers', remainingCarriers);
+      }
+      db.setCurrentUser(null);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth-changed'));
+        window.dispatchEvent(new Event('storage'));
+      }
+      alert('Firma hesabınız, kayıtlı belgeleriniz ve profiliniz KVKK kapsamında kalıcı olarak silindi.');
+      router.push('/');
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message || 'Hesap silinirken bir hata oluştu.');
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpen(false);
+    }
   };
 
   if (!isLoaded || !carrier || !sub) {
@@ -659,6 +696,28 @@ export default function CarrierProfileEditorPage() {
               )}
             </div>
           </div>
+
+          {/* Tehlikeli Bölge - Nakliyeci Hesabı ve Firma Profilini Sil */}
+          <div className="bg-red-50/50 rounded-3xl border border-red-200/80 p-6 sm:p-7 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-sm sm:text-base font-black text-red-900 flex items-center gap-2">
+                  <Trash2 className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>Hesabı ve Firma Profilini Sil (KVKK &amp; Hesap Kapatma)</span>
+                </h3>
+                <p className="text-xs text-red-700/80 mt-1 max-w-xl leading-relaxed font-medium">
+                  Hesabınızı ve firma profilinizi sildiğinizde kurumsal bilgileriniz, evraklarınız, teklif geçmişiniz ve abonelik kaydınız kalıcı olarak silinir. Bu işlem geri alınamaz.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeleteModalOpen(true)}
+                className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-colors shrink-0 cursor-pointer shadow-xs"
+              >
+                Firma Hesabını Sil
+              </button>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -888,6 +947,52 @@ export default function CarrierProfileEditorPage() {
           </div>
         </div>
       )}
+
+      {/* ── MODAL 4: Hesap ve Firma Silme Onayı ── */}
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => !isDeleting && setDeleteModalOpen(false)}
+        title="Firma Hesabınızı Kalıcı Olarak Silmek İstiyor Musunuz?"
+        maxWidth="md"
+      >
+        <div className="p-6 space-y-5 text-center sm:text-left">
+          <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-900 text-xs font-semibold">
+            <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+            <span>
+              Bu işlem <strong>kalıcıdır ve geri alınamaz</strong>. Firmanıza ait tüm teklifler, onaylı belgeler, değerlendirmeler ve kullanıcı hesabınız KVKK ile mağaza standartları gereği tamamen silinecektir.
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-2.5 pt-2">
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={() => setDeleteModalOpen(false)}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              Vazgeç
+            </button>
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={handleDeleteAccount}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs transition-colors cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2 shadow-sm"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Siliniyor...</span>
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Evet, Hesabımı Kalıcı Olarak Sil</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
     </div>
   );

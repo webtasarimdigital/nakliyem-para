@@ -51,10 +51,10 @@ export default function KvkkPage() {
               <h2 className="text-lg sm:text-xl font-bold">Veri Sorumlusunun Kimliği</h2>
             </div>
             <p>
-              İşbu Aydınlatma Metni kapsamında veri sorumlusu; Türkiye Cumhuriyeti kanunlarına uygun olarak faaliyet gösteren ve <strong>tasinteklif.com</strong> internet sitesini işleten <strong>TaşınTeklif Teknoloji ve Bilişim Hizmetleri</strong>&apos;dir.
+              İşbu Aydınlatma Metni kapsamında veri sorumlusu; Türkiye Cumhuriyeti kanunlarına uygun olarak faaliyet gösteren, <strong>tasinteklif.com</strong> internet sitesi ile TaşınTeklif iOS ve Android mobil uygulamalarını işleten <strong>TaşınTeklif Teknoloji ve Bilişim Hizmetleri</strong>&apos;dir.
             </p>
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
-              <p><strong>Platform:</strong> TaşınTeklif Dijital Nakliyat ve Lojistik Pazaryeri</p>
+              <p><strong>Platform:</strong> TaşınTeklif Dijital Nakliyat ve Lojistik Pazaryeri (Web &amp; iOS / Android Mobil Uygulamaları)</p>
               <p><strong>İnternet Adresi:</strong> https://tasinteklif.com</p>
               <p><strong>KVKK İletişim &amp; Başvuru:</strong> bilgi@tasinteklif.com</p>
             </div>

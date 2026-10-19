@@ -10,14 +10,17 @@ import {
   ShieldCheck, 
   LogOut,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import { CustomerSidebar } from '@/components/layout/CustomerSidebar';
 import { db } from '@/lib/data/mock-db';
 import { useAuth } from '@/context/AuthContext';
 import { updateFirestoreUserProfile } from '@/lib/firebase/firestore';
 import { isFirebaseConfigured } from '@/lib/firebase/config';
+import { deleteCurrentUserFirebase } from '@/lib/firebase/auth';
 import { useRouter } from 'next/navigation';
 
 export default function CustomerProfilePage() {
@@ -94,6 +97,36 @@ export default function CustomerProfilePage() {
     setLoading(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 4000);
+  };
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteCurrentUserFirebase();
+      const u = currentUser || db.getCurrentUser();
+      if (u) {
+        const remaining = db.getRegisteredUsers().filter(
+          ru => ru.id !== u.id && ru.email?.toLowerCase() !== u.email?.toLowerCase()
+        );
+        db.setItem('registeredUsers', remaining);
+      }
+      db.setCurrentUser(null);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth-changed'));
+        window.dispatchEvent(new Event('storage'));
+      }
+      alert('Hesabınız ve tüm kayıtlı verileriniz KVKK kapsamında başarıyla silindi.');
+      router.push('/');
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message || 'Hesap silinirken bir hata oluştu.');
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpen(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -231,6 +264,74 @@ export default function CustomerProfilePage() {
                 </Button>
               </div>
             </form>
+
+            {/* Tehlikeli Bölge - Hesabı Sil */}
+            <div className="bg-red-50/50 rounded-3xl border border-red-200/80 p-6 sm:p-7 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-red-900 flex items-center gap-2">
+                    <Trash2 className="w-4 h-4 text-red-600 shrink-0" />
+                    <span>Hesabı Sil (KVKK &amp; Hesap Kapatma)</span>
+                  </h3>
+                  <p className="text-xs text-red-700/80 mt-1 max-w-xl leading-relaxed font-medium">
+                    Hesabınızı sildiğinizde profil bilgileriniz, oluşturduğunuz taşınma talepleri ve mesaj geçmişiniz sistemlerimizden kalıcı olarak silinir. Bu işlem geri alınamaz.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDeleteModalOpen(true)}
+                  className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-colors shrink-0 cursor-pointer shadow-xs"
+                >
+                  Hesabımı Sil
+                </button>
+              </div>
+            </div>
+
+            {/* Hesap Silme Onay Modalı */}
+            <Modal
+              isOpen={deleteModalOpen}
+              onClose={() => !isDeleting && setDeleteModalOpen(false)}
+              title="Hesabınızı Kalıcı Olarak Silmek İstiyor Musunuz?"
+              maxWidth="md"
+            >
+              <div className="p-6 space-y-5 text-center sm:text-left">
+                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-900 text-xs font-semibold">
+                  <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+                  <span>
+                    Bu işlem <strong>kalıcıdır ve geri alınamaz</strong>. Tüm taşınma talepleriniz, mesaj geçmişiniz ve kayıtlı bilgileriniz KVKK standartları gereğince silinecektir.
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-end gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    disabled={isDeleting}
+                    onClick={() => setDeleteModalOpen(false)}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    Vazgeç
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isDeleting}
+                    onClick={handleDeleteAccount}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs transition-colors cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    {isDeleting ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Siliniyor...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Evet, Hesabımı Kalıcı Olarak Sil</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </Modal>
           </main>
 
         </div>

@@ -1300,13 +1300,26 @@ class MockDatabase {
     }
   }
 
-  private setItem<T>(key: string, val: T): void {
+  setItem<T>(key: string, val: T): void {
     if (!this.isClient) return;
     try {
       localStorage.setItem(`nakliyem_db_${key}`, JSON.stringify(val));
     } catch {
       // Ignore quota errors
     }
+  }
+
+  deleteUser(userId: string): void {
+    const remaining = this.getRegisteredUsers().filter(u => u.id !== userId);
+    this.setItem('registeredUsers', remaining);
+    if (this.getCurrentUser()?.id === userId) {
+      this.setCurrentUser(null);
+    }
+  }
+
+  deleteCarrier(carrierId: string): void {
+    const remaining = this.getCarriers().filter(c => c.id !== carrierId);
+    this.setItem('carriers', remaining);
   }
 
   // Active User session (Simulated auth state for demo)

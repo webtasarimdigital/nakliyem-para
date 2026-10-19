@@ -6,7 +6,7 @@ import {
   Check, X, Sparkles, ArrowRight, ChevronDown,
   Zap, Award, Shield, Star, Clock, Users,
   BookOpen, Bell, Phone, BarChart3, Globe, HelpCircle,
-  ChevronUp, ShieldCheck, CheckCircle2, AlertCircle
+  ChevronUp, ShieldCheck, CheckCircle2, AlertCircle, Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -54,13 +54,13 @@ const PLANS = [
     priceMonthly: 4850,
     priceYearly: 48500,
     yearlyMonthly: 4042,
-    hasTrial: true,
-    trialBadge: '7 GÜN ÜCRETSİZ DENEME',
+    hasTrial: false,
+    trialBadge: '⭐ EN ÇOK TERCİH EDİLEN',
     color: 'border-[#F95700] ring-4 ring-[#F95700]/20 shadow-2xl',
     headerBg: 'bg-gradient-to-br from-[#111E38] via-[#1B2A4A] to-[#111E38]',
     isFeatured: true,
     badge: '⭐ EN ÇOK TERCİH EDİLEN & EN KAPSAMLI',
-    ctaText: '7 Gün Ücretsiz Başla (0 TL)',
+    ctaText: 'Gold Paketi Seç',
     ctaVariant: 'primary' as const,
     features: {
       trial: true,
@@ -431,17 +431,10 @@ export default function PaketlerPage() {
               {/* Features List */}
               <div className="p-6 sm:p-7 flex-1 space-y-3.5">
                 {/* Trial highlight item */}
-                {plan.hasTrial ? (
-                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 font-black text-xs">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>İlk 7 Gün 0 TL (Karttan çekilmez, dilediğinde iptal)</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 text-slate-500 font-bold text-xs">
-                    <Clock className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span>Hemen başlar, taahhütsüz aylık/yıllık</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-3 p-2.5 rounded-xl bg-orange-50 border border-orange-200/60 text-[#111E38] font-black text-xs">
+                  <ShieldCheck className="w-4 h-4 text-[#F95700] shrink-0" />
+                  <span>Anında başlar, taahhütsüz güvenli üyelik</span>
+                </div>
 
                 {COMPARISON_ROWS.filter(r => r.key !== 'trial').map(row => {
                   const val = plan.features[row.key];
@@ -496,8 +489,6 @@ export default function PaketlerPage() {
                 <p className="text-center text-[11px] text-slate-400 font-medium mt-2.5">
                   {isCurrentPlan(plan.id)
                     ? 'Aboneliğiniz şu anda bu paket üzerinden aktiftir'
-                    : plan.hasTrial
-                    ? 'Bugün hiçbir ödeme alınmaz · 7 gün ücretsiz'
                     : 'Taahhüt yok · İstediğin an iptal'}
                 </p>
               </div>
@@ -574,7 +565,7 @@ export default function PaketlerPage() {
                           onClick={() => handlePlanClick(plan)}
                           className={`font-black text-xs ${isCurrentPlan(plan.id) ? 'cursor-default opacity-75' : 'cursor-pointer'}`}
                         >
-                          {isCurrentPlan(plan.id) ? '✓ Mevcut' : plan.isFeatured ? '7 Gün Ücretsiz Başla' : `${plan.name} Seç`}
+                          {isCurrentPlan(plan.id) ? '✓ Mevcut' : `${plan.name} Seç`}
                         </Button>
                       </td>
                     ))}
@@ -645,7 +636,7 @@ export default function PaketlerPage() {
               En Üst Paket Gold ile Hemen Başlayın
             </h2>
             <p className="text-slate-600 font-medium text-sm sm:text-base max-w-xl mx-auto mb-6">
-              İlk 7 gün boyunca tüm sınırsız özellikleri ücretsiz deneyin. Bugün hiçbir kart çekimi yapılmaz.
+              Sınırsız teklif verme, müşteri telefonlarına doğrudan erişim ve vitrinde öne çıkma ayrıcalıklarıyla kazancınızı katlayın.
             </p>
             <Button
               variant="primary"
@@ -654,7 +645,7 @@ export default function PaketlerPage() {
               className="font-black px-10 py-4 text-base shadow-xl shadow-orange-900/20 cursor-pointer"
               rightIcon={<ArrowRight className="w-5 h-5" />}
             >
-              Gold Paketi 7 Gün Ücretsiz Başlat 🚀
+              Gold Paket ile Hemen Başlayın 🚀
             </Button>
             <p className="text-xs text-slate-400 font-medium mt-3">
               Sorularınız için: <a href="mailto:bilgi@tasinteklif.com" className="text-[#F95700] font-bold hover:underline">bilgi@tasinteklif.com</a>
@@ -664,111 +655,94 @@ export default function PaketlerPage() {
       </div>
 
       {/* ── NAKLİYECİ PAKET YÜKSELTME / 7 GÜN ÜCRETSİZ DENEME MODALI ── */}
+      {/* ── NAKLİYECİ PAKET SEÇİMİ VE GÜVENLİ ÖDEME MODALI ── */}
       <Modal
         isOpen={!!selectedPlanForUpgrade}
-        onClose={() => !isActivating && setSelectedPlanForUpgrade(null)}
-        title={selectedPlanForUpgrade?.hasTrial ? '7 Gün Ücretsiz Denemenizi Başlatın' : `${selectedPlanForUpgrade?.name} Paketine Yükselt`}
+        onClose={() => !isRedirectingToCheckout && setSelectedPlanForUpgrade(null)}
+        title="Paket Seçimi & Güvenli Ödeme"
         maxWidth="lg"
       >
         {selectedPlanForUpgrade && (
-          <div className="p-5 sm:p-6 space-y-5">
+          <div className="p-5 sm:p-7 space-y-6">
             {/* Firma Bilgi Şeridi */}
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-100 text-[#F95700] flex items-center justify-center font-black text-sm shadow-xs">
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-[#111E38] text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
                   {(carrier?.companyName || currentUser?.companyName || 'NK').slice(0, 2).toUpperCase()}
                 </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-400">Aktif Nakliye Firması</div>
-                  <div className="text-sm font-black text-[#111E38] flex items-center gap-1.5">
-                    <span>{carrier?.companyName || currentUser?.companyName || 'Nakliye Firması'}</span>
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <div className="min-w-0">
+                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Aktif Nakliye Firması</div>
+                  <div className="text-sm font-black text-[#111E38] flex items-center gap-1.5 truncate">
+                    <span className="truncate">{carrier?.companyName || currentUser?.companyName || 'Nakliye Firması'}</span>
+                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                   </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-[11px] font-bold text-slate-400">Mevcut Paket</div>
-                <span className="inline-block px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-xs font-bold">
-                  {carrier?.planId === 'plan_gold' ? 'Gold' : carrier?.planId === 'plan_pro' ? 'Pro' : 'Başlangıç (Ücretsiz)'}
+              <div className="text-right shrink-0">
+                <div className="text-[11px] font-bold text-slate-400">Mevcut Durum</div>
+                <span className="inline-block px-2.5 py-0.5 rounded-full bg-slate-200/70 text-slate-700 text-xs font-bold">
+                  {carrier?.planId === 'plan_gold' ? 'Gold Üye' : carrier?.planId === 'plan_pro' ? 'Pro Üye' : 'Standart'}
                 </span>
               </div>
             </div>
 
             {/* Seçilen Paket Özeti */}
-            <div className={`p-4 sm:p-5 rounded-2xl border-2 ${
-              selectedPlanForUpgrade.id === 'gold' 
-                ? 'bg-gradient-to-br from-amber-50/60 via-orange-50/40 to-white border-orange-300' 
-                : 'bg-slate-50 border-slate-200'
-            }`}>
-              <div className="flex items-start justify-between gap-3 mb-2">
+            <div className="p-5 rounded-2xl border-2 border-orange-200 bg-gradient-to-br from-orange-50/50 via-white to-amber-50/30 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-[#F95700] bg-orange-100/70 px-2 py-0.5 rounded-md">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-orange-100 text-[#F95700] text-[10px] font-black uppercase tracking-wider">
+                    <Sparkles className="w-3 h-3" />
                     Seçilen Paket
-                  </span>
-                  <h3 className="text-lg sm:text-xl font-black text-[#111E38] mt-1">
-                    {selectedPlanForUpgrade.name}
+                  </div>
+                  <h3 className="text-xl font-black text-[#111E38] mt-1.5 tracking-tight">
+                    {selectedPlanForUpgrade.name} Paketi
                   </h3>
-                  <p className="text-xs text-slate-500 font-medium">
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
                     {selectedPlanForUpgrade.tagline}
                   </p>
                 </div>
-                <div className="text-right">
-                  <div className="text-xl sm:text-2xl font-black text-[#111E38]">
+
+                <div className="text-left sm:text-right pt-2 sm:pt-0 border-t sm:border-t-0 border-orange-100">
+                  <div className="text-2xl sm:text-3xl font-black text-[#111E38] tracking-tight">
                     {getPrice(selectedPlanForUpgrade).toLocaleString('tr-TR')} TL
                   </div>
-                  <div className="text-[11px] text-slate-400 font-medium">
-                    / ay {billing === 'yearly' ? '(Yıllık Peşin)' : '+ KDV'}
+                  <div className="text-xs text-slate-400 font-bold">
+                    {billing === 'yearly' ? 'Yıllık Peşin (Özel İndirimli)' : 'Aylık Üyelik'}
                   </div>
                 </div>
               </div>
 
-              {/* 7 Günlük Ücretsiz Deneme Güvencesi */}
-              {selectedPlanForUpgrade.hasTrial ? (
-                <div className="mt-3.5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 text-emerald-900">
-                  <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
-                  <div className="text-xs">
-                    <strong className="font-black block">Bugün 0 TL (Karttan Çekilmez)</strong>
-                    <span className="text-emerald-700 font-medium">
-                      İlk 7 gün boyunca Gold paketin tüm sınırsız özelliklerini tamamen ücretsiz kullanabilirsiniz.
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-3.5 p-3 rounded-xl bg-blue-50 border border-blue-200 flex items-center gap-2.5 text-blue-900">
-                  <Sparkles className="w-5 h-5 text-blue-600 shrink-0" />
-                  <div className="text-xs">
-                    <strong className="font-black block">Taahhütsüz Anında Başlar</strong>
-                    <span className="text-blue-700 font-medium">Dilediğiniz an üyeliğinizi değiştirebilir veya iptal edebilirsiniz.</span>
-                  </div>
-                </div>
-              )}
+              <div className="mt-4 pt-3 border-t border-orange-100/80 flex items-center gap-2 text-xs text-slate-600 font-medium">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Taahhütsüz üyelik — Dilediğiniz zaman tek tıkla iptal edebilirsiniz.</span>
+              </div>
             </div>
 
             {/* Kazanılacak Haklar Listesi */}
-            <div className="space-y-2.5">
-              <div className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                Bu Paketle Açılacak Ayrıcalıklarınız:
+            <div className="space-y-3">
+              <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Paket Kapsamındaki Ayrıcalıklar:
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span className="font-bold text-slate-800">
                     {selectedPlanForUpgrade.features.monthlyOfferLimit}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200">
+                <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span className="font-bold text-slate-800">
                     {selectedPlanForUpgrade.features.customerPhoneAccess ? 'Müşteri Telefon Numarası Görme' : 'Telefon Numarası Gizli'}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200">
+                <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span className="font-bold text-slate-800">
                     {selectedPlanForUpgrade.features.routeAlarmLimit}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200">
+                <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span className="font-bold text-slate-800">
                     {selectedPlanForUpgrade.features.featuredHomepage ? 'Ana Sayfa & Defterde Öne Çıkma' : 'Standart Sıralama'}
@@ -778,57 +752,39 @@ export default function PaketlerPage() {
             </div>
 
             {/* Aksiyon Butonları */}
-            <div className="pt-3 border-t border-slate-100 space-y-3">
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                {/* Dodo Payments ile Güvenli Ödeme Butonu */}
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onClick={() => handleDodoCheckout(selectedPlanForUpgrade)}
-                  disabled={isRedirectingToCheckout || isActivating}
-                  className="w-full sm:flex-1 font-black text-sm sm:text-base py-3.5 shadow-lg shadow-orange-900/15 cursor-pointer bg-[#F95700] hover:bg-[#E04D00]"
-                >
-                  {isRedirectingToCheckout ? (
-                    <span className="flex items-center gap-2">
-                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Dodo Payments Güvenli Ödemeye Yönlendiriliyor...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>Dodo Payments ile Güvenli Öde ({getPrice(selectedPlanForUpgrade).toLocaleString('tr-TR')} TL)</span>
-                    </span>
-                  )}
-                </Button>
-
-                {/* Alternatif: 7 Gün Ücretsiz Deneme Başlatma */}
-                {selectedPlanForUpgrade.hasTrial && (
-                  <Button
-                    variant="navy"
-                    size="lg"
-                    onClick={confirmUpgrade}
-                    disabled={isActivating || isRedirectingToCheckout}
-                    className="w-full sm:w-auto font-black text-xs sm:text-sm py-3.5 cursor-pointer"
-                  >
-                    {isActivating ? 'Aktif Ediliyor...' : '7 Gün Ücretsiz Dene (0 ₺)'}
-                  </Button>
+            <div className="pt-4 border-t border-slate-100 space-y-3">
+              <button
+                type="button"
+                onClick={() => handleDodoCheckout(selectedPlanForUpgrade)}
+                disabled={isRedirectingToCheckout}
+                className="w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-2xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-base shadow-lg shadow-orange-500/25 hover:shadow-orange-500/35 transition-all cursor-pointer disabled:opacity-60"
+              >
+                {isRedirectingToCheckout ? (
+                  <>
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Ödeme Sayfasına Yönlendiriliyor...</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-5 h-5" />
+                    <span>Güvenli Öde ({getPrice(selectedPlanForUpgrade).toLocaleString('tr-TR')} TL)</span>
+                  </>
                 )}
+              </button>
 
-                <Button
-                  variant="outline"
-                  size="lg"
-                  disabled={isActivating || isRedirectingToCheckout}
-                  onClick={() => setSelectedPlanForUpgrade(null)}
-                  className="w-full sm:w-auto text-slate-600 hover:bg-slate-50 font-bold text-sm cursor-pointer"
-                >
-                  Vazgeç
-                </Button>
-              </div>
+              <button
+                type="button"
+                disabled={isRedirectingToCheckout}
+                onClick={() => setSelectedPlanForUpgrade(null)}
+                className="w-full py-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors cursor-pointer text-center block"
+              >
+                Vazgeç ve Kapat
+              </button>
 
-              {/* Dodo Payments Güven Rozeti */}
-              <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-slate-400 font-semibold">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>dodo<strong className="text-[#F95700]">payments</strong> 256-bit SSL & 3D Secure Lisanslı Merchant of Record Güvencesi</span>
+              {/* Güven Rozeti */}
+              <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-slate-400 font-medium">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>256-bit SSL ve 3D Secure Lisanslı Güvenli Ödeme Altyapısı</span>
               </div>
             </div>
           </div>
