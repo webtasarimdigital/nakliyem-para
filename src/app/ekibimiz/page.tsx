@@ -311,13 +311,12 @@ export default function EkibimizPage() {
                   </span>
 
                   <div className="flex items-center gap-2">
-                    <a
-                      href={`mailto:${member.email}`}
-                      title={`${member.name} E-posta`}
-                      className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-[#F95700] hover:text-white text-slate-600 transition-colors flex items-center justify-center cursor-pointer"
+                    <span
+                      title={`${member.name} (${member.email})`}
+                      className="w-7 h-7 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center cursor-default select-none"
                     >
                       <Mail className="w-3.5 h-3.5" />
-                    </a>
+                    </span>
                     <a
                       href="#linkedin"
                       onClick={e => e.preventDefault()}

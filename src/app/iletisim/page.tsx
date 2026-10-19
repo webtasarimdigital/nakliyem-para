@@ -150,9 +150,9 @@ export default function IletisimPage() {
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 block">E-posta Destek</span>
-                  <a href="mailto:bilgi@tasinteklif.com" className="hover:text-[#F95700] transition-colors">
+                  <span className="text-[#111E38] select-text">
                     bilgi@tasinteklif.com
-                  </a>
+                  </span>
                 </div>
               </div>
 

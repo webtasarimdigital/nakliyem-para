@@ -58,13 +58,10 @@ export const Footer: React.FC = () => {
                   <span>+971 58 518 8543</span>
                 </a>
 
-                <a 
-                  href="mailto:bilgi@tasinteklif.com" 
-                  className="inline-flex items-center gap-1.5 text-slate-300 hover:text-[#F95700] transition-colors font-semibold"
-                >
+                <div className="inline-flex items-center gap-1.5 text-slate-300 font-semibold select-text">
                   <Mail className="w-4 h-4 text-[#F95700]" />
                   <span>bilgi@tasinteklif.com</span>
-                </a>
+                </div>
               </div>
 
               <div className="pt-1">

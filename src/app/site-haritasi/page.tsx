@@ -496,13 +496,12 @@ export default function SiteHaritasiPage() {
                 <span>Ücretsiz Teklif Al</span>
               </Link>
 
-              <a
-                href="mailto:bilgi@tasinteklif.com"
-                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-bold text-sm border border-white/20 transition-all flex items-center justify-center gap-2"
+              <div
+                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-white/10 text-white font-bold text-sm border border-white/20 flex items-center justify-center gap-2 select-text"
               >
-                <Mail className="w-4 h-4 text-orange-400" />
+                <Mail className="w-4 h-4 text-orange-400 select-none" />
                 <span>bilgi@tasinteklif.com</span>
-              </a>
+              </div>
 
               <Link
                 href="/iletisim"

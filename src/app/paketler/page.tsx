@@ -682,7 +682,7 @@ function PaketlerContent() {
               Gold Paket ile Hemen Başlayın 🚀
             </Button>
             <p className="text-xs text-slate-400 font-medium mt-3">
-              Sorularınız için: <a href="mailto:bilgi@tasinteklif.com" className="text-[#F95700] font-bold hover:underline">bilgi@tasinteklif.com</a>
+              Sorularınız için: <span className="text-[#F95700] font-bold select-text">bilgi@tasinteklif.com</span>
             </p>
           </div>
         </div>
