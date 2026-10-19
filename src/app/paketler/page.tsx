@@ -154,7 +154,43 @@ export default function PaketlerPage() {
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [selectedPlanForUpgrade, setSelectedPlanForUpgrade] = useState<typeof PLANS[0] | null>(null);
   const [isActivating, setIsActivating] = useState(false);
+  const [isRedirectingToCheckout, setIsRedirectingToCheckout] = useState(false);
   const [upgradeSuccessPlan, setUpgradeSuccessPlan] = useState<typeof PLANS[0] | null>(null);
+
+  const handleDodoCheckout = async (plan: typeof PLANS[0]) => {
+    try {
+      setIsRedirectingToCheckout(true);
+      const res = await fetch('/api/dodo/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planKey: plan.id,
+          billingCycle: billing,
+          customer: {
+            email: currentUser?.email || carrier?.email,
+            name: currentUser?.fullName || carrier?.companyName || 'Nakliyeci',
+            phone: currentUser?.phone || carrier?.phone,
+          },
+          metadata: {
+            carrierId: carrier?.id || '',
+            userId: currentUser?.id || '',
+            planKey: plan.id,
+            billingCycle: billing,
+          }
+        })
+      });
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        alert(data.error || 'Ödeme oturumu başlatılamadı. Lütfen tekrar deneyin.');
+        setIsRedirectingToCheckout(false);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Ödeme servisine bağlanırken bir hata oluştu.');
+      setIsRedirectingToCheckout(false);
+    }
+  };
 
   useEffect(() => {
     const syncUser = () => {
@@ -742,34 +778,58 @@ export default function PaketlerPage() {
             </div>
 
             {/* Aksiyon Butonları */}
-            <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-3">
-              <Button
-                variant={selectedPlanForUpgrade.id === 'gold' ? 'primary' : 'navy'}
-                size="lg"
-                onClick={confirmUpgrade}
-                disabled={isActivating}
-                className="w-full sm:flex-1 font-black text-sm sm:text-base py-3.5 shadow-lg shadow-orange-900/15 cursor-pointer"
-              >
-                {isActivating ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Paket Aktif Ediliyor...
-                  </span>
-                ) : selectedPlanForUpgrade.hasTrial ? (
-                  'Hemen 7 Gün Ücretsiz Başlat (0 TL) 🚀'
-                ) : (
-                  'Paketi Şimdi Aktif Et'
+            <div className="pt-3 border-t border-slate-100 space-y-3">
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                {/* Dodo Payments ile Güvenli Ödeme Butonu */}
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={() => handleDodoCheckout(selectedPlanForUpgrade)}
+                  disabled={isRedirectingToCheckout || isActivating}
+                  className="w-full sm:flex-1 font-black text-sm sm:text-base py-3.5 shadow-lg shadow-orange-900/15 cursor-pointer bg-[#F95700] hover:bg-[#E04D00]"
+                >
+                  {isRedirectingToCheckout ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Dodo Payments Güvenli Ödemeye Yönlendiriliyor...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>Dodo Payments ile Güvenli Öde ({getPrice(selectedPlanForUpgrade).toLocaleString('tr-TR')} TL)</span>
+                    </span>
+                  )}
+                </Button>
+
+                {/* Alternatif: 7 Gün Ücretsiz Deneme Başlatma */}
+                {selectedPlanForUpgrade.hasTrial && (
+                  <Button
+                    variant="navy"
+                    size="lg"
+                    onClick={confirmUpgrade}
+                    disabled={isActivating || isRedirectingToCheckout}
+                    className="w-full sm:w-auto font-black text-xs sm:text-sm py-3.5 cursor-pointer"
+                  >
+                    {isActivating ? 'Aktif Ediliyor...' : '7 Gün Ücretsiz Dene (0 ₺)'}
+                  </Button>
                 )}
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                disabled={isActivating}
-                onClick={() => setSelectedPlanForUpgrade(null)}
-                className="w-full sm:w-auto text-slate-600 hover:bg-slate-50 font-bold text-sm cursor-pointer"
-              >
-                Vazgeç
-              </Button>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  disabled={isActivating || isRedirectingToCheckout}
+                  onClick={() => setSelectedPlanForUpgrade(null)}
+                  className="w-full sm:w-auto text-slate-600 hover:bg-slate-50 font-bold text-sm cursor-pointer"
+                >
+                  Vazgeç
+                </Button>
+              </div>
+
+              {/* Dodo Payments Güven Rozeti */}
+              <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-slate-400 font-semibold">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>dodo<strong className="text-[#F95700]">payments</strong> 256-bit SSL & 3D Secure Lisanslı Merchant of Record Güvencesi</span>
+              </div>
             </div>
           </div>
         )}

@@ -1,0 +1,184 @@
+import crypto from 'crypto';
+
+export const DODO_CONFIG = {
+  apiKey: process.env.DODO_PAYMENTS_API_KEY || 'P1-gh1e0ME34tmTd.Sk6toSwBx4SF8XWDqsApWjdOHRIJKN8Eh6VmSJLC4eFrjyRl',
+  webhookSecret: process.env.DODO_PAYMENTS_WEBHOOK_SECRET || 'whsec_rDYHmQlu+uQhXGFGAAIoZV6ZblwQv02q',
+  webhookId: process.env.DODO_PAYMENTS_WEBHOOK_ID || 'ep_3Kuhd2FzWQhFJOrntXqdCRXRB7a',
+  testProductId: process.env.DODO_TEST_PRODUCT_ID || 'pdt_0NlJmVowt63o3bdQdXjMA',
+  environment: (process.env.DODO_PAYMENTS_ENVIRONMENT || 'test_mode') as 'live_mode' | 'test_mode',
+  baseUrl: process.env.DODO_PAYMENTS_ENVIRONMENT === 'live_mode' 
+    ? 'https://live.dodopayments.com' 
+    : 'https://test.dodopayments.com',
+};
+
+// Known webhook secrets (supports both test and live seamlessly)
+const KNOWN_SECRETS = [
+  DODO_CONFIG.webhookSecret,
+  'whsec_rDYHmQlu+uQhXGFGAAIoZV6ZblwQv02q', // Test Mode Secret
+  'whsec_YRV8jPXtj1beBZo7LXPHCnBgc8eVhtI0', // Live Mode Secret
+].filter(Boolean);
+
+// Dodo Payments Product ID mappings for TaşınTeklif plans
+export const DODO_PRODUCT_MAP: Record<string, string> = {
+  // Test mode product provided by user
+  test: 'pdt_0NlJmVowt63o3bdQdXjMA',
+  // Live mode products
+  starter: 'pdt_0Nq4nkFmBLBZwAMnJwrzk',
+  pro: 'pdt_0Nq4nkOTbU52xoR36mYHs',
+  gold: 'pdt_0Nq4nkW9Ypw7BcXtK8RvS',
+  starter_yearly: 'pdt_0Nq4oIhUagl6FAe87iK9H',
+  pro_yearly: 'pdt_0Nq4oIouhb4BigHxDiIzH',
+  gold_yearly: 'pdt_0Nq4oIwDybstXcVsbsTVc',
+};
+
+export interface CreateCheckoutParams {
+  planKey: 'starter' | 'pro' | 'gold' | string;
+  billingCycle?: 'monthly' | 'yearly';
+  customer?: {
+    email?: string;
+    name?: string;
+    phone?: string;
+  };
+  metadata?: Record<string, string>;
+  returnUrl?: string;
+}
+
+export interface CheckoutSessionResult {
+  session_id: string;
+  checkout_url: string;
+  isTestMode: boolean;
+}
+
+/**
+ * Creates a Dodo Payments hosted checkout session
+ */
+export async function createDodoCheckoutSession(params: CreateCheckoutParams): Promise<CheckoutSessionResult> {
+  const isTest = DODO_CONFIG.environment === 'test_mode';
+  const isYearly = params.billingCycle === 'yearly';
+  const lookupKey = isYearly ? `${params.planKey}_yearly` : params.planKey;
+
+  // In test mode, use the test product ID requested by the user
+  const productId = isTest 
+    ? (DODO_CONFIG.testProductId || 'pdt_0NlJmVowt63o3bdQdXjMA')
+    : (DODO_PRODUCT_MAP[lookupKey] || DODO_PRODUCT_MAP[params.planKey]);
+
+  if (!productId) {
+    throw new Error(`Dodo Payments Product ID not found for plan: ${lookupKey}`);
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.tasinteklif.com';
+  const returnUrl = params.returnUrl || `${siteUrl}/odeme/sonuc?plan=${params.planKey}&cycle=${params.billingCycle || 'monthly'}`;
+
+  const bodyPayload: any = {
+    product_cart: [
+      {
+        product_id: productId,
+        quantity: 1,
+      }
+    ],
+    return_url: returnUrl,
+    metadata: {
+      platform: 'tasinteklif',
+      planKey: params.planKey,
+      billingCycle: params.billingCycle || 'monthly',
+      ...params.metadata,
+    }
+  };
+
+  if (params.customer?.email || params.customer?.name) {
+    bodyPayload.customer = {
+      email: params.customer.email,
+      name: params.customer.name,
+      phone_number: params.customer.phone,
+    };
+  }
+
+  const response = await fetch(`${DODO_CONFIG.baseUrl}/checkouts`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${DODO_CONFIG.apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(bodyPayload),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Dodo Payments Checkout Error (${response.status}): ${errorText}`);
+  }
+
+  const data = await response.json();
+  return {
+    session_id: data.session_id,
+    checkout_url: data.checkout_url,
+    isTestMode: isTest,
+  };
+}
+
+/**
+ * Verifies standard webhook signatures from Dodo Payments (Standard Webhooks / HMAC-SHA256)
+ */
+export function verifyDodoWebhookSignature(
+  rawBody: string,
+  headers: {
+    webhookId?: string | null;
+    webhookTimestamp?: string | null;
+    webhookSignature?: string | null;
+  },
+  secretOverride?: string
+): { isValid: boolean; error?: string } {
+  const webhookId = headers.webhookId;
+  const webhookTimestamp = headers.webhookTimestamp;
+  const webhookSignature = headers.webhookSignature;
+
+  if (!webhookId || !webhookTimestamp || !webhookSignature) {
+    return { isValid: false, error: 'Missing required webhook headers (webhook-id, webhook-timestamp, webhook-signature)' };
+  }
+
+  // 1. Check timestamp tolerance (prevent replay attacks older than 5 minutes / 300 seconds)
+  const currentTimestamp = Math.floor(Date.now() / 1000);
+  const eventTimestamp = parseInt(webhookTimestamp, 10);
+  if (isNaN(eventTimestamp) || Math.abs(currentTimestamp - eventTimestamp) > 300) {
+    return { isValid: false, error: 'Webhook timestamp outside 5-minute tolerance limit' };
+  }
+
+  const secretsToTry = secretOverride ? [secretOverride] : KNOWN_SECRETS;
+  if (!secretsToTry.length) {
+    return { isValid: false, error: 'Webhook secret is not configured' };
+  }
+
+  // 2. Construct signature payload: `${webhook-id}.${webhook-timestamp}.${rawBody}`
+  const signaturePayload = `${webhookId}.${webhookTimestamp}.${rawBody}`;
+  const incomingSignatures = webhookSignature.split(' ');
+
+  for (const secret of secretsToTry) {
+    // Decode secret (Strip 'whsec_' prefix if present, decode base64)
+    let rawSecret = secret;
+    if (rawSecret.startsWith('whsec_')) {
+      rawSecret = rawSecret.substring(6);
+    }
+    const secretBuffer = Buffer.from(rawSecret, 'base64');
+
+    // Compute HMAC-SHA256
+    const computedHash = crypto
+      .createHmac('sha256', secretBuffer)
+      .update(signaturePayload)
+      .digest('base64');
+    const expectedSignature = `v1,${computedHash}`;
+
+    // Constant-time comparison against incoming signatures
+    for (const sig of incomingSignatures) {
+      try {
+        const sigBuf = Buffer.from(sig);
+        const expectedBuf = Buffer.from(expectedSignature);
+        if (sigBuf.length === expectedBuf.length && crypto.timingSafeEqual(sigBuf, expectedBuf)) {
+          return { isValid: true };
+        }
+      } catch {
+        // Ignore byte comparison errors
+      }
+    }
+  }
+
+  return { isValid: false, error: 'Invalid webhook signature' };
+}
