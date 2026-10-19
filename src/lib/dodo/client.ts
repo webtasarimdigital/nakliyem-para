@@ -1,12 +1,12 @@
 import crypto from 'crypto';
 
 export const DODO_CONFIG = {
-  apiKey: process.env.DODO_PAYMENTS_API_KEY || 'P1-gh1e0ME34tmTd.Sk6toSwBx4SF8XWDqsApWjdOHRIJKN8Eh6VmSJLC4eFrjyRl',
-  webhookSecret: process.env.DODO_PAYMENTS_WEBHOOK_SECRET || 'whsec_rDYHmQlu+uQhXGFGAAIoZV6ZblwQv02q',
-  webhookId: process.env.DODO_PAYMENTS_WEBHOOK_ID || 'ep_3Kuhd2FzWQhFJOrntXqdCRXRB7a',
+  apiKey: process.env.DODO_PAYMENTS_API_KEY || 'FWUwEnFGORn-IqFX.kjN6Z0hqWDodQEeKIguV0iDAObX5QlJPwC5ToAn4gvkdn7uN',
+  webhookSecret: process.env.DODO_PAYMENTS_WEBHOOK_SECRET || 'whsec_YRV8jPXtj1beBZo7LXPHCnBgc8eVhtI0',
+  webhookId: process.env.DODO_PAYMENTS_WEBHOOK_ID || 'ep_3KueqOalzELxtXD8GVkVHqTK90e',
   testProductId: process.env.DODO_TEST_PRODUCT_ID || 'pdt_0NlJmVowt63o3bdQdXjMA',
-  environment: (process.env.DODO_PAYMENTS_ENVIRONMENT || 'test_mode') as 'live_mode' | 'test_mode',
-  baseUrl: process.env.DODO_PAYMENTS_ENVIRONMENT === 'live_mode' 
+  environment: (process.env.DODO_PAYMENTS_ENVIRONMENT || 'live_mode') as 'live_mode' | 'test_mode',
+  baseUrl: (process.env.DODO_PAYMENTS_ENVIRONMENT || 'live_mode') === 'live_mode' 
     ? 'https://live.dodopayments.com' 
     : 'https://test.dodopayments.com',
 };
@@ -14,8 +14,8 @@ export const DODO_CONFIG = {
 // Known webhook secrets (supports both test and live seamlessly)
 const KNOWN_SECRETS = [
   DODO_CONFIG.webhookSecret,
-  'whsec_rDYHmQlu+uQhXGFGAAIoZV6ZblwQv02q', // Test Mode Secret
   'whsec_YRV8jPXtj1beBZo7LXPHCnBgc8eVhtI0', // Live Mode Secret
+  'whsec_rDYHmQlu+uQhXGFGAAIoZV6ZblwQv02q', // Test Mode Secret
 ].filter(Boolean);
 
 // Dodo Payments Product ID mappings for TaşınTeklif plans
