@@ -2,6 +2,7 @@ import crypto from 'crypto';
 
 export const DODO_CONFIG = {
   apiKey: process.env.DODO_PAYMENTS_API_KEY || 'FWUwEnFGORn-IqFX.kjN6Z0hqWDodQEeKIguV0iDAObX5QlJPwC5ToAn4gvkdn7uN',
+  brandId: process.env.DODO_PAYMENTS_BRAND_ID || 'brnd_0Nq4im18A1Ts2aB1TStXx',
   webhookSecret: process.env.DODO_PAYMENTS_WEBHOOK_SECRET || 'whsec_YRV8jPXtj1beBZo7LXPHCnBgc8eVhtI0',
   webhookId: process.env.DODO_PAYMENTS_WEBHOOK_ID || 'ep_3KueqOalzELxtXD8GVkVHqTK90e',
   testProductId: process.env.DODO_TEST_PRODUCT_ID || 'pdt_0NlJmVowt63o3bdQdXjMA',
@@ -104,8 +105,10 @@ export async function createDodoCheckoutSession(params: CreateCheckoutParams): P
       }
     ],
     return_url: returnUrl,
+    brand_id: DODO_CONFIG.brandId,
     metadata: {
       platform: 'tasinteklif',
+      brand_id: DODO_CONFIG.brandId,
       planKey: params.planKey,
       billingCycle: params.billingCycle || 'monthly',
       ...params.metadata,
