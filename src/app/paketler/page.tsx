@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   Check, X, Sparkles, ArrowRight, ChevronDown,
   Zap, Award, Shield, Star, Clock, Users,
@@ -132,7 +133,11 @@ const FAQS = [
   { q: 'Ödeme yöntemleri nelerdir?', a: 'Kredi kartı ve banka kartı ile 3D Secure güvencesiyle anında ödeme yapabilirsiniz.' }
 ];
 
-export default function PaketlerPage() {
+function PaketlerContent() {
+  const searchParams = useSearchParams();
+  const planParam = searchParams.get('plan');
+  const cycleParam = searchParams.get('cycle');
+
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -148,7 +153,7 @@ export default function PaketlerPage() {
     targetRole: 'CUSTOMER' | 'CARRIER';
   }>({
     title: 'Paket Seçimi İçin Giriş Yapın',
-    subtitle: 'Seçtiğiniz paketi firmanıza tanımlamak ve 7 günlük ücretsiz denemeyi başlatmak için lütfen nakliyeci hesabınıza giriş yapın.',
+    subtitle: 'Seçtiğiniz paketi firmanıza tanımlamak ve teklif vermeye başlamak için lütfen nakliyeci hesabınıza giriş yapın.',
     targetRole: 'CARRIER'
   });
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
@@ -156,6 +161,35 @@ export default function PaketlerPage() {
   const [isActivating, setIsActivating] = useState(false);
   const [isRedirectingToCheckout, setIsRedirectingToCheckout] = useState(false);
   const [upgradeSuccessPlan, setUpgradeSuccessPlan] = useState<typeof PLANS[0] | null>(null);
+
+  useEffect(() => {
+    if (cycleParam === 'yearly') {
+      setBilling('yearly');
+    }
+  }, [cycleParam]);
+
+  useEffect(() => {
+    if (!planParam) return;
+    const target = PLANS.find(p => p.id === planParam.toLowerCase());
+    if (target) {
+      const timer = setTimeout(() => {
+        const u = db.getCurrentUser();
+        if (!u) {
+          setAuthModalConfig({
+            title: 'Paket Seçimi İçin Giriş Yapın',
+            subtitle: `${target.name} paketini firmanıza tanımlamak ve teklif vermeye başlamak için lütfen nakliyeci hesabınıza giriş yapın.`,
+            targetRole: 'CARRIER'
+          });
+          setAuthModalOpen(true);
+        } else if (u.role === 'CUSTOMER' && !u.isMasterUser) {
+          setCustomerModalOpen(true);
+        } else {
+          setSelectedPlanForUpgrade(target);
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [planParam]);
 
   const handleDodoCheckout = async (plan: typeof PLANS[0]) => {
     try {
@@ -344,7 +378,7 @@ export default function PaketlerPage() {
             Firmanız İçin En Güçlü Paketi Seçin
           </h1>
           <p className="text-slate-600 font-medium text-base sm:text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
-            Müşteriye %100 ücretsiz. En üst paketimiz <strong className="text-[#F95700]">Gold ile ilk 7 gün tamamen ücretsiz</strong> başlayın, sınırsız iş teklifi verin.
+            Müşteriye %100 ücretsiz. En avantajlı paketlerimizle hemen başlayın, sınırsız iş teklifi verin.
           </p>
 
           {/* Billing Toggle (Aylık / Yıllık 2 Ay Bedava) */}
@@ -906,8 +940,22 @@ export default function PaketlerPage() {
             c = db.getCarriers().find(item => item.userId === user.id || item.id === user.carrierProfileId) || null;
           }
           setCarrier(c);
+          if (planParam) {
+            const target = PLANS.find(p => p.id === planParam.toLowerCase());
+            if (target) {
+              setSelectedPlanForUpgrade(target);
+            }
+          }
         }}
       />
     </div>
+  );
+}
+
+export default function PaketlerPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-sm font-bold text-slate-500">Yükleniyor...</div>}>
+      <PaketlerContent />
+    </Suspense>
   );
 }

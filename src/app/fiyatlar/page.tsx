@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Check, 
@@ -19,13 +19,124 @@ import {
   Share2, 
   Clock, 
   Star,
-  Users
+  Users,
+  Lock,
+  AlertCircle
 } from 'lucide-react';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { Modal } from '@/components/ui/Modal';
+import { IntentAuthModal } from '@/components/ui/IntentAuthModal';
+import { db } from '@/lib/data/mock-db';
+import { User, CarrierProfile } from '@/types';
 
 export default function FiyatlarPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+  // Auth & Carrier State
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [carrier, setCarrier] = useState<CarrierProfile | null>(null);
+
+  // Modals State
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalConfig, setAuthModalConfig] = useState<{
+    title: string;
+    subtitle: string;
+    targetRole: 'CUSTOMER' | 'CARRIER';
+  }>({
+    title: 'Paket Seçimi İçin Giriş Yapın',
+    subtitle: 'Seçtiğiniz paketi firmanıza tanımlamak için lütfen nakliyeci hesabınıza giriş yapın.',
+    targetRole: 'CARRIER'
+  });
+  const [customerModalOpen, setCustomerModalOpen] = useState(false);
+  const [selectedPlanForUpgrade, setSelectedPlanForUpgrade] = useState<any | null>(null);
+  const [isRedirectingToCheckout, setIsRedirectingToCheckout] = useState(false);
+
+  useEffect(() => {
+    const syncUser = () => {
+      const user = db.getCurrentUser();
+      setCurrentUser(user);
+      if (user) {
+        let c = db.getCurrentCarrier();
+        if (!c) {
+          c = db.getCarriers().find(item => item.userId === user.id || item.id === user.carrierProfileId) || null;
+        }
+        setCarrier(c);
+      } else {
+        setCarrier(null);
+      }
+    };
+    syncUser();
+
+    window.addEventListener('auth-changed', syncUser);
+    window.addEventListener('storage', syncUser);
+    return () => {
+      window.removeEventListener('auth-changed', syncUser);
+      window.removeEventListener('storage', syncUser);
+    };
+  }, []);
+
+  const handlePlanClick = (plan: typeof PLANS[0]) => {
+    const user = currentUser || db.getCurrentUser();
+    if (!user) {
+      setAuthModalConfig({
+        title: 'Paket Seçimi İçin Giriş Yapın',
+        subtitle: `${plan.name} paketini firmanıza tanımlamak ve teklif vermeye başlamak için lütfen nakliyeci hesabınıza giriş yapın.`,
+        targetRole: 'CARRIER'
+      });
+      setSelectedPlanForUpgrade(plan);
+      setAuthModalOpen(true);
+      return;
+    }
+
+    if (user.role === 'CUSTOMER' && !user.isMasterUser) {
+      setCustomerModalOpen(true);
+      return;
+    }
+
+    setSelectedPlanForUpgrade(plan);
+  };
+
+  const handleDodoCheckout = async (plan: any) => {
+    try {
+      setIsRedirectingToCheckout(true);
+      const user = currentUser || db.getCurrentUser();
+      let c = carrier;
+      if (!c && user) {
+        c = db.getCurrentCarrier() || db.getCarriers().find(item => item.userId === user.id || item.id === user.carrierProfileId) || null;
+      }
+
+      const res = await fetch('/api/dodo/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planKey: plan.id,
+          billingCycle,
+          customer: {
+            email: user?.email || c?.email,
+            name: user?.fullName || c?.companyName || 'Nakliyeci',
+            phone: user?.phone || c?.phone,
+          },
+          metadata: {
+            carrierId: c?.id || '',
+            userId: user?.id || '',
+            planKey: plan.id,
+            billingCycle,
+          }
+        })
+      });
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        alert(data.error || 'Ödeme oturumu başlatılamadı. Lütfen tekrar deneyin.');
+        setIsRedirectingToCheckout(false);
+      }
+    } catch (err: any) {
+      alert(err.message || 'Ödeme servisine bağlanırken bir hata oluştu.');
+      setIsRedirectingToCheckout(false);
+    }
+  };
 
   const toggleFaq = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
@@ -69,8 +180,8 @@ export default function FiyatlarPage() {
       yearlyTotal: 48500,
       isFeatured: true,
       badge: '⭐ EN ÇOK TERCİH EDİLEN',
-      trialBadge: '7 GÜN ÜCRETSİZ DENEME (0 ₺)',
-      ctaText: '7 Gün Ücretsiz Başla (0 ₺)',
+      trialBadge: null,
+      ctaText: 'Gold Paketini Seç',
       ctaUrl: '/paketler?plan=gold',
       features: [
         'Sınırsız teklif verme hakkı',
@@ -170,7 +281,7 @@ export default function FiyatlarPage() {
                 Fiyatlar &amp; Tarifeler
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1 max-w-2xl leading-relaxed">
-                %0 komisyonla doğrudan müşteri bulun, dönüş yüklerinizi Nakliyeci Defteri ile doldurun. Gold paket ile ilk 7 gün tamamen ücretsiz başlayın.
+                %0 komisyonla doğrudan müşteri bulun, dönüş yüklerinizi Nakliyeci Defteri ile doldurun. En avantajlı paketlerle firmanızı öne çıkarın.
               </p>
             </div>
 
@@ -292,18 +403,18 @@ export default function FiyatlarPage() {
                 </div>
 
                 {/* CTA Button */}
-                <Link href={plan.ctaUrl} className="w-full block">
-                  <button
-                    className={`w-full py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                      plan.isFeatured
-                        ? 'bg-[#F95700] hover:bg-[#E04D00] text-white shadow-xl shadow-orange-500/30'
-                        : 'bg-[#111E38] hover:bg-[#1A2E56] text-white shadow-md'
-                    }`}
-                  >
-                    <span>{plan.ctaText}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </Link>
+                <button
+                  type="button"
+                  onClick={() => handlePlanClick(plan)}
+                  className={`w-full py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    plan.isFeatured
+                      ? 'bg-[#F95700] hover:bg-[#E04D00] text-white shadow-xl shadow-orange-500/30'
+                      : 'bg-[#111E38] hover:bg-[#1A2E56] text-white shadow-md'
+                  }`}
+                >
+                  <span>{plan.ctaText}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
             );
           })}
@@ -525,18 +636,18 @@ export default function FiyatlarPage() {
             </h2>
 
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
-              Gold paketi 7 gün boyunca tamamen 0 ₺&apos;ye deneyin. Sınırsız iş teklifi verin, 
-              müşterilerle doğrudan görüşün ve kamyonunuzu hiç boş bırakmayın.
+              TaşınTeklif ile sınırsız iş teklifi verin, müşterilerle doğrudan görüşün ve kamyonunuzu hiç boş bırakmayın.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-              <Link
-                href="/kayit?role=nakliyeci"
-                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm transition-all shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2"
+              <button
+                type="button"
+                onClick={() => handlePlanClick(PLANS[1])}
+                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm transition-all shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Truck className="w-4 h-4" />
-                <span>7 Gün Ücretsiz Başla</span>
-              </Link>
+                <span>Hemen Paketinizi Seçin</span>
+              </button>
               <Link
                 href="/nakliyeci-defteri"
                 className="w-full sm:w-auto px-6 py-4 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-bold text-sm border border-white/20 transition-all flex items-center justify-center gap-2"
@@ -547,6 +658,164 @@ export default function FiyatlarPage() {
           </div>
         </div>
       </section>
+
+      {/* ── SATIN ALMA / GÜVENLİ ÖDEME MODALI ── */}
+      <Modal
+        isOpen={!!selectedPlanForUpgrade && !authModalOpen && !customerModalOpen}
+        onClose={() => !isRedirectingToCheckout && setSelectedPlanForUpgrade(null)}
+        title="Paket Seçimi & Güvenli Ödeme"
+        maxWidth="lg"
+      >
+        {selectedPlanForUpgrade && (
+          <div className="p-6 sm:p-7 space-y-6">
+            {/* Paket ve Fiyat Özeti Kutusu */}
+            <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-orange-50/70 to-amber-50/40 border border-orange-200/80">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black uppercase tracking-wider text-[#F95700] bg-orange-100/70 px-2.5 py-0.5 rounded-full">
+                      Seçilen Paket
+                    </span>
+                    <span className="text-xs font-bold text-slate-500">
+                      {billingCycle === 'yearly' ? 'Yıllık Abonelik (2 Ay Hediye)' : 'Aylık Yenilenen'}
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-[#111E38] mt-1.5">
+                    {selectedPlanForUpgrade.name} Paketi
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    {selectedPlanForUpgrade.desc}
+                  </p>
+                </div>
+
+                <div className="text-left sm:text-right pt-2 sm:pt-0 border-t sm:border-t-0 border-orange-100">
+                  <div className="text-2xl sm:text-3xl font-black text-[#111E38] tracking-tight">
+                    {(billingCycle === 'yearly' ? selectedPlanForUpgrade.yearlyTotal : selectedPlanForUpgrade.monthlyPrice).toLocaleString('tr-TR')} TL
+                  </div>
+                  <div className="text-xs text-slate-400 font-bold">
+                    {billingCycle === 'yearly' ? 'Yıllık Peşin (Özel İndirimli)' : 'Aylık Üyelik'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-orange-100/80 flex items-center gap-2 text-xs text-slate-600 font-medium">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Taahhütsüz üyelik — Dilediğiniz zaman tek tıkla iptal edebilirsiniz.</span>
+              </div>
+            </div>
+
+            {/* Kazanılacak Haklar Listesi */}
+            <div className="space-y-3">
+              <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Paket Kapsamındaki Ayrıcalıklar:
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                {selectedPlanForUpgrade.features.slice(0, 4).map((f: string, i: number) => (
+                  <div key={i} className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="font-bold text-slate-800">{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Aksiyon Butonları */}
+            <div className="pt-4 border-t border-slate-100 space-y-3">
+              <button
+                type="button"
+                onClick={() => handleDodoCheckout(selectedPlanForUpgrade)}
+                disabled={isRedirectingToCheckout}
+                className="w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-2xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-base shadow-lg shadow-orange-500/25 hover:shadow-orange-500/35 transition-all cursor-pointer disabled:opacity-60"
+              >
+                {isRedirectingToCheckout ? (
+                  <>
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Ödeme Sayfasına Yönlendiriliyor...</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-5 h-5" />
+                    <span>Güvenli Öde ({(billingCycle === 'yearly' ? selectedPlanForUpgrade.yearlyTotal : selectedPlanForUpgrade.monthlyPrice).toLocaleString('tr-TR')} TL)</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                disabled={isRedirectingToCheckout}
+                onClick={() => setSelectedPlanForUpgrade(null)}
+                className="w-full py-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors cursor-pointer text-center block"
+              >
+                Vazgeç ve Kapat
+              </button>
+
+              {/* Güven Rozeti */}
+              <div className="flex items-center justify-center gap-2 pt-1 text-[11px] text-slate-400 font-medium">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>256-bit SSL ve 3D Secure Lisanslı Güvenli Ödeme Altyapısı</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* ── MÜŞTERİ BİLGİLENDİRME MODALI ── */}
+      <Modal
+        isOpen={customerModalOpen}
+        onClose={() => setCustomerModalOpen(false)}
+        title="Müşteri Hesabı ile Giriş Yapıldı"
+        maxWidth="md"
+      >
+        <div className="p-6 text-center space-y-4">
+          <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto border border-amber-200">
+            <AlertCircle className="w-7 h-7" />
+          </div>
+          <div>
+            <h3 className="text-base font-black text-[#111E38]">
+              Nakliyeci Abonelik Paketleri
+            </h3>
+            <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+              Bu paketler taşımacılık hizmeti sunan profesyonel nakliyat firmaları içindir. Ev veya ofis taşıtmak isteyen müşterilerimiz için sistemimiz <strong>%100 ücretsizdir</strong>.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <Link href="/teklif-al" className="flex-1">
+              <button
+                type="button"
+                className="w-full py-2.5 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-xs"
+              >
+                Ücretsiz Teklif Al
+              </button>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setCustomerModalOpen(false)}
+              className="py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50"
+            >
+              Kapat
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ── GİRİŞ / KAYIT MODALI ── */}
+      <IntentAuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        targetRole={authModalConfig.targetRole}
+        title={authModalConfig.title}
+        subtitle={authModalConfig.subtitle}
+        onSuccess={() => {
+          setAuthModalOpen(false);
+          const user = db.getCurrentUser();
+          setCurrentUser(user);
+          let c = db.getCurrentCarrier();
+          if (!c && user) {
+            c = db.getCarriers().find(item => item.userId === user.id || item.id === user.carrierProfileId) || null;
+          }
+          setCarrier(c);
+        }}
+      />
     </div>
   );
 }
