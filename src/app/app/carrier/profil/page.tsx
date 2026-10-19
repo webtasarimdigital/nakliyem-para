@@ -83,7 +83,7 @@ export default function CarrierProfileEditorPage() {
         router.push('/giris?role=nakliyeci');
         return;
       }
-      if (currentUser.role !== 'CARRIER') {
+      if (currentUser.role !== 'CARRIER' && !currentUser.isMasterUser) {
         router.push('/app/customer');
         return;
       }

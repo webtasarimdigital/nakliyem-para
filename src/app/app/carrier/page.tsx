@@ -71,18 +71,18 @@ function calcMatchScore(request: { originCity: string; destinationCity: string; 
 export default function CarrierDashboard() {
   const router = useRouter();
   const currentUser = typeof window !== 'undefined' ? db.getCurrentUser() : null;
-  const carrier = db.getCurrentCarrier() || (currentUser?.role === 'CARRIER' ? db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) : null);
+  const carrier = db.getCurrentCarrier() || (currentUser?.role === 'CARRIER' || currentUser?.isMasterUser ? db.getCarriers().find(c => c.userId === currentUser?.id || c.id === currentUser?.carrierProfileId) : null);
 
   useEffect(() => {
     if (!currentUser) {
       router.push('/giris?role=nakliyeci');
       return;
     }
-    if (currentUser.role !== 'CARRIER') {
+    if (currentUser.role !== 'CARRIER' && !currentUser.isMasterUser) {
       router.push('/musteri');
       return;
     }
-    if (!carrier || !carrier.isProfileCompleted || !carrier.companyName) {
+    if (!currentUser.isMasterUser && (!carrier || !carrier.isProfileCompleted || !carrier.companyName)) {
       router.push('/nakliyeci/onboarding');
       return;
     }

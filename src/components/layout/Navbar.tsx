@@ -26,7 +26,8 @@ import {
   Share2,
   Sparkles,
   Headphones,
-  Calculator
+  Calculator,
+  ArrowRightLeft
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { db } from '@/lib/data/mock-db';
@@ -91,14 +92,18 @@ export const Navbar: React.FC = () => {
     router.refresh();
   };
 
-  const isCarrier = currentUser?.role === 'CARRIER';
-  const isCustomer = currentUser?.role === 'CUSTOMER';
+  const isMaster = !!currentUser?.isMasterUser;
+  const isCarrierRoute = pathname?.startsWith('/nakliyeci') || pathname?.startsWith('/app/carrier');
+  const isCarrier = currentUser?.role === 'CARRIER' || (isMaster && isCarrierRoute);
+  const isCustomer = currentUser?.role === 'CUSTOMER' || (isMaster && !isCarrierRoute);
 
   // Display name helper
-  const activeCarrier = isCarrier ? db.getCurrentCarrier() : null;
-  const displayName = isCarrier 
-    ? (activeCarrier?.companyName || currentUser?.companyName || 'Firma Profilim')
-    : (currentUser?.fullName || currentUser?.name || currentUser?.email?.split('@')[0] || 'Hesabım');
+  const activeCarrier = (isCarrier || isMaster) ? db.getCurrentCarrier() : null;
+  const displayName = isMaster
+    ? (isCarrierRoute ? (activeCarrier?.companyName || 'Master Nakliyat') : 'Yönetici (Çift Yetkili)')
+    : isCarrier 
+      ? (activeCarrier?.companyName || currentUser?.companyName || 'Firma Profilim')
+      : (currentUser?.fullName || currentUser?.name || currentUser?.email?.split('@')[0] || 'Hesabım');
 
   const avatarInitial = (displayName || 'U').charAt(0).toUpperCase();
 
@@ -280,77 +285,144 @@ export const Navbar: React.FC = () => {
         {/* Right: Auth Profile or Login/Register */}
         <div className="flex items-center justify-end gap-2">
           {currentUser ? (
-            <div className="relative" ref={userDropdownRef}>
-              <button
-                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer text-sm font-bold text-slate-800 shadow-xs"
-              >
-                <div className={`w-8 h-8 rounded-xl ${isCarrier ? 'bg-[#111E38] text-white' : 'bg-gradient-to-br from-[#F95700] to-[#E04D00] text-white'} flex items-center justify-center text-xs font-black shadow-sm`}>
-                  {avatarInitial}
-                </div>
-                <div className="text-left flex flex-col">
-                  <span className="font-black text-xs text-[#111E38] leading-tight max-w-[120px] truncate">
-                    {displayName}
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-500 leading-none">
-                    {isCarrier ? 'Nakliye Firması' : isCustomer ? 'Bireysel Müşteri' : 'Yönetici'}
-                  </span>
-                </div>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+            <div className="flex items-center gap-2">
+              {isMaster && (
+                <Link
+                  href={isCarrierRoute ? '/musteri' : '/nakliyeci'}
+                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-xs transition-all"
+                  title={isCarrierRoute ? 'Müşteri Paneline Geç' : 'Nakliyeci Paneline Geç'}
+                >
+                  <ArrowRightLeft className="w-3.5 h-3.5" />
+                  <span>{isCarrierRoute ? 'Müşteri Paneli' : 'Nakliyeci Paneli'}</span>
+                </Link>
+              )}
 
-              {userDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-fade-in">
-                  <div className="px-4 py-2.5 border-b border-slate-100">
-                    <p className="text-xs font-black text-[#111E38] truncate">{displayName}</p>
-                    <p className="text-[11px] font-medium text-slate-500 truncate">{currentUser.email || currentUser.phone}</p>
+              <div className="relative" ref={userDropdownRef}>
+                <button
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer text-sm font-bold text-slate-800 shadow-xs"
+                >
+                  <div className={`w-8 h-8 rounded-xl ${isMaster ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white' : isCarrier ? 'bg-[#111E38] text-white' : 'bg-gradient-to-br from-[#F95700] to-[#E04D00] text-white'} flex items-center justify-center text-xs font-black shadow-sm`}>
+                    {avatarInitial}
                   </div>
+                  <div className="text-left flex flex-col">
+                    <span className="font-black text-xs text-[#111E38] leading-tight max-w-[120px] truncate">
+                      {displayName}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-500 leading-none">
+                      {isMaster ? '⭐ Çift Yetki (Master)' : isCarrier ? 'Nakliye Firması' : isCustomer ? 'Bireysel Müşteri' : 'Yönetici'}
+                    </span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
 
-                  {isCustomer && (
-                    <div className="py-1">
-                      <Link href="/musteri/profil" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-900 hover:bg-orange-50 hover:text-[#F95700] transition-colors border-b border-slate-100 mb-1">
-                        <Settings className="w-3.5 h-3.5 text-[#F95700]" />
-                        Profilim &amp; Ayarlar
-                      </Link>
-                      <Link href="/musteri/taleplerim" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
-                        <FileText className="w-3.5 h-3.5 text-[#F95700]" />
-                        Taşınma Taleplerim
-                      </Link>
-                      <Link href="/musteri/teklifler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
-                        <Truck className="w-3.5 h-3.5 text-[#F95700]" />
-                        Gelen Teklifler
-                      </Link>
-                      <Link href="/musteri/mesajlar" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
-                        <MessageSquare className="w-3.5 h-3.5 text-[#F95700]" />
-                        Mesajlarım
-                      </Link>
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-fade-in">
+                    <div className="px-4 py-2.5 border-b border-slate-100">
+                      <p className="text-xs font-black text-[#111E38] truncate">{displayName}</p>
+                      <p className="text-[11px] font-medium text-slate-500 truncate">{currentUser.email || currentUser.phone}</p>
                     </div>
-                  )}
 
-                  {isCarrier && (
-                    <div className="py-1">
-                      <Link href="/nakliyeci/profil" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#0A1128] hover:bg-orange-50 hover:text-[#F95700] transition-colors border-b border-slate-100 mb-1">
-                        <User className="w-4 h-4 text-[#F95700]" />
-                        Firma Profilim &amp; Evraklar
-                      </Link>
-                      <Link href="/nakliyeci" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
-                        <Truck className="w-3.5 h-3.5 text-[#F95700]" />
-                        Teklif Durumları
-                      </Link>
-                      <Link href="/nakliyeci/mesajlar" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
-                        <MessageSquare className="w-3.5 h-3.5 text-[#F95700]" />
-                        Mesajlarım
-                      </Link>
-                      <Link href="/nakliyeci/abonelik" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
-                        <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                        Abonelik &amp; Paketim
-                      </Link>
-                      <Link href="/nakliyeci/dijital-hizmetler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
-                        <Sparkles className="w-3.5 h-3.5 text-[#F95700]" />
-                        Dijital Hizmetler
-                      </Link>
-                    </div>
-                  )}
+                    {isMaster ? (
+                      <div className="py-1">
+                        <div className="px-3 py-2 mx-2 mb-2 rounded-xl bg-orange-50 border border-orange-200">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-[10px] font-black text-[#F95700] uppercase tracking-wider flex items-center gap-1">
+                              <Sparkles className="w-3 h-3" />
+                              Çift Panel Yetkisi
+                            </span>
+                          </div>
+                          <Link
+                            href={isCarrierRoute ? '/musteri' : '/nakliyeci'}
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="w-full inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#111E38] text-white hover:bg-slate-800 transition-all"
+                          >
+                            <ArrowRightLeft className="w-3 h-3 text-[#F95700]" />
+                            <span>{isCarrierRoute ? 'Müşteri Paneline Geç' : 'Nakliyeci Paneline Geç'}</span>
+                          </Link>
+                        </div>
+
+                        <div className="px-4 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Müşteri Sayfaları
+                        </div>
+                        <Link href="/musteri" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-1.5 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                          <FileText className="w-3.5 h-3.5 text-[#F95700]" />
+                          Müşteri Paneli
+                        </Link>
+                        <Link href="/musteri/taleplerim" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-1.5 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                          <Package className="w-3.5 h-3.5 text-[#F95700]" />
+                          Taleplerim
+                        </Link>
+                        <Link href="/musteri/teklifler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-1.5 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                          <Truck className="w-3.5 h-3.5 text-[#F95700]" />
+                          Gelen Teklifler
+                        </Link>
+
+                        <div className="px-4 pt-2 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-t border-slate-100 mt-1">
+                          Nakliyeci Sayfaları
+                        </div>
+                        <Link href="/nakliyeci" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-1.5 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                          <Briefcase className="w-3.5 h-3.5 text-blue-600" />
+                          Nakliyeci Paneli
+                        </Link>
+                        <Link href="/nakliyeci/isler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-1.5 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                          <Truck className="w-3.5 h-3.5 text-blue-600" />
+                          İşler &amp; Teklif Ver
+                        </Link>
+                        <Link href="/nakliyeci/profil" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-1.5 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                          <User className="w-3.5 h-3.5 text-blue-600" />
+                          Firma Profili &amp; Evraklar
+                        </Link>
+                      </div>
+                    ) : (
+                      <>
+                        {isCustomer && (
+                          <div className="py-1">
+                            <Link href="/musteri/profil" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-900 hover:bg-orange-50 hover:text-[#F95700] transition-colors border-b border-slate-100 mb-1">
+                              <Settings className="w-3.5 h-3.5 text-[#F95700]" />
+                              Profilim &amp; Ayarlar
+                            </Link>
+                            <Link href="/musteri/taleplerim" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                              <FileText className="w-3.5 h-3.5 text-[#F95700]" />
+                              Taşınma Taleplerim
+                            </Link>
+                            <Link href="/musteri/teklifler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                              <Truck className="w-3.5 h-3.5 text-[#F95700]" />
+                              Gelen Teklifler
+                            </Link>
+                            <Link href="/musteri/mesajlar" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                              <MessageSquare className="w-3.5 h-3.5 text-[#F95700]" />
+                              Mesajlarım
+                            </Link>
+                          </div>
+                        )}
+
+                        {isCarrier && (
+                          <div className="py-1">
+                            <Link href="/nakliyeci/profil" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-[#0A1128] hover:bg-orange-50 hover:text-[#F95700] transition-colors border-b border-slate-100 mb-1">
+                              <User className="w-4 h-4 text-[#F95700]" />
+                              Firma Profilim &amp; Evraklar
+                            </Link>
+                            <Link href="/nakliyeci" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                              <Truck className="w-3.5 h-3.5 text-[#F95700]" />
+                              Teklif Durumları
+                            </Link>
+                            <Link href="/nakliyeci/mesajlar" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                              <MessageSquare className="w-3.5 h-3.5 text-[#F95700]" />
+                              Mesajlarım
+                            </Link>
+                            <Link href="/nakliyeci/abonelik" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                              <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                              Abonelik &amp; Paketim
+                            </Link>
+                            <Link href="/nakliyeci/dijital-hizmetler" onClick={() => setUserDropdownOpen(false)} className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-[#F95700] transition-colors">
+                              <Sparkles className="w-3.5 h-3.5 text-[#F95700]" />
+                              Dijital Hizmetler
+                            </Link>
+                          </div>
+                        )}
+                      </>
+                    )}
 
                   <div className="border-t border-slate-100 my-1" />
                   <button
@@ -362,6 +434,7 @@ export const Navbar: React.FC = () => {
                   </button>
                 </div>
               )}
+            </div>
             </div>
           ) : (
             <div className="flex items-center gap-2">

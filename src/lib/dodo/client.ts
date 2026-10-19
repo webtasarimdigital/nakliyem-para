@@ -50,6 +50,33 @@ export interface CheckoutSessionResult {
 }
 
 /**
+ * Normalizes phone numbers to standard E.164 format for Dodo Payments (+90...)
+ */
+function formatE164Phone(phone?: string): string | undefined {
+  if (!phone) return undefined;
+  const digits = phone.replace(/\D/g, '');
+  if (!digits) return undefined;
+
+  // 05321234567 (11 digits, starts with 0) -> +905321234567
+  if (digits.startsWith('0') && digits.length === 11) {
+    return `+90${digits.substring(1)}`;
+  }
+  // 905321234567 (12 digits, starts with 90) -> +90${digits.substring(2)}
+  if (digits.startsWith('90') && digits.length === 12) {
+    return `+${digits}`;
+  }
+  // 5321234567 (10 digits) -> +905321234567
+  if (digits.length === 10) {
+    return `+90${digits}`;
+  }
+  // Generic international digits (between 11 and 15 digits)
+  if (digits.length >= 11 && digits.length <= 15) {
+    return `+${digits}`;
+  }
+  return undefined;
+}
+
+/**
  * Creates a Dodo Payments hosted checkout session
  */
 export async function createDodoCheckoutSession(params: CreateCheckoutParams): Promise<CheckoutSessionResult> {
@@ -85,12 +112,21 @@ export async function createDodoCheckoutSession(params: CreateCheckoutParams): P
     }
   };
 
-  if (params.customer?.email || params.customer?.name) {
-    bodyPayload.customer = {
-      email: params.customer.email,
-      name: params.customer.name,
-      phone_number: params.customer.phone,
-    };
+  if (params.customer) {
+    const customerObj: Record<string, string> = {};
+    if (params.customer.email && params.customer.email.includes('@')) {
+      customerObj.email = params.customer.email.trim();
+    }
+    if (params.customer.name && params.customer.name.trim()) {
+      customerObj.name = params.customer.name.trim();
+    }
+    const formattedPhone = formatE164Phone(params.customer.phone);
+    if (formattedPhone) {
+      customerObj.phone_number = formattedPhone;
+    }
+    if (Object.keys(customerObj).length > 0) {
+      bodyPayload.customer = customerObj;
+    }
   }
 
   const response = await fetch(`${DODO_CONFIG.baseUrl}/checkouts`, {

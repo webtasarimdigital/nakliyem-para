@@ -255,6 +255,49 @@ export const SEED_CARRIERS: CarrierProfile[] = [
     joinedAt: '2023-01-15T10:00:00Z',
     createdAt: '2023-01-15T10:00:00Z',
     isSeed: true
+  },
+  {
+    id: 'carr_master_dual',
+    userId: 'user_master_dual',
+    companyName: 'TaşınTeklif Master Nakliyat',
+    slug: 'tasinteklif-master-nakliyat',
+    authorizedPersonName: 'Sistem',
+    authorizedPersonSurname: 'Yöneticisi',
+    phone: '0850 308 34 26',
+    whatsapp: '0850 308 34 26',
+    email: 'master@tasinteklif.com',
+    logoUrl: '/images/logo-icon.png',
+    coverImageUrl: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=1200&auto=format&fit=crop&q=80',
+    shortBio: 'Sistem Yöneticisi Çift Yetkili Test & Yönetim Profili',
+    description: 'TaşınTeklif altyapısında hem müşteri hem nakliyeci fonksiyonlarını tam yetkiyle test ve idare etmek için oluşturulmuş özel profil.',
+    city: 'İstanbul',
+    district: 'Kadıköy',
+    services: ['evden-eve', 'ofis-tasima', 'sehirler-arasi', 'mobil-asansor', 'depolama', 'parca-esya'],
+    serviceAreas: ['TÜM_TÜRKİYE'],
+    verificationStatus: 'APPROVED',
+    verificationBadges: {
+      identityVerified: true,
+      taxVerified: true,
+      transportPermitVerified: true,
+      elevatorVerified: true
+    },
+    elevatorSpec: {
+      hasElevator: true,
+      elevatorType: 'VEHICLE_MOUNTED',
+      maxFloor: 20,
+      serviceCities: ['TÜM_TÜRKİYE'],
+      description: '20. kata kadar asansörlü taşıma imkanı.',
+      isVerified: true
+    },
+    planId: 'plan_gold',
+    isProfileCompleted: true,
+    rating: 5.0,
+    reviewCount: 150,
+    completedJobsCount: 500,
+    responseRatePercent: 100,
+    joinedAt: '2024-01-01T10:00:00Z',
+    createdAt: '2024-01-01T10:00:00Z',
+    isSeed: true
   }
 ];
 
@@ -296,9 +339,23 @@ export interface RegisteredUserRecord {
   carrierId?: string;
   createdAt: string;
   isSeed?: boolean;
+  isMasterUser?: boolean;
 }
 
 export const SEED_REGISTERED_USERS: RegisteredUserRecord[] = [
+  {
+    id: 'user_master_dual',
+    email: 'master@tasinteklif.com',
+    phone: '0850 308 34 26',
+    password: 'Tasinteklif2026!',
+    role: 'SUPER_ADMIN',
+    isMasterUser: true,
+    fullName: 'Sistem Yöneticisi (Çift Yetkili)',
+    companyName: 'TaşınTeklif Master Nakliyat',
+    carrierId: 'carr_master_dual',
+    createdAt: '2024-01-01T00:00:00Z',
+    isSeed: true
+  },
   {
     id: 'user_cust_1',
     email: 'ahmet@example.com',
@@ -1319,7 +1376,7 @@ class MockDatabase {
   // Get active carrier matching current logged-in user
   getCurrentCarrier(): CarrierProfile | null {
     const user = this.getCurrentUser();
-    if (!user || user.role !== 'CARRIER') return null;
+    if (!user || (user.role !== 'CARRIER' && !user.isMasterUser)) return null;
     const carriers = this.getCarriers();
     if (user.carrierProfileId) {
       const found = carriers.find(c => c.id === user.carrierProfileId);
@@ -1433,7 +1490,11 @@ class MockDatabase {
   }
 
   getUserByEmail(email: string): RegisteredUserRecord | undefined {
-    return this.getRegisteredUsers().find(u => u.email.toLowerCase() === email.toLowerCase());
+    const clean = (email || '').trim().toLowerCase();
+    if (clean === 'master' || clean === 'master@tasinteklif.com' || clean === 'yonetici' || clean === 'admin@tasinteklif.com') {
+      return this.getRegisteredUsers().find(u => u.isMasterUser || u.id === 'user_master_dual');
+    }
+    return this.getRegisteredUsers().find(u => u.email.toLowerCase() === clean);
   }
 
   getRegisteredUserByEmail(email: string): RegisteredUserRecord | undefined {

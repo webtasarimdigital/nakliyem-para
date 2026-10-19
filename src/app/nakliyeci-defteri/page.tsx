@@ -154,8 +154,8 @@ export default function NakliyeciDefteriPage() {
       return;
     }
 
-    // 2. Müşteri rolünde giriş yapılmışsa
-    if (user.role !== 'CARRIER') {
+    // 2. Müşteri rolünde giriş yapılmışsa (Master kullanıcılar muaftır)
+    if (user.role !== 'CARRIER' && !user.isMasterUser) {
       setInlineError('Defter paylaşımları nakliyat firmalarına özeldir. Lütfen nakliyeci hesabınızla giriş yapın.');
       return;
     }

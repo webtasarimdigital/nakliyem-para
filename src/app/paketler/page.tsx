@@ -243,8 +243,8 @@ export default function PaketlerPage() {
       return;
     }
 
-    // 2. Müşteri rolündeyse -> Müşteri bilgilendirme modalını aç
-    if (currentUser.role === 'CUSTOMER') {
+    // 2. Müşteri rolündeyse -> Müşteri bilgilendirme modalını aç (Master kullanıcı muaftır)
+    if (currentUser.role === 'CUSTOMER' && !currentUser.isMasterUser) {
       setCustomerModalOpen(true);
       return;
     }

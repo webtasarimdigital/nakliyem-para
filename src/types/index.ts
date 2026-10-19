@@ -91,6 +91,7 @@ export interface User {
   customerProfileId?: string;
   emailVerified?: boolean;
   createdAt: string;
+  isMasterUser?: boolean; // Özel yetki: Hem müşteri hem nakliyeci panellerine tam erişim
 }
 
 export type RequestStatus = 'DRAFT' | 'ACTIVE' | 'ASSIGNED' | 'CLOSED' | 'CANCELED' | 'EXPIRED';

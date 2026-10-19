@@ -24,8 +24,8 @@ export const MobileCarrierNav: React.FC = () => {
     };
   }, []);
 
-  // Üye girişi yapmamış veya CARRIER rolünde olmayanlara nakliyeci paneli alt menüsü asla gösterilmez
-  if (!currentUser || currentUser.role !== 'CARRIER') {
+  // Üye girişi yapmamış veya CARRIER rolünde olmayanlara nakliyeci paneli alt menüsü asla gösterilmez (Master kullanıcılar muaftır)
+  if (!currentUser || (currentUser.role !== 'CARRIER' && !currentUser.isMasterUser)) {
     return null;
   }
 

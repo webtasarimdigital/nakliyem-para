@@ -98,7 +98,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
   const handleSubmitOffer = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!currentUser || currentUser.role !== 'CARRIER' || !carrier) {
+    if (!currentUser || (currentUser.role !== 'CARRIER' && !currentUser.isMasterUser) || !carrier) {
       router.push('/giris?role=nakliyeci');
       return;
     }

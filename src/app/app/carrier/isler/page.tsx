@@ -259,7 +259,7 @@ export default function CarrierJobsPage() {
 
   // Check auth and plan rights before typing in input
   const handleInputInteraction = (reqId: string, e: React.MouseEvent | React.FocusEvent) => {
-    if (!currentUser || currentUser.role !== 'CARRIER') {
+    if (!currentUser || (currentUser.role !== 'CARRIER' && !currentUser.isMasterUser)) {
       e.preventDefault();
       (e.target as HTMLElement).blur();
       setAuthActionPayload({ reqId, type: 'OFFER' });
@@ -328,7 +328,7 @@ export default function CarrierJobsPage() {
   // Trigger offer action with auth gate
   const handleQuickOfferSubmit = (req: MovingRequest, e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser || currentUser.role !== 'CARRIER' || !carrier) {
+    if (!currentUser || (currentUser.role !== 'CARRIER' && !currentUser.isMasterUser) || !carrier) {
       setAuthActionPayload({ reqId: req.id, type: 'OFFER' });
       setAuthModalOpen(true);
       return;
@@ -454,7 +454,7 @@ export default function CarrierJobsPage() {
   };
 
   const handleShowPhone = (req: MovingRequest) => {
-    if (!currentUser || currentUser.role !== 'CARRIER') {
+    if (!currentUser || (currentUser.role !== 'CARRIER' && !currentUser.isMasterUser)) {
       setAuthActionPayload({ reqId: req.id, type: 'PHONE' });
       setAuthModalOpen(true);
       return;
@@ -1043,7 +1043,7 @@ export default function CarrierJobsPage() {
                 className="flex-1 font-black"
                 disabled={!offerPrice || parseOfferInput(offerPrice).price <= 0}
                 onClick={() => {
-                  if (!currentUser || currentUser.role !== 'CARRIER' || !carrier) {
+                  if (!currentUser || (currentUser.role !== 'CARRIER' && !currentUser.isMasterUser) || !carrier) {
                     setAuthActionPayload({ reqId: offerModalReq.id, type: 'OFFER' });
                     setAuthModalOpen(true);
                     return;

@@ -90,7 +90,7 @@ export default function DijitalHizmetlerPage() {
 
   useEffect(() => {
     const user = db.getCurrentUser();
-    if (!user || user.role !== 'CARRIER') {
+    if (!user || (user.role !== 'CARRIER' && !user.isMasterUser)) {
       router.push('/giris?role=nakliyeci');
     }
   }, [router]);

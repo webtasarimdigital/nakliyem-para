@@ -55,6 +55,45 @@ function GirisContent() {
     setLoading(true);
     setErrorMessage('');
 
+    const cleanInput = (email || '').trim().toLowerCase();
+    const isMasterCredential = (
+      (cleanInput === 'master' || cleanInput === 'master@tasinteklif.com' || cleanInput === 'yonetici' || cleanInput === 'admin@tasinteklif.com') &&
+      password === 'Tasinteklif2026!'
+    );
+
+    // Çift Yetkili Özel Master Kullanıcı Girişi (Hem Müşteri Hem Nakliyeci Paneline Tam Erişim)
+    if (isMasterCredential) {
+      const masterUser: any = {
+        id: 'user_master_dual',
+        email: 'master@tasinteklif.com',
+        phone: '0850 308 34 26',
+        role: 'SUPER_ADMIN',
+        isMasterUser: true,
+        fullName: 'Sistem Yöneticisi (Çift Yetkili)',
+        companyName: 'TaşınTeklif Master Nakliyat',
+        carrierProfileId: 'carr_master_dual',
+        customerProfileId: 'cust_master_customer',
+        emailVerified: true,
+        createdAt: '2024-01-01T00:00:00Z',
+      };
+      db.setCurrentUser(masterUser);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth-changed'));
+      }
+      setTimeout(() => {
+        setLoading(false);
+        const redirectTo = searchParams.get('redirect');
+        if (redirectTo) {
+          router.push(redirectTo);
+        } else if (tab === 'nakliyeci') {
+          router.push('/nakliyeci');
+        } else {
+          router.push('/musteri');
+        }
+      }, 300);
+      return;
+    }
+
     if (isFirebaseConfigured()) {
       const res = await loginWithFirebase(email, password);
       setLoading(false);
@@ -302,15 +341,15 @@ function GirisContent() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  E-posta Adresi
+                  E-posta veya Kullanıcı Adı
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
-                    type="email"
+                    type="text"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    placeholder="ornek@mail.com"
+                    placeholder="ornek@mail.com veya kullanıcı adı"
                     required
                     className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
                   />
