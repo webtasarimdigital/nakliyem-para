@@ -18,34 +18,54 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { db } from '@/lib/data/mock-db';
 import { CarrierDocument, CarrierProfile } from '@/types';
-import { updateFirestoreCarrier } from '@/lib/firebase/firestore';
+import { getFirestoreCarriers, updateFirestoreCarrier } from '@/lib/firebase/firestore';
 
 export default function AdminVerificationConsolePage() {
   const [showDemoData, setShowDemoData] = useState(false);
-  const [carriers, setCarriers] = useState(showDemoData ? db.getCarriers() : db.getRealCarriers());
-  const [documents, setDocuments] = useState(showDemoData ? db.getDocuments() : db.getRealDocuments());
+  const [carriers, setCarriers] = useState<CarrierProfile[]>([]);
+  const [documents, setDocuments] = useState<CarrierDocument[]>([]);
 
   // Re-sync when showDemoData changes or target carrier in URL
   React.useEffect(() => {
-    const carrs = showDemoData ? db.getCarriers() : db.getRealCarriers();
-    const docs = showDemoData ? db.getDocuments() : db.getRealDocuments();
-    setCarriers(carrs);
-    setDocuments(docs);
+    async function loadData() {
+      const localCarrs = showDemoData ? db.getCarriers() : db.getRealCarriers();
+      const docs = showDemoData ? db.getDocuments() : db.getRealDocuments();
+      let combinedCarriers = [...localCarrs];
 
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const targetCarrierId = urlParams.get('carrierId');
-      if (targetCarrierId) {
-        const targeted = carrs.find(c => c.id === targetCarrierId);
-        if (targeted) {
-          setSelectedCarrier(targeted);
-          return;
+      try {
+        const firestoreCarrs = await getFirestoreCarriers();
+        if (firestoreCarrs && firestoreCarrs.length > 0) {
+          const existingIds = new Set(combinedCarriers.map(c => c.id));
+          firestoreCarrs.forEach(fc => {
+            if (!existingIds.has(fc.id)) {
+              combinedCarriers.push(fc);
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('Firestore carriers load warning:', err);
+      }
+
+      setCarriers(combinedCarriers);
+      setDocuments(docs);
+
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetCarrierId = urlParams.get('carrierId');
+        if (targetCarrierId) {
+          const targeted = combinedCarriers.find(c => c.id === targetCarrierId);
+          if (targeted) {
+            setSelectedCarrier(targeted);
+            return;
+          }
         }
       }
+
+      const pending = combinedCarriers.filter(c => c.verificationStatus === 'PENDING');
+      setSelectedCarrier(pending[0] || combinedCarriers[0] || null);
     }
 
-    const pending = carrs.filter(c => c.verificationStatus === 'PENDING');
-    setSelectedCarrier(pending[0] || carrs[0] || null);
+    loadData();
   }, [showDemoData]);
 
   const pendingCarriers = carriers.filter(c => c.verificationStatus === 'PENDING');
@@ -172,7 +192,7 @@ export default function AdminVerificationConsolePage() {
             <CheckCircle2 className="w-7 h-7" />
           </div>
           <h2 className="text-base font-black text-[#0A1128] mb-1">
-            İnceleme Bekleyen Belge Bulunmuyor
+            İncelenecek Başvuru veya Belge Bulunmuyor
           </h2>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
             Platforma yeni bir nakliye firması kayıt olduğunda ve vergi levhası veya kimlik belgesi yüklediğinde burada onayınıza sunulacaktır.
@@ -279,8 +299,8 @@ export default function AdminVerificationConsolePage() {
                   </div>
                 ))
               ) : (
-                <div className="p-6 text-center text-xs text-slate-400 border border-dashed rounded-xl">
-                  Bu firma henüz belge yüklememiş.
+                <div className="p-6 text-center text-xs text-slate-400 border border-dashed rounded-xl leading-relaxed">
+                  Bu firma henüz sisteme dijital evrak yüklememiş. Başvuruyu firma profili ve iletişim bilgileri üzerinden doğrudan onaylayabilir veya ek evrak talep edebilirsiniz.
                 </div>
               )}
             </div>

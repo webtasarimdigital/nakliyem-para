@@ -26,6 +26,8 @@ import {
   Home,
 } from 'lucide-react';
 import { db, SEED_PLANS } from '@/lib/data/mock-db';
+import { getFirestoreCarriers } from '@/lib/firebase/firestore';
+import { CarrierProfile } from '@/types';
 
 // Gelir hesaplama yardımcıları
 const PLAN_PRICES: Record<string, number> = {
@@ -55,6 +57,7 @@ export default function AdminDashboardPage() {
   const [showDemoData, setShowDemoData] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
+  const [firestoreCarriers, setFirestoreCarriers] = useState<CarrierProfile[]>([]);
 
   React.useEffect(() => {
     const storedToken = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null;
@@ -76,7 +79,18 @@ export default function AdminDashboardPage() {
       .catch(() => {
         setIsAuthenticated(false);
       });
-  }, []);
+
+    // Canlı Firestore nakliyecilerini çek
+    getFirestoreCarriers()
+      .then(liveCarriers => {
+        if (liveCarriers && liveCarriers.length > 0) {
+          setFirestoreCarriers(liveCarriers);
+        }
+      })
+      .catch(err => {
+        console.warn('Admin live carriers warning:', err);
+      });
+  }, [refreshKey]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,7 +202,16 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const carriers = showDemoData ? db.getCarriers() : db.getRealCarriers();
+  const baseCarriers = showDemoData ? db.getCarriers() : db.getRealCarriers();
+  const carriers = [...baseCarriers];
+  if (!showDemoData && firestoreCarriers.length > 0) {
+    const existingIds = new Set(baseCarriers.map(c => c.id));
+    firestoreCarriers.forEach(fc => {
+      if (!existingIds.has(fc.id)) {
+        carriers.push(fc);
+      }
+    });
+  }
   const requests = showDemoData ? db.getRequests() : db.getRealRequests();
   const pendingDocs = (showDemoData ? db.getDocuments() : db.getRealDocuments()).filter(d => d.status === 'PENDING');
   const leads = showDemoData ? db.getLeads() : db.getRealLeads();
@@ -375,7 +398,7 @@ export default function AdminDashboardPage() {
               { label: 'Toplam Müşteri', value: totalCustomers, icon: Home, color: 'bg-slate-50 text-slate-600', badge: 'Taşıttıran', badgeColor: 'text-slate-500' },
               { label: 'Toplam Nakliyeci', value: carriers.length, icon: Truck, color: 'bg-orange-50 text-[#F95700]', badge: 'Kayıtlı Firma', badgeColor: 'text-[#F95700]' },
               { label: 'Aktif Nakliyeci', value: approvedCarriers.length, icon: UserCheck, color: 'bg-emerald-50 text-emerald-600', badge: 'Onaylı + Aktif', badgeColor: 'text-emerald-600' },
-              { label: 'Onay Bekleyen', value: pendingCarriers.length, icon: Clock, color: 'bg-amber-50 text-amber-600', badge: 'İnceleme Gerek', badgeColor: 'text-amber-600' },
+              { label: 'Onay Bekleyen Firma', value: pendingCarriers.length, icon: Clock, color: 'bg-amber-50 text-amber-600', badge: 'İnceleme Gerek', badgeColor: 'text-amber-600' },
               { label: 'Deneme Sürümü', value: trialCount, icon: AlertCircle, color: 'bg-blue-50 text-blue-600', badge: '7 Gün Trial', badgeColor: 'text-blue-600' },
               { label: 'Bu Ay İptal', value: churnCount, icon: UserX, color: 'bg-red-50 text-red-500', badge: 'Churn', badgeColor: 'text-red-500' },
             ].map((item) => (
@@ -459,7 +482,7 @@ export default function AdminDashboardPage() {
               {[
                 { label: 'Aktif Taşıma Talebi', value: activeRequests, icon: FileText, color: 'text-[#F95700] bg-orange-50' },
                 { label: 'Tamamlanan Taşıma', value: closedRequests, icon: CheckCircle2, color: 'text-emerald-600 bg-emerald-50' },
-                { label: 'Bekleyen Belge Onayı', value: pendingDocs.length, icon: Clock, color: 'text-amber-600 bg-amber-50' },
+                { label: 'Bekleyen Firma & Evrak', value: pendingCarriers.length + pendingDocs.length, icon: Clock, color: 'text-amber-600 bg-amber-50' },
                 { label: 'Dijital Hizmet Talebi', value: leads.length, icon: TrendingUp, color: 'text-purple-600 bg-purple-50' },
               ].map((item) => (
                 <div key={item.label} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
@@ -489,17 +512,17 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* --- Belge Onayı + Son Talepler --- */}
+        {/* --- Belge & Firma Onayı + Son Talepler --- */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Belge Onayı */}
+          {/* Doğrulama & Onay Havuzu */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-amber-500" />
-                <h2 className="font-bold text-[#0A1128]">Belge Onayı Bekleyen</h2>
-                {pendingDocs.length > 0 && (
+                <h2 className="font-bold text-[#0A1128]">Doğrulama & Onay Havuzu</h2>
+                {(pendingCarriers.length + pendingDocs.length) > 0 && (
                   <span className="text-[10px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                    {pendingDocs.length}
+                    {pendingCarriers.length + pendingDocs.length}
                   </span>
                 )}
               </div>
@@ -508,21 +531,44 @@ export default function AdminDashboardPage() {
               </Link>
             </div>
 
-            {pendingDocs.length === 0 ? (
+            {pendingCarriers.length === 0 && pendingDocs.length === 0 ? (
               <div className="text-center py-6">
                 <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-                <p className="text-sm font-bold text-slate-500">Bekleyen belge yok 🎉</p>
+                <p className="text-sm font-bold text-slate-500">Bekleyen onay veya evrak yok 🎉</p>
               </div>
             ) : (
               <div className="space-y-2.5">
-                {pendingDocs.slice(0, 4).map((doc) => (
-                  <div key={doc.id} className="p-3.5 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-between text-xs gap-2">
+                {/* Onay Bekleyen Nakliyeci Firmalar */}
+                {pendingCarriers.slice(0, 3).map((carrier) => (
+                  <div key={carrier.id} className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between text-xs gap-2">
                     <div className="min-w-0">
-                      <span className="font-bold text-[#0A1128] block truncate">{doc.title}</span>
-                      <span className="text-slate-500">{doc.fileName}</span>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <Truck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                        <span className="font-bold text-[#0A1128] truncate">{carrier.companyName}</span>
+                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-amber-200/80 text-amber-800">Firma Onayı</span>
+                      </div>
+                      <span className="text-[11px] text-slate-500">{carrier.city} {carrier.phone ? `• ${carrier.phone}` : ''}</span>
+                    </div>
+                    <Link href={`/admin/dogrulamalar?carrierId=${carrier.id}`}>
+                      <button className="shrink-0 bg-[#F95700] text-white text-[11px] font-black px-3 py-1.5 rounded-lg hover:bg-[#e04d00] transition-colors cursor-pointer">
+                        İncele / Onayla
+                      </button>
+                    </Link>
+                  </div>
+                ))}
+
+                {/* Onay Bekleyen Belgeler */}
+                {pendingDocs.slice(0, 3).map((doc) => (
+                  <div key={doc.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <FileText className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                        <span className="font-bold text-[#0A1128] truncate">{doc.title}</span>
+                      </div>
+                      <span className="text-[11px] text-slate-500">{doc.fileName}</span>
                     </div>
                     <Link href="/admin/dogrulamalar">
-                      <button className="shrink-0 bg-[#F95700] text-white text-[11px] font-black px-3 py-1.5 rounded-lg hover:bg-[#e04d00] transition-colors">
+                      <button className="shrink-0 bg-[#111E38] text-white text-[11px] font-black px-3 py-1.5 rounded-lg hover:bg-[#1a2d54] transition-colors cursor-pointer">
                         İncele
                       </button>
                     </Link>
