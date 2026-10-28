@@ -603,7 +603,7 @@ export default function UyelerPage() {
                             {statusConf.label}
                           </span>
                         </td>
-                        <td className="px-5 py-4 text-slate-500 text-xs font-medium">
+                        <td className="px-5 py-4 text-slate-500 text-xs font-medium" suppressHydrationWarning>
                           {carrier.joinedAt && !isNaN(new Date(carrier.joinedAt).getTime())
                             ? new Date(carrier.joinedAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })
                             : '—'}
@@ -683,7 +683,7 @@ export default function UyelerPage() {
                       <td className="px-5 py-4 text-slate-600 text-xs font-medium">
                         {cust.cities.length > 0 ? cust.cities[cust.cities.length - 1] : '—'}
                       </td>
-                      <td className="px-5 py-4 text-slate-500 text-xs font-medium">
+                      <td className="px-5 py-4 text-slate-500 text-xs font-medium" suppressHydrationWarning>
                         {cust.lastRequest && !isNaN(new Date(cust.lastRequest).getTime())
                           ? new Date(cust.lastRequest).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })
                           : '—'}

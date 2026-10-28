@@ -289,7 +289,7 @@ export default function AdminDashboardPage() {
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-[#F95700] mb-1">Operasyon Merkezi</p>
             <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">Sistem Genel Bakış</h1>
-            <p className="text-sm text-slate-500 font-medium mt-1">
+            <p className="text-sm text-slate-500 font-medium mt-1" suppressHydrationWarning>
               Bugün {new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
           </div>

@@ -297,7 +297,7 @@ export default function GelirPage() {
                     </div>
                     <div className="flex items-center justify-between text-xs text-slate-500">
                       <span>{churn.reason}</span>
-                      <span>{new Date(churn.date).toLocaleDateString('tr-TR')}</span>
+                      <span suppressHydrationWarning>{new Date(churn.date).toLocaleDateString('tr-TR')}</span>
                     </div>
                   </div>
                 ))}
@@ -343,9 +343,9 @@ export default function GelirPage() {
                     </div>
                     <div className="flex items-center justify-between text-xs text-slate-500 ml-9">
                       <span className="flex items-center gap-1">
-                        <Users className="w-3 h-3" /> {member.city}
+                        <Users className="w-3.5 h-3.5" /> {member.city}
                       </span>
-                      <span>{new Date(member.date).toLocaleDateString('tr-TR')}</span>
+                      <span suppressHydrationWarning>{new Date(member.date).toLocaleDateString('tr-TR')}</span>
                     </div>
                   </div>
                 ))}

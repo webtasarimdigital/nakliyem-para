@@ -36,19 +36,16 @@ export default function AdminRootLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-  const [isAdminAuth, setIsAdminAuth] = useState<boolean | null>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('admin_token_active') === 'true';
-    }
-    return null;
-  });
+  const [isAdminAuth, setIsAdminAuth] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const checkAuth = () => {
-      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null;
       const storedActive = typeof window !== 'undefined' && localStorage.getItem('admin_token_active') === 'true';
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null;
       if (storedActive) {
         setIsAdminAuth(true);
       }
@@ -79,15 +76,20 @@ export default function AdminRootLayout({
 
     checkAuth();
     window.addEventListener('storage', checkAuth);
-    return () => window.removeEventListener('storage', checkAuth);
+    window.addEventListener('auth-changed', checkAuth);
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener('auth-changed', checkAuth);
+    };
   }, [pathname]);
 
   useEffect(() => {
+    if (!mounted) return;
     const storedActive = typeof window !== 'undefined' && localStorage.getItem('admin_token_active') === 'true';
     if (isAdminAuth === false && !storedActive && pathname !== '/admin' && pathname !== '/admin/giris') {
       router.push('/admin');
     }
-  }, [isAdminAuth, pathname, router]);
+  }, [isAdminAuth, pathname, router, mounted]);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -105,8 +107,8 @@ export default function AdminRootLayout({
     }
   };
 
-  // If on login page, loading state, or unauthenticated: don't show admin navbar
-  if (pathname === '/admin/giris' || isAdminAuth === null || !isAdminAuth) {
+  // If not mounted yet, on login page, or unauthenticated: don't show admin navbar
+  if (!mounted || pathname === '/admin/giris' || !isAdminAuth) {
     return <>{children}</>;
   }
 
@@ -237,9 +239,9 @@ export default function AdminRootLayout({
       </header>
 
       {/* Main Admin Page Content */}
-      <main className="flex-1">
+      <div className="flex-1">
         {children}
-      </main>
+      </div>
     </div>
   );
 }
