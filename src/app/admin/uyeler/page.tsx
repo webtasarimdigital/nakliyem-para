@@ -157,164 +157,187 @@ export default function UyelerPage() {
   };
 
   // Build unified Customers list
+  // Build unified Customers list
   const customers: UnifiedCustomer[] = React.useMemo(() => {
-    const map = new Map<string, UnifiedCustomer>();
+    try {
+      const map = new Map<string, UnifiedCustomer>();
 
-    // 1. Registered users from DB
-    const regUsers = showDemoData ? db.getRegisteredUsers() : db.getRealRegisteredUsers();
-    regUsers.filter(u => u.role === 'CUSTOMER').forEach(u => {
-      const key = u.email?.toLowerCase() || u.phone || u.id;
-      map.set(key, {
-        id: u.id,
-        name: u.fullName || 'Kayıtlı Müşteri',
-        phone: u.phone || '—',
-        email: u.email,
-        requestCount: 0,
-        lastRequest: u.createdAt,
-        cities: [],
-        source: 'Kayıtlı Üye',
-        isSeed: u.isSeed
-      });
-    });
-
-    // 2. Firestore customers
-    firestoreUsers.filter(u => u.role === 'CUSTOMER').forEach(u => {
-      const key = u.email?.toLowerCase() || u.phone || u.id;
-      if (map.has(key)) {
-        const existing = map.get(key)!;
-        existing.source = 'Firestore';
-        if (u.fullName) existing.name = u.fullName;
-        if (u.phone) existing.phone = u.phone;
-      } else {
+      // 1. Registered users from DB
+      const regUsers = showDemoData ? db.getRegisteredUsers() : db.getRealRegisteredUsers();
+      regUsers.filter(u => u.role === 'CUSTOMER').forEach(u => {
+        const key = u.email?.toLowerCase() || u.phone || u.id;
         map.set(key, {
           id: u.id,
-          name: u.fullName || u.email?.split('@')[0] || 'Canlı Müşteri',
+          name: u.fullName || u.email?.split('@')[0] || 'Kayıtlı Müşteri',
           phone: u.phone || '—',
-          email: u.email,
+          email: u.email || '—',
           requestCount: 0,
           lastRequest: u.createdAt || new Date().toISOString(),
           cities: [],
-          source: 'Firestore'
+          source: 'Kayıtlı Üye',
+          isSeed: u.isSeed
         });
-      }
-    });
+      });
 
-    // 3. Requests
-    const reqs = showDemoData ? db.getRequests() : db.getRealRequests();
-    reqs.forEach(r => {
-      const key = (r.customerPhone && r.customerPhone.replace(/\D/g, '').length >= 7)
-        ? r.customerPhone.replace(/\D/g, '')
-        : r.customerId;
+      // 2. Firestore customers
+      firestoreUsers.filter(u => u.role === 'CUSTOMER').forEach(u => {
+        const key = u.email?.toLowerCase() || u.phone || u.id;
+        if (map.has(key)) {
+          const existing = map.get(key)!;
+          existing.source = 'Firestore';
+          if (u.fullName) existing.name = u.fullName;
+          if (u.phone) existing.phone = u.phone;
+          if (u.email) existing.email = u.email;
+        } else {
+          map.set(key, {
+            id: u.id,
+            name: u.fullName || u.email?.split('@')[0] || 'Canlı Müşteri',
+            phone: u.phone || '—',
+            email: u.email || '—',
+            requestCount: 0,
+            lastRequest: u.createdAt || new Date().toISOString(),
+            cities: [],
+            source: 'Firestore'
+          });
+        }
+      });
 
-      if (map.has(key)) {
-        const item = map.get(key)!;
-        item.requestCount++;
-        if (r.createdAt > item.lastRequest) item.lastRequest = r.createdAt;
-        const route = `${r.originCity}→${r.destinationCity}`;
-        if (!item.cities.includes(route)) item.cities.push(route);
-      } else {
-        map.set(key, {
-          id: r.customerId,
-          name: r.customerName || 'Müşteri',
-          phone: r.customerPhone || '—',
-          requestCount: 1,
-          lastRequest: r.createdAt,
-          cities: [`${r.originCity}→${r.destinationCity}`],
-          source: 'Talep Sahibi',
-          isSeed: r.isSeed
-        });
-      }
-    });
+      // 3. Requests
+      const reqs = showDemoData ? db.getRequests() : db.getRealRequests();
+      reqs.forEach(r => {
+        const key = (r.customerPhone && r.customerPhone.replace(/\D/g, '').length >= 7)
+          ? r.customerPhone.replace(/\D/g, '')
+          : r.customerId;
 
-    return Array.from(map.values()).filter(c => showDemoData || !c.isSeed);
+        if (map.has(key)) {
+          const item = map.get(key)!;
+          item.requestCount++;
+          if (r.createdAt && (!item.lastRequest || r.createdAt > item.lastRequest)) {
+            item.lastRequest = r.createdAt;
+          }
+          const origin = r.originCity || 'Belirtilmedi';
+          const dest = r.destinationCity || 'Belirtilmedi';
+          const route = `${origin}→${dest}`;
+          if (!item.cities.includes(route)) item.cities.push(route);
+        } else {
+          const origin = r.originCity || 'Belirtilmedi';
+          const dest = r.destinationCity || 'Belirtilmedi';
+          map.set(key, {
+            id: r.customerId || `cust_${key}`,
+            name: r.customerName || 'Müşteri',
+            phone: r.customerPhone || '—',
+            email: '—',
+            requestCount: 1,
+            lastRequest: r.createdAt || new Date().toISOString(),
+            cities: [`${origin}→${dest}`],
+            source: 'Talep Sahibi',
+            isSeed: r.isSeed
+          });
+        }
+      });
+
+      return Array.from(map.values()).filter(c => showDemoData || !c.isSeed);
+    } catch (err) {
+      console.warn('Failed to compile customer records:', err);
+      return [];
+    }
   }, [showDemoData, firestoreUsers, refreshKey]);
 
   // Build unified Carriers list
   const carriers: UnifiedCarrier[] = React.useMemo(() => {
-    const map = new Map<string, UnifiedCarrier>();
+    try {
+      const map = new Map<string, UnifiedCarrier>();
 
-    // 1. Carriers from DB
-    const carrList = showDemoData ? db.getCarriers() : db.getRealCarriers();
-    carrList.forEach(c => {
-      const key = c.email?.toLowerCase() || c.id;
-      map.set(key, {
-        id: c.id,
-        userId: c.userId,
-        companyName: c.companyName,
-        authorizedPerson: c.authorizedPersonName ? `${c.authorizedPersonName} ${c.authorizedPersonSurname || ''}`.trim() : undefined,
-        email: c.email || '—',
-        phone: c.phone || '—',
-        city: c.city || 'Belirtilmedi',
-        planId: c.planId || 'plan_starter',
-        verificationStatus: (c.verificationStatus as any) || 'PENDING',
-        joinedAt: c.joinedAt || c.createdAt || new Date().toISOString(),
-        rating: c.rating,
-        reviewCount: c.reviewCount,
-        slug: c.slug,
-        source: 'Sistem Kaydı',
-        isSeed: c.isSeed
-      });
-    });
-
-    // 2. Registered users who signed up as CARRIER
-    const regCarriers = showDemoData ? db.getRegisteredUsers() : db.getRealRegisteredUsers();
-    regCarriers.filter(u => u.role === 'CARRIER').forEach(u => {
-      const key = u.email?.toLowerCase() || u.id;
-      if (!map.has(key)) {
+      // 1. Carriers from DB
+      const carrList = showDemoData ? db.getCarriers() : db.getRealCarriers();
+      carrList.forEach(c => {
+        const key = c.email?.toLowerCase() || c.id;
         map.set(key, {
-          id: u.carrierId || `carr_${u.id}`,
-          userId: u.id,
-          companyName: u.companyName || u.fullName || 'Firma Adı Bekleniyor',
-          authorizedPerson: u.fullName,
-          email: u.email,
-          phone: u.phone,
-          city: 'Profil Hazırlanıyor',
-          planId: 'plan_starter',
-          verificationStatus: 'PENDING',
-          joinedAt: u.createdAt,
+          id: c.id,
+          userId: c.userId,
+          companyName: c.companyName || 'İsimsiz Firma',
+          authorizedPerson: c.authorizedPersonName ? `${c.authorizedPersonName} ${c.authorizedPersonSurname || ''}`.trim() : undefined,
+          email: c.email || '—',
+          phone: c.phone || '—',
+          city: c.city || 'Belirtilmedi',
+          planId: c.planId || 'plan_starter',
+          verificationStatus: (c.verificationStatus as any) || 'PENDING',
+          joinedAt: c.joinedAt || c.createdAt || new Date().toISOString(),
+          rating: c.rating,
+          reviewCount: c.reviewCount,
+          slug: c.slug,
           source: 'Sistem Kaydı',
-          isSeed: u.isSeed
+          isSeed: c.isSeed
         });
-      }
-    });
+      });
 
-    // 3. Firestore carriers
-    firestoreCarriers.forEach(fc => {
-      const key = fc.email?.toLowerCase() || fc.id;
-      if (map.has(key)) {
-        const item = map.get(key)!;
-        item.source = 'Firestore';
-      } else {
-        map.set(key, {
-          id: fc.id,
-          userId: fc.userId,
-          companyName: fc.companyName,
-          authorizedPerson: fc.authorizedPersonName ? `${fc.authorizedPersonName} ${fc.authorizedPersonSurname || ''}`.trim() : undefined,
-          email: fc.email || '—',
-          phone: fc.phone || '—',
-          city: fc.city || 'Belirtilmedi',
-          planId: fc.planId || 'plan_starter',
-          verificationStatus: (fc.verificationStatus as any) || 'PENDING',
-          joinedAt: fc.joinedAt || fc.createdAt || new Date().toISOString(),
-          rating: fc.rating,
-          reviewCount: fc.reviewCount,
-          slug: fc.slug,
-          source: 'Firestore',
-          isSeed: fc.isSeed
-        });
-      }
-    });
+      // 2. Registered users who signed up as CARRIER
+      const regCarriers = showDemoData ? db.getRegisteredUsers() : db.getRealRegisteredUsers();
+      regCarriers.filter(u => u.role === 'CARRIER').forEach(u => {
+        const key = u.email?.toLowerCase() || u.id;
+        if (!map.has(key)) {
+          map.set(key, {
+            id: u.carrierId || `carr_${u.id}`,
+            userId: u.id,
+            companyName: u.companyName || u.fullName || 'Firma Adı Bekleniyor',
+            authorizedPerson: u.fullName || '—',
+            email: u.email || '—',
+            phone: u.phone || '—',
+            city: 'Profil Hazırlanıyor',
+            planId: 'plan_starter',
+            verificationStatus: 'PENDING',
+            joinedAt: u.createdAt || new Date().toISOString(),
+            source: 'Sistem Kaydı',
+            isSeed: u.isSeed
+          });
+        }
+      });
 
-    return Array.from(map.values()).filter(c => showDemoData || !c.isSeed);
+      // 3. Firestore carriers
+      firestoreCarriers.forEach(fc => {
+        const key = fc.email?.toLowerCase() || fc.id;
+        if (map.has(key)) {
+          const item = map.get(key)!;
+          item.source = 'Firestore';
+          if (fc.companyName) item.companyName = fc.companyName;
+          if (fc.phone) item.phone = fc.phone;
+          if (fc.city) item.city = fc.city;
+        } else {
+          map.set(key, {
+            id: fc.id,
+            userId: fc.userId,
+            companyName: fc.companyName || 'Firma Adı Bekleniyor',
+            authorizedPerson: fc.authorizedPersonName ? `${fc.authorizedPersonName} ${fc.authorizedPersonSurname || ''}`.trim() : undefined,
+            email: fc.email || '—',
+            phone: fc.phone || '—',
+            city: fc.city || 'Belirtilmedi',
+            planId: fc.planId || 'plan_starter',
+            verificationStatus: (fc.verificationStatus as any) || 'PENDING',
+            joinedAt: fc.joinedAt || fc.createdAt || new Date().toISOString(),
+            rating: fc.rating,
+            reviewCount: fc.reviewCount,
+            slug: fc.slug,
+            source: 'Firestore',
+            isSeed: fc.isSeed
+          });
+        }
+      });
+
+      return Array.from(map.values()).filter(c => showDemoData || !c.isSeed);
+    } catch (err) {
+      console.warn('Failed to compile carrier records:', err);
+      return [];
+    }
   }, [showDemoData, firestoreCarriers, refreshKey]);
 
   // Filtered Carriers
   const filteredCarriers = carriers.filter(c => {
-    const matchSearch = search === '' ||
-      c.companyName.toLowerCase().includes(search.toLowerCase()) ||
-      c.email?.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone.includes(search) ||
-      c.city.toLowerCase().includes(search.toLowerCase());
+    const q = (search || '').toLowerCase().trim();
+    const matchSearch = q === '' ||
+      (c.companyName || '').toLowerCase().includes(q) ||
+      (c.email || '').toLowerCase().includes(q) ||
+      (c.phone || '').includes(q) ||
+      (c.city || '').toLowerCase().includes(q);
     const matchPlan = planFilter === 'all' || c.planId === planFilter;
     const matchStatus = statusFilter === 'all' || c.verificationStatus === statusFilter;
     return matchSearch && matchPlan && matchStatus;
@@ -322,10 +345,11 @@ export default function UyelerPage() {
 
   // Filtered Customers
   const filteredCustomers = customers.filter(c => {
-    return search === '' ||
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      (c.email && c.email.toLowerCase().includes(search.toLowerCase())) ||
-      c.phone.includes(search);
+    const q = (search || '').toLowerCase().trim();
+    return q === '' ||
+      (c.name || '').toLowerCase().includes(q) ||
+      (c.email || '').toLowerCase().includes(q) ||
+      (c.phone || '').includes(q);
   });
 
   return (
@@ -580,7 +604,9 @@ export default function UyelerPage() {
                           </span>
                         </td>
                         <td className="px-5 py-4 text-slate-500 text-xs font-medium">
-                          {new Date(carrier.joinedAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          {carrier.joinedAt && !isNaN(new Date(carrier.joinedAt).getTime())
+                            ? new Date(carrier.joinedAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })
+                            : '—'}
                         </td>
                         <td className="px-5 py-4 text-right">
                           {carrier.verificationStatus === 'PENDING' ? (
@@ -632,9 +658,9 @@ export default function UyelerPage() {
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-black shrink-0">
-                            {cust.name.charAt(0).toUpperCase()}
+                            {(cust.name || 'M').charAt(0).toUpperCase()}
                           </div>
-                          <span className="font-bold text-[#0A1128]">{cust.name}</span>
+                          <span className="font-bold text-[#0A1128]">{cust.name || 'Müşteri'}</span>
                         </div>
                       </td>
                       <td className="px-5 py-4 font-bold text-slate-800">
@@ -658,7 +684,9 @@ export default function UyelerPage() {
                         {cust.cities.length > 0 ? cust.cities[cust.cities.length - 1] : '—'}
                       </td>
                       <td className="px-5 py-4 text-slate-500 text-xs font-medium">
-                        {new Date(cust.lastRequest).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {cust.lastRequest && !isNaN(new Date(cust.lastRequest).getTime())
+                          ? new Date(cust.lastRequest).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })
+                          : '—'}
                       </td>
                       <td className="px-5 py-4">
                         <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700">

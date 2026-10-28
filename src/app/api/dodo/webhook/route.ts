@@ -2,9 +2,42 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyDodoWebhookSignature } from '@/lib/dodo/client';
 import { db } from '@/lib/data/mock-db';
 import { updateFirestoreCarrier } from '@/lib/firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
 import nodemailer from 'nodemailer';
 
 export const dynamic = 'force-dynamic';
+
+// In-memory deduplication cache across serverless instance lifecycles
+const recentlySentPaymentEmailKeys = new Set<string>();
+
+async function hasPaymentEmailBeenSent(key: string): Promise<boolean> {
+  if (recentlySentPaymentEmailKeys.has(key)) return true;
+  if (!isFirebaseConfigured() || !firestoreDb) return false;
+  try {
+    const snap = await getDoc(doc(firestoreDb, 'sent_payment_emails', key));
+    return snap.exists();
+  } catch {
+    return false;
+  }
+}
+
+async function markPaymentEmailAsSent(key: string, data: any): Promise<void> {
+  recentlySentPaymentEmailKeys.add(key);
+  if (recentlySentPaymentEmailKeys.size > 2000) {
+    const first = recentlySentPaymentEmailKeys.values().next().value;
+    if (first) recentlySentPaymentEmailKeys.delete(first);
+  }
+  if (!isFirebaseConfigured() || !firestoreDb) return;
+  try {
+    await setDoc(doc(firestoreDb, 'sent_payment_emails', key), {
+      ...data,
+      sentAt: serverTimestamp(),
+    });
+  } catch (err: any) {
+    console.warn('[Dodo Webhook] markPaymentEmailAsSent warning:', err.message);
+  }
+}
 
 export async function GET() {
   return NextResponse.json({
@@ -124,61 +157,86 @@ export async function POST(req: NextRequest) {
         console.log(`[Dodo Webhook] Successfully activated ${targetPlanId} for carrier ${matchedCarrier.id}`);
       }
 
-      // Send confirmation email via SMTP
-      if (customerEmail && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      // Send confirmation email via SMTP (ONLY ONCE upon activation, never on repeated updates)
+      const isActivationEvent = 
+        eventType === 'subscription.active' || 
+        (eventType === 'payment.succeeded' && !eventData.subscription_id);
+
+      // Primary dedup key based on subscription or payment ID
+      const emailDedupKey = eventData.subscription_id 
+        ? `sub_${eventData.subscription_id}` 
+        : (eventData.payment_id ? `pay_${eventData.payment_id}` : `evt_${eventData.id || webhookId || customerEmail}`);
+
+      if (isActivationEvent && customerEmail && process.env.SMTP_USER && process.env.SMTP_PASS) {
         try {
-          const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST || 'mail.guzel.net.tr',
-            port: Number(process.env.SMTP_PORT) || 465,
-            secure: true,
-            auth: {
-              user: process.env.SMTP_USER,
-              pass: process.env.SMTP_PASS,
-            },
-          });
+          const alreadySent = await hasPaymentEmailBeenSent(emailDedupKey);
 
-          const planNames: Record<string, string> = {
-            starter: 'Başlangıç Paketi',
-            pro: 'Pro Paketi',
-            gold: 'Gold (En Üst) Paketi',
-          };
-          const friendlyPlanName = planNames[planKey] || 'Gold Paketi';
+          if (alreadySent) {
+            console.log(`[Dodo Webhook] Confirmation email already sent for ${emailDedupKey}, skipping duplicate notification.`);
+          } else {
+            const transporter = nodemailer.createTransport({
+              host: process.env.SMTP_HOST || 'mail.guzel.net.tr',
+              port: Number(process.env.SMTP_PORT) || 465,
+              secure: true,
+              auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+              },
+            });
 
-          await transporter.sendMail({
-            from: `"TaşınTeklif Ödeme Servisi" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-            to: customerEmail,
-            subject: `Ödemeniz Alındı — ${friendlyPlanName} Aboneliğiniz Aktif!`,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; rounded-radius: 12px;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                  <h1 style="color: #111E38; margin: 0; font-size: 24px;">TAŞIN<span style="color: #F95700;">TEKLİF</span></h1>
-                  <p style="color: #64748b; font-size: 13px; margin-top: 4px;">Güvenli Ödeme Doğrulaması (Dodo Payments)</p>
-                </div>
-                <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                  <p style="color: #065f46; font-weight: bold; margin: 0;">✅ Ödemeniz Başarıyla Alındı!</p>
-                  <p style="color: #047857; font-size: 14px; margin: 5px 0 0 0;">
-                    <strong>${friendlyPlanName}</strong> üyeliğiniz firmanıza başarıyla tanımlandı.
+            const planNames: Record<string, string> = {
+              starter: 'Başlangıç Paketi',
+              pro: 'Pro Paketi',
+              gold: 'Gold (En Üst) Paketi',
+            };
+            const friendlyPlanName = planNames[planKey] || 'Gold Paketi';
+
+            await transporter.sendMail({
+              from: `"TaşınTeklif Ödeme Servisi" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+              to: customerEmail,
+              subject: `Ödemeniz Alındı — ${friendlyPlanName} Aboneliğiniz Aktif!`,
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+                  <div style="text-align: center; margin-bottom: 20px;">
+                    <h1 style="color: #111E38; margin: 0; font-size: 24px;">TAŞIN<span style="color: #F95700;">TEKLİF</span></h1>
+                    <p style="color: #64748b; font-size: 13px; margin-top: 4px;">Güvenli Ödeme Doğrulaması (Dodo Payments)</p>
+                  </div>
+                  <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <p style="color: #065f46; font-weight: bold; margin: 0;">✅ Ödemeniz Başarıyla Alındı!</p>
+                    <p style="color: #047857; font-size: 14px; margin: 5px 0 0 0;">
+                      <strong>${friendlyPlanName}</strong> üyeliğiniz firmanıza başarıyla tanımlandı.
+                    </p>
+                  </div>
+                  <div style="font-size: 14px; color: #334155; line-height: 1.6;">
+                    <p>Sayın Yetkili,</p>
+                    <p>Dodo Payments altyapısı üzerinden gerçekleştirdiğiniz üyelik ödemesi onaylandı. Artık platform üzerindeki iş fırsatlarına teklif verebilir, doğrudan müşterilerle görüşebilirsiniz.</p>
+                    <div style="text-align: center; margin: 25px 0;">
+                      <a href="https://www.tasinteklif.com/app/carrier" style="background-color: #F95700; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">
+                        Nakliyeci Paneline Git →
+                      </a>
+                    </div>
+                  </div>
+                  <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+                  <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
+                    TaşınTeklif Teknoloji ve Bilişim Hizmetleri · Dodo Payments MoR Altyapısı
                   </p>
                 </div>
-                <div style="font-size: 14px; color: #334155; line-height: 1.6;">
-                  <p>Sayın Yetkili,</p>
-                  <p>Dodo Payments altyapısı üzerinden gerçekleştirdiğiniz üyelik ödemesi onaylandı. Artık platform üzerindeki iş fırsatlarına teklif verebilir, doğrudan müşterilerle görüşebilirsiniz.</p>
-                  <div style="text-align: center; margin: 25px 0;">
-                    <a href="https://www.tasinteklif.com/app/carrier" style="background-color: #F95700; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">
-                      Nakliyeci Paneline Git →
-                    </a>
-                  </div>
-                </div>
-                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
-                <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
-                  TaşınTeklif Teknoloji ve Bilişim Hizmetleri · Dodo Payments MoR Altyapısı
-                </p>
-              </div>
-            `,
-          });
-          console.log(`[Dodo Webhook] Confirmation email sent to ${customerEmail}`);
+              `,
+            });
+
+            await markPaymentEmailAsSent(emailDedupKey, {
+              customerEmail,
+              carrierId: matchedCarrier?.id,
+              planKey,
+              eventType,
+              subscriptionId: eventData.subscription_id || null,
+              paymentId: eventData.payment_id || null,
+            });
+
+            console.log(`[Dodo Webhook] Confirmation email sent successfully to ${customerEmail} (key: ${emailDedupKey})`);
+          }
         } catch (emailErr: any) {
-          console.warn('[Dodo Webhook] Failed to send email:', emailErr.message);
+          console.warn('[Dodo Webhook] Failed to process/send email:', emailErr.message);
         }
       }
     }

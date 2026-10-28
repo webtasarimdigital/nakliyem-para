@@ -146,7 +146,9 @@ export default function GelirPage() {
               sub: 'İptal eden abonelik',
               icon: TrendingDown,
               color: 'bg-red-50 text-red-500',
-              trend: `${Math.round(MOCK_CHURNS.length / approvedCarriers.length * 100)}% churn oranı`,
+              trend: approvedCarriers.length > 0 
+                ? `${Math.round((MOCK_CHURNS.length / approvedCarriers.length) * 100)}% churn oranı`
+                : '0% churn oranı',
               trendUp: false,
             },
           ].map((item) => (

@@ -294,15 +294,17 @@ export default function AdminDashboardPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href="/admin/uyeler">
-              <button className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:border-[#F95700] hover:text-[#F95700] transition-colors shadow-2xs cursor-pointer">
-                <Users className="w-3.5 h-3.5" /> Üye Yönetimi
-              </button>
+            <Link 
+              href="/admin/uyeler"
+              className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold hover:border-[#F95700] hover:text-[#F95700] transition-colors shadow-2xs cursor-pointer"
+            >
+              <Users className="w-3.5 h-3.5" /> Üye Yönetimi
             </Link>
-            <Link href="/admin/gelir">
-              <button className="flex items-center gap-1.5 bg-[#F95700] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#e04d00] transition-colors shadow-md shadow-orange-900/20 cursor-pointer">
-                <BarChart3 className="w-3.5 h-3.5" /> Gelir Raporu
-              </button>
+            <Link 
+              href="/admin/gelir"
+              className="flex items-center gap-1.5 bg-[#F95700] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#e04d00] transition-colors shadow-md shadow-orange-900/20 cursor-pointer"
+            >
+              <BarChart3 className="w-3.5 h-3.5" /> Gelir Raporu
             </Link>
           </div>
         </div>

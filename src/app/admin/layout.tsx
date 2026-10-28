@@ -38,7 +38,12 @@ export default function AdminRootLayout({
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-  const [isAdminAuth, setIsAdminAuth] = useState<boolean | null>(null);
+  const [isAdminAuth, setIsAdminAuth] = useState<boolean | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('admin_token_active') === 'true';
+    }
+    return null;
+  });
 
   useEffect(() => {
     const checkAuth = () => {
@@ -66,7 +71,9 @@ export default function AdminRootLayout({
           }
         })
         .catch(() => {
-          setIsAdminAuth(storedActive);
+          if (storedActive) {
+            setIsAdminAuth(true);
+          }
         });
     };
 
