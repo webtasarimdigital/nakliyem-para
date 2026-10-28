@@ -43,7 +43,7 @@ export const MobileCustomerNav: React.FC = () => {
     (pathname === '/nakliyeci' || pathname?.startsWith('/nakliyeci/')) ||
     (pathname === '/app/carrier' || pathname?.startsWith('/app/carrier/'));
 
-  if (isCarrierDashboard || pathname?.startsWith('/admin')) {
+  if (isCarrierDashboard || pathname?.startsWith('/admin') || pathname === '/bakim') {
     return null;
   }
 

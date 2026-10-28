@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { 
   X, 
   Send, 
@@ -83,6 +84,11 @@ export const openSupportChat = () => {
 };
 
 export const SupportChatWidget: React.FC = () => {
+  const pathname = usePathname();
+  if (pathname?.startsWith('/admin') || pathname === '/bakim') {
+    return null;
+  }
+
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [activeTab, setActiveTab] = useState<'AI' | 'FAQ' | 'EMAIL'>('AI');

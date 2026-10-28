@@ -8,7 +8,7 @@ import { openSupportChat } from '@/components/ui/SupportChatWidget';
 
 export const Footer: React.FC = () => {
   const pathname = usePathname();
-  if (pathname?.startsWith('/admin')) {
+  if (pathname?.startsWith('/admin') || pathname === '/bakim') {
     return null;
   }
 

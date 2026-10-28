@@ -78,8 +78,8 @@ export const Navbar: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Admin routes have their own dedicated admin header; hide public navbar
-  if (pathname?.startsWith('/admin')) {
+  // Admin routes and maintenance page have their own header/layout; hide public navbar
+  if (pathname?.startsWith('/admin') || pathname === '/bakim') {
     return null;
   }
 
