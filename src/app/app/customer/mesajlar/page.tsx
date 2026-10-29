@@ -208,17 +208,17 @@ function CustomerMessagesContent() {
       id: otherId || 'carrier_generic',
       userId: otherId || 'user_carr_generic',
       companyName: otherName,
-      city: 'İstanbul',
-      rating: 4.9,
-      reviewCount: 42,
-      slug: db.slugifyTurkish(otherName) || 'satici-firma',
-      phone: '0850 000 00 00',
-      verificationStatus: 'APPROVED' as const,
+      city: '',
+      rating: 0,
+      reviewCount: 0,
+      slug: db.slugifyTurkish(otherName) || 'nakliyat-firmasi',
+      phone: '',
+      verificationStatus: 'PENDING' as const,
       verificationBadges: {
-        identityVerified: true,
-        taxPlateVerified: true,
-        transportLicenseVerified: true,
-        phoneVerified: true,
+        identityVerified: false,
+        taxPlateVerified: false,
+        transportLicenseVerified: false,
+        phoneVerified: false,
       }
     };
   }, [activeConv, userId, currentUser?.id]);

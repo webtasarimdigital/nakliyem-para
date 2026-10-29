@@ -23,6 +23,8 @@ export interface RegisterParams {
   role: UserRole;
   fullName?: string;
   companyName?: string;
+  authorizedPersonName?: string;
+  authorizedPersonSurname?: string;
   city?: string;
   district?: string;
 }
@@ -64,10 +66,12 @@ export async function registerWithFirebase(params: RegisterParams): Promise<{ us
         userId: fbUser.uid,
         companyName: params.companyName,
         slug: params.companyName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        authorizedPersonName: params.authorizedPersonName || params.fullName || '',
+        authorizedPersonSurname: params.authorizedPersonSurname || '',
         phone: params.phone,
         email: params.email,
-        city: params.city || 'İstanbul',
-        district: params.district || 'Merkez',
+        city: params.city || '',
+        district: params.district || '',
         services: ['evden-eve'],
         serviceAreas: ['TÜM_TÜRKİYE'],
         verificationStatus: 'PENDING',
@@ -77,13 +81,13 @@ export async function registerWithFirebase(params: RegisterParams): Promise<{ us
           transportPermitVerified: false,
           elevatorVerified: false,
         },
-        planId: 'trial',
+        planId: 'plan_starter',
         isProfileCompleted: false,
-        rating: 5.0,
+        rating: 0,
         reviewCount: 0,
         completedJobsCount: 0,
         responseRatePercent: 100,
-        shortBio: `${params.companyName} - Güvenilir Şehirlerarası & Evden Eve Nakliyat`,
+        shortBio: '',
         joinedAt: new Date().toISOString(),
         createdAt: serverTimestamp(),
       });

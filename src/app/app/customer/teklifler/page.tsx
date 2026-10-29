@@ -238,11 +238,11 @@ function CustomerOffersContent() {
   const [chatData, setChatData] = useState({
     carrierId: '',
     carrierUserId: '',
-    carrierName: 'TaşınTeklif Nakliyat',
-    carrierSlug: 'tasinteklif-nakliyat',
-    requestId: activeReq?.requestCode || '#26093',
-    requestCode: activeReq?.requestCode || '#26093',
-    price: 25000
+    carrierName: '',
+    carrierSlug: '',
+    requestId: activeReq?.requestCode || '',
+    requestCode: activeReq?.requestCode || '',
+    price: 0
   });
 
   // Load offers dynamically for active request
@@ -1035,10 +1035,10 @@ function CustomerOffersContent() {
                   const isExpanded = expandedId === offer.id;
                   const isAccepted = offer.status === 'ACCEPTED';
                   const carrier = offer.carrier || {
-                    companyName: 'TaşınTeklif Onaylı Nakliyat',
-                    rating: 5.0,
-                    reviewCount: 1,
-                    verificationStatus: 'APPROVED'
+                    companyName: 'Nakliyat Firması',
+                    rating: 0,
+                    reviewCount: 0,
+                    verificationStatus: 'PENDING'
                   };
 
                   return (

@@ -92,6 +92,7 @@ export interface User {
   fullName?: string;
   companyName?: string;
   city?: string;
+  district?: string;
   carrierProfileId?: string;
   customerProfileId?: string;
   emailVerified?: boolean;

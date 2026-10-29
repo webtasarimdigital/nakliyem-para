@@ -9,6 +9,7 @@ import {
   Mail,
   Lock,
   User,
+  Building2,
   AlertCircle,
   Loader2,
   Clock,
@@ -53,6 +54,8 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
   const [tab, setTab] = useState<'REGISTER' | 'LOGIN'>('REGISTER');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [authorizedName, setAuthorizedName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -65,7 +68,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
   const [timeLeft, setTimeLeft] = useState(180); // 3 dakika = 180 sn
   const [resendCooldown, setResendCooldown] = useState(0);
   const [otpSuccessMsg, setOtpSuccessMsg] = useState('');
-  const [otpChannel, setOtpChannel] = useState<'sms' | 'email' | 'screen'>('email');
+  const [otpChannel, setOtpChannel] = useState<'sms' | 'email' | 'screen'>('sms');
 
   const isCarrier = targetRole === 'CARRIER';
 
@@ -109,8 +112,10 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
       if (savedEmail) setEmail(prev => prev || savedEmail);
       const savedCompany = localStorage.getItem('tasin_registered_company');
       const savedName = localStorage.getItem('tasin_registered_name');
-      if (isCarrier && savedCompany) setName(prev => prev || savedCompany);
-      else if (!isCarrier && savedName) setName(prev => prev || savedName);
+      const savedAuthName = localStorage.getItem('tasin_registered_auth_name');
+      if (savedCompany) setCompanyName(prev => prev || savedCompany);
+      if (savedAuthName) setAuthorizedName(prev => prev || savedAuthName);
+      if (savedName) setName(prev => prev || savedName);
     }
   }, [isOpen, isCarrier]);
 
@@ -152,7 +157,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
           id: newUserId,
           email: 'google.hesabi@gmail.com',
           fullName: isCarrier ? undefined : 'Google Kullanıcısı',
-          companyName: isCarrier ? 'Google Onaylı Nakliyat' : undefined,
+          companyName: isCarrier ? 'Nakliyat Firması' : undefined,
           phone: '',
           role: targetRole,
           carrierProfileId: newCarrierId,
@@ -164,26 +169,26 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
           db.addCarrier({
             id: newCarrierId!,
             userId: newUserId,
-            companyName: 'Google Onaylı Nakliyat',
-            slug: 'google-onayli-nakliyat',
-            authorizedPersonName: 'Firma Yetkilisi',
+            companyName: 'Nakliyat Firması',
+            slug: `nakliyat-${Date.now()}`,
+            authorizedPersonName: '',
             authorizedPersonSurname: '',
             phone: '',
             email: 'google.hesabi@gmail.com',
-            shortBio: 'TaşınTeklif onaylı nakliyat firması.',
-            city: 'İstanbul',
-            district: 'Kadıköy',
-            services: ['evden-eve', 'ofis-tasima'],
+            shortBio: '',
+            city: '',
+            district: '',
+            services: ['evden-eve'],
             serviceAreas: ['TÜM_TÜRKİYE'],
-            verificationStatus: 'APPROVED',
+            verificationStatus: 'PENDING',
             verificationBadges: {
-              identityVerified: true,
-              taxVerified: true,
-              transportPermitVerified: true,
-              elevatorVerified: true,
+              identityVerified: false,
+              taxVerified: false,
+              transportPermitVerified: false,
+              elevatorVerified: false,
             },
             planId: 'plan_starter',
-            rating: 5.0,
+            rating: 0,
             reviewCount: 0,
             completedJobsCount: 0,
             responseRatePercent: 100,
@@ -221,10 +226,26 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
     setErrorMessage('');
     setOtpSuccessMsg('');
 
-    const cleanName = name.trim();
-    if (!cleanName) {
-      setErrorMessage(isCarrier ? 'Lütfen firma adınızı giriniz.' : 'Lütfen adınızı ve soyadınızı giriniz.');
-      return;
+    let cleanName = '';
+    let cleanCompany: string | undefined = undefined;
+
+    if (isCarrier) {
+      if (!companyName.trim()) {
+        setErrorMessage('Lütfen firma (şirket / ticari ünvan) adınızı giriniz.');
+        return;
+      }
+      if (!authorizedName.trim()) {
+        setErrorMessage('Lütfen firma yetkilisi ad ve soyadını giriniz.');
+        return;
+      }
+      cleanName = authorizedName.trim();
+      cleanCompany = companyName.trim();
+    } else {
+      if (!name.trim()) {
+        setErrorMessage('Lütfen adınızı ve soyadınızı giriniz.');
+        return;
+      }
+      cleanName = name.trim();
     }
 
     const phoneValidation = validatePhoneNumber(phone);
@@ -280,7 +301,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
           phone: cleanPhone,
           name: cleanName,
           role: targetRole,
-          companyName: isCarrier ? cleanName : undefined,
+          companyName: cleanCompany,
         }),
       });
 
@@ -332,15 +353,18 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
     setOtpSuccessMsg('');
 
     try {
+      const cleanName = isCarrier ? authorizedName.trim() : name.trim();
+      const cleanCompany = isCarrier ? companyName.trim() : undefined;
+
       const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email.trim(),
           phone: normalizePhoneNumber(phone),
-          name: name.trim(),
+          name: cleanName,
           role: targetRole,
-          companyName: isCarrier ? name.trim() : undefined,
+          companyName: cleanCompany,
         }),
       });
 
@@ -400,18 +424,33 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
       }
 
       // 2. Kod doğrulandı! Firebase / Mock DB kaydı
-      const cleanName = name.trim() || (isCarrier ? 'Nakliyat Firması' : 'Değerli Müşterimiz');
+      const cleanAuthorized = authorizedName.trim();
+      const cleanCompany = companyName.trim();
+      const cleanCustomerName = name.trim() || 'Değerli Müşterimiz';
+      const cleanPhone = normalizePhoneNumber(phone);
       const newUserId = `user_${Date.now()}`;
       const newCarrierId = isCarrier ? `carr_${Date.now()}` : undefined;
+
+      let authFirst = cleanAuthorized;
+      let authLast = '';
+      if (isCarrier && cleanAuthorized) {
+        const parts = cleanAuthorized.split(' ');
+        if (parts.length > 1) {
+          authLast = parts.pop() || '';
+          authFirst = parts.join(' ');
+        }
+      }
 
       if (isFirebaseConfigured()) {
         const res = await registerWithFirebase({
           email,
           password,
-          phone: phone.trim(),
+          phone: cleanPhone,
           role: targetRole,
-          fullName: !isCarrier ? cleanName : undefined,
-          companyName: isCarrier ? cleanName : undefined,
+          fullName: !isCarrier ? cleanCustomerName : cleanAuthorized,
+          companyName: isCarrier ? cleanCompany : undefined,
+          authorizedPersonName: isCarrier ? authFirst : undefined,
+          authorizedPersonSurname: isCarrier ? authLast : undefined,
         });
 
         if (res.error) {
@@ -438,10 +477,10 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
         const newUser = {
           id: newUserId,
           email,
-          phone: phone.trim(),
+          phone: cleanPhone,
           role: targetRole,
-          fullName: !isCarrier ? cleanName : undefined,
-          companyName: isCarrier ? cleanName : undefined,
+          fullName: !isCarrier ? cleanCustomerName : cleanAuthorized,
+          companyName: isCarrier ? cleanCompany : undefined,
           carrierProfileId: newCarrierId,
           createdAt: new Date().toISOString(),
         };
@@ -456,26 +495,26 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
           db.addCarrier({
             id: newCarrierId!,
             userId: newUserId,
-            companyName: cleanName,
-            slug: cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-            authorizedPersonName: cleanName,
-            authorizedPersonSurname: '',
-            phone: phone.trim(),
+            companyName: cleanCompany || 'Nakliyat Firması',
+            slug: (cleanCompany || 'nakliyat-firmasi').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            authorizedPersonName: authFirst,
+            authorizedPersonSurname: authLast,
+            phone: cleanPhone,
             email,
-            shortBio: 'TaşınTeklif onaylı nakliyat firması.',
-            city: 'İstanbul',
-            district: 'Kadıköy',
-            services: ['evden-eve', 'ofis-tasima'],
+            shortBio: '',
+            city: '',
+            district: '',
+            services: ['evden-eve'],
             serviceAreas: ['TÜM_TÜRKİYE'],
-            verificationStatus: 'APPROVED',
+            verificationStatus: 'PENDING',
             verificationBadges: {
-              identityVerified: true,
-              taxVerified: true,
-              transportPermitVerified: true,
-              elevatorVerified: true,
+              identityVerified: false,
+              taxVerified: false,
+              transportPermitVerified: false,
+              elevatorVerified: false,
             },
             planId: 'plan_starter',
-            rating: 5.0,
+            rating: 0,
             reviewCount: 0,
             completedJobsCount: 0,
             responseRatePercent: 100,
@@ -493,22 +532,26 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          name: cleanName,
+          name: isCarrier ? cleanAuthorized : cleanCustomerName,
           role: targetRole,
-          companyName: isCarrier ? cleanName : undefined,
+          companyName: isCarrier ? cleanCompany : undefined,
         }),
       }).catch(err => console.warn(err));
 
       if (typeof window !== 'undefined') {
-        const cleanP = phone.trim();
+        const cleanP = cleanPhone;
         if (cleanP) {
           localStorage.setItem('tasin_registered_phone', cleanP);
           localStorage.setItem('tasin_carrier_phone', cleanP);
           localStorage.setItem('tasin_phone', cleanP);
         }
         if (email) localStorage.setItem('tasin_registered_email', email.trim());
-        if (isCarrier && cleanName) localStorage.setItem('tasin_registered_company', cleanName);
-        else if (!isCarrier && cleanName) localStorage.setItem('tasin_registered_name', cleanName);
+        if (isCarrier) {
+          if (cleanCompany) localStorage.setItem('tasin_registered_company', cleanCompany);
+          if (cleanAuthorized) localStorage.setItem('tasin_registered_auth_name', cleanAuthorized);
+        } else if (cleanCustomerName) {
+          localStorage.setItem('tasin_registered_name', cleanCustomerName);
+        }
         window.dispatchEvent(new Event('auth-changed'));
         window.dispatchEvent(new Event('storage'));
       }
@@ -578,9 +621,9 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
           email,
           phone: '',
           role: targetRole,
-          fullName: isCarrier ? undefined : 'Değerli Müşterimiz',
-          companyName: isCarrier ? 'TaşınTeklif Nakliyat' : undefined,
-          carrierProfileId: isCarrier ? 'carr_bogazici' : undefined,
+          fullName: isCarrier ? undefined : 'Kullanıcı',
+          companyName: isCarrier ? 'Nakliyat Firması' : undefined,
+          carrierProfileId: isCarrier ? `carr_${Date.now()}` : undefined,
           createdAt: new Date().toISOString(),
         };
 
@@ -684,10 +727,10 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
                 {otpChannel === 'sms' ? <Smartphone className="w-5 h-5" /> : <KeyRound className="w-5 h-5" />}
               </div>
               <h3 className="text-sm font-black text-[#111E38]">
-                {otpChannel === 'sms' ? 'Telefon (SMS) Onay Kodu' : 'E-Posta Doğrulama Kodu'}
+                {otpChannel === 'sms' || phone ? 'Telefon (SMS) Onay Kodu' : 'E-Posta Doğrulama Kodu'}
               </h3>
               <p className="text-xs text-slate-600 font-medium">
-                {otpChannel === 'sms' ? (
+                {otpChannel === 'sms' || phone ? (
                   <>
                     <strong className="text-[#111E38] font-bold">{formatPhoneNumber(phone)}</strong> numaralı telefonunuza SMS ile 6 haneli güvenlik kodu gönderdik.
                   </>
@@ -746,7 +789,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
                 className="text-slate-500 hover:text-slate-800 font-semibold flex items-center gap-1 cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                E-postayı Değiştir
+                {otpChannel === 'sms' || phone ? 'Telefonu Değiştir' : 'E-postayı Değiştir'}
               </button>
 
               <button
@@ -881,22 +924,83 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
               )}
 
               {tab === 'REGISTER' && (
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    {isCarrier ? 'Firma Adı veya Yetkili Adı *' : 'Adınız Soyadınız *'}
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder={isCarrier ? 'Örn: Murat Kaya / Kaya Nakliyat' : 'Örn: Ahmet Yılmaz'}
-                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:border-[#F95700] focus:outline-none"
-                    />
-                    <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  </div>
-                </div>
+                <>
+                  {isCarrier ? (
+                    <>
+                      {/* Firma Adı (Şirket / Ticari Ünvan) */}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          Firma Adı (Şirket / Ticari Ünvan) *
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            required
+                            value={companyName}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setCompanyName(val);
+                              if (typeof window !== 'undefined') {
+                                localStorage.setItem('tasin_registered_company', val);
+                              }
+                            }}
+                            placeholder="Örn: Asil Nakliyat Ltd. Şti."
+                            className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:border-[#F95700] focus:outline-none"
+                          />
+                          <Building2 className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        </div>
+                      </div>
+
+                      {/* Firma Yetkilisi Adı ve Soyadı */}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          Firma Yetkilisi Adı ve Soyadı *
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            required
+                            value={authorizedName}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setAuthorizedName(val);
+                              if (typeof window !== 'undefined') {
+                                localStorage.setItem('tasin_registered_auth_name', val);
+                              }
+                            }}
+                            placeholder="Örn: Ahmet Yılmaz"
+                            className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:border-[#F95700] focus:outline-none"
+                          />
+                          <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    /* Müşteri Ad Soyad */
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Adınız Soyadınız *
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          value={name}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setName(val);
+                            if (typeof window !== 'undefined') {
+                              localStorage.setItem('tasin_registered_name', val);
+                            }
+                          }}
+                          placeholder="Örn: Ahmet Yılmaz"
+                          className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:border-[#F95700] focus:outline-none"
+                        />
+                        <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
               {tab === 'REGISTER' && (
@@ -987,7 +1091,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
                 <>
                   <div className="p-2.5 bg-orange-50/70 rounded-xl border border-orange-100 flex items-center gap-2 text-[11px] text-[#111E38] font-medium">
                     <Clock className="w-3.5 h-3.5 text-[#F95700] shrink-0" />
-                    <span>Kaydınızı tamamlamak için e-postanıza 3 dakikalık onay kodu gönderilecektir.</span>
+                    <span>Kaydınızı tamamlamak için telefonunuza SMS ile 3 dakikalık onay kodu gönderilecektir.</span>
                   </div>
 
                   {/* Yasal Onaylar ve Rıza Metinleri */}

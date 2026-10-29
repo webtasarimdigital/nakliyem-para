@@ -70,11 +70,11 @@ function OdemeSonucContent() {
           }
         } else {
           // Normal ödeme / paket yenileme
-          db.updateCarrier(carrier.id, { planId: targetPlanId, verificationStatus: 'APPROVED', trialStatus: 'CONVERTED' });
+          db.updateCarrier(carrier.id, { planId: targetPlanId, trialStatus: 'CONVERTED' });
           db.renewCarrierSubscription(carrier.id);
           const updated = db.getCarrierById(carrier.id);
           setCarrierData(updated);
-          updateFirestoreCarrier(carrier.id, { planId: targetPlanId, verificationStatus: 'APPROVED' }).catch(() => {});
+          updateFirestoreCarrier(carrier.id, { planId: targetPlanId, trialStatus: 'CONVERTED' }).catch(() => {});
         }
       }
     }

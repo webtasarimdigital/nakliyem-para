@@ -76,6 +76,11 @@ function KayitContent() {
     if (pCompany) {
       setCompanyName(pCompany);
     }
+
+    if (typeof window !== 'undefined') {
+      const savedAuth = localStorage.getItem('tasin_registered_auth_name');
+      if (savedAuth) setAuthorizedName(savedAuth);
+    }
   }, [searchParams]);
 
   // Form fields
@@ -111,6 +116,7 @@ function KayitContent() {
 
   // Carrier specific
   const [companyName, setCompanyName] = useState('');
+  const [authorizedName, setAuthorizedName] = useState('');
 
   // ── OTP Email Doğrulama Durumu (3 Dakika Süreli) ──
   const [step, setStep] = useState<'FORM' | 'OTP'>('FORM');
@@ -144,7 +150,7 @@ function KayitContent() {
 
   // Sayfa yenilenirse veya geri gelinirse bekleyen telefon doğrulama oturumunu geri yükle
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window !== 'undefined') return;
     try {
       const saved = sessionStorage.getItem('pending_registration_session');
       if (saved) {
@@ -155,6 +161,7 @@ function KayitContent() {
           if (parsed.phone) setPhone(parsed.phone);
           if (parsed.name) setName(parsed.name);
           if (parsed.companyName) setCompanyName(parsed.companyName);
+          if (parsed.authorizedName) setAuthorizedName(parsed.authorizedName);
           if (parsed.password) setPassword(parsed.password);
           if (parsed.role) setRole(parsed.role);
           if (parsed.otpChannel) setOtpChannel(parsed.otpChannel);
@@ -229,14 +236,20 @@ function KayitContent() {
     setRoleMismatch(null);
     setAlreadyRegistered(null);
 
-    if (isCarrier && !companyName.trim()) {
-      setErrorMessage('Lütfen firma adınızı giriniz.');
-      return;
-    }
-
-    if (!isCarrier && !name.trim()) {
-      setErrorMessage('Lütfen ad ve soyadınızı giriniz.');
-      return;
+    if (isCarrier) {
+      if (!companyName.trim()) {
+        setErrorMessage('Lütfen firma (şirket / ticari ünvan) adınızı giriniz.');
+        return;
+      }
+      if (!authorizedName.trim()) {
+        setErrorMessage('Lütfen firma yetkilisi ad ve soyadını giriniz.');
+        return;
+      }
+    } else {
+      if (!name.trim()) {
+        setErrorMessage('Lütfen ad ve soyadınızı giriniz.');
+        return;
+      }
     }
 
     const phoneValidation = validatePhoneNumber(phone);
@@ -365,7 +378,7 @@ function KayitContent() {
         body: JSON.stringify({
           email: cleanEmail,
           phone: cleanPhone,
-          name: isCarrier ? companyName.trim() : name.trim(),
+          name: isCarrier ? authorizedName.trim() : name.trim(),
           role: isCarrier ? 'CARRIER' : 'CUSTOMER',
           companyName: isCarrier ? companyName.trim() : undefined,
         }),
@@ -435,6 +448,7 @@ function KayitContent() {
           phone: cleanPhone,
           name: name.trim(),
           companyName: companyName.trim(),
+          authorizedName: authorizedName.trim(),
           password,
           role,
           otpChannel: data.channel || 'sms',
@@ -465,7 +479,7 @@ function KayitContent() {
         body: JSON.stringify({
           email: cleanEmail,
           phone: cleanPhone,
-          name: isCarrier ? companyName.trim() : name.trim(),
+          name: isCarrier ? authorizedName.trim() : name.trim(),
           role: isCarrier ? 'CARRIER' : 'CUSTOMER',
           companyName: isCarrier ? companyName.trim() : undefined,
         }),
@@ -538,6 +552,16 @@ function KayitContent() {
       const newUserId = `user_${Date.now()}`;
       const newCarrierId = isCarrier ? `carr_${Date.now()}` : undefined;
 
+      let authFirst = authorizedName.trim();
+      let authLast = '';
+      if (isCarrier && authFirst) {
+        const parts = authFirst.split(' ');
+        if (parts.length > 1) {
+          authLast = parts.pop() || '';
+          authFirst = parts.join(' ');
+        }
+      }
+
       // Save to mock db
       db.addRegisteredUser({
         id: newUserId,
@@ -545,7 +569,7 @@ function KayitContent() {
         phone: phone.trim(),
         password,
         role: isCarrier ? 'CARRIER' : 'CUSTOMER',
-        fullName: isCarrier ? undefined : name,
+        fullName: isCarrier ? authorizedName.trim() : name,
         companyName: isCarrier ? companyName : undefined,
         carrierId: newCarrierId,
         createdAt: new Date().toISOString(),
@@ -562,14 +586,14 @@ function KayitContent() {
         db.addCarrier({
           id: newCarrierId!,
           userId: newUserId,
-          companyName: companyName,
-          slug: companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          authorizedPersonName: companyName,
-          authorizedPersonSurname: '',
+          companyName: companyName.trim(),
+          slug: companyName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          authorizedPersonName: authFirst,
+          authorizedPersonSurname: authLast,
           phone: phone.trim(),
           email,
           shortBio: '',
-          city: 'İstanbul',
+          city: '',
           district: '',
           services: ['evden-eve'],
           serviceAreas: ['TÜM_TÜRKİYE'],
@@ -581,8 +605,8 @@ function KayitContent() {
             elevatorVerified: false,
           },
           isProfileCompleted: false,
-          planId: 'trial',
-          rating: 5.0,
+          planId: 'plan_starter',
+          rating: 0,
           reviewCount: 0,
           completedJobsCount: 0,
           responseRatePercent: 100,
@@ -597,8 +621,10 @@ function KayitContent() {
           password,
           phone: phone.trim(),
           role: isCarrier ? 'CARRIER' : 'CUSTOMER',
-          fullName: isCarrier ? undefined : name,
-          companyName: isCarrier ? companyName : undefined,
+          fullName: isCarrier ? authorizedName.trim() : name,
+          companyName: isCarrier ? companyName.trim() : undefined,
+          authorizedPersonName: isCarrier ? authFirst : undefined,
+          authorizedPersonSurname: isCarrier ? authLast : undefined,
         });
 
         if (error) {
@@ -627,7 +653,7 @@ function KayitContent() {
           email,
           phone: phone.trim(),
           role: isCarrier ? 'CARRIER' : 'CUSTOMER',
-          fullName: isCarrier ? undefined : name,
+          fullName: isCarrier ? authorizedName.trim() : name,
           companyName: isCarrier ? companyName : undefined,
           carrierProfileId: newCarrierId,
           createdAt: new Date().toISOString(),
@@ -640,7 +666,7 @@ function KayitContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          name: isCarrier ? companyName : name,
+          name: isCarrier ? authorizedName.trim() : name,
           role: isCarrier ? 'CARRIER' : 'CUSTOMER',
           companyName: isCarrier ? companyName : undefined,
         }),
@@ -654,8 +680,12 @@ function KayitContent() {
           localStorage.setItem('tasin_phone', cleanP);
         }
         if (email) localStorage.setItem('tasin_registered_email', email.trim());
-        if (companyName) localStorage.setItem('tasin_registered_company', companyName.trim());
-        if (name) localStorage.setItem('tasin_registered_name', name.trim());
+        if (isCarrier) {
+          if (companyName.trim()) localStorage.setItem('tasin_registered_company', companyName.trim());
+          if (authorizedName.trim()) localStorage.setItem('tasin_registered_auth_name', authorizedName.trim());
+        } else if (name) {
+          localStorage.setItem('tasin_registered_name', name.trim());
+        }
         window.dispatchEvent(new Event('auth-changed'));
         window.dispatchEvent(new Event('storage'));
       }
@@ -1172,22 +1202,51 @@ function KayitContent() {
                   {/* Single Column Inputs for mobile */}
                   <div className="space-y-3">
                     {isCarrier ? (
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                          Firma Adı (Ticari Ünvan)
-                        </label>
-                        <div className="relative">
-                          <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                          <input
-                            type="text"
-                            value={companyName}
-                            onChange={e => setCompanyName(e.target.value)}
-                            placeholder="Boğaziçi Nakliyat Ltd. Şti."
-                            required
-                            className="w-full border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
-                          />
+                      <>
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Firma Adı (Şirket / Ticari Ünvan) *
+                          </label>
+                          <div className="relative">
+                            <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <input
+                              type="text"
+                              value={companyName}
+                              onChange={e => {
+                                setCompanyName(e.target.value);
+                                if (typeof window !== 'undefined') {
+                                  localStorage.setItem('tasin_registered_company', e.target.value);
+                                }
+                              }}
+                              placeholder="Örn: Asil Nakliyat Ltd. Şti."
+                              required
+                              className="w-full border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
+                            />
+                          </div>
                         </div>
-                      </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Firma Yetkilisi Adı ve Soyadı *
+                          </label>
+                          <div className="relative">
+                            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <input
+                              type="text"
+                              value={authorizedName}
+                              onChange={e => {
+                                setAuthorizedName(e.target.value);
+                                if (typeof window !== 'undefined') {
+                                  localStorage.setItem('tasin_registered_auth_name', e.target.value);
+                                }
+                              }}
+                              placeholder="Örn: Ahmet Yılmaz"
+                              required
+                              className="w-full border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
+                            />
+                          </div>
+                        </div>
+                      </>
                     ) : (
                       <div>
                         <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">

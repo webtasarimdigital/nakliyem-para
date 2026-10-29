@@ -1416,8 +1416,8 @@ class MockDatabase {
       phone: user.phone || '',
       email: user.email,
       shortBio: '',
-      city: 'İstanbul',
-      district: '',
+      city: (user as any).city || '',
+      district: (user as any).district || '',
       services: ['evden-eve'],
       serviceAreas: ['TÜM_TÜRKİYE'],
       verificationStatus: 'PENDING',
@@ -1427,14 +1427,15 @@ class MockDatabase {
         transportPermitVerified: false,
         elevatorVerified: false
       },
-      planId: 'trial',
+      planId: 'plan_starter',
       isProfileCompleted: Boolean(user.companyName && user.phone),
-      rating: 5.0,
+      rating: 0,
       reviewCount: 0,
       completedJobsCount: 0,
       responseRatePercent: 100,
       joinedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      isSeed: false
     };
     this.addCarrier(newCarrier);
     return newCarrier;

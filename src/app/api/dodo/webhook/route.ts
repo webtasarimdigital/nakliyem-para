@@ -142,14 +142,12 @@ export async function POST(req: NextRequest) {
       if (matchedCarrier) {
         db.updateCarrier(matchedCarrier.id, {
           planId: targetPlanId,
-          verificationStatus: 'APPROVED',
         });
         db.renewCarrierSubscription(matchedCarrier.id);
 
         // Also sync to Firestore if enabled
         updateFirestoreCarrier(matchedCarrier.id, {
           planId: targetPlanId,
-          verificationStatus: 'APPROVED',
         }).catch(err => {
           console.warn('[Dodo Webhook] Firestore sync warning:', err.message);
         });
