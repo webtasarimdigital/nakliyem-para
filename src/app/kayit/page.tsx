@@ -23,7 +23,14 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { registerWithFirebase, loginWithGoogleFirebase, checkEmailAlreadyRegistered, sendPasswordResetFirebase } from '@/lib/firebase/auth';
+import { 
+  registerWithFirebase, 
+  loginWithGoogleFirebase, 
+  checkEmailAlreadyRegistered, 
+  checkEmailAlreadyRegisteredWithRole, 
+  sendPasswordResetFirebase,
+  logoutFirebase
+} from '@/lib/firebase/auth';
 import { isFirebaseConfigured } from '@/lib/firebase/config';
 import { db } from '@/lib/data/mock-db';
 import { validateEmailAddress } from '@/lib/validation/email';
@@ -52,6 +59,18 @@ function KayitContent() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [alreadyRegistered, setAlreadyRegistered] = useState<string | null>(null);
+  const [roleMismatch, setRoleMismatch] = useState<{
+    expected: 'CUSTOMER' | 'CARRIER';
+    actual: 'CUSTOMER' | 'CARRIER';
+    email: string;
+  } | null>(null);
+
+  const switchRole = (newRole: 'musteri' | 'nakliyeci') => {
+    setRole(newRole);
+    setRoleMismatch(null);
+    setAlreadyRegistered(null);
+    setErrorMessage('');
+  };
 
   // Carrier specific
   const [companyName, setCompanyName] = useState('');
@@ -91,6 +110,8 @@ function KayitContent() {
   const handleRealGoogleRegister = async () => {
     setLoading(true);
     setErrorMessage('');
+    setRoleMismatch(null);
+    setAlreadyRegistered(null);
     const targetRole = isCarrier ? 'CARRIER' : 'CUSTOMER';
     const res = await loginWithGoogleFirebase(targetRole);
     setLoading(false);
@@ -103,6 +124,22 @@ function KayitContent() {
     // Kullanıcı popup'ı kapattı — sessizce iptal et
     if (!res.user) {
       return;
+    }
+
+    // Google ile kayıt olmaya çalışırken rol uyuşmazlığı kontrolü
+    if (!res.user.isMasterUser) {
+      if (res.user.role === 'CARRIER' && !isCarrier) {
+        await logoutFirebase();
+        setRoleMismatch({ expected: 'CUSTOMER', actual: 'CARRIER', email: res.user.email });
+        if (typeof window !== 'undefined') window.scrollTo({ top: 100, behavior: 'smooth' });
+        return;
+      }
+      if (res.user.role === 'CUSTOMER' && isCarrier) {
+        await logoutFirebase();
+        setRoleMismatch({ expected: 'CARRIER', actual: 'CUSTOMER', email: res.user.email });
+        if (typeof window !== 'undefined') window.scrollTo({ top: 100, behavior: 'smooth' });
+        return;
+      }
     }
 
     db.setCurrentUser(res.user);
@@ -122,6 +159,8 @@ function KayitContent() {
     e.preventDefault();
     setErrorMessage('');
     setOtpSuccessMsg('');
+    setRoleMismatch(null);
+    setAlreadyRegistered(null);
 
     if (isCarrier && !companyName.trim()) {
       setErrorMessage('Lütfen firma adınızı giriniz.');
@@ -159,9 +198,22 @@ function KayitContent() {
 
     setLoading(true);
 
-    // Fast local check if user exists
+    // Fast local check if user exists (E-posta ile rol uyuşmazlığı kontrolü)
     const localUser = db.getUserByEmail(cleanEmail) || db.getRegisteredUserByEmail(cleanEmail);
-    if (localUser) {
+    if (localUser && !localUser.isMasterUser) {
+      if (localUser.role === 'CARRIER' && !isCarrier) {
+        setRoleMismatch({ expected: 'CUSTOMER', actual: 'CARRIER', email: cleanEmail });
+        setLoading(false);
+        if (typeof window !== 'undefined') window.scrollTo({ top: 100, behavior: 'smooth' });
+        return;
+      }
+      if (localUser.role === 'CUSTOMER' && isCarrier) {
+        setRoleMismatch({ expected: 'CARRIER', actual: 'CUSTOMER', email: cleanEmail });
+        setLoading(false);
+        if (typeof window !== 'undefined') window.scrollTo({ top: 100, behavior: 'smooth' });
+        return;
+      }
+
       setAlreadyRegistered(cleanEmail);
       sendPasswordResetFirebase(cleanEmail).catch(console.warn);
       setLoading(false);
@@ -171,13 +223,42 @@ function KayitContent() {
       return;
     }
 
-    // Pre-check if email already exists in Firebase Auth (Google login or previous signup)
+    // Fast local phone check (Telefon ile rol uyuşmazlığı kontrolü)
+    const localPhoneUser = db.getUserByPhone(cleanPhone);
+    if (localPhoneUser && !localPhoneUser.isMasterUser) {
+      if (localPhoneUser.role === 'CARRIER' && !isCarrier) {
+        setRoleMismatch({ expected: 'CUSTOMER', actual: 'CARRIER', email: localPhoneUser.email || cleanEmail });
+        setLoading(false);
+        if (typeof window !== 'undefined') window.scrollTo({ top: 100, behavior: 'smooth' });
+        return;
+      }
+      if (localPhoneUser.role === 'CUSTOMER' && isCarrier) {
+        setRoleMismatch({ expected: 'CARRIER', actual: 'CUSTOMER', email: localPhoneUser.email || cleanEmail });
+        setLoading(false);
+        if (typeof window !== 'undefined') window.scrollTo({ top: 100, behavior: 'smooth' });
+        return;
+      }
+    }
+
+    // Pre-check if email already exists in Firebase Auth & Firestore
     if (isFirebaseConfigured()) {
       try {
-        const isRegistered = await checkEmailAlreadyRegistered(cleanEmail);
-        if (isRegistered) {
+        const checkResult = await checkEmailAlreadyRegisteredWithRole(cleanEmail);
+        if (checkResult.exists) {
+          if (checkResult.role === 'CARRIER' && !isCarrier) {
+            setRoleMismatch({ expected: 'CUSTOMER', actual: 'CARRIER', email: cleanEmail });
+            setLoading(false);
+            if (typeof window !== 'undefined') window.scrollTo({ top: 100, behavior: 'smooth' });
+            return;
+          }
+          if (checkResult.role === 'CUSTOMER' && isCarrier) {
+            setRoleMismatch({ expected: 'CARRIER', actual: 'CUSTOMER', email: cleanEmail });
+            setLoading(false);
+            if (typeof window !== 'undefined') window.scrollTo({ top: 100, behavior: 'smooth' });
+            return;
+          }
+
           setAlreadyRegistered(cleanEmail);
-          // Automatically trigger password reset email per user request
           await sendPasswordResetFirebase(cleanEmail).catch(console.warn);
           setLoading(false);
           if (typeof window !== 'undefined') {
@@ -205,7 +286,20 @@ function KayitContent() {
 
       const data = await res.json();
 
-      if (res.status === 409 || data.error === 'ALREADY_REGISTERED') {
+      if (res.status === 409) {
+        if (data.error === 'ROLE_MISMATCH_CARRIER' || data.existingRole === 'CARRIER') {
+          setRoleMismatch({ expected: 'CUSTOMER', actual: 'CARRIER', email: cleanEmail });
+          setLoading(false);
+          if (typeof window !== 'undefined') window.scrollTo({ top: 100, behavior: 'smooth' });
+          return;
+        }
+        if (data.error === 'ROLE_MISMATCH_CUSTOMER' || data.existingRole === 'CUSTOMER') {
+          setRoleMismatch({ expected: 'CARRIER', actual: 'CUSTOMER', email: cleanEmail });
+          setLoading(false);
+          if (typeof window !== 'undefined') window.scrollTo({ top: 100, behavior: 'smooth' });
+          return;
+        }
+
         setAlreadyRegistered(cleanEmail);
         await sendPasswordResetFirebase(cleanEmail).catch(console.warn);
         setLoading(false);
@@ -706,7 +800,7 @@ function KayitContent() {
                 <div className="flex p-1 bg-slate-100 rounded-full">
                   <button
                     type="button"
-                    onClick={() => setRole('musteri')}
+                    onClick={() => switchRole('musteri')}
                     className={`flex-1 py-2.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
                       !isCarrier
                         ? 'bg-[#111E38] text-white shadow-md'
@@ -717,7 +811,7 @@ function KayitContent() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setRole('nakliyeci')}
+                    onClick={() => switchRole('nakliyeci')}
                     className={`flex-1 py-2.5 text-xs font-bold rounded-full transition-all cursor-pointer ${
                       isCarrier
                         ? 'bg-[#111E38] text-white shadow-md'
@@ -757,7 +851,79 @@ function KayitContent() {
 
                 {/* Form */}
                 <form onSubmit={handleInitiateRegister} className="space-y-4">
-                  {alreadyRegistered ? (
+                  {roleMismatch && roleMismatch.actual === 'CARRIER' ? (
+                    <div className="p-4 sm:p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-slate-800 space-y-3 animate-fade-in shadow-xs">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                          <Truck className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="font-black text-sm text-amber-950">Nakliyeci Kaydınız Mevcuttur!</h4>
+                          <p className="text-xs text-amber-900 mt-1 leading-relaxed">
+                            <strong className="text-slate-900 font-bold">{roleMismatch.email}</strong> adresiyle sistemimizde aktif bir <strong>Nakliyeci (Firma)</strong> kaydınız bulunmaktadır. Aynı e-posta adresiyle müşteri hesabı açamazsınız.
+                          </p>
+                          <p className="text-xs text-amber-800 mt-1.5 font-medium">
+                            Müşteri olarak yeni bir talep açmak için lütfen farklı bir e-posta adresi kullanınız veya mevcut firmanızla Nakliyeci Girişi yapınız.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-amber-200">
+                        <Link
+                          href={`/giris?role=nakliyeci&email=${encodeURIComponent(roleMismatch.email)}`}
+                          className="flex-1 text-center py-2.5 px-3 rounded-xl bg-[#111E38] hover:bg-[#1a2d54] text-white text-xs font-black shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <Truck className="w-3.5 h-3.5" />
+                          <span>Nakliyeci Girişine Git</span>
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRoleMismatch(null);
+                            setEmail('');
+                          }}
+                          className="flex-1 text-center py-2.5 px-3 rounded-xl bg-white border border-amber-300 hover:bg-amber-100/60 text-amber-950 text-xs font-black shadow-sm transition-all cursor-pointer"
+                        >
+                          Farklı E-posta ile Kaydol
+                        </button>
+                      </div>
+                    </div>
+                  ) : roleMismatch && roleMismatch.actual === 'CUSTOMER' ? (
+                    <div className="p-4 sm:p-5 rounded-2xl bg-blue-50 border-2 border-blue-300 text-slate-800 space-y-3 animate-fade-in shadow-xs">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                          <User className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="font-black text-sm text-blue-950">Müşteri Kaydınız Mevcuttur!</h4>
+                          <p className="text-xs text-blue-900 mt-1 leading-relaxed">
+                            <strong className="text-slate-900 font-bold">{roleMismatch.email}</strong> adresiyle sistemimizde aktif bir <strong>Müşteri</strong> kaydınız bulunmaktadır. Aynı e-posta adresiyle nakliyeci hesabı açamazsınız.
+                          </p>
+                          <p className="text-xs text-blue-800 mt-1.5 font-medium">
+                            Nakliye firmanızı kaydetmek için lütfen kurumsal/farklı bir e-posta adresi kullanınız veya mevcut hesabınızla Müşteri Girişi yapınız.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-blue-200">
+                        <Link
+                          href={`/giris?role=musteri&email=${encodeURIComponent(roleMismatch.email)}`}
+                          className="flex-1 text-center py-2.5 px-3 rounded-xl bg-[#111E38] hover:bg-[#1a2d54] text-white text-xs font-black shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <User className="w-3.5 h-3.5" />
+                          <span>Müşteri Girişine Git</span>
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRoleMismatch(null);
+                            setEmail('');
+                          }}
+                          className="flex-1 text-center py-2.5 px-3 rounded-xl bg-white border border-blue-300 hover:bg-blue-100/60 text-blue-950 text-xs font-black shadow-sm transition-all cursor-pointer"
+                        >
+                          Farklı E-posta ile Kaydol
+                        </button>
+                      </div>
+                    </div>
+                  ) : alreadyRegistered ? (
                     <div className="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-slate-800 space-y-3 animate-fade-in shadow-xs">
                       <div className="flex items-start gap-3">
                         <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">

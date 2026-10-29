@@ -327,6 +327,31 @@ export async function checkEmailAlreadyRegistered(email: string): Promise<boolea
 }
 
 /**
+ * Pre-check if an email is already registered in Firebase Auth and return role info
+ */
+export async function checkEmailAlreadyRegisteredWithRole(email: string): Promise<{ exists: boolean; role?: 'CUSTOMER' | 'CARRIER' | string }> {
+  if (!email || !email.includes('@')) return { exists: false };
+  const cleanEmail = email.trim().toLowerCase();
+
+  try {
+    const res = await fetch('/api/auth/check-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: cleanEmail }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return { exists: !!data.exists, role: data.role };
+    }
+  } catch (err) {
+    console.warn('API check-email error, falling back to direct check:', err);
+  }
+
+  const exists = await checkEmailAlreadyRegistered(cleanEmail);
+  return { exists };
+}
+
+/**
  * Permanently delete the currently logged-in user from Firebase Auth & Firestore
  */
 export async function deleteCurrentUserFirebase(): Promise<{ success: boolean; error?: string }> {

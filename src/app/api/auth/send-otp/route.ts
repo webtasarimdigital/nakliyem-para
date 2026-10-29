@@ -31,6 +31,63 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.trim().toLowerCase();
 
+    // 1.5. Check if user already exists in Firestore and detect role mismatch
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        const uQ = query(collection(firestoreDb, 'users'), where('email', '==', normalizedEmail));
+        const uSnap = await getDocs(uQ);
+        let existingRole: string | null = null;
+        if (!uSnap.empty) {
+          existingRole = uSnap.docs[0].data()?.role || 'CUSTOMER';
+        } else {
+          const cQ = query(collection(firestoreDb, 'carriers'), where('email', '==', normalizedEmail));
+          const cSnap = await getDocs(cQ);
+          if (!cSnap.empty) {
+            existingRole = 'CARRIER';
+          }
+        }
+
+        if (existingRole === 'CARRIER' && role === 'CUSTOMER') {
+          return NextResponse.json(
+            {
+              error: 'ROLE_MISMATCH_CARRIER',
+              existingRole: 'CARRIER',
+              targetRole: 'CUSTOMER',
+              message: 'Bu e-posta adresiyle sistemimizde aktif bir Nakliyeci (Firma) kaydınız bulunmaktadır. Aynı e-posta adresiyle müşteri hesabı açamazsınız. Nakliyeci Girişi yapabilir veya farklı bir e-posta adresiyle müşteri kaydı oluşturabilirsiniz.',
+              email: normalizedEmail,
+            },
+            { status: 409 }
+          );
+        }
+
+        if (existingRole === 'CUSTOMER' && role === 'CARRIER') {
+          return NextResponse.json(
+            {
+              error: 'ROLE_MISMATCH_CUSTOMER',
+              existingRole: 'CUSTOMER',
+              targetRole: 'CARRIER',
+              message: 'Bu e-posta adresiyle sistemimizde aktif bir Müşteri kaydınız bulunmaktadır. Aynı e-posta adresiyle nakliyeci hesabı açamazsınız. Müşteri Girişi yapabilir veya nakliye firmanız için farklı bir kurumsal e-posta adresiyle kayıt oluşturabilirsiniz.',
+              email: normalizedEmail,
+            },
+            { status: 409 }
+          );
+        }
+
+        if (existingRole) {
+          return NextResponse.json(
+            {
+              error: 'ALREADY_REGISTERED',
+              message: 'Bu e-posta adresi ile zaten kayıtlı bir hesabınız bulunmaktadır.',
+              email: normalizedEmail,
+            },
+            { status: 409 }
+          );
+        }
+      } catch (fErr) {
+        console.warn('Firestore role check warning in send-otp:', fErr);
+      }
+    }
+
     // Check if user already exists in Firebase Auth (Google, Email/Password, etc.)
     const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
     if (apiKey) {

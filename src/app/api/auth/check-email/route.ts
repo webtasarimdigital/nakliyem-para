@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
+
 export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();
@@ -8,6 +11,35 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+
+    // Firestore kontrolü (rol tespiti için)
+    let existingRole: string | null = null;
+    let firestoreExists = false;
+
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        const uQ = query(collection(firestoreDb, 'users'), where('email', '==', cleanEmail));
+        const uSnap = await getDocs(uQ);
+        if (!uSnap.empty) {
+          firestoreExists = true;
+          existingRole = uSnap.docs[0].data()?.role || 'CUSTOMER';
+        } else {
+          const cQ = query(collection(firestoreDb, 'carriers'), where('email', '==', cleanEmail));
+          const cSnap = await getDocs(cQ);
+          if (!cSnap.empty) {
+            firestoreExists = true;
+            existingRole = 'CARRIER';
+          }
+        }
+      } catch (fErr) {
+        console.warn('Firestore role check warning in check-email:', fErr);
+      }
+    }
+
+    if (firestoreExists) {
+      return NextResponse.json({ exists: true, email: cleanEmail, role: existingRole });
+    }
+
     const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ exists: false });
@@ -33,7 +65,7 @@ export async function POST(req: NextRequest) {
         msg === 'EMAIL_EXISTS' ||
         errors.some((e: any) => e.message === 'EMAIL_EXISTS' || e.reason === 'EMAIL_EXISTS')
       ) {
-        return NextResponse.json({ exists: true, email: cleanEmail });
+        return NextResponse.json({ exists: true, email: cleanEmail, role: existingRole || 'CUSTOMER' });
       }
       return NextResponse.json({ exists: false });
     }
