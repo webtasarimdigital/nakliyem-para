@@ -36,7 +36,7 @@ import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 const SAMPLE_FLEET_PHOTOS = [
   { url: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=1000&auto=format&fit=crop&q=80', title: '10 Teker Kapalı Kasa Evden Eve Aracı' },
   { url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1000&auto=format&fit=crop&q=80', title: 'Şehirlerarası Çelik Kasa Nakliye Kamyonu' },
-  { url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1000&auto=format&fit=crop&q=80', title: '15. Kat Hidrolik Araç Üstü Mobil Asansör' },
+  { url: 'https://images.unsplash.com/photo-1541888946425-d0fbb186f5f7?w=1000&auto=format&fit=crop&q=80', title: '15. Kat Hidrolik Araç Üstü Mobil Asansör' },
   { url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1000&auto=format&fit=crop&q=80', title: 'Birinci Sınıf Çift Kat Balonlu Patpat Ambalajlama' }
 ];
 

@@ -33,10 +33,10 @@ const createWhatsAppLink = (packageName?: string) => {
 
 const PACKAGES = [
   {
-    name: 'Başlangıç Ads Yönetimi',
-    desc: 'Düşük bütçeyle aynı gün telefonunun çalmasını isteyenler',
-    price: '4.500 TL',
-    period: '/ ay (yönetim)',
+    name: 'Tek Seferlik Ads Kurulumu',
+    desc: 'Reklam altyapısını profesyonelce kurup kendi yönetmek isteyen nakliyeciler',
+    price: '7.500 TL',
+    period: 'tek seferlik kurulum',
     isFeatured: false,
     badge: null,
     features: [
@@ -44,13 +44,14 @@ const PACKAGES = [
       '1 Şehir / 10 Hedef Arama Grubu',
       '450+ Negatif Kelime Filtresi (Gereksiz Tıklama Yok)',
       'Tıkla-Ara (Call-Only) Mobil Kampanya',
-      'Haftalık Harcama & Arama Özeti'
+      'Dönüşüm & WhatsApp Takip Kurulumu',
+      'Yönetim Paneli Kullanım Eğitimi'
     ]
   },
   {
     name: 'Profesyonel Ads Yönetimi',
     desc: 'Haftanın her günü düzenli ev ve ofis taşıma bağlayan firmalar',
-    price: '9.000 TL',
+    price: '12.500 TL',
     period: '/ ay (yönetim)',
     isFeatured: true,
     badge: 'EN ÇOK TERCİH EDİLEN',
@@ -66,7 +67,7 @@ const PACKAGES = [
   {
     name: 'Kurumsal & Filo Büyüme',
     desc: 'Çoklu araç filosu olan ve günlük 10+ ev taşıma hedefleyen kurumsal firmalar',
-    price: '16.500 TL',
+    price: '17.500 TL',
     period: '/ ay (yönetim)',
     isFeatured: false,
     badge: 'FİLOLAR İÇİN',

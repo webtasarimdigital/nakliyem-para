@@ -138,7 +138,8 @@ const SAMPLE_LISTINGS: VehicleListing[] = [
     sellerPhone: '0532 890 12 34',
     isVerified: true,
     photos: [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800',
+      'https://images.unsplash.com/photo-1541888946425-d0fbb186f5f7?q=80&w=800',
+      'https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=800',
     ],
     description: 'Operatörlü, 18. Kata kadar, 400 kg taşıma kapasitesi, Anadolu Yakası hızlı servis.',
     specs: [
@@ -197,7 +198,9 @@ const SAMPLE_LISTINGS: VehicleListing[] = [
     sellerJoinYear: '2022',
     sellerPhone: '0535 678 90 12',
     isVerified: false,
-    photos: [],
+    photos: [
+      'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=800'
+    ],
     description: '1. kalite çift kat balonlu patpat naylon, mobilya koruma için ideal. Toplu alımda indirim.',
     specs: [
       { label: 'UZUNLUK', value: '100 Metre' },

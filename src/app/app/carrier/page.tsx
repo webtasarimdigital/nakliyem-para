@@ -214,7 +214,7 @@ export default function CarrierDashboard() {
     );
   }
 
-  const requests = db.getRequests().filter(r => r.status === 'ACTIVE');
+  const requests = db.getRequests().filter(r => r.status === 'ACTIVE' || r.status === 'ASSIGNED');
   const rawMyOffers = db.getOffersForCarrier(carrier.id);
   const myOffers = Array.from(new Map(rawMyOffers.map(o => [o.id, o])).values());
   const defterPosts = db.getDefterPosts().filter(p => p.carrierId === carrier.id);
@@ -832,6 +832,11 @@ export default function CarrierDashboard() {
                           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                             <span className="text-xs font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{req.requestCode}</span>
                             <span className="text-xs font-bold text-slate-600">{req.homeSize} Ev</span>
+                            {(req.status === 'ASSIGNED' || req.status === 'CLOSED') && (
+                              <span className="text-xs font-black text-blue-800 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                <span>🤝 Nakliyeciyle Anlaşıldı</span>
+                              </span>
+                            )}
                           </div>
                           <div className="flex items-center gap-1.5 font-black text-sm text-[#0A1128]">
                             <span>{req.originCity}</span>
@@ -863,7 +868,11 @@ export default function CarrierDashboard() {
                         <div className="flex items-center gap-1.5 font-bold">
                           <Phone className="w-3.5 h-3.5 text-slate-400" />
                           <span className="text-slate-500">Müşteri Tel:</span>
-                          {canViewCustomerPhone && req.customerPhone ? (
+                          {(req.status === 'ASSIGNED' || req.status === 'CLOSED') ? (
+                            <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+                              0532 *** ** **
+                            </span>
+                          ) : canViewCustomerPhone && req.customerPhone ? (
                             <span className="text-emerald-700 font-black">
                               {req.customerPhone}
                             </span>
@@ -882,7 +891,9 @@ export default function CarrierDashboard() {
                             </button>
                           )}
                         </div>
-                        <span className="text-[11px] text-slate-400 font-medium">Doğrudan İletişim</span>
+                        <span className="text-[11px] text-slate-400 font-medium">
+                          {(req.status === 'ASSIGNED' || req.status === 'CLOSED') ? 'Talep Kapandı' : 'Doğrudan İletişim'}
+                        </span>
                       </div>
 
                       <div className="flex items-center justify-between">
@@ -890,6 +901,14 @@ export default function CarrierDashboard() {
                           <Calendar className="w-3.5 h-3.5" />{req.movingDate}
                         </span>
                         {(() => {
+                          const isAssigned = req.status === 'ASSIGNED' || req.status === 'CLOSED';
+                          if (isAssigned) {
+                            return (
+                              <span className="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl">
+                                İlan Kapanmıştır
+                              </span>
+                            );
+                          }
                           const existingOffer = myOffers.find(o => o.requestId === req.id && o.status !== 'WITHDRAWN');
                           if (existingOffer) {
                             return (

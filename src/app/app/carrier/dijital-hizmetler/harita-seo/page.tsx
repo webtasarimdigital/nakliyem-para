@@ -33,7 +33,7 @@ const PACKAGES = [
   {
     name: 'İlçe Harita Liderliği',
     desc: 'Kendi ilçesinde Google Haritalar ilk 3 sırada yer almak isteyen nakliyeciler',
-    price: '2.850 TL',
+    price: '7.500 TL',
     period: '/ ay',
     isFeatured: false,
     badge: null,
@@ -47,8 +47,8 @@ const PACKAGES = [
   },
   {
     name: 'Bölgesel Harita Dominasyonu',
-    desc: 'İstanbul veya büyükşehirde birden fazla ilçede haritada 1. sırada çıkmak isteyenler',
-    price: '5.850 TL',
+    desc: 'İstanbul veya büyükşehirde birden fazla ilçede haritada ilk 3 sıra ve üst sıralarda yer almak isteyenler',
+    price: '12.500 TL',
     period: '/ ay',
     isFeatured: true,
     badge: 'EN ÇOK TERCİH EDİLEN',
@@ -64,7 +64,7 @@ const PACKAGES = [
   {
     name: 'Mega Şehir & Çoklu Şube Harita Ağı',
     desc: 'Büyük filolar ve birden fazla garaj/şube konumu olan kurumsal nakliyat firmaları',
-    price: '10.350 TL',
+    price: '17.500 TL',
     period: '/ ay',
     isFeatured: false,
     badge: 'FİLOLAR İÇİN',
@@ -85,7 +85,7 @@ const FAQS = [
   },
   {
     q: 'Haritada yükselmek için fiziksel bir dükkan veya ofis şart mı?',
-    a: 'Hayır. Google İşletme Profilinde "Hizmet Verilen Bölge" olarak kayıt açarak dükkan adresi göstermeden de bölgenizde haritalarda 1. sırada yer alabilirsiniz.'
+    a: 'Hayır. Google İşletme Profilinde "Hizmet Verilen Bölge" olarak kayıt açarak dükkan adresi göstermeden de bölgenizde haritalarda ilk 3 sıra ve üst sıralarda yer alabilirsiniz.'
   },
   {
     q: 'Rakiplerimin yüzlerce yorumu var, onları geçebilir miyim?',
@@ -129,7 +129,7 @@ export default function HaritaSeoServicePage() {
             <span>Google Haritalar Yerel Arama Optimizasyonu</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black text-[#0A1128] tracking-tight">
-            Google Haritalar'da 1. Sırada Çıkın, Bölgenizdeki Müşterileri Toplayın
+            Google Haritalar'da İlk 3 ve Üst Sıralarda Çıkın, Bölgenizdeki Müşterileri Toplayın
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1 max-w-3xl leading-relaxed">
             Telefonundan "en yakın nakliyeci" arayan müşterilerin karşısına ilk siz çıkın. Reklam ücreti ödemeden, her hafta doğrudan telefonunuza gelen onlarca aramayla işlerinizi katlayın.
@@ -157,7 +157,7 @@ export default function HaritaSeoServicePage() {
                     Canlı Google Maps Arama Simülasyonu
                   </span>
                   <h2 className="text-lg sm:text-2xl font-black mt-2 text-[#0A1128]">
-                    "İstanbul Nakliyeci" Aramasında 1. Sırada Siz Olun
+                    "İstanbul Nakliyeci" Aramasında İlk 3 Sıraya Girin
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Haritada ilk 3'e giren firmalar, bölgedeki telefon aramalarının %78'ini tek başına toplar.
@@ -166,7 +166,7 @@ export default function HaritaSeoServicePage() {
 
                 <div className="hidden sm:flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1.5 rounded-xl text-xs font-bold">
                   <TrendingUp className="w-4 h-4 text-emerald-600" />
-                  <span>+5 Sıra Yükselme Garantisi</span>
+                  <span>Sıralama Yükseltme Odaklı</span>
                 </div>
               </div>
 
@@ -331,7 +331,7 @@ export default function HaritaSeoServicePage() {
                   Google Harita SEO'nun Artıları ve Dikkat Edilmesi Gerekenler
                 </h3>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  Yerel aramalarda 1. sıraya yerleşmenin faydaları ve dikkat edilmesi gereken noktalar.
+                  Yerel aramalarda üst sıralara yerleşmenin faydaları ve dikkat edilmesi gereken noktalar.
                 </p>
               </div>
 

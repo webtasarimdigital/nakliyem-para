@@ -104,13 +104,13 @@ export default function CarrierJobsPage() {
         if (cached) {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed.filter((r: MovingRequest) => r.status === 'ACTIVE');
+            return parsed.filter((r: MovingRequest) => r.status === 'ACTIVE' || r.status === 'ASSIGNED');
           }
         }
       } catch {}
     }
     return db.getRequests()
-      .filter(r => r.status === 'ACTIVE')
+      .filter(r => r.status === 'ACTIVE' || r.status === 'ASSIGNED')
       .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
   });
 
@@ -119,15 +119,15 @@ export default function CarrierJobsPage() {
       // Filter out defter posts and closed items
       const cleanFirestore = firestoreDocs.filter(d => !(d as any).isDefterPost);
       const closedOrInactiveIds = new Set(
-        cleanFirestore.filter(r => r.status !== 'ACTIVE').map(r => r.id)
+        cleanFirestore.filter(r => r.status === 'CLOSED' || r.status === 'CANCELED').map(r => r.id)
       );
 
-      // Only take ACTIVE requests from Firestore
-      const activeFirestore = cleanFirestore.filter(r => r.status === 'ACTIVE');
+      // Take ACTIVE and ASSIGNED requests from Firestore
+      const activeFirestore = cleanFirestore.filter(r => r.status === 'ACTIVE' || r.status === 'ASSIGNED');
       const combined: MovingRequest[] = [...activeFirestore];
 
-      // Add mock requests only if ACTIVE and not marked closed/inactive in Firestore
-      const mockRequests = db.getRequests().filter(r => r.status === 'ACTIVE' && !closedOrInactiveIds.has(r.id));
+      // Add mock requests if ACTIVE or ASSIGNED and not marked closed/canceled in Firestore
+      const mockRequests = db.getRequests().filter(r => (r.status === 'ACTIVE' || r.status === 'ASSIGNED') && !closedOrInactiveIds.has(r.id));
       mockRequests.forEach(mr => {
         if (!combined.some(r => r.id === mr.id)) {
           combined.push(mr);
@@ -135,7 +135,7 @@ export default function CarrierJobsPage() {
       });
 
       const sorted = combined
-        .filter(r => r.status === 'ACTIVE')
+        .filter(r => r.status === 'ACTIVE' || r.status === 'ASSIGNED')
         .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
       setRequests(sorted);
@@ -259,6 +259,13 @@ export default function CarrierJobsPage() {
 
   // Check auth and plan rights before typing in input
   const handleInputInteraction = (reqId: string, e: React.MouseEvent | React.FocusEvent) => {
+    const targetReq = requests.find(r => r.id === reqId);
+    if (targetReq?.status === 'ASSIGNED' || targetReq?.status === 'CLOSED') {
+      e.preventDefault();
+      (e.target as HTMLElement).blur();
+      return false;
+    }
+
     if (!currentUser || (currentUser.role !== 'CARRIER' && !currentUser.isMasterUser)) {
       e.preventDefault();
       (e.target as HTMLElement).blur();
@@ -454,6 +461,10 @@ export default function CarrierJobsPage() {
   };
 
   const handleShowPhone = (req: MovingRequest) => {
+    if (req.status === 'ASSIGNED' || req.status === 'CLOSED') {
+      return;
+    }
+
     if (!currentUser || (currentUser.role !== 'CARRIER' && !currentUser.isMasterUser)) {
       setAuthActionPayload({ reqId: req.id, type: 'PHONE' });
       setAuthModalOpen(true);
@@ -748,6 +759,11 @@ export default function CarrierJobsPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {req.status === 'ASSIGNED' && (
+                      <span className="px-3 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-800 border border-blue-200 shadow-2xs inline-flex items-center gap-1">
+                        <span>🤝 Nakliyeciyle Anlaşıldı</span>
+                      </span>
+                    )}
                     <span className="text-xs font-bold text-slate-400">{req.requestCode}</span>
                     {(() => {
                       const relTime = getRelativeTimeString(req.createdAt);
@@ -850,78 +866,113 @@ export default function CarrierJobsPage() {
 
                 {/* 8. Action Bar: Quick Offer Input + Yellow Gönder + Numarayı Göster (Image 2 exact) */}
                 <div className="pt-3 border-t border-slate-100 space-y-3">
-                  {(() => {
-                    const existingOffer = myCarrierOffers.find(o => o.requestId === req.id);
-
-                    if (existingOffer) {
-                      return (
-                        <div className="p-3 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-2xs">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                              <span className="text-xs font-black text-emerald-950">
-                                Teklifiniz İletildi: <strong className="text-emerald-700">{existingOffer.price.toLocaleString('tr-TR')} TL</strong>
-                              </span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setOfferModalReq(req);
-                                setOfferPrice(existingOffer.price.toString());
-                                setOfferNotes(existingOffer.notes || '');
-                              }}
-                              className="text-xs font-black text-[#F95700] hover:underline cursor-pointer ml-2 shrink-0"
-                            >
-                              Teklifi Düzenle →
-                            </button>
+                  {req.status === 'ASSIGNED' ? (
+                    <div className="p-3.5 px-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+                      <div className="flex items-center gap-2.5">
+                        <span className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold shrink-0">🤝</span>
+                        <div>
+                          <div className="text-xs font-black text-slate-800">
+                            Bu Talep İçin Nakliyeci ile Anlaşılmıştır
                           </div>
-                          {existingOffer.notes && existingOffer.notes !== 'Hızlı teklif iletildi.' && (
-                            <p className="text-[11px] font-medium text-emerald-800 italic mt-1 truncate">
-                              &ldquo;{existingOffer.notes}&rdquo;
-                            </p>
-                          )}
+                          <div className="text-[11px] text-slate-500 font-medium">
+                            Müşteri anlaşma sağladığı için teklif verme ve iletişim kapatılmıştır.
+                          </div>
                         </div>
-                      );
-                    }
-
-                    return (
-                      <form
-                        onSubmit={(e) => handleQuickOfferSubmit(req, e)}
-                        className="flex items-center gap-2"
-                      >
-                        <input
-                          type="text"
-                          value={quickOfferPrices[req.id] || ''}
-                          onChange={e => {
-                            const formatted = formatOfferInputOnType(e.target.value);
-                            setQuickOfferPrices(prev => ({ ...prev, [req.id]: formatted }));
-                          }}
-                          onFocus={(e) => handleInputInteraction(req.id, e)}
-                          onClick={(e) => handleInputInteraction(req.id, e)}
-                          placeholder="Hemen teklifinizi yazın (Örn: 50.000 veya 50 bin tl)"
-                          className="flex-1 px-4 py-3 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 border border-slate-200 rounded-xl focus:border-[#FFC000] focus:ring-1 focus:ring-[#FFC000] focus:outline-none bg-white shadow-2xs"
-                        />
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
                         <button
-                          type="submit"
-                          className="bg-[#FFC000] hover:bg-[#E5AC00] text-slate-950 font-bold text-xs sm:text-sm px-6 sm:px-8 py-3 rounded-xl shadow-2xs shrink-0 cursor-pointer transition-all"
+                          type="button"
+                          disabled
+                          className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-200 text-slate-500 font-bold text-xs cursor-not-allowed opacity-80"
                         >
-                          Gönder
+                          <Lock className="w-3.5 h-3.5" />
+                          <span>İletişim Kapalı</span>
                         </button>
-                      </form>
-                    );
-                  })()}
+                        <button
+                          type="button"
+                          disabled
+                          className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-blue-50 text-blue-800 border border-blue-200 font-black text-xs cursor-not-allowed opacity-90"
+                        >
+                          🤝 Anlaşıldı
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {(() => {
+                        const existingOffer = myCarrierOffers.find(o => o.requestId === req.id);
 
-                  {/* Numarayı Göster Button */}
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => handleShowPhone(req)}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer"
-                    >
-                      <Phone className="w-3.5 h-3.5 text-slate-600" />
-                      <span>{isPhoneRevealed ? req.customerPhone : 'Numarayı Göster'}</span>
-                    </button>
-                  </div>
+                        if (existingOffer) {
+                          return (
+                            <div className="p-3 px-4 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-2xs">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                                  <span className="text-xs font-black text-emerald-950">
+                                    Teklifiniz İletildi: <strong className="text-emerald-700">{existingOffer.price.toLocaleString('tr-TR')} TL</strong>
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOfferModalReq(req);
+                                    setOfferPrice(existingOffer.price.toString());
+                                    setOfferNotes(existingOffer.notes || '');
+                                  }}
+                                  className="text-xs font-black text-[#F95700] hover:underline cursor-pointer ml-2 shrink-0"
+                                >
+                                  Teklifi Düzenle →
+                                </button>
+                              </div>
+                              {existingOffer.notes && existingOffer.notes !== 'Hızlı teklif iletildi.' && (
+                                <p className="text-[11px] font-medium text-emerald-800 italic mt-1 truncate">
+                                  &ldquo;{existingOffer.notes}&rdquo;
+                                </p>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <form
+                            onSubmit={(e) => handleQuickOfferSubmit(req, e)}
+                            className="flex items-center gap-2"
+                          >
+                            <input
+                              type="text"
+                              value={quickOfferPrices[req.id] || ''}
+                              onChange={e => {
+                                const formatted = formatOfferInputOnType(e.target.value);
+                                setQuickOfferPrices(prev => ({ ...prev, [req.id]: formatted }));
+                              }}
+                              onFocus={(e) => handleInputInteraction(req.id, e)}
+                              onClick={(e) => handleInputInteraction(req.id, e)}
+                              placeholder="Hemen teklifinizi yazın (Örn: 50.000 veya 50 bin tl)"
+                              className="flex-1 px-4 py-3 text-xs sm:text-sm font-medium text-slate-900 placeholder:text-slate-400 border border-slate-200 rounded-xl focus:border-[#FFC000] focus:ring-1 focus:ring-[#FFC000] focus:outline-none bg-white shadow-2xs"
+                            />
+                            <button
+                              type="submit"
+                              className="bg-[#FFC000] hover:bg-[#E5AC00] text-slate-950 font-bold text-xs sm:text-sm px-6 sm:px-8 py-3 rounded-xl shadow-2xs shrink-0 cursor-pointer transition-all"
+                            >
+                              Gönder
+                            </button>
+                          </form>
+                        );
+                      })()}
+
+                      {/* Numarayı Göster Button */}
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => handleShowPhone(req)}
+                          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          <Phone className="w-3.5 h-3.5 text-slate-600" />
+                          <span>{isPhoneRevealed ? req.customerPhone : 'Numarayı Göster'}</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             );
@@ -1209,76 +1260,98 @@ export default function CarrierJobsPage() {
               </div>
             </div>
 
-            {/* Telefon Alanı: Paket Kontrolü */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-600">İletişim Numarası</span>
-                {canViewPhone ? (
-                  <span className="text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-                    Paketiniz Yetkili
-                  </span>
-                ) : (
-                  <span className="text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
-                    🔒 Başlangıç Paketi Koruması
-                  </span>
-                )}
-              </div>
-
-              {canViewPhone ? (
-                <div className="flex items-center justify-between pt-1">
-                  <span className="font-black text-base text-[#111E38] tracking-wider">
-                    {customerModalReq.customerPhone}
-                  </span>
-                  <a href={`tel:${customerModalReq.customerPhone}`}>
-                    <button className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer">
-                      <Phone className="w-3.5 h-3.5" />
-                      <span>Hemen Ara</span>
-                    </button>
-                  </a>
+            {/* Telefon Alanı: Paket Kontrolü veya Anlaşıldı Koruması */}
+            {customerModalReq.status === 'ASSIGNED' ? (
+              <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-950 text-xs space-y-2">
+                <div className="flex items-center gap-2 font-black text-blue-900">
+                  <span className="text-base">🤝</span>
+                  <span>Bu Talep İçin Nakliyeci ile Anlaşılmıştır</span>
                 </div>
-              ) : (
-                <div className="flex items-center justify-between pt-1">
-                  <span className="font-black text-sm text-slate-400 tracking-wider">
-                    {customerModalReq.customerPhone.slice(0, 4)} *** ** {customerModalReq.customerPhone.slice(-2)}
-                  </span>
-                  <button
-                    onClick={() => setCustomerPhoneWarning(true)}
-                    className="px-3 py-1.5 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs inline-flex items-center gap-1 shadow-sm cursor-pointer transition-colors"
-                  >
-                    <Lock className="w-3.5 h-3.5" />
-                    <span>Numarayı Gör</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Düşük Paket Uyarısı */}
-            {customerPhoneWarning && (
-              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2 animate-fade-in">
-                <div className="flex items-center gap-2 font-black text-amber-950">
-                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>Numara Başlangıç Paketinde Gizlidir</span>
-                </div>
-                <p className="leading-relaxed">
-                  Müşteriyle platform içi güvenli mesajlaşma üzerinden hemen ücretsiz yazışabilirsiniz. Numarayı doğrudan görmek için Pro veya Gold pakete geçebilirsiniz.
+                <p className="leading-relaxed text-slate-600">
+                  Müşteri anlaşma sağladığı için telefon numarası ve mesajlaşma kapatılmıştır.
                 </p>
-                <Link href="/app/carrier/abonelik">
-                  <button className="w-full mt-1 py-2 px-3 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs transition-colors cursor-pointer">
-                    Paketleri İncele &amp; Yükselt →
+                <div className="pt-2">
+                  <button
+                    disabled
+                    className="w-full py-2.5 rounded-xl bg-slate-200 text-slate-500 font-bold text-xs cursor-not-allowed opacity-80"
+                  >
+                    🔒 İletişim &amp; Mesajlaşma Kapalı
                   </button>
-                </Link>
+                </div>
               </div>
-            )}
+            ) : (
+              <>
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-600">İletişim Numarası</span>
+                    {canViewPhone ? (
+                      <span className="text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                        Paketiniz Yetkili
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
+                        🔒 Başlangıç Paketi Koruması
+                      </span>
+                    )}
+                  </div>
 
-            {/* Mesaj Gönder Butonu */}
-            <div className="pt-2">
-              <Link href={`/app/carrier/mesajlar?recipient=${customerModalReq.customerId}&reqId=${customerModalReq.id}`}>
-                <button className="w-full py-3 px-4 rounded-xl bg-[#111E38] hover:bg-[#132247] text-white font-black text-xs inline-flex items-center justify-center gap-2 shadow-md cursor-pointer transition-colors">
-                  <MessageSquare className="w-4 h-4 text-[#F95700]" />
-                  <span>Müşteriye Güvenli Mesaj Gönder</span>
-                </button>
-              </Link>
-            </div>
+                  {canViewPhone ? (
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="font-black text-base text-[#111E38] tracking-wider">
+                        {customerModalReq.customerPhone}
+                      </span>
+                      <a href={`tel:${customerModalReq.customerPhone}`}>
+                        <button className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer">
+                          <Phone className="w-3.5 h-3.5" />
+                          <span>Hemen Ara</span>
+                        </button>
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="font-black text-sm text-slate-400 tracking-wider">
+                        {customerModalReq.customerPhone.slice(0, 4)} *** ** {customerModalReq.customerPhone.slice(-2)}
+                      </span>
+                      <button
+                        onClick={() => setCustomerPhoneWarning(true)}
+                        className="px-3 py-1.5 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs inline-flex items-center gap-1 shadow-sm cursor-pointer transition-colors"
+                      >
+                        <Lock className="w-3.5 h-3.5" />
+                        <span>Numarayı Gör</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Düşük Paket Uyarısı */}
+                {customerPhoneWarning && (
+                  <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2 animate-fade-in">
+                    <div className="flex items-center gap-2 font-black text-amber-950">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>Numara Başlangıç Paketinde Gizlidir</span>
+                    </div>
+                    <p className="leading-relaxed">
+                      Müşteriyle platform içi güvenli mesajlaşma üzerinden hemen ücretsiz yazışabilirsiniz. Numarayı doğrudan görmek için Pro veya Gold pakete geçebilirsiniz.
+                    </p>
+                    <Link href="/app/carrier/abonelik">
+                      <button className="w-full mt-1 py-2 px-3 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs transition-colors cursor-pointer">
+                        Paketleri İncele &amp; Yükselt →
+                      </button>
+                    </Link>
+                  </div>
+                )}
+
+                {/* Mesaj Gönder Butonu */}
+                <div className="pt-2">
+                  <Link href={`/app/carrier/mesajlar?recipient=${customerModalReq.customerId}&reqId=${customerModalReq.id}`}>
+                    <button className="w-full py-3 px-4 rounded-xl bg-[#111E38] hover:bg-[#132247] text-white font-black text-xs inline-flex items-center justify-center gap-2 shadow-md cursor-pointer transition-colors">
+                      <MessageSquare className="w-4 h-4 text-[#F95700]" />
+                      <span>Müşteriye Güvenli Mesaj Gönder</span>
+                    </button>
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

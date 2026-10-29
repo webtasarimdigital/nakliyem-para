@@ -40,7 +40,7 @@ const SERVICES = [
     icon: Globe,
     badge: 'En Çok Tercih Edilen',
     badgeClass: 'bg-orange-100 text-[#C23E00] border-orange-200',
-    startingPrice: '10.500 TL\'den başlayan fiyatlarla',
+    startingPrice: '7.499 TL\'den başlayan fiyatlarla',
     points: [
       'Domain & Yüksek Hızlı SSL Hosting dahil',
       '39 İlçe için özel SEO alt sayfaları',
@@ -50,14 +50,14 @@ const SERVICES = [
   },
   {
     id: 'google-seo',
-    title: 'Google 1. Sayfa SEO',
+    title: 'Google SEO Hizmeti',
     subtitle: 'Şehrinizde ve İlçenizde Aramalarda İlk Sayfaya Çıkın',
     desc: 'Google\'da "evden eve nakliyat", "şehirlerarası nakliyat" aramalarında firmanızı üst sıralara taşıyarak aracı komisyonu ödemeden her gün doğrudan müşteri kazandırıyoruz.',
     href: '/hizmetler/google-seo',
     icon: Search,
     badge: 'Kalıcı Müşteri Akışı',
     badgeClass: 'bg-slate-100 text-slate-800 border-slate-200',
-    startingPrice: '3.750 TL / ay',
+    startingPrice: '7.500 TL / ay',
     points: [
       'İl & ilçe bazlı yerel anahtar kelime optimizasyonu',
       'Google Search Console & Schema zengin veri kurulumu',
@@ -74,7 +74,7 @@ const SERVICES = [
     icon: MapPin,
     badge: 'Doğrudan Telefon Çağrısı',
     badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
-    startingPrice: '2.850 TL / ay',
+    startingPrice: '7.500 TL / ay',
     points: [
       'Google Business işletme profili kurulumu ve doğrulama',
       'Haritada ilk 3 sıra (Local Pack) yerel optimizasyonu',
@@ -91,7 +91,7 @@ const SERVICES = [
     icon: Megaphone,
     badge: 'Anında İş Garantisi',
     badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
-    startingPrice: '4.500 TL / ay (yönetim)',
+    startingPrice: '7.500 TL kurulum / 12.500 TL ay',
     points: [
       '450+ negatif kelime listesiyle gereksiz tıklamalara son',
       'Tıkla-Ara (Call-Only) mobil dönüşüm kampanyaları',
@@ -108,7 +108,7 @@ const SERVICES = [
     icon: Share2,
     badge: 'Marka & Güven Artışı',
     badgeClass: 'bg-pink-50 text-pink-700 border-pink-200',
-    startingPrice: '3.750 TL / ay (yönetim)',
+    startingPrice: '7.500 TL kurulum / 12.500 TL ay',
     points: [
       'Özel tasarım video reels ve görsel afiş hazırlığı',
       'Taşınma aşamasındaki kitleye nokta atışı demografik hedefleme',

@@ -120,7 +120,8 @@ const SAMPLE_LISTINGS = [
     sellerPhone: '0532 890 12 34',
     isVerified: true,
     photos: [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1200',
+      'https://images.unsplash.com/photo-1541888946425-d0fbb186f5f7?q=80&w=1200',
+      'https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=1200',
     ],
     description: 'Operatörlü, 18. Kata kadar, 400 kg taşıma kapasitesi, Anadolu Yakası hızlı servis.',
     specs: [

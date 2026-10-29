@@ -33,10 +33,10 @@ const createWhatsAppLink = (packageName?: string) => {
 
 const PACKAGES = [
   {
-    name: "Sosyal Medya Başlangıç",
-    desc: "Instagram'da kurumsal profil görünümü ve ilk reklamını vermek isteyenler",
-    price: "3.750 TL",
-    period: "/ ay (yönetim)",
+    name: "Tek Seferlik Meta Ads Kurulumu",
+    desc: "Meta Business ve piksel altyapısını kurup reklamlarını kendi yönetmek isteyenler",
+    price: "7.500 TL",
+    period: "tek seferlik kurulum",
     isFeatured: false,
     badge: null,
     features: [
@@ -44,13 +44,14 @@ const PACKAGES = [
       "Instagram & Facebook Sayfası Profesyonel Düzenleme",
       "Bölgesel Hedefleme (Şehir & İlçe Odaklı Reklam)",
       "WhatsApp'a Doğrudan Bağlanan İlan Formatı",
-      "Aylık Harcama & Gelen Mesaj Raporu"
+      "Meta Piksel & Olay Dönüşüm Kurulumu",
+      "Yönetim Paneli Kullanım Eğitimi"
     ]
   },
   {
     name: "Profesyonel Büyüme & Lead",
     desc: "Her hafta düzenli evden eve taşıma rezervasyonu almak isteyen nakliyeciler",
-    price: "6.750 TL",
+    price: "12.500 TL",
     period: "/ ay (yönetim)",
     isFeatured: true,
     badge: "EN ÇOK TERCİH EDİLEN",
@@ -66,7 +67,7 @@ const PACKAGES = [
   {
     name: "Tam Kapsamlı Sosyal Medya & Filo",
     desc: "Bölgesinde marka olmak ve sürekli rezervasyon doldurmak isteyen büyük filolar",
-    price: "11.250 TL",
+    price: "17.500 TL",
     period: "/ ay (yönetim)",
     isFeatured: false,
     badge: "FİLOLAR İÇİN",

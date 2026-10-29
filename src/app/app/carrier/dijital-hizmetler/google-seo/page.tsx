@@ -35,8 +35,8 @@ import { db } from '@/lib/data/mock-db';
 const PACKAGES = [
   {
     name: 'Yerel SEO Başlangıç',
-    desc: 'Kendi ilçesinde ve çevre ilçelerde 1. sayfaya çıkmak isteyen nakliyeciler',
-    price: '3.750 TL',
+    desc: 'Kendi ilçesinde ve çevre ilçelerde ilk sayfaya ve üst sıralara çıkmak isteyen nakliyeciler',
+    price: '7.500 TL',
     period: '/ ay',
     isFeatured: false,
     badge: null,
@@ -50,8 +50,8 @@ const PACKAGES = [
   },
   {
     name: 'İl Geneli SEO Liderliği',
-    desc: 'Büyükşehirde (örn: İstanbul geneli) tüm ilçelerde 1. sayfayı hedefleyenler',
-    price: '7.500 TL',
+    desc: 'Büyükşehirde (örn: İstanbul geneli) tüm ilçelerde ilk sayfa ve üst sıraları hedefleyenler',
+    price: '12.500 TL',
     period: '/ ay',
     isFeatured: true,
     badge: 'EN ÇOK TERCİH EDİLEN',
@@ -66,8 +66,8 @@ const PACKAGES = [
   },
   {
     name: 'Türkiye Geneli Kurumsal SEO',
-    desc: '81 ilde ve tüm anahtar kelimelerde zirveyi hedefleyen filo firmaları',
-    price: '13.500 TL',
+    desc: '81 ilde ve tüm anahtar kelimelerde üst sıraları hedefleyen filo firmaları',
+    price: '17.500 TL',
     period: '/ ay',
     isFeatured: false,
     badge: 'FİLOLAR İÇİN',
@@ -84,15 +84,15 @@ const PACKAGES = [
 const FAQS = [
   {
     q: 'Google SEO ile Google Ads (Reklamlar) arasındaki fark nedir?',
-    a: 'Google Ads ile sponsorlu sırada çıkıp her tıklamaya para ödersiniz ve bütçe bittiğinde reklam durur. Google SEO ise sitenizi organik olarak ilk sayfaya ve 1. sıraya taşır. Gelen yüzlerce telefon ve tıklama için Google\'a hiçbir ücret ödemezsiniz; trafik tamamen ücretsiz ve kalıcıdır.'
+    a: 'Google Ads ile sponsorlu sırada çıkıp her tıklamaya para ödersiniz ve bütçe bittiğinde reklam durur. Google SEO ise sitenizi organik olarak ilk sayfaya ve üst sıralara taşır. Gelen yüzlerce telefon ve tıklama için Google\'a hiçbir ücret ödemezsiniz; trafik tamamen ücretsiz ve kalıcıdır.'
   },
   {
     q: '1. sayfaya veya ilk sıralara ne kadar sürede çıkarız?',
-    a: 'SEO bir maratondur. İlçe bazlı aramalarda (örn: /pendik-evden-eve-nakliyat) 3 ila 6 hafta içinde ilk sayfaya yükselme başlar. Ana kelimelerde (örn: /istanbul-nakliyat) zirveye yerleşmek düzenli çalışmayla genellikle 2-3 ayı bulur. Ancak çıkıldığında kalıcı müşteri akışı sağlar.'
+    a: 'SEO bir maratondur. İlçe bazlı aramalarda (örn: /pendik-evden-eve-nakliyat) 3 ila 6 hafta içinde ilk sayfaya yükselme başlar. Ana kelimelerde (örn: /istanbul-nakliyat) üst sıralara yerleşmek düzenli çalışmayla genellikle 2-3 ayı bulur. Ancak çıkıldığında kalıcı müşteri akışı sağlar.'
   },
   {
     q: 'İç sayfa URL mimarisi neden önemlidir?',
-    a: 'Google aramalarında kullanıcılar sadece genel kelimeleri aramaz; "Kadıköy evden eve nakliyat", "Beşiktaş parça eşya taşıma", "İstanbul Ankara nakliyat" gibi özel aramalar yaparlar. Sitenizde her ilçe ve güzergah için özel optimize edilmiş URL sayfaları bulunduğunda, her aramada 1. sırada sadece siz çıkarsınız.'
+    a: 'Google aramalarında kullanıcılar sadece genel kelimeleri aramaz; "Kadıköy evden eve nakliyat", "Beşiktaş parça eşya taşıma", "İstanbul Ankara nakliyat" gibi özel aramalar yaparlar. Sitenizde her ilçe ve güzergah için özel optimize edilmiş URL sayfaları bulunduğunda, o aramalarda en üst sıralarda firmanız öne çıkar.'
   },
   {
     q: 'SEO çalışması bittiğinde sıralamam hemen düşer mi?',
@@ -308,7 +308,7 @@ export default function GoogleSeoServicePage() {
                   <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
                     <li className="flex items-start gap-2">
                       <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                      <span><strong>Zaman ve Sabır İster:</strong> Google algoritmalarının sitenizi tarayıp 1. sıraya oturtması genellikle 3-8 hafta sürer (ilk gün sonuç beklenemez).</span>
+                      <span><strong>Zaman ve Sabır İster:</strong> Google algoritmalarının sitenizi tarayıp ilk sayfa ve üst sıralara taşıması genellikle 3-8 hafta sürer (ilk gün sonuç beklenemez).</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />

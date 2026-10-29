@@ -53,6 +53,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
   const isFreeOrStarterPlan = !carrier?.planId || carrier.planId === 'plan_starter' || carrier.planId === 'trial' || carrier.planId === 'free';
   const [activeOffers, setActiveOffers] = useState<Offer[]>(() => carrier ? db.getOffersForCarrier(carrier.id) : []);
   const existingOffer = activeOffers.find(o => o.requestId === req.id && o.status !== 'WITHDRAWN');
+  const isAssignedOrClosed = req.status === 'ASSIGNED' || req.status === 'CLOSED';
 
   // Müşteri Telefon Görme Yetkisi (Pro / Gold Paket veya Kabul Edilmiş Teklif)
   const isProOrGold = carrier?.planId === 'plan_pro' || carrier?.planId === 'plan_gold' || carrier?.planId === 'pro' || carrier?.planId === 'gold' || carrierSub?.planId === 'plan_pro' || carrierSub?.planId === 'plan_gold' || carrierSub?.planId === 'pro' || carrierSub?.planId === 'gold';
@@ -231,11 +232,29 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
           {/* Header Card */}
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
             <div className="flex items-center justify-between gap-3 mb-4">
-              <span className="text-xs font-black text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md">
-                Yeni Taşıma İşi
-              </span>
+              {isAssignedOrClosed ? (
+                <span className="text-xs font-black text-blue-800 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                  <span>🤝 Nakliyeciyle Anlaşıldı</span>
+                </span>
+              ) : (
+                <span className="text-xs font-black text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md">
+                  Yeni Taşıma İşi
+                </span>
+              )}
               <span className="text-xs text-slate-400">15 dk önce yayınlandı</span>
             </div>
+
+            {isAssignedOrClosed && (
+              <div className="mb-4 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 flex items-center gap-3 text-blue-950">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-xl shrink-0">
+                  🤝
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-blue-900">Bu Talep İçin Nakliyeci ile Anlaşılmıştır</h4>
+                  <p className="text-xs text-blue-700">Müşteri bir nakliye firması ile anlaşma sağlamıştır. Talep yeni teklif ve aramalara kapatılmıştır.</p>
+                </div>
+              </div>
+            )}
 
             <div className="py-2">
               <RouteDisplay
@@ -317,7 +336,16 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
                 </div>
               </div>
 
-              {canViewPhone ? (
+              {isAssignedOrClosed ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-2 rounded-xl border border-slate-200 tracking-wider">
+                    0532 *** ** **
+                  </span>
+                  <span className="text-xs font-bold text-blue-800 bg-blue-50 px-3 py-2 rounded-xl border border-blue-200">
+                    🤝 Nakliyeciyle Anlaşıldı
+                  </span>
+                </div>
+              ) : canViewPhone ? (
                 revealedPhone ? (
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-black text-emerald-800 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200 tracking-wider">
@@ -383,7 +411,43 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
 
         {/* Right 1 Col: Quick Quotation Form Drawer (Spec Item 61) */}
         <div>
-          {existingOffer ? (
+          {isAssignedOrClosed ? (
+            <div className="bg-white rounded-2xl border-2 border-slate-200 p-6 shadow-sm sticky top-24 space-y-4 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-700 border border-blue-100 flex items-center justify-center text-2xl mx-auto shadow-2xs">
+                🤝
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs font-black uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                  Anlaşma Sağlandı
+                </span>
+                <h3 className="text-base font-bold text-[#0A1128] pt-1">
+                  Bu Talep Kapatılmıştır
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Müşteri bir nakliye firması ile anlaşmıştır. Bu talep için yeni teklif verme veya güncelleme yapılamaz.
+                </p>
+              </div>
+
+              {existingOffer && (
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-left text-xs space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium">Verdiğiniz Teklif:</span>
+                    <strong className="text-[#0A1128] font-black">{existingOffer.price.toLocaleString('tr-TR')} TL</strong>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400">
+                    <span>Durum:</span>
+                    <span>{existingOffer.status === 'ACCEPTED' ? 'Kabul Edildi' : 'Farklı firma seçildi'}</span>
+                  </div>
+                </div>
+              )}
+
+              <Link href="/app/carrier/isler" className="block pt-2">
+                <Button variant="primary" className="w-full font-bold">
+                  Diğer Açık Talepleri Gör
+                </Button>
+              </Link>
+            </div>
+          ) : existingOffer ? (
             <div className="bg-white rounded-2xl border-2 border-emerald-500 p-6 shadow-lg shadow-emerald-900/5 sticky top-24 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="text-base font-bold text-emerald-800 flex items-center gap-2">

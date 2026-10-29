@@ -278,10 +278,12 @@ function CarrierMessagesContent() {
   }, [messages]);
 
   const activeConv = conversations.find(c => c.id === activeConvId);
+  const activeReq = activeConv ? (db.getRequestById(activeConv.contextId) || db.getRequests().find(r => r.requestCode === activeConv.contextId || r.requestCode === activeConv.contextTitle || (activeConv.contextTitle && activeConv.contextTitle.includes(r.requestCode)))) : null;
+  const isAssignedJob = Boolean(activeReq && (activeReq.status === 'ASSIGNED' || activeReq.status === 'CLOSED'));
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!carrier || !isApproved) return;
+    if (!carrier || !isApproved || isAssignedJob) return;
     if (!inputMessage.trim() || !activeConvId) return;
 
     const newMsg = db.sendMessage(activeConvId, {
@@ -512,7 +514,15 @@ function CarrierMessagesContent() {
               </div>
 
               {(() => {
-                const activeReq = activeConv ? db.getRequestById(activeConv.contextId) : null;
+                if (isAssignedJob) {
+                  return (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="px-3 py-1.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200 text-xs font-black inline-flex items-center gap-1 shadow-2xs">
+                        <span>🤝 Nakliyeciyle Anlaşıldı</span>
+                      </span>
+                    </div>
+                  );
+                }
                 const customerPhone = activeReq?.customerPhone;
                 if (!customerPhone) return null;
                 return (
@@ -528,19 +538,21 @@ function CarrierMessagesContent() {
             </div>
 
             {/* Quick Templates Bar */}
-            <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider shrink-0 mr-1">Hızlı Yanıt:</span>
-              {QUICK_TEMPLATES.map((tmpl, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => handleQuickTemplate(tmpl)}
-                  className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:border-[#F95700] hover:text-[#F95700] transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-2xs"
-                >
-                  {tmpl.slice(0, 32)}...
-                </button>
-              ))}
-            </div>
+            {!isAssignedJob && (
+              <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider shrink-0 mr-1">Hızlı Yanıt:</span>
+                {QUICK_TEMPLATES.map((tmpl, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => handleQuickTemplate(tmpl)}
+                    className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:border-[#F95700] hover:text-[#F95700] transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-2xs"
+                  >
+                    {tmpl.slice(0, 32)}...
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Messages Feed */}
             <div ref={messagesContainerRef} className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-[#F8FAFC]">
@@ -581,7 +593,19 @@ function CarrierMessagesContent() {
             </div>
 
             {/* Message Input or Locked Notice */}
-            {!isApproved ? (
+            {isAssignedJob ? (
+              <div className="p-4 border-t border-slate-200 bg-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 text-slate-700 font-bold">
+                  <span className="text-base">🤝</span>
+                  <span>Bu talep için nakliyeciyle anlaşma sağlandığından sohbet ve teklif gönderimi kapatılmıştır.</span>
+                </div>
+                <Link href="/app/carrier/isler">
+                  <button type="button" className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-black text-xs shrink-0 cursor-pointer transition-colors shadow-2xs">
+                    Açık İşleri Gör
+                  </button>
+                </Link>
+              </div>
+            ) : !isApproved ? (
               <div className="p-4 border-t border-slate-200 bg-amber-50/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-2 text-amber-900 font-bold">
                   <Lock className="w-4 h-4 text-amber-600 shrink-0" />

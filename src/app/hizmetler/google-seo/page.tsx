@@ -35,8 +35,8 @@ const createWhatsAppLink = (packageName?: string) => {
 const PACKAGES = [
   {
     name: 'Yerel SEO Başlangıç',
-    desc: 'Kendi ilçesinde ve çevre ilçelerde 1. sayfaya çıkmak isteyen nakliyeciler',
-    price: '3.750 TL',
+    desc: 'Kendi ilçesinde ve çevre ilçelerde ilk sayfaya ve üst sıralara çıkmak isteyen nakliyeciler',
+    price: '7.500 TL',
     period: '/ ay',
     isFeatured: false,
     badge: null,
@@ -50,8 +50,8 @@ const PACKAGES = [
   },
   {
     name: 'İl Geneli SEO Liderliği',
-    desc: 'Büyükşehirde (örn: İstanbul geneli) tüm ilçelerde 1. sayfayı hedefleyenler',
-    price: '7.500 TL',
+    desc: 'Büyükşehirde (örn: İstanbul geneli) tüm ilçelerde ilk sayfa ve üst sıraları hedefleyenler',
+    price: '12.500 TL',
     period: '/ ay',
     isFeatured: true,
     badge: 'EN ÇOK TERCİH EDİLEN',
@@ -66,8 +66,8 @@ const PACKAGES = [
   },
   {
     name: 'Türkiye Geneli Kurumsal SEO',
-    desc: '81 ilde ve tüm anahtar kelimelerde zirveyi hedefleyen filo firmaları',
-    price: '13.500 TL',
+    desc: '81 ilde ve tüm anahtar kelimelerde üst sıraları hedefleyen filo firmaları',
+    price: '17.500 TL',
     period: '/ ay',
     isFeatured: false,
     badge: 'FİLOLAR İÇİN',
@@ -115,7 +115,7 @@ const FAQS = [
   },
   {
     q: 'İç sayfa URL mimarisi neden bu kadar önemlidir?',
-    a: 'Taşınmak isteyen kullanıcıların %85\'i kendi ilçesini arar. Sitenizde her ilçe için bağımsız optimize edilmiş sayfalar olduğunda Google sizi o ilçede 1 numara gösterir.'
+    a: 'Taşınmak isteyen kullanıcıların %85\'i kendi ilçesini arar. Sitenizde her ilçe için bağımsız optimize edilmiş sayfalar olduğunda Google sizi o ilçede üst sıralarda öne çıkarır.'
   },
   {
     q: 'SEO çalışması bittiğinde sıralamam hemen düşer mi?',

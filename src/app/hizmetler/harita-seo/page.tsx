@@ -34,7 +34,7 @@ const PACKAGES = [
   {
     name: 'İlçe Harita Liderliği',
     desc: 'Kendi ilçesinde Google Haritalar ilk 3 sırada yer almak isteyen nakliyeciler',
-    price: '2.850 TL',
+    price: '7.500 TL',
     period: '/ ay',
     isFeatured: false,
     badge: null,
@@ -48,8 +48,8 @@ const PACKAGES = [
   },
   {
     name: 'Bölgesel Harita Dominasyonu',
-    desc: 'İstanbul veya büyükşehirde birden fazla ilçede haritada 1. sırada çıkmak isteyenler',
-    price: '5.850 TL',
+    desc: 'İstanbul veya büyükşehirde birden fazla ilçede haritada ilk 3 sıra ve üst sıralarda yer almak isteyenler',
+    price: '12.500 TL',
     period: '/ ay',
     isFeatured: true,
     badge: 'EN ÇOK TERCİH EDİLEN',
@@ -65,7 +65,7 @@ const PACKAGES = [
   {
     name: 'Mega Şehir & Çoklu Şube Harita Ağı',
     desc: 'Büyük filolar ve birden fazla garaj/şube konumu olan kurumsal nakliyat firmaları',
-    price: '10.350 TL',
+    price: '17.500 TL',
     period: '/ ay',
     isFeatured: false,
     badge: 'FİLOLAR İÇİN',

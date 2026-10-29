@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Nakliyat Google SEO Hizmeti | TaşınTeklif Dijital Ajans',
-    description: 'Evden eve ve şehirlerarası nakliyat aramalarında kalıcı 1. sıra SEO çalışmaları.',
+    description: 'Evden eve ve şehirlerarası nakliyat aramalarında kalıcı ilk sayfa ve üst sıralar SEO çalışmaları.',
     url: 'https://www.tasinteklif.com/hizmetler/google-seo',
     siteName: 'TaşınTeklif',
     locale: 'tr_TR',
