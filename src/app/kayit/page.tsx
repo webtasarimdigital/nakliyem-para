@@ -142,6 +142,35 @@ function KayitContent() {
     return () => clearInterval(cooldownTimer);
   }, [resendCooldown]);
 
+  // Sayfa yenilenirse veya geri gelinirse bekleyen telefon doğrulama oturumunu geri yükle
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = sessionStorage.getItem('pending_registration_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // 10 dakika içindeyse geri yükle
+        if (parsed && Date.now() - (parsed.timestamp || 0) < 10 * 60 * 1000) {
+          if (parsed.email) setEmail(parsed.email);
+          if (parsed.phone) setPhone(parsed.phone);
+          if (parsed.name) setName(parsed.name);
+          if (parsed.companyName) setCompanyName(parsed.companyName);
+          if (parsed.password) setPassword(parsed.password);
+          if (parsed.role) setRole(parsed.role);
+          if (parsed.otpChannel) setOtpChannel(parsed.otpChannel);
+          if (parsed.step === 'OTP') {
+            setStep('OTP');
+            setOtpSuccessMsg('Devam eden telefon doğrulama oturumunuz yüklendi. Lütfen gelen SMS kodunu giriniz.');
+          }
+        } else {
+          sessionStorage.removeItem('pending_registration_session');
+        }
+      }
+    } catch (e) {
+      console.warn('Pending session restore error:', e);
+    }
+  }, []);
+
   const isCarrier = role === 'nakliyeci';
 
   // Google ile Gerçekçi Kayıt
@@ -399,6 +428,20 @@ function KayitContent() {
       setResendCooldown(60);
       setOtpCode('');
       setOtpSuccessMsg(data.message || '6 haneli onay kodunuz gönderildi.');
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('pending_registration_session', JSON.stringify({
+          email: cleanEmail,
+          phone: cleanPhone,
+          name: name.trim(),
+          companyName: companyName.trim(),
+          password,
+          role,
+          otpChannel: data.channel || 'sms',
+          step: 'OTP',
+          timestamp: Date.now(),
+        }));
+      }
     } catch (err: any) {
       setErrorMessage(err.message || 'Sunucuyla iletişim kurulurken bir hata oluştu.');
     } finally {
@@ -486,7 +529,12 @@ function KayitContent() {
         return;
       }
 
-      // 2. Kod doğrulandı! Kullanıcıyı Firebase ve Mock DB'ye güvenle kaydet
+      // 2. Kod doğrulandı! Bekleyen oturumu temizle
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('pending_registration_session');
+      }
+
+      // Kullanıcıyı Firebase ve Mock DB'ye güvenle kaydet
       const newUserId = `user_${Date.now()}`;
       const newCarrierId = isCarrier ? `carr_${Date.now()}` : undefined;
 
@@ -886,13 +934,16 @@ function KayitContent() {
                   <button
                     type="button"
                     onClick={() => {
+                      if (typeof window !== 'undefined') {
+                        sessionStorage.removeItem('pending_registration_session');
+                      }
                       setStep('FORM');
                       setErrorMessage('');
                       setOtpCode('');
                     }}
                     className="text-slate-500 hover:text-slate-800 font-medium cursor-pointer"
                   >
-                    ← E-postayı / Bilgileri Değiştir
+                    ← Telefonu / Bilgileri Değiştir
                   </button>
                 </div>
               </div>
