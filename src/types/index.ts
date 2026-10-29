@@ -92,6 +92,13 @@ export interface User {
   emailVerified?: boolean;
   createdAt: string;
   isMasterUser?: boolean; // Özel yetki: Hem müşteri hem nakliyeci panellerine tam erişim
+  termsAccepted?: boolean;
+  termsAcceptedAt?: string;
+  kvkkAccepted?: boolean;
+  kvkkAcceptedAt?: string;
+  dataProcessingAccepted?: boolean;
+  commercialConsent?: boolean;
+  commercialConsentAt?: string;
 }
 
 export type RequestStatus = 'DRAFT' | 'ACTIVE' | 'ASSIGNED' | 'CLOSED' | 'CANCELED' | 'EXPIRED';

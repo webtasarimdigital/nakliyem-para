@@ -193,6 +193,33 @@ export default function KvkkPage() {
             </ul>
           </section>
 
+          <section id="acik-riza" className="space-y-3 scroll-mt-24 p-5 rounded-2xl bg-slate-50 border border-slate-200">
+            <div className="flex items-center gap-2.5 text-[#111E38]">
+              <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#F95700] flex items-center justify-center font-bold text-sm">
+                8
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold">Kişisel Verilerin İşlenmesine İlişkin Açık Rıza Beyanı</h2>
+            </div>
+            <p>
+              TaşınTeklif kullanıcıları; kayıt olurken veya talep oluştururken belirttikleri ad-soyad, telefon, e-posta, taşınma lokasyonları ve eşya detaylarının; nakliyat teklifi sunacak doğrulanmış taşıyıcı firmalara aktarılmasını, teklif süreçlerinin yürütülmesini ve platform içi bildirimlerin sağlanmasını serbest iradeleriyle kabul ve beyan ederler.
+            </p>
+          </section>
+
+          <section id="ticari-ileti" className="space-y-3 scroll-mt-24 p-5 rounded-2xl bg-emerald-50/50 border border-emerald-200">
+            <div className="flex items-center gap-2.5 text-[#111E38]">
+              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
+                9
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold text-emerald-950">Ticari Elektronik İleti Onayı (ETK ve İYS Kapsamında)</h2>
+            </div>
+            <p className="text-emerald-900 leading-relaxed">
+              6563 sayılı Elektronik Ticaretin Düzenlenmesi Hakkında Kanun ve Ticari İletişim ve Ticari Elektronik İletiler Hakkında Yönetmelik uyarınca; kayıt esnasında veya profil ayarlarınızdan izin vermeniz durumunda TaşınTeklif tarafından tarafınıza SMS, e-posta veya arama vasıtasıyla indirim kampanyaları, yeni özellikler, mevsimsel taşınma fırsatları ve bülten iletileri gönderilebilir.
+            </p>
+            <p className="text-xs text-emerald-800 font-semibold">
+              * Bu onay tamamen isteğe bağlıdır ve dilediğiniz an hiçbir gerekçe belirtmeksizin profil ayarlarınızdan veya size ulaşan iletilerdeki &quot;Ret&quot; bağlantısından iptal edilebilir. İzniniz İleti Yönetim Sistemi (İYS) standartlarına uygun olarak saklanır.
+            </p>
+          </section>
+
           <section className="pt-4 border-t border-slate-200">
             <div className="p-6 rounded-2xl bg-orange-50/60 border border-orange-200 text-xs sm:text-sm text-slate-800 space-y-2">
               <h3 className="font-bold text-[#111E38] text-base flex items-center gap-2">

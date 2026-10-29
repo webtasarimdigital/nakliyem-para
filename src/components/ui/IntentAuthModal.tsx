@@ -59,8 +59,9 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
 
   const isCarrier = targetRole === 'CARRIER';
 
-  // Already registered state
   const [alreadyRegistered, setAlreadyRegistered] = useState<string | null>(null);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [commercialConsent, setCommercialConsent] = useState(false);
 
   // 3 Dakikalık Geri Sayım Sayacı
   useEffect(() => {
@@ -223,6 +224,15 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
 
     if (!password || password.length < 6) {
       setErrorMessage('Şifreniz en az 6 karakter olmalıdır.');
+      return;
+    }
+
+    if (!agreeTerms) {
+      setErrorMessage(
+        isCarrier
+          ? "Lütfen Kullanım Koşulları, KVKK Aydınlatma Metni ve Veri İşleme Taahhüdü'nü onaylayınız."
+          : "Lütfen Kullanım Koşulları, KVKK Aydınlatma Metni ve Açık Rıza Metni'ni onaylayınız."
+      );
       return;
     }
 
@@ -842,10 +852,98 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
               </div>
 
               {tab === 'REGISTER' && (
-                <div className="p-2.5 bg-orange-50/70 rounded-xl border border-orange-100 flex items-center gap-2 text-[11px] text-[#111E38] font-medium">
-                  <Clock className="w-3.5 h-3.5 text-[#F95700] shrink-0" />
-                  <span>Kaydınızı tamamlamak için e-postanıza 3 dakikalık onay kodu gönderilecektir.</span>
-                </div>
+                <>
+                  <div className="p-2.5 bg-orange-50/70 rounded-xl border border-orange-100 flex items-center gap-2 text-[11px] text-[#111E38] font-medium">
+                    <Clock className="w-3.5 h-3.5 text-[#F95700] shrink-0" />
+                    <span>Kaydınızı tamamlamak için e-postanıza 3 dakikalık onay kodu gönderilecektir.</span>
+                  </div>
+
+                  {/* Yasal Onaylar ve Rıza Metinleri */}
+                  <div className="space-y-2.5 pt-1 text-left">
+                    <label className="flex items-start gap-2.5 cursor-pointer select-none group">
+                      <input
+                        type="checkbox"
+                        checked={agreeTerms}
+                        onChange={e => setAgreeTerms(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 text-emerald-600 accent-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer shrink-0"
+                        required
+                      />
+                      <span className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                        <a
+                          href="/kullanim-kosullari"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-700 font-bold hover:underline"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          Kullanım Koşulları
+                        </a>
+                        ’nı kabul ediyorum ve{' '}
+                        <a
+                          href="/kvkk"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-700 font-bold hover:underline"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          KVKK Aydınlatma Metni
+                        </a>
+                        ’ni okudum.{' '}
+                        {isCarrier ? (
+                          <>
+                            Müşteri verileri için{' '}
+                            <a
+                              href="/nakliyeci-sozlesmesi#veri-isleme-taahhudu"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-emerald-700 font-bold hover:underline"
+                              onClick={e => e.stopPropagation()}
+                            >
+                              Veri İşleme Taahhüdü
+                            </a>
+                            ’nü kabul ediyorum.
+                          </>
+                        ) : (
+                          <>
+                            Kişisel verilerimin işlenmesine ilişkin{' '}
+                            <a
+                              href="/kvkk#acik-riza"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-emerald-700 font-bold hover:underline"
+                              onClick={e => e.stopPropagation()}
+                            >
+                              Açık Rıza Metni
+                            </a>
+                            ’ni kabul ediyorum.
+                          </>
+                        )}{' '}
+                        <span className="text-red-500 font-bold">*</span>
+                      </span>
+                    </label>
+
+                    <label className="flex items-start gap-2.5 cursor-pointer select-none group">
+                      <input
+                        type="checkbox"
+                        checked={commercialConsent}
+                        onChange={e => setCommercialConsent(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 text-emerald-600 accent-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer shrink-0"
+                      />
+                      <span className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                        Kampanya, yenilik ve fırsatlardan e-posta ve SMS ile haberdar olmak istiyorum. İsteğe bağlıdır, istediğiniz zaman geri alabilirsiniz.{' '}
+                        <a
+                          href="/kvkk#ticari-ileti"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-700 font-bold hover:underline inline-block"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          Ticari Elektronik İleti Onayı
+                        </a>
+                      </span>
+                    </label>
+                  </div>
+                </>
               )}
 
               <Button
@@ -853,7 +951,8 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
                 variant="primary"
                 size="md"
                 isLoading={isLoading}
-                className="w-full font-bold text-xs py-3 mt-2 shadow-md bg-[#F95700] hover:bg-[#E04F00]"
+                disabled={tab === 'REGISTER' && !agreeTerms}
+                className="w-full font-bold text-xs py-3 mt-2 shadow-md bg-[#F95700] hover:bg-[#E04F00] disabled:opacity-50"
               >
                 {isLoading
                   ? (tab === 'REGISTER' ? 'Kayıt yapılıyor...' : 'Giriş yapılıyor...')

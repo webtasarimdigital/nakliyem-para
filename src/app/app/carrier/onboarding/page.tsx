@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   Building2, 
@@ -59,6 +60,7 @@ export default function CarrierOnboardingPage() {
   // Step 7: Documents - Boş başlar, fake dolu gelmez
   const [taxCertFiles, setTaxCertFiles] = useState<string[]>([]);
   const [identityFiles, setIdentityFiles] = useState<string[]>([]);
+  const [agreeOnboardingTerms, setAgreeOnboardingTerms] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   // Kayıt aşamasında girilen telefon, e-posta ve firma bilgilerini otomatik doldur
@@ -143,6 +145,11 @@ export default function CarrierOnboardingPage() {
     if (!tcResult.isValid) {
       setStep(3);
       setErrorMessage(tcResult.error || 'Lütfen geçerli bir TC Kimlik Numarası giriniz.');
+      return;
+    }
+
+    if (!agreeOnboardingTerms) {
+      setErrorMessage('Lütfen evrak doğruluğunu ve Taşıyıcı Sözleşmesi şartlarını onaylayınız.');
       return;
     }
 
@@ -542,6 +549,42 @@ export default function CarrierOnboardingPage() {
                 onChange={setIdentityFiles}
                 mode="document"
               />
+
+              <div className="pt-2">
+                <label className="flex items-start gap-2.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer select-none group hover:bg-slate-100/70 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={agreeOnboardingTerms}
+                    onChange={e => setAgreeOnboardingTerms(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 text-emerald-600 accent-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer shrink-0"
+                    required
+                  />
+                  <span className="text-xs text-slate-700 font-medium leading-relaxed">
+                    Yüklediğim tüm evrakların güncel ve doğru olduğunu,{' '}
+                    <Link
+                      href="/nakliyeci-sozlesmesi#veri-isleme-taahhudu"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-700 font-bold hover:underline"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      Müşteri Verilerini Koruma Taahhüdü
+                    </Link>
+                    ’nü ve{' '}
+                    <Link
+                      href="/nakliyeci-sozlesmesi"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-700 font-bold hover:underline"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      Taşıyıcı Hizmet Sözleşmesi
+                    </Link>
+                    {' '}hükümlerini gayrikabili rücu kabul ve taahhüt ediyorum.{' '}
+                    <span className="text-red-500 font-bold">*</span>
+                  </span>
+                </label>
+              </div>
             </div>
           </div>
         )}
@@ -578,8 +621,9 @@ export default function CarrierOnboardingPage() {
               variant="primary"
               size="md"
               onClick={handleComplete}
+              disabled={!agreeOnboardingTerms}
               rightIcon={<ShieldCheck className="w-4 h-4" />}
-              className="font-bold text-sm h-11 px-6"
+              className="font-bold text-sm h-11 px-6 disabled:opacity-50"
             >
               Başvuruyu Tamamla & Gönder
             </Button>

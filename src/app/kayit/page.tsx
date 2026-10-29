@@ -76,6 +76,7 @@ function KayitContent() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agree, setAgree] = useState(false);
+  const [commercialConsent, setCommercialConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [alreadyRegistered, setAlreadyRegistered] = useState<string | null>(null);
@@ -210,7 +211,11 @@ function KayitContent() {
     }
 
     if (!agree) {
-      setErrorMessage('Lütfen Kullanım Koşulları ve Gizlilik Politikası\'nı onaylayınız.');
+      setErrorMessage(
+        isCarrier
+          ? "Lütfen Kullanım Koşulları, KVKK Aydınlatma Metni ve Veri İşleme Taahhüdü'nü onaylayınız."
+          : "Lütfen Kullanım Koşulları, KVKK Aydınlatma Metni ve Açık Rıza Metni'ni onaylayınız."
+      );
       return;
     }
 
@@ -443,7 +448,14 @@ function KayitContent() {
         companyName: isCarrier ? companyName : undefined,
         carrierId: newCarrierId,
         createdAt: new Date().toISOString(),
-      });
+        termsAccepted: true,
+        termsAcceptedAt: new Date().toISOString(),
+        kvkkAccepted: true,
+        kvkkAcceptedAt: new Date().toISOString(),
+        dataProcessingAccepted: isCarrier,
+        commercialConsent: commercialConsent,
+        commercialConsentAt: commercialConsent ? new Date().toISOString() : undefined,
+      } as any);
 
       if (isCarrier) {
         db.addCarrier({
@@ -1109,21 +1121,93 @@ function KayitContent() {
                     </div>
                   </div>
 
-                  {/* Sözleşme Onayı */}
-                  <label className="flex items-start gap-2 cursor-pointer pt-2">
-                    <input
-                      type="checkbox"
-                      checked={agree}
-                      onChange={e => setAgree(e.target.checked)}
-                      className="mt-0.5 w-4 h-4 accent-[#F95700] shrink-0 cursor-pointer rounded"
-                      required
-                    />
-                    <span className="text-xs text-slate-500 font-medium leading-tight">
-                      <Link href="/kullanim-kosullari" target="_blank" className="text-[#F95700] font-semibold hover:underline">
-                        Kullanım Koşulları ve Gizlilik Politikası
-                      </Link>'nı kabul ediyorum.
-                    </span>
-                  </label>
+                  {/* Yasal Onaylar ve Rıza Metinleri */}
+                  <div className="space-y-3 pt-2">
+                    {/* 1. Zorunlu Yasal Onay Checkbox'ı */}
+                    <label className="flex items-start gap-2.5 cursor-pointer select-none group">
+                      <input
+                        type="checkbox"
+                        checked={agree}
+                        onChange={e => setAgree(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 text-emerald-600 accent-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer shrink-0"
+                        required
+                      />
+                      <span className="text-xs text-slate-600 font-medium leading-relaxed">
+                        <Link
+                          href="/kullanim-kosullari"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-700 font-bold hover:underline"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          Kullanım Koşulları
+                        </Link>
+                        ’nı kabul ediyorum ve{' '}
+                        <Link
+                          href="/kvkk"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-700 font-bold hover:underline"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          KVKK Aydınlatma Metni
+                        </Link>
+                        ’ni okudum.{' '}
+                        {isCarrier ? (
+                          <>
+                            Müşteri verileri için{' '}
+                            <Link
+                              href="/nakliyeci-sozlesmesi#veri-isleme-taahhudu"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-emerald-700 font-bold hover:underline"
+                              onClick={e => e.stopPropagation()}
+                            >
+                              Veri İşleme Taahhüdü
+                            </Link>
+                            ’nü kabul ediyorum.
+                          </>
+                        ) : (
+                          <>
+                            Kişisel verilerimin işlenmesine ilişkin{' '}
+                            <Link
+                              href="/kvkk#acik-riza"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-emerald-700 font-bold hover:underline"
+                              onClick={e => e.stopPropagation()}
+                            >
+                              Açık Rıza Metni
+                            </Link>
+                            ’ni kabul ediyorum.
+                          </>
+                        )}{' '}
+                        <span className="text-red-500 font-bold">*</span>
+                      </span>
+                    </label>
+
+                    {/* 2. İsteğe Bağlı Ticari Elektronik İleti Onayı Checkbox'ı */}
+                    <label className="flex items-start gap-2.5 cursor-pointer select-none group">
+                      <input
+                        type="checkbox"
+                        checked={commercialConsent}
+                        onChange={e => setCommercialConsent(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 text-emerald-600 accent-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer shrink-0"
+                      />
+                      <span className="text-xs text-slate-600 font-medium leading-relaxed">
+                        Kampanya, yenilik ve fırsatlardan e-posta ve SMS ile haberdar olmak istiyorum. İsteğe bağlıdır, istediğiniz zaman geri alabilirsiniz.{' '}
+                        <Link
+                          href="/kvkk#ticari-ileti"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-700 font-bold hover:underline inline-block"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          Ticari Elektronik İleti Onayı
+                        </Link>
+                      </span>
+                    </label>
+                  </div>
 
                   {/* Gönder Butonu */}
                   <button

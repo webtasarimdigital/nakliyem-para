@@ -138,6 +138,24 @@ export default function NakliyeciSozlesmesiPage() {
             </ul>
           </section>
 
+          <section id="veri-isleme-taahhudu" className="space-y-3 scroll-mt-24 p-5 rounded-2xl bg-emerald-50/50 border border-emerald-200">
+            <div className="flex items-center gap-2.5 text-[#111E38]">
+              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
+                7
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold text-emerald-950">Müşteri Verileri İçin Veri İşleme Taahhüdü (KVKK)</h2>
+            </div>
+            <p className="text-emerald-900 leading-relaxed">
+              Taşıyıcı firma; TaşınTeklif üzerinden tarafına iletilen veya erişimine açılan müşteri kişisel verilerini (ad, soyad, telefon numarası, ev/ofis adresi, taşınma tarihi, eşya ve lokasyon bilgileri) 6698 sayılı Kişisel Verilerin Korunması Kanunu (&quot;KVKK&quot;) ve ilgili ikincil mevzuata tam uyumlu olarak işleyeceğini taahhüt eder.
+            </p>
+            <ul className="list-disc list-inside space-y-1.5 text-emerald-900/90 pl-1">
+              <li><strong>Münhasır Amaç:</strong> Müşteri verileri yalnızca teklif hazırlama, taşıma operasyonunun planlanması ve nakliye hizmetinin ifası amacıyla kullanılabilir.</li>
+              <li><strong>Üçüncü Kişilerle Paylaşım Yasağı:</strong> Müşteri verileri hiçbir surette üçüncü şahıslara, alt yüklenicilere (platform harici), reklam veya pazarlama amaçlı başka kuruluşlara aktarılamaz, satılamaz veya devredilemez.</li>
+              <li><strong>İdari ve Teknik Tedbirler:</strong> Firma; verilerin kaybolmasını, yetkisiz kişilerin eline geçmesini ve sızdırılmasını engellemek üzere gerekli tüm güvenlik tedbirlerini almakla yükümlüdür.</li>
+              <li><strong>Hizmet Sonu İmha:</strong> Taşıma hizmeti tamamlandıktan ve yasal saklama süreleri dolduktan sonra müşteri kişisel verileri güvenli yöntemlerle silinir veya imha edilir.</li>
+            </ul>
+          </section>
+
           <section className="pt-4 border-t border-slate-200">
             <div className="p-6 rounded-2xl bg-orange-50/60 border border-orange-200 text-xs sm:text-sm text-slate-800 space-y-2">
               <h3 className="font-bold text-[#111E38] text-base flex items-center gap-2">
