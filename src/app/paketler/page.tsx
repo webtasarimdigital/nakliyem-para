@@ -12,33 +12,34 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { IntentAuthModal } from '@/components/ui/IntentAuthModal';
+import { TrialCardModal } from '@/components/subscription/TrialCardModal';
 import { db } from '@/lib/data/mock-db';
 import { updateFirestoreCarrier } from '@/lib/firebase/firestore';
 import { User, CarrierProfile } from '@/types';
 
-// Plans configuration with Gold as the Featured / Top Plan in the Center
+// Plans configuration with Profesyonel as the Featured / 7-Day Free Trial Plan in the Center
 const PLANS = [
   {
     id: 'starter',
     name: 'Başlangıç',
-    tagline: 'Platformu denemek isteyen yeni firmalar için',
-    priceMonthly: 1250,
-    priceYearly: 12500,
-    yearlyMonthly: 1042,
+    tagline: 'Platformu denemek ve bölgesel işleri görmek isteyen yeni firmalar için',
+    priceMonthly: 1199,
+    priceYearly: 11990,
+    yearlyMonthly: 999,
     hasTrial: false,
     trialBadge: null,
     color: 'border-slate-200',
     headerBg: 'bg-slate-50',
     isFeatured: false,
-    badge: null,
+    badge: 'YENİ BAŞLAYAN',
     ctaText: 'Başlangıç Paketini Seç',
     ctaVariant: 'outline' as const,
     features: {
       trial: false,
-      monthlyOfferLimit: '25 teklif / ay',
+      monthlyOfferLimit: '15 teklif / ay',
       customerPhoneAccess: false,
       notebookAccess: true,
-      notebookPostLimit: '10 paylaşım / ay',
+      notebookPostLimit: '5 paylaşım / ay',
       routeAlarmLimit: '2 alarm',
       featuredHomepage: false,
       featuredNotebook: false,
@@ -49,22 +50,52 @@ const PLANS = [
     }
   },
   {
-    id: 'gold',
-    name: 'Gold (En Üst Paket)',
-    tagline: 'Maksimum güç, sınırsız iş ve tam görünürlük',
-    priceMonthly: 4850,
-    priceYearly: 48500,
-    yearlyMonthly: 4042,
-    hasTrial: false,
-    trialBadge: '⭐ EN ÇOK TERCİH EDİLEN',
+    id: 'pro',
+    name: 'Profesyonel',
+    tagline: 'Aktif nakliyeciler ve düzenli taşıma yapan firmalar için tam donanım',
+    priceMonthly: 2990,
+    priceYearly: 29900,
+    yearlyMonthly: 2491,
+    hasTrial: true,
+    trialBadge: '⭐ 7 GÜN ÜCRETSİZ DENEME (0 ₺)',
     color: 'border-[#F95700] ring-4 ring-[#F95700]/20 shadow-2xl',
-    headerBg: 'bg-gradient-to-br from-[#111E38] via-[#1B2A4A] to-[#111E38]',
+    headerBg: 'bg-gradient-to-br from-[#0A1128] via-[#111E38] to-[#0A1128]',
     isFeatured: true,
-    badge: '⭐ EN ÇOK TERCİH EDİLEN & EN KAPSAMLI',
-    ctaText: 'Gold Paketi Seç',
+    badge: '⭐ EN ÇOK TERCİH EDİLEN & EN AVANTAJLI',
+    ctaText: '7 Gün Ücretsiz Denemeyi Başlat',
     ctaVariant: 'primary' as const,
     features: {
       trial: true,
+      monthlyOfferLimit: '50 teklif / ay',
+      customerPhoneAccess: true,
+      notebookAccess: true,
+      notebookPostLimit: '20 paylaşım / ay',
+      routeAlarmLimit: '5 alarm',
+      featuredHomepage: false,
+      featuredNotebook: true,
+      featuredCityPages: true,
+      premiumBadge: true,
+      analyticsAdvanced: true,
+      digitalServicesDiscountPercent: '%15 indirim',
+    }
+  },
+  {
+    id: 'gold',
+    name: 'Filo / Kurumsal',
+    tagline: 'Maksimum güç, sınırsız iş hacmi, filo ve tam görünürlük',
+    priceMonthly: 5990,
+    priceYearly: 59900,
+    yearlyMonthly: 4991,
+    hasTrial: false,
+    trialBadge: null,
+    color: 'border-slate-200',
+    headerBg: 'bg-slate-50',
+    isFeatured: false,
+    badge: 'FİLO & KURUMSAL',
+    ctaText: 'Filo Paketini Seç',
+    ctaVariant: 'navy' as const,
+    features: {
+      trial: false,
       monthlyOfferLimit: 'Sınırsız teklif verme',
       customerPhoneAccess: true,
       notebookAccess: true,
@@ -76,36 +107,6 @@ const PLANS = [
       premiumBadge: true,
       analyticsAdvanced: true,
       digitalServicesDiscountPercent: '%25 indirim',
-    }
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    tagline: 'Düzenli iş alan ve rotasını dolduran nakliyeciler için',
-    priceMonthly: 2450,
-    priceYearly: 24500,
-    yearlyMonthly: 2042,
-    hasTrial: false,
-    trialBadge: null,
-    color: 'border-slate-200',
-    headerBg: 'bg-slate-50',
-    isFeatured: false,
-    badge: null,
-    ctaText: 'Pro Paketini Seç',
-    ctaVariant: 'navy' as const,
-    features: {
-      trial: false,
-      monthlyOfferLimit: '100 teklif / ay',
-      customerPhoneAccess: true,
-      notebookAccess: true,
-      notebookPostLimit: '40 paylaşım / ay',
-      routeAlarmLimit: '8 alarm',
-      featuredHomepage: false,
-      featuredNotebook: true,
-      featuredCityPages: true,
-      premiumBadge: true,
-      analyticsAdvanced: true,
-      digitalServicesDiscountPercent: '%10 indirim',
     }
   },
 ];
@@ -157,6 +158,7 @@ function PaketlerContent() {
     targetRole: 'CARRIER'
   });
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
+  const [trialModalOpen, setTrialModalOpen] = useState(false);
   const [selectedPlanForUpgrade, setSelectedPlanForUpgrade] = useState<typeof PLANS[0] | null>(null);
   const [isActivating, setIsActivating] = useState(false);
   const [isRedirectingToCheckout, setIsRedirectingToCheckout] = useState(false);
@@ -285,6 +287,11 @@ function PaketlerContent() {
 
     // 3. Nakliyeci giriş yapmışsa:
     if (isCurrentPlan(plan.id)) {
+      return;
+    }
+
+    if (plan.id === 'pro' || plan.hasTrial) {
+      setTrialModalOpen(true);
       return;
     }
 
@@ -458,6 +465,17 @@ function PaketlerContent() {
                     <p className={`text-xs font-bold mt-1 ${plan.isFeatured ? 'text-emerald-400' : 'text-emerald-600'}`}>
                       Yıllık {plan.priceYearly.toLocaleString('tr-TR')} TL (2 ay hediye)
                     </p>
+                  )}
+
+                  {plan.hasTrial && (
+                    <div className="mt-3.5 p-3 rounded-2xl bg-white/10 border border-white/20 text-center space-y-0.5 backdrop-blur-xs">
+                      <div className="text-xs font-black text-emerald-300">
+                        Bugün 0 ₺ · 7 gün ücretsiz deneme
+                      </div>
+                      <div className="text-[11px] text-slate-300 font-medium">
+                        7 gün sonra ₺2.990/ay · İstediğin an iptal
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
@@ -945,6 +963,18 @@ function PaketlerContent() {
             if (target) {
               setSelectedPlanForUpgrade(target);
             }
+          }
+        }}
+      />
+
+      {/* 7-Day Trial Card Modal (Görsel 2) */}
+      <TrialCardModal
+        isOpen={trialModalOpen}
+        onClose={() => setTrialModalOpen(false)}
+        onSuccess={() => {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('auth-changed'));
+            window.dispatchEvent(new Event('storage'));
           }
         }}
       />

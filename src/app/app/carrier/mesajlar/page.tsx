@@ -358,6 +358,28 @@ function CarrierMessagesContent() {
         </Link>
       </div>
 
+      {/* Verified Carrier Notice */}
+      {isApproved && (
+        <div className="mb-4 rounded-2xl bg-emerald-50 border border-emerald-200 p-4 shadow-2xs text-emerald-950 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-emerald-800">Doğrulanmış Profil (Onaylı Firma)</span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-200/70 text-emerald-900 text-[10px] font-black">
+                  Kimlik &amp; Vergi Levhası Onaylı
+                </span>
+              </div>
+              <p className="text-[11px] text-emerald-700 font-medium">
+                Müşterileriniz mesajlarınızda ve tekliflerinizde yeşil onaylı firma rozetinizi görmektedir.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Unverified Warning Banner (Spec requirement) */}
       {!isApproved && (
         <div className="mb-6 rounded-2xl bg-gradient-to-r from-amber-50 via-amber-100/60 to-orange-50 border-2 border-amber-300 p-5 shadow-sm text-amber-950 flex flex-col md:flex-row md:items-center justify-between gap-4">

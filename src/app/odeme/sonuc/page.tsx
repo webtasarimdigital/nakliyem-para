@@ -26,8 +26,10 @@ function OdemeSonucContent() {
   const statusParam = (searchParams.get('status') || '').toLowerCase().trim();
   const paymentId = searchParams.get('payment_id') || searchParams.get('paymentId') || '';
   const email = searchParams.get('email') || '';
+  const isTrial = searchParams.get('trial') === 'true';
 
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [carrierData, setCarrierData] = useState<any>(null);
 
   // Validate status: Dodo Payments returns 'succeeded' on successful payment, 'failed' or 'cancelled' on error.
   const isSuccess = statusParam === 'succeeded' || statusParam === 'success' || statusParam === 'paid' || statusParam === 'active';
@@ -46,7 +48,7 @@ function OdemeSonucContent() {
       pro: 'plan_pro',
       gold: 'plan_gold',
     };
-    const targetPlanId = planIdMap[planKey] || 'plan_gold';
+    const targetPlanId = planIdMap[planKey] || 'plan_pro';
 
     if (user) {
       let carrier = db.getCurrentCarrier();
@@ -54,12 +56,29 @@ function OdemeSonucContent() {
         carrier = db.getCarriers().find(c => c.userId === user.id || c.id === user.carrierProfileId) || null;
       }
       if (carrier) {
-        db.updateCarrier(carrier.id, { planId: targetPlanId, verificationStatus: 'APPROVED' });
-        db.renewCarrierSubscription(carrier.id);
-        updateFirestoreCarrier(carrier.id, { planId: targetPlanId, verificationStatus: 'APPROVED' }).catch(() => {});
+        if (isTrial) {
+          // 7 günlük deneme kart kaydı
+          db.recordCarrierCardAdded(carrier.id);
+          const updated = db.getCarrierById(carrier.id);
+          setCarrierData(updated);
+          if (updated) {
+            updateFirestoreCarrier(carrier.id, {
+              hasCardAdded: true,
+              trialStatus: updated.trialStatus,
+              planId: updated.planId
+            }).catch(() => {});
+          }
+        } else {
+          // Normal ödeme / paket yenileme
+          db.updateCarrier(carrier.id, { planId: targetPlanId, verificationStatus: 'APPROVED', trialStatus: 'CONVERTED' });
+          db.renewCarrierSubscription(carrier.id);
+          const updated = db.getCarrierById(carrier.id);
+          setCarrierData(updated);
+          updateFirestoreCarrier(carrier.id, { planId: targetPlanId, verificationStatus: 'APPROVED' }).catch(() => {});
+        }
       }
     }
-  }, [isSuccess, planKey]);
+  }, [isSuccess, planKey, isTrial]);
 
   const planTitles: Record<string, string> = {
     starter: 'Başlangıç Paketi',
@@ -154,29 +173,37 @@ function OdemeSonucContent() {
         {/* Secure Badge */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 mb-3">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>256-bit SSL Güvenli Ödeme Onaylandı</span>
+          <span>{isTrial ? 'Kart Doğrulaması Başarılı (0 ₺)' : '256-bit SSL Güvenli Ödeme Onaylandı'}</span>
         </div>
 
         <h1 className="text-2xl font-black text-[#111E38] tracking-tight">
-          Ödemeniz Onaylandı! 🎉
+          {isTrial ? '7 Gün Ücretsiz PRO Başlatıldı! 🎉' : 'Ödemeniz Onaylandı! 🎉'}
         </h1>
         <p className="text-sm text-slate-500 font-medium mt-1">
-          <strong className="text-[#F95700]">{planTitle}</strong> ({cycle === 'yearly' ? 'Yıllık' : 'Aylık'}) üyeliğiniz firmanıza başarıyla tanımlandı.
+          {isTrial ? (
+            <>
+              Bugün kartınızdan <strong>0 ₺</strong> çekildi. <strong className="text-[#F95700]">7 gün boyunca Profesyonel Paket</strong> ayrıcalıklarından ücretsiz yararlanabilirsiniz.
+            </>
+          ) : (
+            <>
+              <strong className="text-[#F95700]">{planTitle}</strong> ({cycle === 'yearly' ? 'Yıllık' : 'Aylık'}) üyeliğiniz firmanıza başarıyla tanımlandı.
+            </>
+          )}
         </p>
 
         {/* Benefits Box */}
         <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 my-6 text-left space-y-2 text-xs text-slate-700">
           <div className="flex items-center gap-2 font-semibold">
             <Sparkles className="w-4 h-4 text-[#F95700] shrink-0" />
-            <span>Sınırsız teklif verme ve müşteri aramaları aktif edildi</span>
+            <span>{isTrial ? '50 Teklif & 35 Müşteri Telefonu kilidi açıldı' : 'Sınırsız teklif verme ve müşteri aramaları aktif edildi'}</span>
           </div>
           <div className="flex items-center gap-2 font-semibold">
             <Truck className="w-4 h-4 text-[#F95700] shrink-0" />
-            <span>Nakliyeci Defteri ve Dönüş Yükü paneli açıldı</span>
+            <span>{isTrial ? '20 Defter İlanı & Dönüş Yükü bildirimleri' : 'Nakliyeci Defteri ve Dönüş Yükü paneli açıldı'}</span>
           </div>
           <div className="flex items-center gap-2 font-semibold">
             <Building2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Firma profiliniz vitrin sıralamasına yükseltildi</span>
+            <span>{isTrial ? '7 Gün sonra ₺2.990 / ay ile devam eder (İstediğiniz an iptal edebilirsiniz)' : 'Firma profiliniz vitrin sıralamasına yükseltildi'}</span>
           </div>
         </div>
 
@@ -188,7 +215,9 @@ function OdemeSonucContent() {
         </Link>
 
         <p className="text-[11px] text-slate-400 mt-4">
-          Faturanız ve ödeme makbuzunuz sistemimize kayıtlı e-posta adresinize iletilmiştir.
+          {isTrial 
+            ? 'Deneme süreniz boyunca dilediğiniz zaman üyeliğinizi iptal edebilirsiniz. 7 gün dolmadan ücret çekilmez.' 
+            : 'Faturanız ve ödeme makbuzunuz sistemimize kayıtlı e-posta adresinize iletilmiştir.'}
         </p>
 
       </div>

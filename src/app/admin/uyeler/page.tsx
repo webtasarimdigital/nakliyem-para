@@ -27,20 +27,20 @@ import { User, CarrierProfile } from '@/types';
 
 const PLAN_LABELS: Record<string, string> = {
   plan_starter: 'Başlangıç',
-  plan_pro: 'Pro',
-  plan_gold: 'Gold',
+  plan_pro: 'Profesyonel (⭐ 7G Deneme)',
+  plan_gold: 'Filo / Kurumsal',
 };
 
 const PLAN_BADGE: Record<string, string> = {
   plan_starter: 'bg-slate-100 text-slate-700',
-  plan_pro: 'bg-blue-100 text-blue-700',
-  plan_gold: 'bg-amber-100 text-amber-700',
+  plan_pro: 'bg-blue-100 text-blue-700 font-bold',
+  plan_gold: 'bg-amber-100 text-amber-700 font-bold',
 };
 
 const PLAN_PRICES: Record<string, number> = {
-  plan_starter: 1250,
-  plan_pro: 2450,
-  plan_gold: 4850,
+  plan_starter: 1199,
+  plan_pro: 2990,
+  plan_gold: 5990,
 };
 
 const STATUS_CONFIG = {
@@ -77,6 +77,10 @@ interface UnifiedCarrier {
   slug?: string;
   source: 'Firestore' | 'Sistem Kaydı';
   isSeed?: boolean;
+  hasCardAdded?: boolean;
+  trialStatus?: 'NOT_STARTED' | 'PENDING_CARD' | 'PENDING_VERIFICATION' | 'ACTIVE_TRIAL' | 'CONVERTED' | 'EXPIRED';
+  trialStartedAt?: string;
+  trialEndsAt?: string;
 }
 
 export default function UyelerPage() {
@@ -267,7 +271,11 @@ export default function UyelerPage() {
           reviewCount: c.reviewCount,
           slug: c.slug,
           source: 'Sistem Kaydı',
-          isSeed: c.isSeed
+          isSeed: c.isSeed,
+          hasCardAdded: c.hasCardAdded,
+          trialStatus: c.trialStatus,
+          trialStartedAt: c.trialStartedAt,
+          trialEndsAt: c.trialEndsAt,
         });
       });
 
@@ -276,6 +284,7 @@ export default function UyelerPage() {
       regCarriers.filter(u => u.role === 'CARRIER').forEach(u => {
         const key = u.email?.toLowerCase() || u.id;
         if (!map.has(key)) {
+          const linkedCarrier = u.carrierId ? db.getCarrierById(u.carrierId) : null;
           map.set(key, {
             id: u.carrierId || `carr_${u.id}`,
             userId: u.id,
@@ -284,11 +293,15 @@ export default function UyelerPage() {
             email: u.email || '—',
             phone: u.phone || '—',
             city: 'Profil Hazırlanıyor',
-            planId: 'plan_starter',
-            verificationStatus: 'PENDING',
+            planId: linkedCarrier?.planId || 'plan_starter',
+            verificationStatus: (linkedCarrier?.verificationStatus as any) || 'PENDING',
             joinedAt: u.createdAt || new Date().toISOString(),
             source: 'Sistem Kaydı',
-            isSeed: u.isSeed
+            isSeed: u.isSeed,
+            hasCardAdded: linkedCarrier?.hasCardAdded,
+            trialStatus: linkedCarrier?.trialStatus,
+            trialStartedAt: linkedCarrier?.trialStartedAt,
+            trialEndsAt: linkedCarrier?.trialEndsAt,
           });
         }
       });
@@ -302,6 +315,10 @@ export default function UyelerPage() {
           if (fc.companyName) item.companyName = fc.companyName;
           if (fc.phone) item.phone = fc.phone;
           if (fc.city) item.city = fc.city;
+          if (fc.hasCardAdded !== undefined) item.hasCardAdded = fc.hasCardAdded;
+          if (fc.trialStatus) item.trialStatus = fc.trialStatus;
+          if (fc.trialStartedAt) item.trialStartedAt = fc.trialStartedAt;
+          if (fc.trialEndsAt) item.trialEndsAt = fc.trialEndsAt;
         } else {
           map.set(key, {
             id: fc.id,
@@ -318,7 +335,11 @@ export default function UyelerPage() {
             reviewCount: fc.reviewCount,
             slug: fc.slug,
             source: 'Firestore',
-            isSeed: fc.isSeed
+            isSeed: fc.isSeed,
+            hasCardAdded: fc.hasCardAdded,
+            trialStatus: fc.trialStatus,
+            trialStartedAt: fc.trialStartedAt,
+            trialEndsAt: fc.trialEndsAt,
           });
         }
       });
@@ -339,7 +360,17 @@ export default function UyelerPage() {
       (c.phone || '').includes(q) ||
       (c.city || '').toLowerCase().includes(q);
     const matchPlan = planFilter === 'all' || c.planId === planFilter;
-    const matchStatus = statusFilter === 'all' || c.verificationStatus === statusFilter;
+    const matchStatus = statusFilter === 'all'
+      ? true
+      : statusFilter === 'TRIAL_ACTIVE'
+        ? c.trialStatus === 'ACTIVE_TRIAL'
+        : statusFilter === 'CARD_ADDED'
+          ? Boolean(c.hasCardAdded)
+          : statusFilter === 'TRIAL_EXPIRED'
+            ? c.trialStatus === 'EXPIRED'
+            : statusFilter === 'TRIAL_CONVERTED'
+              ? c.trialStatus === 'CONVERTED'
+              : c.verificationStatus === statusFilter;
     return matchSearch && matchPlan && matchStatus;
   });
 
@@ -540,6 +571,10 @@ export default function UyelerPage() {
                     <option value="APPROVED">Aktif Onaylı</option>
                     <option value="PENDING">Onay Bekliyor</option>
                     <option value="REJECTED">Reddedildi</option>
+                    <option value="TRIAL_ACTIVE">⭐ 7G Pro Denemedekiler</option>
+                    <option value="CARD_ADDED">💳 Kartı Ekleyenler</option>
+                    <option value="TRIAL_CONVERTED">✅ Yenilenenler (₺2.990 Aktif)</option>
+                    <option value="TRIAL_EXPIRED">⚠️ Denemesi Bitenler</option>
                   </select>
                   <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 </div>
@@ -558,6 +593,7 @@ export default function UyelerPage() {
                     <th className="text-left px-5 py-3 text-xs font-black text-slate-500 uppercase tracking-wider">Şehir</th>
                     <th className="text-left px-5 py-3 text-xs font-black text-slate-500 uppercase tracking-wider">Paket</th>
                     <th className="text-left px-5 py-3 text-xs font-black text-slate-500 uppercase tracking-wider">Durum</th>
+                    <th className="text-left px-5 py-3 text-xs font-black text-slate-500 uppercase tracking-wider">7G Deneme & Abonelik</th>
                     <th className="text-left px-5 py-3 text-xs font-black text-slate-500 uppercase tracking-wider">Kayıt Tarihi</th>
                     <th className="text-right px-5 py-3 text-xs font-black text-slate-500 uppercase tracking-wider">İşlem</th>
                   </tr>
@@ -566,6 +602,7 @@ export default function UyelerPage() {
                   {filteredCarriers.map((carrier) => {
                     const statusConf = STATUS_CONFIG[carrier.verificationStatus] || STATUS_CONFIG.PENDING;
                     const StatusIcon = statusConf.icon;
+                    const trialInfo = db.getCarrierTrialInfo(carrier as any);
                     return (
                       <tr key={carrier.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-5 py-4">
@@ -602,6 +639,50 @@ export default function UyelerPage() {
                             <StatusIcon className="w-3 h-3" />
                             {statusConf.label}
                           </span>
+                        </td>
+                        <td className="px-5 py-4">
+                          <div className="space-y-1.5 min-w-[200px]">
+                            {trialInfo.status === 'ACTIVE_TRIAL' ? (
+                              <div>
+                                <div className="flex items-center justify-between gap-1 mb-1">
+                                  <span className="text-[11px] font-black text-orange-600 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                                    ⭐ {trialInfo.dayNumber}. Gün ({trialInfo.daysRemaining} gün kaldı)
+                                  </span>
+                                  <span className="text-[10px] font-bold text-slate-400">7G Pro</span>
+                                </div>
+                                <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                  <div 
+                                    className="bg-[#F95700] h-1.5 rounded-full transition-all" 
+                                    style={{ width: `${Math.min(100, Math.round((trialInfo.dayNumber / 7) * 100))}%` }} 
+                                  />
+                                </div>
+                                <span className="text-[10px] text-slate-400 font-medium block mt-0.5">
+                                  İlk çekim: {trialInfo.endsAtText} (₺2.990)
+                                </span>
+                              </div>
+                            ) : trialInfo.status === 'CONVERTED' ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full shadow-2xs">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                Yenilendi (₺2.990 Aktif)
+                              </span>
+                            ) : trialInfo.status === 'EXPIRED' ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-black text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
+                                ⚠️ Deneme Bitti (Başlangıç)
+                              </span>
+                            ) : trialInfo.status === 'PENDING_CARD' ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                                💳 Kart Bekleniyor (Onaylı)
+                              </span>
+                            ) : trialInfo.status === 'PENDING_VERIFICATION' ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+                                ⏳ Evrak Onayı Bekliyor (Kart Hazır)
+                              </span>
+                            ) : (
+                              <span className="text-[11px] text-slate-400 font-medium">
+                                — Kart / Onay Yok
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-5 py-4 text-slate-500 text-xs font-medium" suppressHydrationWarning>
                           {carrier.joinedAt && !isNaN(new Date(carrier.joinedAt).getTime())

@@ -4,7 +4,7 @@ import nodemailer from 'nodemailer';
 const ADMIN_EMAIL = 'bilgi@tasinteklif.com';
 
 interface NotificationEmailPayload {
-  type: 'NEW_OFFER' | 'FIRST_MESSAGE' | 'OFFER_ACCEPTED';
+  type: 'NEW_OFFER' | 'FIRST_MESSAGE' | 'OFFER_ACCEPTED' | 'CARRIER_VERIFIED_TRIAL_ACTIVATED';
   to: string;
   recipientName?: string;
   carrierName?: string;
@@ -195,6 +195,48 @@ export async function POST(req: Request) {
           </div>
           <div style="background-color: #f1f5f9; padding: 16px; text-align: center; font-size: 11px; color: #64748b;">
             TaşınTeklif • <a href="mailto:${ADMIN_EMAIL}" style="color: #F95700; text-decoration: none;">${ADMIN_EMAIL}</a>
+          </div>
+        </div>
+      `;
+    } else if (type === 'CARRIER_VERIFIED_TRIAL_ACTIVATED') {
+      subject = `🎉 Profiliniz Onaylandı! 1 Hafta Ücretsiz Profesyonel Paketiniz Tanımlandı — TaşınTeklif`;
+      const carrierDashboardUrl = `${actionUrlBase}/app/carrier`;
+
+      textContent = `Sayın ${carrierName || recipientName || 'Değerli İş Ortağımız'},\n\nHarika bir haberimiz var! TaşınTeklif taşıyıcı profiliniz ve resmi evraklarınız (kimlik ve vergi levhası) incelenerek uzman ekibimiz tarafından başarıyla onaylanmıştır.\n\nOnaylı Firma Rozetiniz profilinize ve mesajlarınıza tanımlanmıştır.\n\n1 HAFTA BOYUNCA ÜCRETSİZ PROFESYONEL PAKET:\nProfil onayınızla birlikte 1 hafta boyunca Profesyonel Paketin tüm ayrıcalıklarını 0 TL ile ücretsiz kullanabilirsiniz. Müşteri telefon numaralarına doğrudan ulaşabilir, teklif vererek yeni işler bağlayabilirsiniz.\n\nHemen panelinize girip bekleyen nakliye fırsatlarını incelemek için:\n${carrierDashboardUrl}\n\nBaşarılar ve hayırlı işler dileriz,\nTaşınTeklif Ekibi`;
+
+      htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          <div style="background-color: #0A1128; padding: 26px 24px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 22px; font-weight: bold; letter-spacing: -0.5px;">Taşın<span style="color: #F95700;">Teklif</span></h1>
+            <p style="color: #94a3b8; font-size: 12px; margin: 6px 0 0 0; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Taşıyıcı Profil Onayı &amp; Deneme Aktivasyonu</p>
+          </div>
+          <div style="padding: 30px 24px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <div style="display: inline-block; width: 56px; height: 56px; line-height: 56px; border-radius: 50%; background-color: #ecfdf5; border: 2px solid #a7f3d0; font-size: 28px;">
+                🎉
+              </div>
+            </div>
+            <p style="font-size: 16px; color: #1e293b; margin-top: 0; font-weight: bold; text-align: center;">Tebrikler Sayın <strong>${carrierName || recipientName || 'İş Ortağımız'}</strong>,</p>
+            <p style="font-size: 14px; color: #475569; line-height: 1.6; text-align: center;">
+              TaşınTeklif profiliniz, kimlik ve vergi levhanız başarıyla doğrulanmıştır. <strong>Onaylı Taşıyıcı</strong> rozetiniz profilinize ve mesajlarınıza tanımlandı!
+            </p>
+            
+            <div style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border: 1.5px solid #fed7aa; border-radius: 14px; padding: 20px; margin: 22px 0;">
+              <div style="font-size: 11px; font-weight: 800; color: #c2410c; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">HEDİYE TANIMLANDI</div>
+              <div style="font-size: 18px; font-weight: 900; color: #111E38; margin-bottom: 8px;">1 Hafta Ücretsiz Profesyonel Paket</div>
+              <p style="font-size: 13px; color: #7c2d12; line-height: 1.5; margin: 0;">
+                7 gün boyunca müşteri telefon numaralarına doğrudan ulaşabilir, teklif verebilir ve nakliye fırsatlarını ilk gören siz olabilirsiniz.
+              </p>
+            </div>
+
+            <div style="text-align: center; margin-top: 28px;">
+              <a href="${carrierDashboardUrl}" style="display: inline-block; background-color: #F95700; color: #ffffff; font-weight: bold; font-size: 14px; padding: 14px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 6px -1px rgba(249, 87, 0, 0.25);">
+                Paneli Aç &amp; Talepleri Gör →
+              </a>
+            </div>
+          </div>
+          <div style="background-color: #f8fafc; padding: 16px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #f1f5f9;">
+            TaşınTeklif Nakliyat Operasyon Merkezi • Destek: <a href="mailto:${ADMIN_EMAIL}" style="color: #F95700; text-decoration: none;">${ADMIN_EMAIL}</a>
           </div>
         </div>
       `;

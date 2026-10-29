@@ -97,10 +97,20 @@ export default function AdminVerificationConsolePage() {
       elevatorVerified: !!selectedCarrier.elevatorSpec?.hasElevator
     };
 
+    const shouldSendNotification = !selectedCarrier.trialNotificationSent && selectedCarrier.email;
+    const hasCard = Boolean(selectedCarrier.hasCardAdded);
+
     db.updateCarrier(selectedCarrier.id, {
       verificationStatus: 'APPROVED',
-      verificationBadges: badges
+      verificationBadges: badges,
+      trialNotificationSent: true,
+      trialStatus: hasCard ? 'ACTIVE_TRIAL' : 'PENDING_CARD',
+      planId: hasCard ? 'plan_pro' : selectedCarrier.planId,
     });
+
+    if (hasCard) {
+      db.startCarrierTrial(selectedCarrier.id);
+    }
 
     // Update all carrier docs to approved
     carrierDocs.forEach(d => db.updateDocumentStatus(d.id, 'APPROVED'));
@@ -109,10 +119,27 @@ export default function AdminVerificationConsolePage() {
     try {
       await updateFirestoreCarrier(selectedCarrier.id, {
         verificationStatus: 'APPROVED',
-        verificationBadges: badges
+        verificationBadges: badges,
+        trialNotificationSent: true,
+        trialStatus: hasCard ? 'ACTIVE_TRIAL' : 'PENDING_CARD',
+        planId: hasCard ? 'plan_pro' : selectedCarrier.planId,
       });
     } catch (e) {
       console.warn('Firestore carrier update failed:', e);
+    }
+
+    // 1 Kereye Mahsus Onay ve PRO Deneme E-Postası Gönder
+    if (shouldSendNotification) {
+      fetch('/api/notifications/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'CARRIER_VERIFIED_TRIAL_ACTIVATED',
+          to: selectedCarrier.email,
+          carrierName: selectedCarrier.companyName,
+          recipientName: selectedCarrier.authorizedPersonName || selectedCarrier.companyName,
+        }),
+      }).catch(err => console.warn('Trial approval email send error:', err));
     }
 
     if (typeof window !== 'undefined') {
@@ -123,7 +150,7 @@ export default function AdminVerificationConsolePage() {
     const updatedCarriers = showDemoData ? db.getCarriers() : db.getRealCarriers();
     setCarriers(updatedCarriers);
     setDocuments(showDemoData ? db.getDocuments() : db.getRealDocuments());
-    setSuccessNotice(`${selectedCarrier.companyName} başarıyla onaylandı ve doğrulanmış rozeti aktifleştirildi.`);
+    setSuccessNotice(`${selectedCarrier.companyName} başarıyla onaylandı, tebrik e-postası iletildi ve doğrulanmış rozeti aktifleştirildi.`);
     setTimeout(() => setSuccessNotice(null), 4000);
   };
 

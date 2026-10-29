@@ -59,6 +59,11 @@ export interface CarrierProfile {
   };
   elevatorSpec?: MobileElevatorSpec;
   planId: string; // 'free' | 'starter' | 'pro' | 'gold'
+  hasCardAdded?: boolean;
+  trialStatus?: 'NOT_STARTED' | 'PENDING_CARD' | 'PENDING_VERIFICATION' | 'ACTIVE_TRIAL' | 'CONVERTED' | 'EXPIRED';
+  trialStartedAt?: string;
+  trialEndsAt?: string;
+  trialNotificationSent?: boolean;
   isProfileCompleted?: boolean;
   rating: number;
   reviewCount: number;
@@ -253,6 +258,7 @@ export interface SubscriptionPlan {
     offerCreate: boolean;
     monthlyOfferLimit: number | 'unlimited';
     customerPhoneAccess: boolean;
+    customerPhoneLimit?: number | 'unlimited';
     notebookAccess: boolean;
     notebookPostLimit: number | 'unlimited';
     routeAlarmLimit: number | 'unlimited';
@@ -271,6 +277,9 @@ export interface CarrierSubscription {
   carrierId: string;
   planId: string;
   status: SubscriptionStatus;
+  trialStatus?: 'NOT_STARTED' | 'PENDING_CARD' | 'PENDING_VERIFICATION' | 'ACTIVE_TRIAL' | 'CONVERTED' | 'EXPIRED';
+  hasCardAdded?: boolean;
+  trialNotificationSent?: boolean;
   trialStartedAt?: string;
   trialEndsAt?: string;
   currentPeriodStart: string;

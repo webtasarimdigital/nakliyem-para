@@ -26,6 +26,7 @@ import {
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Modal } from '@/components/ui/Modal';
 import { IntentAuthModal } from '@/components/ui/IntentAuthModal';
+import { TrialCardModal } from '@/components/subscription/TrialCardModal';
 import { db } from '@/lib/data/mock-db';
 import { User, CarrierProfile } from '@/types';
 
@@ -39,6 +40,7 @@ export default function FiyatlarPage() {
 
   // Modals State
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [trialModalOpen, setTrialModalOpen] = useState(false);
   const [authModalConfig, setAuthModalConfig] = useState<{
     title: string;
     subtitle: string;
@@ -91,6 +93,11 @@ export default function FiyatlarPage() {
 
     if (user.role === 'CUSTOMER' && !user.isMasterUser) {
       setCustomerModalOpen(true);
+      return;
+    }
+
+    if (plan.id === 'pro' || (plan as any).trialBadge) {
+      setTrialModalOpen(true);
       return;
     }
 
@@ -154,38 +161,64 @@ export default function FiyatlarPage() {
       name: 'Başlangıç',
       nametag: 'Yeni Başlayanlar',
       desc: 'Platformu denemek ve bölgedeki iş hacmini görmek isteyen yeni firmalar için ideal başlangıç.',
-      monthlyPrice: 1250,
-      yearlyMonthlyPrice: 1042,
-      yearlyTotal: 12500,
+      monthlyPrice: 1199,
+      yearlyMonthlyPrice: 999,
+      yearlyTotal: 11990,
       isFeatured: false,
-      badge: null,
+      badge: 'YENİ BAŞLAYAN',
       trialBadge: null,
       ctaText: 'Başlangıç Paketini Seç',
       ctaUrl: '/paketler?plan=starter',
       features: [
-        'Aylık 25 teklif verme hakkı',
-        'Nakliyeci Defteri (10 paylaşım / ay)',
+        'Aylık 15 teklif verme hakkı',
+        'Nakliyeci Defteri (5 paylaşım / ay)',
+        '5 adet müşteri telefonu görme',
         '2 adet akıllı rota alarmı',
         'Temel firma profil sayfası',
         'E-posta destek hattı',
       ],
     },
     {
-      id: 'gold',
-      name: 'Gold',
+      id: 'pro',
+      name: 'Profesyonel',
       nametag: 'En Avantajlı',
-      desc: 'Maksimum güç, sınırsız iş teklifi, doğrudan müşteri telefonu ve tam vitrin görünürlüğü.',
-      monthlyPrice: 4850,
-      yearlyMonthlyPrice: 4042,
-      yearlyTotal: 48500,
+      desc: 'Aktif taşıma yapan, müşteri telefonlarına doğrudan ulaşmak isteyen profesyonel nakliyeciler için.',
+      monthlyPrice: 2990,
+      yearlyMonthlyPrice: 2491,
+      yearlyTotal: 29900,
       isFeatured: true,
-      badge: '⭐ EN ÇOK TERCİH EDİLEN',
+      badge: '⭐ EN ÇOK TERCİH EDİLEN & 7G ÜCRETSİZ',
+      trialBadge: '⭐ 7 GÜN ÜCRETSİZ DENEME (0 ₺)',
+      ctaText: '7 Gün Ücretsiz Denemeyi Başlat',
+      ctaUrl: '/paketler?plan=pro',
+      features: [
+        '⭐ 7 Gün Ücretsiz Deneme (0 ₺ Provizyon)',
+        'Aylık 50 teklif verme hakkı',
+        '35 Müşteri telefon numarasına doğrudan erişim',
+        'Ayda 20 Nakliyeci Defteri paylaşımı & boş araç',
+        '5 adet akıllı rota alarmı',
+        'Doğrulanmış Pro firma rozeti',
+        'Haftalık iş performans analitiği',
+        'Dijital hizmetlerde %15 indirim',
+        'Öncelikli destek hattı',
+      ],
+    },
+    {
+      id: 'gold',
+      name: 'Filo / Kurumsal',
+      nametag: 'Ekipler & Filolar',
+      desc: 'Maksimum güç, sınırsız iş teklifi, sınırsız doğrudan müşteri telefonu ve tam vitrin görünürlüğü.',
+      monthlyPrice: 5990,
+      yearlyMonthlyPrice: 4991,
+      yearlyTotal: 59900,
+      isFeatured: false,
+      badge: 'FİLOLAR & KURUMSALLAR',
       trialBadge: null,
-      ctaText: 'Gold Paketini Seç',
+      ctaText: 'Filo Paketini Seç',
       ctaUrl: '/paketler?plan=gold',
       features: [
         'Sınırsız teklif verme hakkı',
-        'Müşteri doğrudan telefon ve WhatsApp erişimi',
+        'Sınırsız müşteri doğrudan telefon ve WhatsApp erişimi',
         'Sınırsız Nakliyeci Defteri ilanı & dönüş yükü',
         'Sınırsız akıllı rota alarmı (Anlık bildirim)',
         'Ana sayfa ve şehir sayfalarında 1. sıra vitrin',
@@ -196,45 +229,22 @@ export default function FiyatlarPage() {
         '7/24 VIP Özel Müşteri Temsilcisi',
       ],
     },
-    {
-      id: 'pro',
-      name: 'Pro',
-      nametag: 'Aktif Nakliyeciler',
-      desc: 'Düzenli taşıma işi alan ve dönüş rotalarını dolduran profesyonel nakliyeciler için.',
-      monthlyPrice: 2450,
-      yearlyMonthlyPrice: 2042,
-      yearlyTotal: 24500,
-      isFeatured: false,
-      badge: null,
-      trialBadge: null,
-      ctaText: 'Pro Paketini Seç',
-      ctaUrl: '/paketler?plan=pro',
-      features: [
-        'Aylık 100 teklif verme hakkı',
-        'Müşteri telefon numarasına doğrudan erişim',
-        'Ayda 40 Nakliyeci Defteri paylaşımı',
-        '8 adet akıllı rota alarmı',
-        'Doğrulanmış firma rozeti',
-        'Haftalık iş performans analitiği',
-        'Dijital hizmetlerde %10 indirim',
-        'Öncelikli destek hattı',
-      ],
-    },
   ];
 
   // Comprehensive Comparison Matrix
   const COMPARISON_ROWS = [
-    { label: 'Aylık Teklif Verme Limiti', starter: '25 Teklif', gold: 'Sınırsız Teklif', pro: '100 Teklif', highlightGold: true },
-    { label: 'Müşteri Telefon & WhatsApp Erişimi', starter: '—', gold: 'Sınırsız Doğrudan İletişim', pro: '100 Müşteri / Ay', highlightGold: true },
-    { label: 'Nakliyeci Defteri İlan Limiti', starter: '10 İlan / Ay', gold: 'Sınırsız Paylaşım', pro: '40 İlan / Ay', highlightGold: true },
-    { label: 'Akıllı Rota Alarmları (SMS & Bildirim)', starter: '2 Alarm', gold: 'Sınırsız Şehir Alarmı', pro: '8 Alarm', highlightGold: true },
+    { label: '7 Gün Ücretsiz Deneme (0 ₺)', starter: '—', gold: '—', pro: '✓ 7 Gün Ücretsiz', highlightGold: true },
+    { label: 'Aylık Teklif Verme Limiti', starter: '15 Teklif', gold: 'Sınırsız Teklif', pro: '50 Teklif', highlightGold: true },
+    { label: 'Müşteri Telefon & WhatsApp Erişimi', starter: '5 Müşteri / Ay', gold: 'Sınırsız Doğrudan İletişim', pro: '35 Müşteri / Ay', highlightGold: true },
+    { label: 'Nakliyeci Defteri İlan Limiti', starter: '5 İlan / Ay', gold: 'Sınırsız Paylaşım', pro: '20 İlan / Ay', highlightGold: true },
+    { label: 'Akıllı Rota Alarmları (SMS & Bildirim)', starter: '2 Alarm', gold: 'Sınırsız Şehir Alarmı', pro: '5 Alarm', highlightGold: true },
     { label: 'Ana Sayfa Vitrininde Öne Çıkma', starter: '—', gold: '1. Sıra Sponsorlu Vitrin', pro: '—', highlightGold: true },
     { label: 'Defter Sağ Banner Reklam Vitrini', starter: '—', gold: 'Logolu Sponsor Bannerı', pro: '—', highlightGold: true },
     { label: 'Şehir Sayfalarında Üst Sıralar', starter: '—', gold: 'Öncelikli Üst Sıra', pro: 'Standart Listeleme', highlightGold: true },
     { label: 'Doğrulanmış Firma Rozeti', starter: 'Temel Profil', gold: '⭐ Altın Onay Rozeti', pro: 'Doğrulanmış Rozet', highlightGold: true },
-    { label: 'Pazar Yeri & Asansör İlanı', starter: '3 İlan / Ay', gold: 'Sınırsız İlan', pro: '15 İlan / Ay', highlightGold: true },
+    { label: 'Pazar Yeri & Asansör İlanı', starter: '2 İlan / Ay', gold: 'Sınırsız İlan', pro: '10 İlan / Ay', highlightGold: true },
     { label: 'Boş Dönüş Yük Eşleştirmesi', starter: 'Standart', gold: 'Anlık VIP Bildirim', pro: 'Öncelikli Eşleşme', highlightGold: true },
-    { label: 'Dijital Hizmetler İndirimi (Google & Harita SEO)', starter: '—', gold: '%25 İndirim', pro: '%10 İndirim', highlightGold: true },
+    { label: 'Dijital Hizmetler İndirimi (Google & Harita SEO)', starter: '—', gold: '%25 İndirim', pro: '%15 İndirim', highlightGold: true },
     { label: 'Destek Düzeyi', starter: 'E-posta Destek', gold: '7/24 Özel VIP Temsilci', pro: 'Öncelikli Destek', highlightGold: true },
   ];
 
@@ -807,6 +817,25 @@ export default function FiyatlarPage() {
         subtitle={authModalConfig.subtitle}
         onSuccess={() => {
           setAuthModalOpen(false);
+          const user = db.getCurrentUser();
+          setCurrentUser(user);
+          let c = db.getCurrentCarrier();
+          if (!c && user) {
+            c = db.getCarriers().find(item => item.userId === user.id || item.id === user.carrierProfileId) || null;
+          }
+          setCarrier(c);
+        }}
+      />
+
+      {/* 7-Day Trial Card Modal (Görsel 2) */}
+      <TrialCardModal
+        isOpen={trialModalOpen}
+        onClose={() => setTrialModalOpen(false)}
+        onSuccess={() => {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('auth-changed'));
+            window.dispatchEvent(new Event('storage'));
+          }
           const user = db.getCurrentUser();
           setCurrentUser(user);
           let c = db.getCurrentCarrier();

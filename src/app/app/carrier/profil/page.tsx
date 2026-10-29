@@ -410,6 +410,26 @@ export default function CarrierProfileEditorPage() {
             </div>
           </div>
 
+          {/* Onaylı Profil Bildirimi */}
+          {carrier.verificationStatus === 'APPROVED' && (
+            <div className="mt-6 p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-100 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <strong className="block text-white font-bold text-sm">✓ Onaylı Firma Profili Aktif</strong>
+                  <span className="text-emerald-200">
+                    Kimlik ve vergi levhanız onaylanmıştır. Müşterileriniz profilinizde, mesajlarınızda ve tekliflerinizde yeşil onay rozetinizi görmektedir.
+                  </span>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-xl bg-emerald-500 text-white font-black text-xs shrink-0 self-start sm:self-auto">
+                Doğrulanmış Rozet Aktif
+              </span>
+            </div>
+          )}
+
           {/* Onaysız Profil 12 Saat Uyarısı */}
           {carrier.verificationStatus === 'PENDING' && (
             <div className="mt-6 p-4 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-xs flex items-center gap-3">

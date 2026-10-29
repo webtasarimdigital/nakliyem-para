@@ -28,18 +28,19 @@ export const SEED_PLANS: SubscriptionPlan[] = [
     name: 'Başlangıç',
     slug: 'baslangic',
     tagline: 'Platformu denemek ve bölgesindeki iş hacmini görmek isteyen firmalar için.',
-    priceMonthly: 1250,
-    priceYearly: 12500,
+    priceMonthly: 1199,
+    priceYearly: 11990,
     trialDays: 0,
     badge: 'Başlangıç',
     isActive: true,
     isFeatured: false,
     features: {
       offerCreate: true,
-      monthlyOfferLimit: 25,
-      customerPhoneAccess: false,
+      monthlyOfferLimit: 15,
+      customerPhoneAccess: true,
+      customerPhoneLimit: 5,
       notebookAccess: true,
-      notebookPostLimit: 10,
+      notebookPostLimit: 5,
       routeAlarmLimit: 2,
       featuredHomepage: false,
       featuredNotebook: false,
@@ -52,46 +53,48 @@ export const SEED_PLANS: SubscriptionPlan[] = [
   },
   {
     id: 'plan_pro',
-    name: 'Pro',
+    name: 'Profesyonel',
     slug: 'pro',
     tagline: 'Düzenli taşıma işi alan ve aktif güzergâhlarını doldurmak isteyen nakliyeciler için.',
-    priceMonthly: 2450,
-    priceYearly: 24500,
-    trialDays: 0,
-    isFeatured: false,
-    badge: 'Profesyonel',
+    priceMonthly: 2990,
+    priceYearly: 29900,
+    trialDays: 7,
+    isFeatured: true,
+    badge: '⭐ 7 Gün Ücretsiz Deneme (En Avantajlı)',
     isActive: true,
     features: {
       offerCreate: true,
-      monthlyOfferLimit: 100,
+      monthlyOfferLimit: 50,
       customerPhoneAccess: true,
+      customerPhoneLimit: 35,
       notebookAccess: true,
-      notebookPostLimit: 40,
-      routeAlarmLimit: 8,
+      notebookPostLimit: 20,
+      routeAlarmLimit: 5,
       featuredHomepage: false,
       featuredNotebook: true,
       featuredCityPages: true,
       featuredCompanyDirectory: true,
       premiumBadge: true,
       analyticsAdvanced: true,
-      digitalServicesDiscountPercent: 10
+      digitalServicesDiscountPercent: 15
     }
   },
   {
     id: 'plan_gold',
-    name: 'Gold',
+    name: 'Filo / Kurumsal',
     slug: 'gold',
-    tagline: 'Maksimum görünürlük, sınırsız iş teklifi ve tüm sayfalarda sponsorlu reklam ayrıcalığı.',
-    priceMonthly: 4850,
-    priceYearly: 48500,
-    trialDays: 7,
-    badge: '⭐ En Çok Tercih Edilen',
-    isFeatured: true,
+    tagline: 'Büyük filolar, ekipler ve tüm Türkiye rotalarında lider nakliyat ofisleri için.',
+    priceMonthly: 5990,
+    priceYearly: 59900,
+    trialDays: 0,
+    badge: '👑 Kurumsal Ekipler İçin',
+    isFeatured: false,
     isActive: true,
     features: {
       offerCreate: true,
       monthlyOfferLimit: 'unlimited',
       customerPhoneAccess: true,
+      customerPhoneLimit: 'unlimited',
       notebookAccess: true,
       notebookPostLimit: 'unlimited',
       routeAlarmLimit: 'unlimited',
@@ -1458,6 +1461,192 @@ class MockDatabase {
   addCarrier(carrier: CarrierProfile): void {
     const list = [carrier, ...this.getCarriers().filter(c => c.id !== carrier.id && c.userId !== carrier.userId)];
     this.setItem('carriers', list);
+  }
+
+  // 7 Günlük Ücretsiz PRO Deneme & Kart Yönetimi
+  startCarrierTrial(carrierId: string): void {
+    const carrier = this.getCarrierById(carrierId);
+    if (!carrier) return;
+
+    const now = new Date();
+    const endsAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    this.updateCarrier(carrierId, {
+      trialStatus: 'ACTIVE_TRIAL',
+      planId: 'plan_pro',
+      trialStartedAt: now.toISOString(),
+      trialEndsAt: endsAt.toISOString(),
+    });
+
+    // Also update carrier subscription if exists
+    const subs = this.getItem<Record<string, CarrierSubscription>>('carrierSubscriptions', {});
+    const existingSub = subs[carrierId];
+    if (existingSub) {
+      subs[carrierId] = {
+        ...existingSub,
+        planId: 'plan_pro',
+        status: 'TRIALING',
+        trialStatus: 'ACTIVE_TRIAL',
+        trialStartedAt: now.toISOString(),
+        trialEndsAt: endsAt.toISOString(),
+      };
+    } else {
+      subs[carrierId] = {
+        id: `sub_${carrierId}`,
+        carrierId,
+        planId: 'plan_pro',
+        status: 'TRIALING',
+        trialStatus: 'ACTIVE_TRIAL',
+        trialStartedAt: now.toISOString(),
+        trialEndsAt: endsAt.toISOString(),
+        currentPeriodStart: now.toISOString(),
+        currentPeriodEnd: endsAt.toISOString(),
+        cancelAtPeriodEnd: false,
+        autoRenew: true,
+        hasCardAdded: true,
+        createdAt: now.toISOString(),
+      };
+    }
+    this.setItem('carrierSubscriptions', subs);
+  }
+
+  recordCarrierCardAdded(carrierId: string, cardLastFour: string = '4242'): void {
+    const carrier = this.getCarrierById(carrierId);
+    if (!carrier) return;
+
+    this.updateCarrier(carrierId, {
+      hasCardAdded: true,
+    });
+
+    // Profil onaylıysa doğrudan 7 günlük denemeyi başlat!
+    if (carrier.verificationStatus === 'APPROVED') {
+      this.startCarrierTrial(carrierId);
+    } else {
+      this.updateCarrier(carrierId, {
+        trialStatus: 'PENDING_VERIFICATION',
+      });
+    }
+  }
+
+  getCarrierTrialInfo(carrier?: CarrierProfile | null): {
+    isTrialActive: boolean;
+    dayNumber: number;
+    daysRemaining: number;
+    hoursRemaining: number;
+    endsAtText: string;
+    badgeText: string;
+    status: 'NOT_STARTED' | 'PENDING_CARD' | 'PENDING_VERIFICATION' | 'ACTIVE_TRIAL' | 'CONVERTED' | 'EXPIRED';
+  } {
+    if (!carrier) {
+      return {
+        isTrialActive: false,
+        dayNumber: 0,
+        daysRemaining: 0,
+        hoursRemaining: 0,
+        endsAtText: '',
+        badgeText: 'Kart & Onay Bekliyor',
+        status: 'NOT_STARTED',
+      };
+    }
+
+    const isVerified = carrier.verificationStatus === 'APPROVED';
+    const hasCard = Boolean(carrier.hasCardAdded);
+
+    if (carrier.trialStatus === 'CONVERTED') {
+      return {
+        isTrialActive: false,
+        dayNumber: 7,
+        daysRemaining: 0,
+        hoursRemaining: 0,
+        endsAtText: '',
+        badgeText: 'Yenilendi (₺2.990 Tahsil Edildi)',
+        status: 'CONVERTED',
+      };
+    }
+
+    if (carrier.trialStatus === 'EXPIRED') {
+      return {
+        isTrialActive: false,
+        dayNumber: 7,
+        daysRemaining: 0,
+        hoursRemaining: 0,
+        endsAtText: '',
+        badgeText: 'Deneme Bitti (Başlangıç Paketinde)',
+        status: 'EXPIRED',
+      };
+    }
+
+    if (carrier.trialStatus === 'ACTIVE_TRIAL' && carrier.trialStartedAt) {
+      const startMs = new Date(carrier.trialStartedAt).getTime();
+      const endMs = carrier.trialEndsAt 
+        ? new Date(carrier.trialEndsAt).getTime() 
+        : startMs + 7 * 24 * 60 * 60 * 1000;
+      const nowMs = Date.now();
+
+      if (nowMs >= endMs) {
+        return {
+          isTrialActive: false,
+          dayNumber: 7,
+          daysRemaining: 0,
+          hoursRemaining: 0,
+          endsAtText: 'Süresi Doldu',
+          badgeText: 'Deneme Bitti (Başlangıç Paketinde)',
+          status: 'EXPIRED',
+        };
+      }
+
+      const diffMs = endMs - nowMs;
+      const elapsedMs = nowMs - startMs;
+      const dayNumber = Math.min(7, Math.floor(elapsedMs / (24 * 60 * 60 * 1000)) + 1);
+      const daysRemaining = Math.max(0, Math.ceil(diffMs / (24 * 60 * 60 * 1000)));
+      const hoursRemaining = Math.max(0, Math.ceil(diffMs / (60 * 60 * 1000)));
+      const endsDate = new Date(endMs);
+      const endsAtText = endsDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+
+      return {
+        isTrialActive: true,
+        dayNumber,
+        daysRemaining,
+        hoursRemaining,
+        endsAtText,
+        badgeText: `${dayNumber}. Gün (${daysRemaining} Gün Kaldı)`,
+        status: 'ACTIVE_TRIAL',
+      };
+    }
+
+    if (hasCard && !isVerified) {
+      return {
+        isTrialActive: false,
+        dayNumber: 0,
+        daysRemaining: 7,
+        hoursRemaining: 168,
+        endsAtText: '',
+        badgeText: 'Belge Onayı Bekliyor (Kart Hazır)',
+        status: 'PENDING_VERIFICATION',
+      };
+    }
+
+    if (!hasCard && isVerified) {
+      return {
+        isTrialActive: false,
+        dayNumber: 0,
+        daysRemaining: 7,
+        hoursRemaining: 168,
+        endsAtText: '',
+        badgeText: 'Kart Bekleniyor (Onaylandı)',
+        status: 'PENDING_CARD',
+      };
+    }
+
+    return {
+      isTrialActive: false,
+      dayNumber: 0,
+      daysRemaining: 7,
+      hoursRemaining: 168,
+      endsAtText: '',
+      badgeText: 'Kart & Onay Bekliyor',
+      status: 'NOT_STARTED',
+    };
   }
 
   // Documents

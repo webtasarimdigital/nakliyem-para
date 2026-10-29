@@ -25,10 +25,14 @@ import {
   Zap,
   BookOpen,
   Target,
+  Lock,
+  CreditCard,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { RouteDisplay } from '@/components/ui/RouteDisplay';
+import { TrialCardModal } from '@/components/subscription/TrialCardModal';
 import { db } from '@/lib/data/mock-db';
 import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
 import { collection, onSnapshot } from 'firebase/firestore';
@@ -95,6 +99,7 @@ export default function CarrierDashboard() {
   });
 
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [trialModalOpen, setTrialModalOpen] = useState(false);
 
   useEffect(() => {
     const handleRefresh = () => setRefreshTrigger(k => k + 1);
@@ -224,6 +229,10 @@ export default function CarrierDashboard() {
   const isGold = carrier.planId === 'plan_gold' || carrier.planId === 'gold';
   const isPro = carrier.planId === 'plan_pro' || carrier.planId === 'pro';
   const isStarter = !isGold && !isPro;
+
+  const trialInfo = db.getCarrierTrialInfo(carrier);
+  const hasCardAdded = Boolean(carrier.hasCardAdded);
+  const canViewCustomerPhone = (isPro || isGold || trialInfo.isTrialActive) && hasCardAdded && isApproved;
 
   // Günlük teklif kotası (Başlangıç paketinde günde 3 teklif)
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -361,9 +370,18 @@ export default function CarrierDashboard() {
             <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-0.5">Teklif Durumları</p>
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl sm:text-3xl font-black text-[#0A1128]">{carrier.companyName}</h1>
-              {isGold && <Badge variant="gold" size="sm" />}
-              {isPro && <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[11px] font-black border border-blue-200">Pro Üye</span>}
-              {isStarter && <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-black border border-slate-200">Başlangıç (Ücretsiz)</span>}
+              {trialInfo.isTrialActive ? (
+                <span className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[11px] font-black shadow-xs flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  ⭐ 7G Pro Deneme ({trialInfo.dayNumber}. Gün)
+                </span>
+              ) : isGold ? (
+                <Badge variant="gold" size="sm" />
+              ) : isPro ? (
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[11px] font-black border border-blue-200">Pro Üye</span>
+              ) : (
+                <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-black border border-slate-200">Başlangıç (Ücretsiz)</span>
+              )}
               {isApproved ? (
                 <Badge variant="verified" size="sm" />
               ) : (
@@ -391,6 +409,170 @@ export default function CarrierDashboard() {
             </Link>
           </div>
         </div>
+
+        {/* ── AKTİF 7 GÜNLÜK PRO DENEME SAYACI ── */}
+        {trialInfo.isTrialActive && (
+          <div className="mb-6 rounded-3xl bg-gradient-to-r from-orange-50 via-amber-50 to-white border-2 border-orange-300 p-5 sm:p-6 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded-full bg-orange-100 text-[#C23E00] text-xs font-black border border-orange-300 flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5 text-[#F95700]" />
+                    7 Günlük Ücretsiz Profesyonel Deneme
+                  </span>
+                  <span className="text-xs font-bold text-slate-700">
+                    {trialInfo.dayNumber}. Gün ({trialInfo.daysRemaining} Gün Kaldı)
+                  </span>
+                </div>
+                <h3 className="text-base sm:text-lg font-black text-[#0A1128]">
+                  Profesyonel paketin tüm ayrıcalıkları ve müşteri doğrudan telefonları aktif!
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 font-medium">
+                  İlk tahsilat tarihi: <strong className="text-slate-800">{trialInfo.endsAtText}</strong> (₺2.990 / ay). Deneme süresince dilediğiniz an tek tıkla iptal edebilirsiniz.
+                </p>
+              </div>
+
+              <div className="w-full sm:w-56 space-y-1.5 shrink-0 bg-white/80 p-3 rounded-2xl border border-orange-200">
+                <div className="flex justify-between text-[11px] font-bold text-slate-600">
+                  <span>Deneme Süresi</span>
+                  <span className="text-[#F95700] font-black">{trialInfo.dayNumber} / 7 Gün</span>
+                </div>
+                <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                  <div 
+                    className="bg-[#F95700] h-2.5 rounded-full transition-all"
+                    style={{ width: `${Math.min(100, Math.round((trialInfo.dayNumber / 7) * 100))}%` }}
+                  />
+                </div>
+                <span className="text-[10px] text-slate-400 font-medium block text-right">
+                  {trialInfo.daysRemaining} gün sonra yenilenecek
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── 7 GÜN ÜCRETSİZ PRO VE KART EKLEME BANNERI (Görsel 1 Exact) ── */}
+        {!hasCardAdded && (
+          <div className="mb-6 rounded-3xl bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-white border-2 border-emerald-300 p-6 sm:p-7 shadow-sm">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+              {/* Sol Taraf: Bilgilendirme ve Avantajlar */}
+              <div className="lg:col-span-2 space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-950/15">
+                    <CreditCard className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="px-3 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black border border-emerald-300 uppercase tracking-wide">
+                        ⭐ 7 Gün Ücretsiz PRO Hediye
+                      </span>
+                      <span className="text-xs font-bold text-emerald-700">0 ₺ Provizyon ile Hemen Başla</span>
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-black text-[#0A1128]">
+                      Kartını ekle, 7 gün ücretsiz PRO ve müşteri telefonları açılsın
+                    </h2>
+                    <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1 leading-relaxed">
+                      Hesabın aktif ama henüz ödeme yöntemi eklenmedi. Müşteri ilanlarını, doğrudan telefon numaralarını ve tüm profesyonel nakliye araçlarını kart ekleyince ücretsiz kullanırsın.
+                    </p>
+                  </div>
+                </div>
+
+                {/* 4 Checkmark Items */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>7 gün ücretsiz</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>50 teklif hakkı</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Müşteri telefonları açık</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>İstediğin an iptal</span>
+                  </div>
+                </div>
+
+                {/* Butonlar */}
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <button
+                    onClick={() => setTrialModalOpen(true)}
+                    className="px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm flex items-center gap-2 shadow-lg shadow-emerald-950/20 active:scale-98 transition-all cursor-pointer"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    <span>Kartını Ekle · 7 Gün Ücretsiz</span>
+                  </button>
+
+                  <Link href="/fiyatlar">
+                    <button className="px-5 py-3 rounded-2xl bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-700 font-bold text-sm transition-colors cursor-pointer shadow-2xs">
+                      Paketleri Karşılaştır
+                    </button>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Sağ Taraf: Görsel 1 "SANA ÖZEL / Profesyonel" kartı */}
+              <div className="rounded-2xl bg-white border-2 border-emerald-300/80 p-5 shadow-md space-y-3 relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-orange-100 text-[#C23E00] px-2.5 py-0.5 rounded-full">
+                    Sana Özel
+                  </span>
+                  <span className="text-xs font-black text-emerald-700">⭐ PRO SEVİYE</span>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-black text-[#0A1128]">Profesyonel</h3>
+                  <p className="text-xs text-slate-500 font-medium">Aktif nakliyeciler için tam donanım.</p>
+                </div>
+
+                <div className="pt-1 pb-2 border-b border-slate-100">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-2xl font-black text-[#0A1128]">0 ₺</span>
+                    <span className="text-xs font-bold text-emerald-700">7 gün ücretsiz deneme</span>
+                  </div>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    Sonra ₺2.990 / ay · istediğin an iptal
+                  </span>
+                </div>
+
+                <ul className="space-y-1.5 text-xs text-slate-700 font-medium">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Aylık 50 teklif verme hakkı</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>35 müşteri telefonu doğrudan arama</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>20 Defter ilanı &amp; boş araç</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>5 akıllı rota alarmı</span>
+                  </li>
+                </ul>
+
+                <button
+                  onClick={() => setTrialModalOpen(true)}
+                  className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer mt-2"
+                >
+                  <span>Ücretsiz denemeyi başlat</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+
+                <p className="text-[10px] text-center text-slate-400 font-medium">
+                  Bitmeden önce e-posta ile hatırlatırız
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── DOĞRULAMASIZ ÜYE / ONAY BEKLEYEN BANNER ──────────────────────── */}
         {!isApproved && (
@@ -676,6 +858,33 @@ export default function CarrierDashboard() {
                         ))}
                       </div>
 
+                      {/* Customer Phone & Quick Contact */}
+                      <div className="flex items-center justify-between mb-2.5 pt-2 border-t border-slate-100 text-xs">
+                        <div className="flex items-center gap-1.5 font-bold">
+                          <Phone className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="text-slate-500">Müşteri Tel:</span>
+                          {canViewCustomerPhone && req.customerPhone ? (
+                            <span className="text-emerald-700 font-black">
+                              {req.customerPhone}
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setTrialModalOpen(true);
+                              }}
+                              className="text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-lg flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                            >
+                              <Lock className="w-3 h-3 text-amber-600" />
+                              <span>Kart Ekleyince Görünür</span>
+                            </button>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-slate-400 font-medium">Doğrudan İletişim</span>
+                      </div>
+
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
                           <Calendar className="w-3.5 h-3.5" />{req.movingDate}
@@ -853,6 +1062,13 @@ export default function CarrierDashboard() {
           </div>
         </div>
       </div>
+
+      {/* 7-Day Trial Card Modal (Görsel 2) */}
+      <TrialCardModal
+        isOpen={trialModalOpen}
+        onClose={() => setTrialModalOpen(false)}
+        onSuccess={() => setRefreshTrigger(k => k + 1)}
+      />
     </div>
   );
 }

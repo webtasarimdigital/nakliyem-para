@@ -212,7 +212,14 @@ function CustomerMessagesContent() {
       rating: 4.9,
       reviewCount: 42,
       slug: db.slugifyTurkish(otherName) || 'satici-firma',
-      phone: '0850 000 00 00'
+      phone: '0850 000 00 00',
+      verificationStatus: 'APPROVED' as const,
+      verificationBadges: {
+        identityVerified: true,
+        taxPlateVerified: true,
+        transportLicenseVerified: true,
+        phoneVerified: true,
+      }
     };
   }, [activeConv, userId, currentUser?.id]);
   const activeOffer = (activeCarrier && activeCarrier.id) ? db.getOffers().find(o => o.carrierId === activeCarrier.id) : null;
@@ -441,9 +448,17 @@ function CustomerMessagesContent() {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1 mb-0.5">
-                        <h4 className="text-xs sm:text-sm font-black text-[#0A1128] truncate">
-                          {carrier.companyName}
-                        </h4>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <h4 className="text-xs sm:text-sm font-black text-[#0A1128] truncate">
+                            {carrier.companyName}
+                          </h4>
+                          {(carrier.verificationStatus === 'APPROVED' || carrier.verificationBadges?.identityVerified || carrier.isVerified) && (
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0" title="Onaylı Firma">
+                              <ShieldCheck className="w-2.5 h-2.5 text-emerald-600" />
+                              <span>Onaylı</span>
+                            </span>
+                          )}
+                        </div>
                         <span className="text-[10px] text-slate-400 font-medium shrink-0">
                           {new Date(conv.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
@@ -479,11 +494,21 @@ function CustomerMessagesContent() {
                   {activeCarrier.companyName.charAt(0)}
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <h3 className="font-black text-[#0A1128] text-sm sm:text-base truncate">
                       {activeCarrier.companyName}
                     </h3>
-                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                    {((activeCarrier as any)?.verificationStatus === 'APPROVED' || (activeCarrier as any)?.verificationBadges?.identityVerified || (activeCarrier as any)?.isVerified) ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>Onaylı Firma</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                        <Clock className="w-3 h-3 text-amber-600 shrink-0" />
+                        <span>Onay Bekliyor</span>
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
                     <span>{activeCarrier.city}</span>
@@ -638,8 +663,15 @@ function CustomerMessagesContent() {
                   >
                     <div className="flex items-end gap-2 max-w-[85%] sm:max-w-[70%]">
                       {!isMe && (
-                        <div className="w-7 h-7 rounded-xl bg-[#0A1128] text-white flex items-center justify-center text-[10px] font-black shrink-0 mb-1">
-                          {msg.senderName.charAt(0)}
+                        <div className="relative shrink-0 mb-1">
+                          <div className="w-7 h-7 rounded-xl bg-[#0A1128] text-white flex items-center justify-center text-[10px] font-black">
+                            {msg.senderName.charAt(0)}
+                          </div>
+                          {((activeCarrier as any)?.verificationStatus === 'APPROVED' || (activeCarrier as any)?.verificationBadges?.identityVerified || (activeCarrier as any)?.isVerified) && (
+                            <span className="absolute -top-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5 shadow-xs" title="Kimlik ve Vergi Levhası Onaylı Nakliyeci">
+                              <ShieldCheck className="w-2.5 h-2.5" />
+                            </span>
+                          )}
                         </div>
                       )}
 

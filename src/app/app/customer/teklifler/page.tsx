@@ -1073,8 +1073,11 @@ function CustomerOffersContent() {
                             <div>
                               <div className="flex items-center gap-2 flex-wrap mb-0.5">
                                 <h3 className="font-black text-[#0A1128] text-base">{carrier.companyName}</h3>
-                                {carrier.verificationStatus === 'APPROVED' && (
-                                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                                {(carrier.verificationStatus === 'APPROVED' || carrier.verificationBadges?.identityVerified || (carrier as any).isVerified) && (
+                                  <span className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
+                                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span>Onaylı Firma</span>
+                                  </span>
                                 )}
                               </div>
                               <div className="flex items-center gap-3 text-xs text-slate-500 font-medium flex-wrap">
