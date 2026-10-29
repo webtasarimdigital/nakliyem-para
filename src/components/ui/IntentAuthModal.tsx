@@ -19,6 +19,7 @@ import {
   Phone,
   ShieldAlert,
   ShieldCheck,
+  Smartphone,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { loginWithGoogleFirebase, loginWithFirebase, registerWithFirebase } from '@/lib/firebase/auth';
@@ -64,6 +65,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
   const [timeLeft, setTimeLeft] = useState(180); // 3 dakika = 180 sn
   const [resendCooldown, setResendCooldown] = useState(0);
   const [otpSuccessMsg, setOtpSuccessMsg] = useState('');
+  const [otpChannel, setOtpChannel] = useState<'sms' | 'email' | 'screen'>('email');
 
   const isCarrier = targetRole === 'CARRIER';
 
@@ -306,11 +308,15 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
         return;
       }
 
+      if (data.channel) {
+        setOtpChannel(data.channel);
+      }
+
       setRegisterStep('OTP');
       setTimeLeft(180); // 3 dakika = 180 saniye
       setResendCooldown(60);
       setOtpCode('');
-      setOtpSuccessMsg(data.message || '6 haneli onay kodu e-posta adresinize gönderildi.');
+      setOtpSuccessMsg(data.message || '6 haneli onay kodunuz gönderildi.');
     } catch (err: any) {
       setErrorMessage(err?.message || 'Sunucuyla iletişim kurulurken bir hata oluştu.');
     } finally {
@@ -331,6 +337,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email.trim(),
+          phone: normalizePhoneNumber(phone),
           name: name.trim(),
           role: targetRole,
           companyName: isCarrier ? name.trim() : undefined,
@@ -342,9 +349,12 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
       if (!res.ok || data.error) {
         setErrorMessage(data.error || 'Yeni kod gönderilemedi.');
       } else {
+        if (data.channel) {
+          setOtpChannel(data.channel);
+        }
         setTimeLeft(180);
         setResendCooldown(60);
-        setOtpSuccessMsg('Yeni doğrulama kodu e-postanıza gönderildi.');
+        setOtpSuccessMsg(data.message || 'Yeni doğrulama kodu gönderildi.');
       }
     } catch (err: any) {
       setErrorMessage(err?.message || 'Bağlantı hatası oluştu.');
@@ -671,11 +681,21 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
           <form onSubmit={handleVerifyOtpAndRegister} className="space-y-4 pt-1">
             <div className="p-4 bg-orange-50/60 border border-orange-200 rounded-2xl text-center space-y-2">
               <div className="w-10 h-10 rounded-xl bg-[#F95700]/10 text-[#F95700] mx-auto flex items-center justify-center">
-                <KeyRound className="w-5 h-5" />
+                {otpChannel === 'sms' ? <Smartphone className="w-5 h-5" /> : <KeyRound className="w-5 h-5" />}
               </div>
-              <h3 className="text-sm font-black text-[#111E38]">E-Posta Doğrulama Kodu</h3>
+              <h3 className="text-sm font-black text-[#111E38]">
+                {otpChannel === 'sms' ? 'Telefon (SMS) Onay Kodu' : 'E-Posta Doğrulama Kodu'}
+              </h3>
               <p className="text-xs text-slate-600 font-medium">
-                <strong className="text-[#111E38] font-bold">{email}</strong> adresine 6 haneli bir onay kodu gönderdik.
+                {otpChannel === 'sms' ? (
+                  <>
+                    <strong className="text-[#111E38] font-bold">{formatPhoneNumber(phone)}</strong> numaralı telefonunuza SMS ile 6 haneli güvenlik kodu gönderdik.
+                  </>
+                ) : (
+                  <>
+                    <strong className="text-[#111E38] font-bold">{email}</strong> adresine 6 haneli bir onay kodu gönderdik.
+                  </>
+                )}
               </p>
               {/* 3 Dakika Sayacı */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-white shadow-xs border border-orange-200">

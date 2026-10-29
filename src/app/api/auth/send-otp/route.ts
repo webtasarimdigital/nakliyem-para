@@ -170,9 +170,44 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2. Generate 6-digit code and save with 3-minute expiry
+    // 2. Generate 6-digit code for fallback and local verification
     const verificationCode = generateNumericOtp();
-    await saveOtp(email, verificationCode);
+
+    // 2.1. Attempt SMS OTP via otp.com if OTP_COM_API_KEY is configured
+    let otpId: string | undefined;
+    let smsSent = false;
+    const otpComKey = process.env.OTP_COM_API_KEY;
+
+    if (otpComKey && cleanPhone && cleanPhone.length === 10) {
+      try {
+        const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+                         req.headers.get('x-real-ip') || undefined;
+
+        const otpRes = await fetch('https://api.otp.com/api/v1/otp/send', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${otpComKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            recipient: `+90${cleanPhone}`,
+            locale: 'tr',
+            ...(clientIp ? { client_ip: clientIp } : {}),
+          }),
+        });
+
+        const otpData = await otpRes.json();
+        if (otpRes.ok && otpData.otp_id) {
+          otpId = otpData.otp_id;
+          smsSent = true;
+          console.log(`[OTP.COM SMS SENT] To: +90${cleanPhone} | otp_id: ${otpId}`);
+        } else {
+          console.warn('otp.com send-otp non-200 or no otp_id:', otpData);
+        }
+      } catch (otpErr: any) {
+        console.warn('otp.com send-otp network error:', otpErr?.message);
+      }
+    }
 
     const displayName = (role === 'CARRIER' && companyName ? companyName : name) || 'Değerli Kullanıcımız';
     const isCarrier = role === 'CARRIER';
@@ -258,7 +293,7 @@ ${ADMIN_EMAIL}
     const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER;
     const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_PASS;
 
-    if (smtpHost && smtpUser && smtpPass) {
+    if (!smsSent && smtpHost && smtpUser && smtpPass) {
       try {
         const transporter = nodemailer.createTransport({
           host: smtpHost,
@@ -285,8 +320,8 @@ ${ADMIN_EMAIL}
       }
     }
 
-    // 2. Resend API if configured
-    if (!emailSent && process.env.RESEND_API_KEY) {
+    // 2. Resend API if configured and email not yet sent
+    if (!smsSent && !emailSent && process.env.RESEND_API_KEY) {
       try {
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
@@ -308,14 +343,27 @@ ${ADMIN_EMAIL}
       }
     }
 
+    // Save OTP to store with phone, otpId and channel
+    await saveOtp(normalizedEmail, verificationCode, {
+      phone: cleanPhone,
+      otpId,
+      channel: smsSent ? 'sms' : (emailSent ? 'email' : undefined),
+    });
+
+    const isDelivered = smsSent || emailSent;
+
     return NextResponse.json({
       success: true,
-      message: emailSent
-        ? 'Doğrulama kodu e-posta adresinize gönderildi. Lütfen gelen kutunuzu (ve spam klasörünü) kontrol ediniz.'
-        : 'E-posta servisi yapılandırılmadığı için doğrulama kodunuz ekranda hazırlanmıştır.',
+      channel: smsSent ? 'sms' : (emailSent ? 'email' : 'screen'),
+      phone: cleanPhone ? `+90${cleanPhone}` : undefined,
+      message: smsSent
+        ? `Doğrulama kodu 0${cleanPhone} numaralı telefonunuza SMS ile gönderildi.`
+        : (emailSent
+            ? 'Doğrulama kodu e-posta adresinize gönderildi. Lütfen gelen kutunuzu (ve spam klasörünü) kontrol ediniz.'
+            : 'SMS veya E-posta servisi yapılandırılmadığı için doğrulama kodunuz ekranda hazırlanmıştır.'),
       expiresIn: 180, // 3 minutes in seconds
-      emailSent,
-      code: !emailSent ? verificationCode : undefined,
+      emailSent: isDelivered,
+      code: !isDelivered ? verificationCode : undefined,
     });
   } catch (error: any) {
     console.error('Send OTP error:', error);

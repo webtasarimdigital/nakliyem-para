@@ -3,7 +3,10 @@ import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 
 export interface OtpEntry {
   email: string;
+  phone?: string;
   code: string;
+  otpId?: string;
+  channel?: 'sms' | 'email';
   expiresAt: number;
   createdAt: number;
   verified?: boolean;
@@ -25,14 +28,21 @@ export function generateNumericOtp(): string {
 /**
  * Save OTP to both memory store and Firestore (if available)
  */
-export async function saveOtp(email: string, code: string): Promise<OtpEntry> {
+export async function saveOtp(
+  email: string,
+  code: string,
+  meta?: { phone?: string; otpId?: string; channel?: 'sms' | 'email' }
+): Promise<OtpEntry> {
   const normalizedEmail = email.trim().toLowerCase();
   const now = Date.now();
   const expiresAt = now + OTP_EXPIRATION_MS;
 
   const entry: OtpEntry = {
     email: normalizedEmail,
+    phone: meta?.phone,
     code,
+    otpId: meta?.otpId,
+    channel: meta?.channel || 'email',
     expiresAt,
     createdAt: now,
     verified: false,
@@ -109,10 +119,41 @@ export async function verifyOtp(email: string, inputCode: string): Promise<{ suc
     };
   }
 
+  // Check if sent via otp.com SMS API
+  if (record.otpId && process.env.OTP_COM_API_KEY) {
+    try {
+      const otpRes = await fetch('https://api.otp.com/api/v1/otp/verify', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OTP_COM_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          otp_id: record.otpId,
+          code: cleanCode,
+        }),
+      });
+
+      const otpData = await otpRes.json();
+      if (otpData.matched || otpData.status === 'approved') {
+        record.verified = true;
+        memoryOtpStore.set(normalizedEmail, record);
+        return { success: true };
+      } else {
+        return {
+          success: false,
+          error: 'Girdiğiniz SMS doğrulama kodu hatalı veya geçersiz. Lütfen kontrol edip tekrar deneyiniz.',
+        };
+      }
+    } catch (err: any) {
+      console.warn('otp.com verify API warning, falling back to local verification:', err?.message);
+    }
+  }
+
   if (record.code !== cleanCode) {
     return {
       success: false,
-      error: 'Girdiğiniz 6 haneli doğrulama kodu hatalı. Lütfen e-postanızı kontrol edip tekrar deneyiniz.',
+      error: 'Girdiğiniz 6 haneli doğrulama kodu hatalı. Lütfen kontrol edip tekrar deneyiniz.',
     };
   }
 

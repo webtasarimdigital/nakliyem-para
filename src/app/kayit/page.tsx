@@ -23,6 +23,7 @@ import {
   Loader2,
   ShieldAlert,
   LogIn,
+  Smartphone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { 
@@ -118,6 +119,7 @@ function KayitContent() {
   const [timeLeft, setTimeLeft] = useState(180); // 3 dakika = 180 saniye
   const [resendCooldown, setResendCooldown] = useState(0);
   const [otpSuccessMsg, setOtpSuccessMsg] = useState('');
+  const [otpChannel, setOtpChannel] = useState<'sms' | 'email' | 'screen'>('email');
 
   // 3 Dakikalık Geri Sayım Sayacı
   useEffect(() => {
@@ -388,11 +390,15 @@ function KayitContent() {
         setDevOtpCode(null);
       }
 
+      if (data.channel) {
+        setOtpChannel(data.channel);
+      }
+
       setStep('OTP');
       setTimeLeft(180); // 3 dakika = 180 saniye
       setResendCooldown(60);
       setOtpCode('');
-      setOtpSuccessMsg(data.message || '6 haneli onay kodu e-posta adresinize gönderildi.');
+      setOtpSuccessMsg(data.message || '6 haneli onay kodunuz gönderildi.');
     } catch (err: any) {
       setErrorMessage(err.message || 'Sunucuyla iletişim kurulurken bir hata oluştu.');
     } finally {
@@ -409,11 +415,13 @@ function KayitContent() {
 
     try {
       const cleanEmail = email.trim().toLowerCase();
+      const cleanPhone = normalizePhoneNumber(phone);
       const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: cleanEmail,
+          phone: cleanPhone,
           name: isCarrier ? companyName.trim() : name.trim(),
           role: isCarrier ? 'CARRIER' : 'CUSTOMER',
           companyName: isCarrier ? companyName.trim() : undefined,
@@ -428,9 +436,12 @@ function KayitContent() {
         if (!data.emailSent && data.code) {
           setDevOtpCode(data.code);
         }
+        if (data.channel) {
+          setOtpChannel(data.channel);
+        }
         setTimeLeft(180); // Süreyi 3 dakikaya sıfırla
         setResendCooldown(60);
-        setOtpSuccessMsg(data.message || 'Yeni doğrulama kodu e-postanıza gönderildi.');
+        setOtpSuccessMsg(data.message || 'Yeni doğrulama kodu gönderildi.');
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Bağlantı hatası oluştu.');
@@ -743,7 +754,7 @@ function KayitContent() {
             {/* Başlık */}
             <div className="text-center space-y-1 mb-2">
               <h1 className="text-2xl font-black text-[#111E38] tracking-tight">
-                {step === 'OTP' ? 'E-Posta Doğrulama' : 'Hesap Oluştur'}
+                {step === 'OTP' ? (otpChannel === 'sms' ? 'Telefon (SMS) Doğrulama' : 'E-Posta Doğrulama') : 'Hesap Oluştur'}
               </h1>
             </div>
 
@@ -751,10 +762,18 @@ function KayitContent() {
               <div className="space-y-4 animate-fade-in pt-1">
                 <div className="text-center space-y-1.5">
                   <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 text-[#F95700] flex items-center justify-center mx-auto shadow-xs">
-                    <Mail className="w-6 h-6" />
+                    {otpChannel === 'sms' ? <Smartphone className="w-6 h-6" /> : <Mail className="w-6 h-6" />}
                   </div>
                   <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-sm mx-auto">
-                    <strong className="text-[#111E38] font-bold">{email}</strong> adresinize 6 haneli bir güvenlik kodu gönderdik. Hesabınızı aktifleştirmek için lütfen kodu giriniz.
+                    {otpChannel === 'sms' ? (
+                      <>
+                        <strong className="text-[#111E38] font-bold">{formatPhoneNumber(phone)}</strong> numaralı telefonunuza SMS ile 6 haneli güvenlik kodu gönderdik. Hesabınızı aktifleştirmek için lütfen kodu giriniz.
+                      </>
+                    ) : (
+                      <>
+                        <strong className="text-[#111E38] font-bold">{email}</strong> adresinize 6 haneli bir güvenlik kodu gönderdik. Hesabınızı aktifleştirmek için lütfen kodu giriniz.
+                      </>
+                    )}
                   </p>
                 </div>
 
