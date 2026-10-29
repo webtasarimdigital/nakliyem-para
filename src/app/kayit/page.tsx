@@ -21,6 +21,8 @@ import {
   AlertTriangle,
   Phone,
   Loader2,
+  ShieldAlert,
+  LogIn,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { 
@@ -34,6 +36,12 @@ import {
 import { isFirebaseConfigured } from '@/lib/firebase/config';
 import { db } from '@/lib/data/mock-db';
 import { validateEmailAddress } from '@/lib/validation/email';
+import { 
+  normalizePhoneNumber, 
+  validatePhoneNumber, 
+  formatPhoneNumber, 
+  maskEmail 
+} from '@/lib/validation/phone';
 
 function KayitContent() {
   const router = useRouter();
@@ -85,11 +93,18 @@ function KayitContent() {
     actual: 'CUSTOMER' | 'CARRIER';
     email: string;
   } | null>(null);
+  const [phoneAlreadyRegistered, setPhoneAlreadyRegistered] = useState<{
+    phone: string;
+    email: string;
+    maskedEmail: string;
+    role: string;
+  } | null>(null);
 
   const switchRole = (newRole: 'musteri' | 'nakliyeci') => {
     setRole(newRole);
     setRoleMismatch(null);
     setAlreadyRegistered(null);
+    setPhoneAlreadyRegistered(null);
     setErrorMessage('');
   };
 
@@ -193,11 +208,12 @@ function KayitContent() {
       return;
     }
 
-    const cleanPhone = phone.trim().replace(/\D/g, '');
-    if (!cleanPhone || cleanPhone.length < 10) {
-      setErrorMessage('Lütfen geçerli bir cep telefonu numarası giriniz (Örn: 05XX XXX XX XX).');
+    const phoneValidation = validatePhoneNumber(phone);
+    if (!phoneValidation.isValid) {
+      setErrorMessage(phoneValidation.error || 'Lütfen geçerli bir cep telefonu numarası giriniz (Örn: 5XX XXX XX XX).');
       return;
     }
+    const cleanPhone = phoneValidation.normalized;
 
     const emailCheck = validateEmailAddress(email);
     if (!emailCheck.isValid) {
@@ -248,7 +264,7 @@ function KayitContent() {
       return;
     }
 
-    // Fast local phone check (Telefon ile rol uyuşmazlığı kontrolü)
+    // Fast local phone check (Bir telefon tek bir üyelik için geçerlidir - Çoklu ücretsiz sürüm suistimal engeli)
     const localPhoneUser = db.getUserByPhone(cleanPhone);
     if (localPhoneUser && !localPhoneUser.isMasterUser) {
       if (localPhoneUser.role === 'CARRIER' && !isCarrier) {
@@ -259,6 +275,20 @@ function KayitContent() {
       }
       if (localPhoneUser.role === 'CUSTOMER' && isCarrier) {
         setRoleMismatch({ expected: 'CARRIER', actual: 'CUSTOMER', email: localPhoneUser.email || cleanEmail });
+        setLoading(false);
+        if (typeof window !== 'undefined') window.scrollTo({ top: 100, behavior: 'smooth' });
+        return;
+      }
+
+      // Aynı telefonla farklı e-posta açılarak deneme/ücretsiz sürüm suistimali engeli
+      const registeredEmail = (localPhoneUser.email || '').trim().toLowerCase();
+      if (registeredEmail && registeredEmail !== cleanEmail) {
+        setPhoneAlreadyRegistered({
+          phone: cleanPhone,
+          email: localPhoneUser.email,
+          maskedEmail: maskEmail(localPhoneUser.email),
+          role: localPhoneUser.role,
+        });
         setLoading(false);
         if (typeof window !== 'undefined') window.scrollTo({ top: 100, behavior: 'smooth' });
         return;
@@ -303,6 +333,7 @@ function KayitContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: cleanEmail,
+          phone: cleanPhone,
           name: isCarrier ? companyName.trim() : name.trim(),
           role: isCarrier ? 'CARRIER' : 'CUSTOMER',
           companyName: isCarrier ? companyName.trim() : undefined,
@@ -312,6 +343,17 @@ function KayitContent() {
       const data = await res.json();
 
       if (res.status === 409) {
+        if (data.error === 'PHONE_ALREADY_REGISTERED' || data.phoneAlreadyRegistered) {
+          setPhoneAlreadyRegistered({
+            phone: data.phone || cleanPhone,
+            email: data.existingEmail,
+            maskedEmail: data.maskedEmail || maskEmail(data.existingEmail),
+            role: data.role || 'CARRIER',
+          });
+          setLoading(false);
+          if (typeof window !== 'undefined') window.scrollTo({ top: 100, behavior: 'smooth' });
+          return;
+        }
         if (data.error === 'ROLE_MISMATCH_CARRIER' || data.existingRole === 'CARRIER') {
           setRoleMismatch({ expected: 'CUSTOMER', actual: 'CARRIER', email: cleanEmail });
           setLoading(false);
@@ -892,7 +934,55 @@ function KayitContent() {
 
                 {/* Form */}
                 <form onSubmit={handleInitiateRegister} className="space-y-4">
-                  {roleMismatch && roleMismatch.actual === 'CARRIER' ? (
+                  {phoneAlreadyRegistered ? (
+                    <div className="p-4 sm:p-5 rounded-2xl bg-rose-50 border-2 border-rose-300 text-slate-800 space-y-3 animate-fade-in shadow-xs">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                          <ShieldAlert className="w-5 h-5" />
+                        </div>
+                        <div className="space-y-1.5 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-wider bg-rose-200 text-rose-900 px-2 py-0.5 rounded-md">Güvenlik Doğrulaması</span>
+                            <span className="text-[11px] text-slate-600 font-bold">{formatPhoneNumber(phoneAlreadyRegistered.phone)}</span>
+                          </div>
+                          <h4 className="font-black text-sm text-rose-950">
+                            Bu Telefon Numarasına Ait Üyelik Zaten Mevcut!
+                          </h4>
+                          <p className="text-xs text-rose-900 leading-relaxed">
+                            Girdiğiniz telefon numarası sistemimizde daha önce <strong className="text-slate-900 font-black underline">{phoneAlreadyRegistered.email}</strong> e-posta adresiyle kaydedilmiştir.
+                          </p>
+                          <div className="p-3 bg-white/90 rounded-xl border border-rose-200 text-xs text-slate-700 leading-relaxed font-medium">
+                            🔒 <strong>Mükerrer &amp; Ücretsiz Üyelik Kuralı:</strong> Her telefon numarası sistemimizde yalnızca <strong>tek bir hesap</strong> için kullanılabilir. Farklı bir e-posta açsanız dahi aynı telefon numarasıyla tekrar ücretsiz deneme veya mükerrer üyelik açılamaz.
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-rose-200">
+                        <Link
+                          href={`/giris?role=${phoneAlreadyRegistered.role === 'CARRIER' ? 'nakliyeci' : 'musteri'}&email=${encodeURIComponent(phoneAlreadyRegistered.email)}`}
+                          className="flex-1 text-center py-2.5 px-3 rounded-xl bg-[#111E38] hover:bg-[#1a2d54] text-white text-xs font-black shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <LogIn className="w-3.5 h-3.5" />
+                          <span>Bu Hesapla Giriş Yap ({phoneAlreadyRegistered.email})</span>
+                        </Link>
+                        <Link
+                          href={`/sifremi-unuttum?email=${encodeURIComponent(phoneAlreadyRegistered.email)}`}
+                          className="text-center py-2.5 px-3 rounded-xl bg-white border border-rose-300 hover:bg-rose-100/60 text-rose-950 text-xs font-black shadow-sm transition-all cursor-pointer"
+                        >
+                          Şifremi Sıfırla
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPhoneAlreadyRegistered(null);
+                            setPhone('');
+                          }}
+                          className="text-center py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                        >
+                          Farklı Numara Gir
+                        </button>
+                      </div>
+                    </div>
+                  ) : roleMismatch && roleMismatch.actual === 'CARRIER' ? (
                     <div className="p-4 sm:p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 text-slate-800 space-y-3 animate-fade-in shadow-xs">
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
@@ -1047,29 +1137,63 @@ function KayitContent() {
                       </div>
                     )}
 
-                    {/* Telefon Numarası */}
+                    {/* Telefon Numarası - Güvenlik & Tek Kullanımlık Numara Doğrulama */}
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                        Cep Telefonu Numarası
-                      </label>
-                      <div className="relative">
-                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                          Telefon Numarası
+                        </label>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-black uppercase tracking-wider">
+                          <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                          Güvenlik
+                        </span>
+                      </div>
+
+                      <div className="flex rounded-xl border border-slate-200 focus-within:border-[#111E38] focus-within:ring-2 focus-within:ring-blue-100 overflow-hidden transition-all bg-white shadow-xs">
+                        <div className="flex items-center gap-1.5 px-3 py-2.5 sm:py-3 bg-slate-50 border-r border-slate-200 text-xs font-black text-slate-700 select-none shrink-0">
+                          <span className="text-base leading-none">🇹🇷</span>
+                          <span>TR +90</span>
+                        </div>
                         <input
                           type="tel"
                           value={phone}
                           onChange={e => {
                             const val = e.target.value;
                             setPhone(val);
+                            if (phoneAlreadyRegistered) setPhoneAlreadyRegistered(null);
+                            if (errorMessage) setErrorMessage('');
                             if (typeof window !== 'undefined') {
                               localStorage.setItem('tasin_carrier_phone', val);
                               localStorage.setItem('tasin_registered_phone', val);
                             }
                           }}
-                          placeholder="05XX XXX XX XX"
+                          onBlur={() => {
+                            const cleanP = normalizePhoneNumber(phone);
+                            if (cleanP && cleanP.length >= 10) {
+                              const found = db.getUserByPhone(cleanP);
+                              if (found && !found.isMasterUser) {
+                                const regEmail = (found.email || '').trim().toLowerCase();
+                                const typEmail = (email || '').trim().toLowerCase();
+                                if (regEmail && (!typEmail || regEmail !== typEmail)) {
+                                  setPhoneAlreadyRegistered({
+                                    phone: cleanP,
+                                    email: found.email,
+                                    maskedEmail: maskEmail(found.email),
+                                    role: found.role,
+                                  });
+                                }
+                              }
+                            }
+                          }}
+                          placeholder="5XX XXX XX XX"
                           required
-                          className="w-full border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
+                          className="w-full px-3 py-2.5 sm:py-3 text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none bg-transparent"
                         />
                       </div>
+                      <p className="text-[11px] text-slate-500 font-medium mt-1.5 flex items-center gap-1">
+                        <Lock className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span>Her telefon numarası bir kez kullanılabilir. SMS ile tek kullanımlık kod gönderilir.</span>
+                      </p>
                     </div>
 
                     {/* E-posta */}

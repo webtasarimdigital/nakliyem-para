@@ -1498,8 +1498,42 @@ class MockDatabase {
   }
 
   getUserByPhone(phone: string): RegisteredUserRecord | undefined {
-    const clean = phone.replace(/\D/g, '');
-    return this.getRegisteredUsers().find(u => u.phone.replace(/\D/g, '') === clean);
+    let clean = phone.replace(/\D/g, '');
+    if (clean.length === 12 && clean.startsWith('90')) clean = clean.slice(2);
+    if (clean.length === 11 && clean.startsWith('0')) clean = clean.slice(1);
+    if (!clean || clean.length < 10) return undefined;
+
+    const found = this.getRegisteredUsers().find(u => {
+      let uClean = (u.phone || '').replace(/\D/g, '');
+      if (uClean.length === 12 && uClean.startsWith('90')) uClean = uClean.slice(2);
+      if (uClean.length === 11 && uClean.startsWith('0')) uClean = uClean.slice(1);
+      return uClean === clean;
+    });
+
+    if (found) return found;
+
+    // Check carriers list
+    const carrier = this.getCarriers().find(c => {
+      let cClean = (c.phone || '').replace(/\D/g, '');
+      if (cClean.length === 12 && cClean.startsWith('90')) cClean = cClean.slice(2);
+      if (cClean.length === 11 && cClean.startsWith('0')) cClean = cClean.slice(1);
+      return cClean === clean;
+    });
+
+    if (carrier) {
+      return {
+        id: carrier.userId || carrier.id,
+        email: carrier.email,
+        phone: carrier.phone,
+        password: '',
+        role: 'CARRIER',
+        companyName: carrier.companyName,
+        carrierId: carrier.id,
+        createdAt: carrier.createdAt,
+      };
+    }
+
+    return undefined;
   }
 
   getUserByEmail(email: string): RegisteredUserRecord | undefined {

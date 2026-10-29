@@ -17,11 +17,19 @@ import {
   CheckCircle2,
   RefreshCw,
   Phone,
+  ShieldAlert,
+  ShieldCheck,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { loginWithGoogleFirebase, loginWithFirebase, registerWithFirebase } from '@/lib/firebase/auth';
 import { isFirebaseConfigured } from '@/lib/firebase/config';
 import { validateEmailAddress } from '@/lib/validation/email';
+import { 
+  normalizePhoneNumber, 
+  validatePhoneNumber, 
+  formatPhoneNumber, 
+  maskEmail 
+} from '@/lib/validation/phone';
 
 export interface IntentAuthModalProps {
   isOpen: boolean;
@@ -60,6 +68,12 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
   const isCarrier = targetRole === 'CARRIER';
 
   const [alreadyRegistered, setAlreadyRegistered] = useState<string | null>(null);
+  const [phoneAlreadyRegistered, setPhoneAlreadyRegistered] = useState<{
+    phone: string;
+    email: string;
+    maskedEmail: string;
+    role: string;
+  } | null>(null);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [commercialConsent, setCommercialConsent] = useState(false);
 
@@ -104,6 +118,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
     setErrorMessage('');
     setOtpSuccessMsg('');
     setAlreadyRegistered(null);
+    setPhoneAlreadyRegistered(null);
     onClose();
   };
 
@@ -210,11 +225,12 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
       return;
     }
 
-    const cleanPhone = phone.trim().replace(/\D/g, '');
-    if (!cleanPhone || cleanPhone.length < 10) {
-      setErrorMessage('Lütfen geçerli bir cep telefonu numarası giriniz (Örn: 05XX XXX XX XX).');
+    const phoneValidation = validatePhoneNumber(phone);
+    if (!phoneValidation.isValid) {
+      setErrorMessage(phoneValidation.error || 'Lütfen geçerli bir cep telefonu numarası giriniz (Örn: 5XX XXX XX XX).');
       return;
     }
+    const cleanPhone = phoneValidation.normalized;
 
     const emailCheck = validateEmailAddress(email);
     if (!emailCheck.isValid) {
@@ -236,6 +252,21 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
       return;
     }
 
+    // Telefon ile mükerrer hesap kontrolü (Tek telefon tek hesap kuralı)
+    const localPhoneUser = db.getUserByPhone(cleanPhone);
+    if (localPhoneUser && !localPhoneUser.isMasterUser) {
+      const regEmail = (localPhoneUser.email || '').trim().toLowerCase();
+      if (regEmail && regEmail !== email.trim().toLowerCase()) {
+        setPhoneAlreadyRegistered({
+          phone: cleanPhone,
+          email: localPhoneUser.email,
+          maskedEmail: maskEmail(localPhoneUser.email),
+          role: localPhoneUser.role,
+        });
+        return;
+      }
+    }
+
     setIsLoading(true);
 
     try {
@@ -244,6 +275,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email.trim(),
+          phone: cleanPhone,
           name: cleanName,
           role: targetRole,
           companyName: isCarrier ? cleanName : undefined,
@@ -252,7 +284,17 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
 
       const data = await res.json();
 
-      if (res.status === 409 || data.error === 'ALREADY_REGISTERED') {
+      if (res.status === 409 || data.error === 'ALREADY_REGISTERED' || data.error === 'PHONE_ALREADY_REGISTERED') {
+        if (data.error === 'PHONE_ALREADY_REGISTERED' || data.phoneAlreadyRegistered) {
+          setPhoneAlreadyRegistered({
+            phone: data.phone || cleanPhone,
+            email: data.existingEmail,
+            maskedEmail: data.maskedEmail || maskEmail(data.existingEmail),
+            role: data.role || targetRole,
+          });
+          setIsLoading(false);
+          return;
+        }
         setAlreadyRegistered(email.trim().toLowerCase());
         setIsLoading(false);
         return;
@@ -777,6 +819,47 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
 
             {/* Form */}
             <form onSubmit={tab === 'REGISTER' ? handleInitiateRegister : handleLoginSubmit} className="space-y-3 pt-1">
+              {phoneAlreadyRegistered && (
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-300 text-slate-800 space-y-2 text-left animate-fade-in shadow-xs">
+                  <div className="flex items-start gap-2.5">
+                    <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                    <div className="space-y-1 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-black uppercase tracking-wider bg-rose-200 text-rose-900 px-1.5 py-0.5 rounded">Güvenlik</span>
+                        <span className="text-[10px] text-slate-500 font-bold">{formatPhoneNumber(phoneAlreadyRegistered.phone)}</span>
+                      </div>
+                      <h4 className="font-bold text-xs text-rose-950">Bu Telefon Numarası Zaten Kayıtlı!</h4>
+                      <p className="text-[11px] text-rose-900 leading-tight">
+                        Bu numara sistemimizde <strong className="underline font-bold text-slate-900">{phoneAlreadyRegistered.email}</strong> adresiyle kayıtlıdır. Aynı numarayla yeni bir hesap açılamaz.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-1 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEmail(phoneAlreadyRegistered.email);
+                        setTab('LOGIN');
+                        setPhoneAlreadyRegistered(null);
+                      }}
+                      className="flex-1 py-1.5 px-2 bg-[#111E38] hover:bg-[#1a2d54] text-white rounded-lg text-[11px] font-bold text-center cursor-pointer transition-colors"
+                    >
+                      Bu Hesapla Giriş Yap
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPhoneAlreadyRegistered(null);
+                        setPhone('');
+                      }}
+                      className="py-1.5 px-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-[11px] font-medium text-center cursor-pointer"
+                    >
+                      Farklı Numara Gir
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {tab === 'REGISTER' && (
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -798,8 +881,17 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
 
               {tab === 'REGISTER' && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Cep Telefonu Numarası *</label>
-                  <div className="relative">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-700">Telefon Numarası *</label>
+                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+                      Güvenlik
+                    </span>
+                  </div>
+                  <div className="flex rounded-xl border border-slate-300 focus-within:border-[#F95700] overflow-hidden bg-white">
+                    <div className="flex items-center gap-1 px-2.5 py-2.5 bg-slate-50 border-r border-slate-200 text-xs font-bold text-slate-600 select-none shrink-0">
+                      <span>🇹🇷</span>
+                      <span>TR +90</span>
+                    </div>
                     <input
                       type="tel"
                       required
@@ -807,17 +899,37 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
                       onChange={(e) => {
                         const val = e.target.value;
                         setPhone(val);
+                        if (phoneAlreadyRegistered) setPhoneAlreadyRegistered(null);
+                        if (errorMessage) setErrorMessage('');
                         if (typeof window !== 'undefined') {
                           localStorage.setItem('tasin_registered_phone', val);
                           localStorage.setItem('tasin_carrier_phone', val);
                           localStorage.setItem('tasin_phone', val);
                         }
                       }}
-                      placeholder="05XX XXX XX XX"
-                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:border-[#F95700] focus:outline-none"
+                      onBlur={() => {
+                        const cleanP = normalizePhoneNumber(phone);
+                        if (cleanP && cleanP.length >= 10) {
+                          const found = db.getUserByPhone(cleanP);
+                          if (found && !found.isMasterUser) {
+                            const regEmail = (found.email || '').trim().toLowerCase();
+                            const typEmail = (email || '').trim().toLowerCase();
+                            if (regEmail && (!typEmail || regEmail !== typEmail)) {
+                              setPhoneAlreadyRegistered({
+                                phone: cleanP,
+                                email: found.email,
+                                maskedEmail: maskEmail(found.email),
+                                role: found.role,
+                              });
+                            }
+                          }
+                        }
+                      }}
+                      placeholder="5XX XXX XX XX"
+                      className="w-full px-3 py-2.5 text-xs font-medium focus:outline-none bg-transparent"
                     />
-                    <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   </div>
+                  <p className="text-[10px] text-slate-400 mt-1">Her telefon numarası bir kez kullanılabilir. SMS onay kodu gönderilir.</p>
                 </div>
               )}
 

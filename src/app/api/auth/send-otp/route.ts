@@ -31,6 +31,44 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.trim().toLowerCase();
 
+    // 1.2. Phone uniqueness check (Bir telefon numarası yalnızca tek bir üyelik için kullanılabilir)
+    const rawPhone = body.phone ? String(body.phone) : '';
+    let cleanPhone = rawPhone.replace(/\D/g, '');
+    if (cleanPhone.length === 12 && cleanPhone.startsWith('90')) cleanPhone = cleanPhone.slice(2);
+    if (cleanPhone.length === 11 && cleanPhone.startsWith('0')) cleanPhone = cleanPhone.slice(1);
+
+    if (cleanPhone && cleanPhone.length >= 10 && isFirebaseConfigured() && firestoreDb) {
+      try {
+        const pQ1 = query(collection(firestoreDb, 'users'), where('phone', '==', cleanPhone));
+        const pSnap1 = await getDocs(pQ1);
+        let phoneExistingUser: any = null;
+        if (!pSnap1.empty) {
+          phoneExistingUser = pSnap1.docs[0].data();
+        } else {
+          const pQ2 = query(collection(firestoreDb, 'carriers'), where('phone', '==', cleanPhone));
+          const pSnap2 = await getDocs(pQ2);
+          if (!pSnap2.empty) {
+            phoneExistingUser = pSnap2.docs[0].data();
+          }
+        }
+
+        if (phoneExistingUser && phoneExistingUser.email && phoneExistingUser.email.trim().toLowerCase() !== normalizedEmail) {
+          return NextResponse.json(
+            {
+              error: 'PHONE_ALREADY_REGISTERED',
+              message: `Bu telefon numarasına ait bir üyelik zaten bulunmaktadır. Kayıtlı e-posta: ${phoneExistingUser.email}`,
+              phone: cleanPhone,
+              existingEmail: phoneExistingUser.email,
+              role: phoneExistingUser.role || 'CARRIER',
+            },
+            { status: 409 }
+          );
+        }
+      } catch (pErr) {
+        console.warn('Firestore phone uniqueness check warning in send-otp:', pErr);
+      }
+    }
+
     // 1.5. Check if user already exists in Firestore and detect role mismatch
     if (isFirebaseConfigured() && firestoreDb) {
       try {
