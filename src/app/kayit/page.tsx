@@ -49,6 +49,26 @@ function KayitContent() {
     }
   }, [urlRole]);
 
+  useEffect(() => {
+    const pPhone = searchParams.get('phone');
+    if (pPhone) {
+      setPhone(pPhone);
+    } else if (typeof window !== 'undefined') {
+      const savedPhone = localStorage.getItem('tasin_carrier_phone') || localStorage.getItem('tasin_phone') || localStorage.getItem('tasin_registered_phone');
+      if (savedPhone) setPhone(savedPhone);
+    }
+
+    const pEmail = searchParams.get('email');
+    if (pEmail) {
+      setEmail(pEmail);
+    }
+
+    const pCompany = searchParams.get('company') || searchParams.get('companyName');
+    if (pCompany) {
+      setCompanyName(pCompany);
+    }
+  }, [searchParams]);
+
   // Form fields
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -514,6 +534,15 @@ function KayitContent() {
       }).catch(err => console.warn('Welcome mail error:', err));
 
       if (typeof window !== 'undefined') {
+        const cleanP = phone.trim();
+        if (cleanP) {
+          localStorage.setItem('tasin_registered_phone', cleanP);
+          localStorage.setItem('tasin_carrier_phone', cleanP);
+          localStorage.setItem('tasin_phone', cleanP);
+        }
+        if (email) localStorage.setItem('tasin_registered_email', email.trim());
+        if (companyName) localStorage.setItem('tasin_registered_company', companyName.trim());
+        if (name) localStorage.setItem('tasin_registered_name', name.trim());
         window.dispatchEvent(new Event('auth-changed'));
         window.dispatchEvent(new Event('storage'));
       }
@@ -1016,7 +1045,14 @@ function KayitContent() {
                         <input
                           type="tel"
                           value={phone}
-                          onChange={e => setPhone(e.target.value)}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setPhone(val);
+                            if (typeof window !== 'undefined') {
+                              localStorage.setItem('tasin_carrier_phone', val);
+                              localStorage.setItem('tasin_registered_phone', val);
+                            }
+                          }}
                           placeholder="05XX XXX XX XX"
                           required
                           className="w-full border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"

@@ -83,6 +83,20 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
     return () => clearInterval(cooldownTimer);
   }, [resendCooldown]);
 
+  // Önceden girilmiş telefon veya e-posta varsa otomatik doldur
+  useEffect(() => {
+    if (isOpen && typeof window !== 'undefined') {
+      const savedPhone = localStorage.getItem('tasin_carrier_phone') || localStorage.getItem('tasin_registered_phone') || localStorage.getItem('tasin_phone');
+      if (savedPhone) setPhone(prev => prev || savedPhone);
+      const savedEmail = localStorage.getItem('tasin_registered_email');
+      if (savedEmail) setEmail(prev => prev || savedEmail);
+      const savedCompany = localStorage.getItem('tasin_registered_company');
+      const savedName = localStorage.getItem('tasin_registered_name');
+      if (isCarrier && savedCompany) setName(prev => prev || savedCompany);
+      else if (!isCarrier && savedName) setName(prev => prev || savedName);
+    }
+  }, [isOpen, isCarrier]);
+
   const handleModalClose = () => {
     setRegisterStep('FORM');
     setOtpCode('');
@@ -424,7 +438,17 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
       }).catch(err => console.warn(err));
 
       if (typeof window !== 'undefined') {
+        const cleanP = phone.trim();
+        if (cleanP) {
+          localStorage.setItem('tasin_registered_phone', cleanP);
+          localStorage.setItem('tasin_carrier_phone', cleanP);
+          localStorage.setItem('tasin_phone', cleanP);
+        }
+        if (email) localStorage.setItem('tasin_registered_email', email.trim());
+        if (isCarrier && cleanName) localStorage.setItem('tasin_registered_company', cleanName);
+        else if (!isCarrier && cleanName) localStorage.setItem('tasin_registered_name', cleanName);
         window.dispatchEvent(new Event('auth-changed'));
+        window.dispatchEvent(new Event('storage'));
       }
 
       setIsLoading(false);
@@ -770,7 +794,15 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
                       type="tel"
                       required
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setPhone(val);
+                        if (typeof window !== 'undefined') {
+                          localStorage.setItem('tasin_registered_phone', val);
+                          localStorage.setItem('tasin_carrier_phone', val);
+                          localStorage.setItem('tasin_phone', val);
+                        }
+                      }}
                       placeholder="05XX XXX XX XX"
                       className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:border-[#F95700] focus:outline-none"
                     />

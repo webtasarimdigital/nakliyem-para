@@ -71,15 +71,14 @@ export default function IlanVerPage() {
   React.useEffect(() => {
     const u = db.getCurrentUser();
     setCurrentUser(u);
-    if (u) {
-      const defaultName = u.fullName || (u as any).name || (u.role === 'CARRIER' ? (u.companyName || 'Nakliyat Firması') : 'Kullanıcı');
-      const defaultPhone = u.phone || '';
-      setForm(prev => ({
-        ...prev,
-        sellerName: prev.sellerName || defaultName,
-        sellerPhone: prev.sellerPhone || defaultPhone
-      }));
-    }
+    const savedPhone = typeof window !== 'undefined' ? (localStorage.getItem('tasin_registered_phone') || localStorage.getItem('tasin_carrier_phone') || localStorage.getItem('tasin_phone') || '') : '';
+    const defaultName = u ? (u.fullName || (u as any).name || (u.role === 'CARRIER' ? (u.companyName || 'Nakliyat Firması') : 'Kullanıcı')) : '';
+    const defaultPhone = u?.phone || savedPhone || '';
+    setForm(prev => ({
+      ...prev,
+      sellerName: prev.sellerName || defaultName,
+      sellerPhone: prev.sellerPhone || defaultPhone
+    }));
   }, []);
 
   const nextStep = () => {

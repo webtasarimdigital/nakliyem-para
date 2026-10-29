@@ -475,7 +475,16 @@ function GirisContent() {
                   <input
                     type="text"
                     value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setEmail(val);
+                      if (typeof window !== 'undefined' && val.replace(/\D/g, '').length >= 10) {
+                        const digits = val.trim();
+                        localStorage.setItem('tasin_registered_phone', digits);
+                        localStorage.setItem('tasin_carrier_phone', digits);
+                        localStorage.setItem('tasin_phone', digits);
+                      }
+                    }}
                     placeholder="ornek@mail.com veya kullanıcı adı"
                     required
                     className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:border-[#111E38] focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
@@ -527,7 +536,14 @@ function GirisContent() {
             <div className="pt-2 text-center space-y-3">
               <p className="text-xs text-slate-500 font-medium">
                 Hesabın yok mu?{' '}
-                <Link href="/kayit" className="text-[#F95700] font-bold hover:underline">
+                <Link
+                  href={
+                    tab === 'nakliyeci'
+                      ? `/kayit?role=nakliyeci${email ? (email.replace(/\D/g, '').length >= 10 ? `&phone=${encodeURIComponent(email)}` : `&email=${encodeURIComponent(email)}`) : ''}`
+                      : `/kayit?role=musteri${email ? (email.replace(/\D/g, '').length >= 10 ? `&phone=${encodeURIComponent(email)}` : `&email=${encodeURIComponent(email)}`) : ''}`
+                  }
+                  className="text-[#F95700] font-bold hover:underline"
+                >
                   Ücretsiz Kayıt Ol
                 </Link>
               </p>

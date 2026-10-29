@@ -266,7 +266,8 @@ function RequestWizardContent() {
     const userId = user.id || (user as any).uid || user.email || 'cust_demo';
     const userEmail = user.email || '';
     const customerDisplayName = user?.fullName || (user as any)?.name || (user as any)?.displayName || (user?.email ? user.email.split('@')[0] : 'Kullanıcı');
-    const customerPhoneNum = user?.phone || (user as any)?.phoneNumber || '';
+    const savedPhoneFallback = typeof window !== 'undefined' ? (localStorage.getItem('tasin_registered_phone') || localStorage.getItem('tasin_phone') || '') : '';
+    const customerPhoneNum = user?.phone || (user as any)?.phoneNumber || savedPhoneFallback || '';
 
     const newRequest: MovingRequest = {
       id: `req_${Date.now()}`,
