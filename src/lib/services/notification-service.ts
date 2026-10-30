@@ -46,6 +46,20 @@ export function shouldSendCarrierFirstOfferEmail(
 ): boolean {
   if (!requestId || !carrierId) return false;
 
+  // 0. İlan müşteri tarafından kapatılmış veya bir firma ile anlaşılmış ise mail gönderilmez
+  if (typeof window !== 'undefined') {
+    try {
+      const closedMapRaw = localStorage.getItem('tasinteklif_closed_requests');
+      if (closedMapRaw) {
+        const closedMap = JSON.parse(closedMapRaw);
+        const entry = closedMap[requestId] || closedMap[requestId.replace('#', '')];
+        if (entry && (entry.status === 'CLOSED' || entry.status === 'ASSIGNED' || entry.closedReason)) {
+          return false;
+        }
+      }
+    } catch {}
+  }
+
   // 1. Veritabanında bu ilana ait bu firmanın önceden verilmiş bir teklifi varsa mail atılmaz
   if (existingOffersCountForThisCarrier > 0) {
     return false;

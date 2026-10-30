@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import fs from 'fs';
+import path from 'path';
 
 const ADMIN_EMAIL = 'bilgi@tasinteklif.com';
 
@@ -25,6 +27,37 @@ export async function POST(req: Request) {
 
     if (!to || !to.includes('@')) {
       return NextResponse.json({ success: false, error: 'Geçersiz alıcı e-posta adresi.' }, { status: 400 });
+    }
+
+    // 0. İLAN KAPATILDI MI KONTROLÜ:
+    // İlan müşteri tarafından kapatılmış veya başka bir firma ile anlaşılmış ise bildirim e-postası GÖNDERİLMEZ.
+    if (type === 'NEW_OFFER' && requestId) {
+      try {
+        const dataDir = path.join(process.cwd(), '.data');
+        const reqFile = path.join(dataDir, 'requests.json');
+        if (fs.existsSync(reqFile)) {
+          const raw = fs.readFileSync(reqFile, 'utf8');
+          const requests = JSON.parse(raw);
+          if (Array.isArray(requests)) {
+            const cleanNum = requestId.replace(/[^0-9]/g, '');
+            const target = requests.find((r: any) =>
+              r.id === requestId ||
+              r.requestCode === requestId ||
+              (cleanNum && (r.id === cleanNum || r.requestCode?.includes(cleanNum)))
+            );
+            if (target && (target.status === 'CLOSED' || target.status === 'ASSIGNED' || target.status === 'CANCELLED' || target.status === 'COMPLETED' || target.closedReason)) {
+              console.log(`[EMAIL SUPPRESSED] Request ${requestId} is closed/assigned. Suppressing NEW_OFFER notification.`);
+              return NextResponse.json({
+                success: false,
+                reason: 'REQUEST_CLOSED',
+                message: 'İlan kapatılmış veya bir firma ile anlaşılmış olduğundan bildirim e-postası gönderilmedi.'
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Check request status error in send-email:', err);
+      }
     }
 
     let subject = '';

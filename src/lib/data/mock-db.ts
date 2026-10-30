@@ -1585,6 +1585,11 @@ class MockDatabase {
       const nowMs = Date.now();
 
       if (nowMs >= endMs) {
+        this.updateCarrier(carrier.id, {
+          trialStatus: 'EXPIRED',
+          planId: 'plan_starter',
+          autoRenew: false,
+        });
         return {
           isTrialActive: false,
           dayNumber: 7,
@@ -2493,6 +2498,102 @@ class MockDatabase {
 
   getPlanById(id: string): SubscriptionPlan | undefined {
     return this.getPlans().find(p => p.id === id || p.slug === id);
+  }
+
+  getEffectiveCarrierPlan(carrierId: string): {
+    plan: SubscriptionPlan;
+    planId: string;
+    isProOrGold: boolean;
+    isTrialActive: boolean;
+    isExpired: boolean;
+    canViewPhone: boolean;
+    dailyOfferLimit: number;
+    monthlyOfferLimit: number | 'unlimited';
+  } {
+    const starterPlan = this.getPlanById('plan_starter') || SEED_PLANS[0];
+    const carrier = this.getCarrierById(carrierId) || this.getCarriers().find(c => c.id === carrierId);
+    if (!carrier) {
+      return {
+        plan: starterPlan,
+        planId: 'plan_starter',
+        isProOrGold: false,
+        isTrialActive: false,
+        isExpired: true,
+        canViewPhone: false,
+        dailyOfferLimit: 3,
+        monthlyOfferLimit: 15,
+      };
+    }
+
+    const trialInfo = this.getCarrierTrialInfo(carrier);
+    const sub = this.getCarrierSubscription(carrierId);
+    const now = Date.now();
+    const periodEndMs = sub?.currentPeriodEnd ? new Date(sub.currentPeriodEnd).getTime() : 0;
+    const isSubActive = sub?.status === 'ACTIVE' && (!sub.cancelAtPeriodEnd || periodEndMs > now);
+
+    // 1. Paid active subscription (Pro or Gold)
+    if (isSubActive && (sub.planId === 'plan_gold' || sub.planId === 'gold' || carrier.planId === 'plan_gold' || carrier.planId === 'gold')) {
+      const goldPlan = this.getPlanById('plan_gold') || SEED_PLANS[2];
+      return {
+        plan: goldPlan,
+        planId: 'plan_gold',
+        isProOrGold: true,
+        isTrialActive: false,
+        isExpired: false,
+        canViewPhone: true,
+        dailyOfferLimit: 9999,
+        monthlyOfferLimit: 'unlimited',
+      };
+    }
+
+    if (isSubActive && (sub.planId === 'plan_pro' || sub.planId === 'pro')) {
+      const proPlan = this.getPlanById('plan_pro') || SEED_PLANS[1];
+      return {
+        plan: proPlan,
+        planId: 'plan_pro',
+        isProOrGold: true,
+        isTrialActive: false,
+        isExpired: false,
+        canViewPhone: true,
+        dailyOfferLimit: 9999,
+        monthlyOfferLimit: 50,
+      };
+    }
+
+    // 2. Active 7-Day Trial (Gets Pro features during trial)
+    if (trialInfo.isTrialActive) {
+      const proPlan = this.getPlanById('plan_pro') || SEED_PLANS[1];
+      return {
+        plan: proPlan,
+        planId: 'plan_pro',
+        isProOrGold: true,
+        isTrialActive: true,
+        isExpired: false,
+        canViewPhone: true,
+        dailyOfferLimit: 9999,
+        monthlyOfferLimit: 50,
+      };
+    }
+
+    // 3. Expired or cancelled: Auto-downgrade to Starter
+    if (carrier.planId !== 'plan_starter' || carrier.trialStatus === 'ACTIVE_TRIAL') {
+      this.updateCarrier(carrier.id, {
+        planId: 'plan_starter',
+        trialStatus: carrier.trialStatus === 'ACTIVE_TRIAL' ? 'EXPIRED' : carrier.trialStatus,
+        autoRenew: false,
+      });
+    }
+
+    return {
+      plan: starterPlan,
+      planId: 'plan_starter',
+      isProOrGold: false,
+      isTrialActive: false,
+      isExpired: true,
+      canViewPhone: false,
+      dailyOfferLimit: 3,
+      monthlyOfferLimit: 15,
+    };
   }
 
   updatePlan(id: string, updates: Partial<SubscriptionPlan>): void {

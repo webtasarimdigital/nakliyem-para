@@ -121,6 +121,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Geçersiz teklif verisi' }, { status: 400 });
     }
 
+    // 0. İlan Kapalı mı Kontrolü (Kapalı/Anlaşılmış ilana yeni teklif verilemez)
+    if (offer.status !== 'ACCEPTED') {
+      const fileRequests = readJson<any[]>('requests.json', []);
+      const cleanReqNum = extractNumericRequestCode(offer.requestId);
+      const targetReq = fileRequests.find(r => 
+        r.id === offer.requestId || 
+        r.requestCode === offer.requestId || 
+        (cleanReqNum && (r.id === cleanReqNum || r.requestCode?.includes(cleanReqNum)))
+      ) || (request && (request.id === offer.requestId || request.requestCode === offer.requestId) ? request : null);
+
+      if (targetReq && (targetReq.status === 'CLOSED' || targetReq.status === 'ASSIGNED' || targetReq.status === 'CANCELLED' || targetReq.status === 'COMPLETED' || targetReq.closedReason)) {
+        return NextResponse.json(
+          { error: 'Bu taşıma ilanı müşteri tarafından kapatılmış veya bir firma ile anlaşılmıştır. Yeni teklif verilemez.' },
+          { status: 400 }
+        );
+      }
+    }
+
     // 1. Update in-memory & file
     const fileOffers = readJson<any[]>('offers.json', []);
     const existingOfferIndex = fileOffers.findIndex(o => o.id === offer.id);
@@ -193,6 +211,41 @@ export async function POST(req: NextRequest) {
         }
       } catch (fbErr) {
         console.warn('Firestore POST offer error:', fbErr);
+      }
+    }
+
+    // 3. İlan aktifse müşteriye yeni teklif bildirim e-postası gönder
+    if (offer.status === 'PENDING') {
+      try {
+        const fileRequests = readJson<any[]>('requests.json', []);
+        const cleanReqNum = extractNumericRequestCode(offer.requestId);
+        const targetReq = fileRequests.find(r => 
+          r.id === offer.requestId || 
+          r.requestCode === offer.requestId || 
+          (cleanReqNum && (r.id === cleanReqNum || r.requestCode?.includes(cleanReqNum)))
+        ) || request;
+
+        const customerEmail = targetReq?.customerEmail;
+        if (customerEmail && customerEmail.includes('@') && targetReq?.status === 'ACTIVE' && !targetReq?.closedReason) {
+          const origin = req.nextUrl.origin || 'https://tasinteklif.com';
+          fetch(`${origin}/api/notifications/send-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'NEW_OFFER',
+              to: customerEmail,
+              recipientName: targetReq.customerName || 'Müşterimiz',
+              carrierName: offer.carrier?.companyName || offer.carrierName || 'Onaylı Nakliyeci',
+              price: offer.price,
+              routeText: `${targetReq.originCity || ''} → ${targetReq.destinationCity || ''}`,
+              movingDate: targetReq.movingDate,
+              requestId: targetReq.requestCode || targetReq.id,
+              messagePreview: offer.notes,
+            }),
+          }).catch(err => console.warn('Offer notification email dispatch error:', err));
+        }
+      } catch (emailErr) {
+        console.warn('New offer email check error:', emailErr);
       }
     }
 

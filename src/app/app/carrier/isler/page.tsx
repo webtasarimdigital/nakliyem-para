@@ -187,17 +187,18 @@ export default function CarrierJobsPage() {
   const myCarrierOffers = carrier ? db.getOffersForCarrier(carrier.id) : [];
   const carrierOffersCount = myCarrierOffers.length;
 
-  // Günlük ücretsiz teklif kontrolü (Başlangıç paketinde günde 3 teklif)
-  const isFreeOrStarterPlan = !carrier?.planId || carrier.planId === 'plan_starter' || carrier.planId === 'free';
+  // Günlük ücretsiz teklif ve dinamik yetki kontrolü (Süre ve paket bitişine göre)
+  const effectivePlan = carrier ? db.getEffectiveCarrierPlan(carrier.id) : null;
+  const isProOrGoldPlan = Boolean(effectivePlan?.isProOrGold);
+  const isFreeOrStarterPlan = !isProOrGoldPlan;
   const todayStr = new Date().toISOString().slice(0, 10);
   // Duplicate'leri temizle (aynı id birden fazla kez sayılmasın)
   const uniqueCarrierOffers = Array.from(new Map(myCarrierOffers.map(o => [o.id, o])).values());
   const todayOffersCount = uniqueCarrierOffers.filter(o => o.createdAt && o.createdAt.startsWith(todayStr)).length;
-  const isDailyLimitReached = Boolean(carrier && isFreeOrStarterPlan && todayOffersCount >= 3);
+  const isDailyLimitReached = Boolean(carrier && isFreeOrStarterPlan && todayOffersCount >= (effectivePlan?.dailyOfferLimit || 3));
 
-  const canCreateOffer = Boolean(carrier && isApproved && !isDailyLimitReached && (!carrierPlan || (carrierPlan.features.offerCreate && (carrierPlan.features.monthlyOfferLimit === 'unlimited' || carrierOffersCount < carrierPlan.features.monthlyOfferLimit))));
-  const isProOrGoldPlan = carrier?.planId === 'plan_pro' || carrier?.planId === 'plan_gold' || carrier?.planId === 'pro' || carrier?.planId === 'gold';
-  const canViewPhone = Boolean(carrier && isApproved && (isProOrGoldPlan || carrierPlan?.features.customerPhoneAccess === true));
+  const canCreateOffer = Boolean(carrier && isApproved && !isDailyLimitReached && (!carrierPlan || (carrierPlan.features.offerCreate && (effectivePlan?.monthlyOfferLimit === 'unlimited' || carrierOffersCount < (effectivePlan?.monthlyOfferLimit || 15)))));
+  const canViewPhone = Boolean(carrier && isApproved && (isProOrGoldPlan || effectivePlan?.canViewPhone === true));
 
   // Plan limitation modal state
   const [planModalOpen, setPlanModalOpen] = useState(false);
@@ -341,6 +342,11 @@ export default function CarrierJobsPage() {
       return;
     }
 
+    if (req.status !== 'ACTIVE' || req.closedReason) {
+      alert('Bu taşıma talebi müşteri tarafından kapatılmış veya bir firma ile anlaşılmıştır. Yeni teklif verilemez.');
+      return;
+    }
+
     if (!isApproved) {
       setPlanModalData({
         title: '⚠️ Onaysız Profil — Teklif Verme Kilitli',
@@ -420,8 +426,8 @@ export default function CarrierJobsPage() {
 
     db.addOffer(newOffer, req);
 
-    // YALNIZCA bu firmanın bu ilandaki İLK TEKLİFİNDE e-posta bildirimi gönder
-    if (isFirstOfferForThisCarrier) {
+    // YALNIZCA talep aktifse ve bu firmanın bu ilandaki İLK TEKLİFİNDE e-posta bildirimi gönder
+    if (isFirstOfferForThisCarrier && req.status === 'ACTIVE' && !req.closedReason) {
       try {
         const customerUser = db.getUsers().find((u: any) => u.id === req.customerId);
         const targetEmail = req.customerEmail || customerUser?.email || 'bilgi@tasinteklif.com';
@@ -1121,6 +1127,12 @@ export default function CarrierJobsPage() {
                     setPlanModalOpen(true);
                     return;
                   }
+
+                  if (offerModalReq.status !== 'ACTIVE' || offerModalReq.closedReason) {
+                    alert('Bu taşıma talebi müşteri tarafından kapatılmış veya bir firma ile anlaşılmıştır. Yeni teklif verilemez.');
+                    return;
+                  }
+
                   const parsedModal = parseOfferInput(offerPrice);
                   const modalOffer = {
                     id: `off_${Date.now()}`,
@@ -1148,8 +1160,8 @@ export default function CarrierJobsPage() {
 
                   db.addOffer(modalOffer, offerModalReq);
 
-                  // YALNIZCA bu firmanın bu ilandaki İLK TEKLİFİNDE e-posta bildirimi gönder
-                  if (isFirstOfferForThisCarrier) {
+                  // YALNIZCA talep aktifse ve bu firmanın bu ilandaki İLK TEKLİFİNDE e-posta bildirimi gönder
+                  if (isFirstOfferForThisCarrier && offerModalReq.status === 'ACTIVE' && !offerModalReq.closedReason) {
                     try {
                       const customerUser = db.getUsers().find((u: any) => u.id === offerModalReq.customerId);
                       const targetEmail = offerModalReq.customerEmail || customerUser?.email || 'bilgi@tasinteklif.com';

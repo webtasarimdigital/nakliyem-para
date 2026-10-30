@@ -47,25 +47,25 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
   const hasIdDoc = carrierDocs.some(d => d.type === 'IDENTITY') || Boolean(carrier?.verificationBadges?.identityVerified);
   const isApproved = Boolean(carrier && (carrier.verificationStatus === 'APPROVED' || (hasTaxDoc && hasIdDoc)));
 
-  // Günlük Teklif Kotası & Mevcut Teklif Kontrolü
+  // Günlük Teklif Kotası & Yetki Kontrolü (Dinamik Süre/Paket Durumu)
   const carrierSub = carrier ? db.getCarrierSubscription(carrier.id) : null;
-  const carrierPlan = carrier ? db.getPlanById(carrierSub?.planId || carrier.planId) : null;
-  const isFreeOrStarterPlan = !carrier?.planId || carrier.planId === 'plan_starter' || carrier.planId === 'trial' || carrier.planId === 'free';
+  const effectivePlan = carrier ? db.getEffectiveCarrierPlan(carrier.id) : null;
+  const isFreeOrStarterPlan = !effectivePlan?.isProOrGold;
   const [activeOffers, setActiveOffers] = useState<Offer[]>(() => carrier ? db.getOffersForCarrier(carrier.id) : []);
   const existingOffer = activeOffers.find(o => o.requestId === req?.id && o.status !== 'WITHDRAWN');
-  const isAssignedOrClosed = req?.status === 'ASSIGNED' || req?.status === 'CLOSED';
+  const isAssignedOrClosed = req?.status === 'ASSIGNED' || req?.status === 'CLOSED' || Boolean(req?.closedReason);
 
-  // Müşteri Telefon Görme Yetkisi (Pro / Gold Paket veya Kabul Edilmiş Teklif)
-  const isProOrGold = carrier?.planId === 'plan_pro' || carrier?.planId === 'plan_gold' || carrier?.planId === 'pro' || carrier?.planId === 'gold' || carrierSub?.planId === 'plan_pro' || carrierSub?.planId === 'plan_gold' || carrierSub?.planId === 'pro' || carrierSub?.planId === 'gold';
+  // Müşteri Telefon Görme Yetkisi (Aktif Pro/Gold veya Kabul Edilmiş Teklif)
+  const isProOrGold = Boolean(effectivePlan?.isProOrGold);
   const canViewPhone = Boolean(
-    (carrier && isApproved && (isProOrGold || carrierPlan?.features?.customerPhoneAccess === true)) ||
+    (carrier && isApproved && (isProOrGold || effectivePlan?.canViewPhone === true)) ||
     existingOffer?.status === 'ACCEPTED'
   );
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const uniqueActiveOffers = Array.from(new Map(activeOffers.map(o => [o.id, o])).values());
   const todayOffersCount = uniqueActiveOffers.filter(o => o.createdAt && o.createdAt.startsWith(todayStr) && o.status !== 'WITHDRAWN').length;
-  const isDailyLimitReached = Boolean(carrier && isFreeOrStarterPlan && todayOffersCount >= 3);
+  const isDailyLimitReached = Boolean(carrier && isFreeOrStarterPlan && todayOffersCount >= (effectivePlan?.dailyOfferLimit || 3));
 
   const handleWithdrawOffer = (offerId: string) => {
     if (confirm('Bu ilana verdiğiniz teklifi geri çekmek istediğinizden emin misiniz?')) {
@@ -101,6 +101,11 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
 
     if (!currentUser || (currentUser.role !== 'CARRIER' && !currentUser.isMasterUser) || !carrier) {
       router.push('/giris?role=nakliyeci');
+      return;
+    }
+
+    if (isAssignedOrClosed || req.status !== 'ACTIVE' || req.closedReason) {
+      alert('Bu taşıma talebi müşteri tarafından kapatılmış veya bir firma ile anlaşılmıştır. Yeni teklif verilemez.');
       return;
     }
 
@@ -166,8 +171,8 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
         window.dispatchEvent(new CustomEvent('offer-added', { detail: newOffer }));
       }
 
-      // YALNIZCA bu firmanın bu ilandaki İLK TEKLİFİNDE bildirim e-postası gönder
-      if (isFirstOfferForThisCarrier) {
+      // YALNIZCA talep AKTİF durumdaysa ve bu firmanın bu ilandaki İLK TEKLİFİNDE bildirim e-postası gönder
+      if (isFirstOfferForThisCarrier && req.status === 'ACTIVE' && !req.closedReason) {
         try {
           const customerUser = db.getUsers().find((u: any) => u.id === req.customerId);
           const targetEmail = req.customerEmail || customerUser?.email || 'bilgi@tasinteklif.com';
