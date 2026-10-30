@@ -37,32 +37,65 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Mock DB guncellemesi: Otomatik yenilemeyi kapat, deneme durumunu iptal/suresi doldu olarak ayarla
+    // 3. Durum Tespiti: 7 Günlük Deneme mi yoksa Ücretli Abonelik mi?
     let updatedSub = null;
-    if (targetCarrier) {
-      updatedSub = db.cancelCarrierSubscription(targetCarrier.id);
-      
-      db.updateCarrier(targetCarrier.id, {
-        trialStatus: 'EXPIRED',
-        autoRenew: false,
-        planId: 'plan_starter',
-      });
+    let isTrial = false;
+    let validUntilDate = '';
+    let responseMessage = '';
 
-      // 4. Firestore senkronizasyonu
-      try {
-        await updateFirestoreCarrier(targetCarrier.id, {
-          trialStatus: 'EXPIRED',
+    if (targetCarrier) {
+      const now = Date.now();
+      const trialEndMs = targetCarrier.trialEndsAt ? new Date(targetCarrier.trialEndsAt).getTime() : 0;
+      isTrial = Boolean(targetCarrier.trialStatus === 'ACTIVE_TRIAL' && trialEndMs > now);
+
+      updatedSub = db.cancelCarrierSubscription(targetCarrier.id);
+
+      if (isTrial) {
+        // 7 Günlük Deneme İptali:
+        // Süre sonuna kadar Pro hakları devam eder. Süre bitiminde 0 ₺ olarak Starter'a geçer.
+        const trialEndDate = new Date(trialEndMs);
+        validUntilDate = trialEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+        responseMessage = `${validUntilDate} tarihine kadar 7 günlük Pro deneme haklarınız geçerlidir. 7 gün dolduğunda kartınızdan KESİNLİKLE HİÇBİR ÜCRET ÇEKİLMEYECEKTİR (0 ₺).`;
+
+        db.updateCarrier(targetCarrier.id, {
           autoRenew: false,
-          planId: 'plan_starter',
         });
-      } catch (fsErr: any) {
-        console.warn('[Dodo Subscription Cancel] Firestore sync warning:', fsErr?.message || fsErr);
+
+        try {
+          await updateFirestoreCarrier(targetCarrier.id, {
+            autoRenew: false,
+            trialStatus: 'ACTIVE_TRIAL',
+          });
+        } catch (fsErr: any) {
+          console.warn('[Dodo Subscription Cancel] Firestore sync warning:', fsErr?.message || fsErr);
+        }
+      } else {
+        // 7 Gün Sonrası / Normal Ücretli Abonelik İptali:
+        const periodEndDate = carrierSub?.currentPeriodEnd 
+          ? new Date(carrierSub.currentPeriodEnd) 
+          : new Date(now + 30 * 24 * 60 * 60 * 1000);
+        validUntilDate = periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+        responseMessage = `${validUntilDate} tarihine kadar Pro hesabınız geçerlidir. Gelecek ay yenileme veya ücret çekimi olmayacaktır.`;
+
+        db.updateCarrier(targetCarrier.id, {
+          autoRenew: false,
+        });
+
+        try {
+          await updateFirestoreCarrier(targetCarrier.id, {
+            autoRenew: false,
+          });
+        } catch (fsErr: any) {
+          console.warn('[Dodo Subscription Cancel] Firestore sync warning:', fsErr?.message || fsErr);
+        }
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Aboneliğiniz başarıyla iptal edildi. 7 günlük deneme süresi bitiminde veya sonrasında kartınızdan kesinlikle ücret çekilmeyecektir (0 ₺).',
+      isTrial,
+      validUntilDate,
+      message: responseMessage || 'Aboneliğiniz başarıyla iptal edildi. Süre bitiminde kartınızdan ücret çekilmeyecektir.',
       subscription: updatedSub,
       dodoCancelled: Boolean(dodoCancelResult?.success),
     });

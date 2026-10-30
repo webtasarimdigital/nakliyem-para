@@ -99,9 +99,16 @@ export default function CarrierSubscriptionPage() {
 
   const currentPlan = carrier ? (plans.find(p => p.id === carrier.planId) || plans[0]) : plans[0];
 
-  // Kalan gün hesabı
-  const periodEndDate = sub ? new Date(sub.currentPeriodEnd) : new Date();
+  // Kalan gün hesabı & deneme durumu
   const now = new Date();
+  const isTrial = Boolean(
+    carrier?.trialStatus === 'ACTIVE_TRIAL' &&
+    carrier?.trialEndsAt &&
+    new Date(carrier.trialEndsAt).getTime() > now.getTime()
+  );
+  const periodEndDate = isTrial && carrier?.trialEndsAt
+    ? new Date(carrier.trialEndsAt)
+    : (sub ? new Date(sub.currentPeriodEnd) : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000));
   const diffTime = periodEndDate.getTime() - now.getTime();
   const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
@@ -118,7 +125,7 @@ export default function CarrierSubscriptionPage() {
       console.warn('Subscription cancel API error:', err);
     }
     const updated = db.cancelCarrierSubscription(carrier.id);
-    const updatedCarrier = db.getCarrierById(carrier.id) || { ...carrier, trialStatus: 'EXPIRED', autoRenew: false };
+    const updatedCarrier = db.getCarrierById(carrier.id) || { ...carrier, autoRenew: false };
     setSub(updated);
     setCarrier(updatedCarrier);
     setIsCancelling(false);
@@ -561,21 +568,43 @@ export default function CarrierSubscriptionPage() {
       <Modal
         isOpen={cancelModalOpen}
         onClose={() => setCancelModalOpen(false)}
-        title="Aboneliğinizi İptal Etmek İstediğinize Emin misiniz?"
+        title={isTrial ? '7 Günlük Ücretsiz Deneme İptali' : 'Aboneliğinizi İptal Etmek İstediğinize Emin misiniz?'}
       >
         <div className="space-y-4 text-xs sm:text-sm">
-          <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs font-semibold">
-            🛡️ <strong>Ücret Kesilmeme Güvencesi:</strong> İptal ettiğinizde otomatik yenileme derhal kapatılır ve kartınızdan kesinlikle ek bir ücret (0 ₺) tahsil edilmez.
-          </div>
-          <p className="text-slate-600">
-            Aboneliğinizi veya 7 günlük ücretsiz denemenizi iptal ettiğinizde dönem sonuna (<strong>{periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>) kadar mevcut teklif verme avantajlarınızdan yararlanmaya devam edebilirsiniz. Dönem bittiğinde kartınızdan kesinlikle hiçbir ücret çekilmez.
-          </p>
+          {isTrial ? (
+            <div className="p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 text-xs font-medium space-y-2">
+              <div className="flex items-center gap-2 font-black text-emerald-800">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>%100 Ücretsiz Bitiş Garantisi (0 ₺)</span>
+              </div>
+              <p>
+                7 günlük ücretsiz denemenizi iptal ettiğinizde <strong>{periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong> tarihine kadar Pro haklarınız kesintisiz devam eder.
+              </p>
+              <div className="p-2 rounded-lg bg-white/80 border border-emerald-200 font-black text-emerald-800">
+                🛡️ 7 gün dolduğunda kartınızdan <strong>KESİNLİKLE HİÇBİR ÜCRET ÇEKİLMEYECEKTİR (0 ₺)</strong>.
+              </div>
+            </div>
+          ) : (
+            <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs font-medium space-y-2">
+              <div className="flex items-center gap-2 font-black text-amber-800">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>Gelecek Ay Yenileme İptali</span>
+              </div>
+              <p>
+                Aboneliğinizi iptal ettiğinizde <strong>{periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong> tarihine kadar Pro hesabınız geçerlidir.
+              </p>
+              <div className="p-2 rounded-lg bg-white/80 border border-amber-200 font-black text-amber-800">
+                📅 Dönem sonunda gelecek ay için <strong>kartınızdan herhangi bir ücret çekilmeyecektir</strong>.
+              </div>
+            </div>
+          )}
+
           <div className="pt-3 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2">
             <Button variant="outline" size="md" className="w-full sm:w-auto font-bold text-xs sm:text-sm py-2.5 sm:py-3 text-center" onClick={() => setCancelModalOpen(false)} disabled={isCancelling}>
-              Vazgeç
+              Vazgeç (Aboneliği Koru)
             </Button>
             <Button variant="danger" size="md" className="w-full sm:w-auto font-black text-xs sm:text-sm py-2.5 sm:py-3 text-center" onClick={handleCancelSubscription} disabled={isCancelling}>
-              {isCancelling ? 'İptal Ediliyor...' : 'Aboneliği İptal Et'}
+              {isCancelling ? 'İptal Ediliyor...' : (isTrial ? 'Denemeyi İptal Et (0 ₺ Garantili)' : 'Aboneliği İptal Et')}
             </Button>
           </div>
         </div>

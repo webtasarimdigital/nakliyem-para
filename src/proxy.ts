@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BYPASS_SECRET = 'tasin2026';
+const BYPASS_SECRET = process.env.MAINTENANCE_BYPASS_SECRET || 'tasin2026';
 const BYPASS_COOKIE_NAME = 'tasinteklif_maintenance_bypass';
 
 export function proxy(req: NextRequest) {
@@ -18,9 +18,9 @@ export function proxy(req: NextRequest) {
     }
   }
 
-  // 1. Secret bypass via query parameter (?bypass=tasin2026 or ?admin_pass=tasin2026 or ?preview=tasin2026)
+  // 1. Secret bypass via query parameter (?bypass=tasin2026 or ?preview=tasin2026)
   const queryBypass = searchParams.get('bypass') || searchParams.get('admin_pass') || searchParams.get('preview');
-  if (queryBypass === BYPASS_SECRET || queryBypass === '1967') {
+  if (queryBypass && queryBypass === BYPASS_SECRET) {
     const cleanUrl = req.nextUrl.clone();
     cleanUrl.searchParams.delete('bypass');
     cleanUrl.searchParams.delete('admin_pass');

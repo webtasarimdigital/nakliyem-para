@@ -1604,13 +1604,17 @@ class MockDatabase {
       const endsDate = new Date(endMs);
       const endsAtText = endsDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
 
+      const isCancelled = carrier.autoRenew === false;
+
       return {
         isTrialActive: true,
         dayNumber,
         daysRemaining,
         hoursRemaining,
         endsAtText,
-        badgeText: `${dayNumber}. Gün (${daysRemaining} Gün Kaldı)`,
+        badgeText: isCancelled
+          ? `${dayNumber}. Gün — İptal Edildi (Süre Sonu 0 ₺ Ücretsiz)`
+          : `${dayNumber}. Gün (${daysRemaining} Gün Kaldı)`,
         status: 'ACTIVE_TRIAL',
       };
     }
@@ -1801,12 +1805,11 @@ class MockDatabase {
     subs[carrierId] = updated;
     this.setItem('carrierSubscriptions', subs);
 
-    // Otomatik yenilemeyi kapat, deneme sürecindeyse karttan ücret çekilmemesi için EXPIRED olarak işaretle
+    // Otomatik yenilemeyi kapat — 7 günlük denemedeyse süre sonuna kadar Pro hakları devam eder, süre bitiminde 0 ₺ olarak sonlanır.
     const carrier = this.getCarrierById(carrierId) || this.getCarriers().find(c => c.id === carrierId);
     if (carrier) {
       this.updateCarrier(carrierId, {
         autoRenew: false,
-        trialStatus: 'EXPIRED',
       });
     }
 

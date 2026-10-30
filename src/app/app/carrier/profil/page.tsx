@@ -27,7 +27,9 @@ import {
   Star,
   MessageSquare,
   Trash2,
-  Loader2
+  Loader2,
+  XCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -62,6 +64,8 @@ export default function CarrierProfileEditorPage() {
   const [editServicesOpen, setEditServicesOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Form states for modals
   const [tempCompanyName, setTempCompanyName] = useState('');
@@ -134,15 +138,67 @@ export default function CarrierProfileEditorPage() {
 
   const currentPlan = carrier ? (SEED_PLANS.find(p => p.id === carrier.planId) || SEED_PLANS[0]) : SEED_PLANS[0];
 
-  // Days remaining calculation
-  const periodEndDate = sub ? new Date(sub.currentPeriodEnd) : new Date();
+  // Days remaining & trial status calculations
   const now = new Date();
-  const diffTime = periodEndDate.getTime() - now.getTime();
+  const trialEndMs = carrier?.trialEndsAt ? new Date(carrier.trialEndsAt).getTime() : 0;
+  const isTrial = Boolean(
+    carrier?.trialStatus === 'ACTIVE_TRIAL' && trialEndMs > now.getTime()
+  );
+  const periodEndDate = sub ? new Date(sub.currentPeriodEnd) : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const effectiveEndDate = isTrial ? new Date(trialEndMs) : periodEndDate;
+  const diffTime = effectiveEndDate.getTime() - now.getTime();
   const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+  const isCancelled = Boolean(
+    carrier?.autoRenew === false ||
+    sub?.cancelAtPeriodEnd ||
+    sub?.status === 'CANCELED'
+  );
+
+  const hasActivePlan = Boolean(
+    isTrial ||
+    (carrier?.planId && carrier.planId !== 'plan_starter' && sub?.status === 'ACTIVE')
+  );
+
+  const validUntilText = effectiveEndDate.toLocaleDateString('tr-TR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
 
   const showNotification = (msg: string) => {
     setNotification(msg);
-    setTimeout(() => setNotification(''), 4000);
+    setTimeout(() => setNotification(''), 5000);
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!carrier) return;
+    setIsCancelling(true);
+    try {
+      const res = await fetch('/api/dodo/subscription/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ carrierId: carrier.id }),
+      });
+      const data = await res.json();
+      const updated = db.cancelCarrierSubscription(carrier.id);
+      const updatedCarrier = db.getCarrierById(carrier.id) || carrier;
+      setSub(updated);
+      setCarrier(updatedCarrier);
+      showNotification(
+        data.message || (isTrial 
+          ? `${validUntilText} tarihine kadar 7 günlük Pro deneme haklarınız geçerlidir. Süre sonunda kartınızdan KESİNLİKLE hiçbir ücret çekilmeyecektir (0 ₺).`
+          : `${validUntilText} tarihine kadar Pro hesabınız geçerlidir. Gelecek ay yenileme olmayacaktır.`)
+      );
+    } catch (err) {
+      console.warn('Subscription cancel error:', err);
+      const updated = db.cancelCarrierSubscription(carrier.id);
+      setSub(updated);
+      showNotification('Aboneliğiniz iptal edildi. Süre bitiminde kartınızdan kesinlikle ücret çekilmeyecektir (0 ₺).');
+    } finally {
+      setIsCancelling(false);
+      setCancelModalOpen(false);
+    }
   };
 
   // Save Bio & Details
@@ -399,8 +455,27 @@ export default function CarrierProfileEditorPage() {
               </div>
             </div>
 
-            {/* Önizleme Butonu */}
-            <div className="flex items-center gap-2">
+            {/* Sağ Üst Hızlı Aksiyonlar: Abonelik İptali & Kamu Profil Önizleme */}
+            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2.5">
+              {hasActivePlan && !isCancelled && (
+                <button
+                  type="button"
+                  onClick={() => setCancelModalOpen(true)}
+                  className="px-3.5 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-200 hover:text-white font-black text-xs inline-flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                  title="Aboneliği veya Denemeyi İptal Et"
+                >
+                  <XCircle className="w-3.5 h-3.5 text-red-400" />
+                  <span>Aboneliği İptal Et</span>
+                </button>
+              )}
+
+              {isCancelled && (
+                <div className="px-3.5 py-2 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-200 font-bold text-xs inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span>İptal Edildi ({validUntilText}&apos;e kadar 0 ₺)</span>
+                </div>
+              )}
+
               <Link href={`/firma/${carrier.slug}`} target="_blank">
                 <button className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer">
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -677,24 +752,45 @@ export default function CarrierProfileEditorPage() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-black text-[#0A1128]">{currentPlan.name}</span>
+                {isTrial && (
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-orange-100 text-[#F95700]">
+                    7 Günlük Ücretsiz Deneme
+                  </span>
+                )}
                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
-                  sub.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                  !isCancelled ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                 }`}>
-                  {sub.status === 'ACTIVE' ? 'Aktif Üyelik' : 'İptal Edildi'}
+                  {!isCancelled ? 'Aktif Üyelik' : 'İptal Edildi (Ücretsiz Bitiş)'}
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-medium mt-1">
-                Kalan Süre: <strong className="text-slate-800">⏳ {daysRemaining} Gün Kaldı</strong> (Bitiş: {new Date(sub.currentPeriodEnd).toLocaleDateString('tr-TR')})
+                Kalan Süre: <strong className="text-slate-800">⏳ {daysRemaining} Gün Kaldı</strong> (Geçerlilik Bitişi: {validUntilText})
               </p>
+              {isCancelled ? (
+                <div className="mt-2 text-xs font-semibold text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200/80 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>
+                    {isTrial 
+                      ? `7 günlük denemeniz iptal edildi. ${validUntilText} tarihine kadar Pro haklarınız aktiftir. Süre sonunda kartınızdan KESİNLİKLE hiçbir ücret çekilmeyecektir (0 ₺).`
+                      : `${validUntilText} tarihine kadar Pro hesabınız geçerlidir. Gelecek ay yenileme veya ücret çekimi olmayacaktır.`}
+                  </span>
+                </div>
+              ) : (
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Otomatik Yenileme: <span className="text-emerald-600 font-bold">Açık</span>
+                </p>
+              )}
             </div>
 
-            <div className="flex items-center gap-2">
-              {sub.cancelAtPeriodEnd ? (
+            <div className="flex items-center gap-2 shrink-0">
+              {isCancelled ? (
                 <button
                   onClick={() => {
                     const updated = db.renewCarrierSubscription(carrier.id);
                     setSub(updated);
-                    showNotification('Aboneliğiniz yeniden başlatıldı.');
+                    const updatedCarrier = db.getCarrierById(carrier.id) || carrier;
+                    setCarrier(updatedCarrier);
+                    showNotification('Aboneliğiniz yeniden aktif edildi.');
                   }}
                   className="px-4 py-2 rounded-xl bg-[#F95700] text-white font-black text-xs hover:bg-[#E04D00] transition-all cursor-pointer shadow-sm"
                 >
@@ -702,22 +798,8 @@ export default function CarrierProfileEditorPage() {
                 </button>
               ) : (
                 <button
-                  onClick={async () => {
-                    if (confirm('7 günlük ücretsiz denemenizi veya aboneliğinizi iptal etmek istediğinize emin misiniz?\n\nİptal ettiğinizde otomatik yenileme sonlandırılır ve süre bitiminde kartınızdan KESİNLİKLE hiçbir ek ücret (0 ₺) çekilmeyecektir.')) {
-                      try {
-                        await fetch('/api/dodo/subscription/cancel', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ carrierId: carrier.id }),
-                        });
-                      } catch (err) {
-                        console.warn('Subscription cancel API error:', err);
-                      }
-                      const updated = db.cancelCarrierSubscription(carrier.id);
-                      setSub(updated);
-                      showNotification('Aboneliğiniz iptal edildi. Süre bitiminde kartınızdan kesinlikle ücret tahsil edilmeyecektir (0 ₺).');
-                    }
-                  }}
+                  type="button"
+                  onClick={() => setCancelModalOpen(true)}
                   className="px-4 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 font-bold text-xs transition-colors cursor-pointer"
                 >
                   Aboneliği İptal Et
@@ -1016,6 +1098,73 @@ export default function CarrierProfileEditorPage() {
                 <>
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Evet, Hesabımı Kalıcı Olarak Sil</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ── MODAL 5: Abonelik & 7 Günlük Deneme İptali Onayı ── */}
+      <Modal
+        isOpen={cancelModalOpen}
+        onClose={() => !isCancelling && setCancelModalOpen(false)}
+        title={isTrial ? '7 Günlük Ücretsiz Deneme İptali' : 'Abonelik İptali & Gelecek Ay Yenileme Kapatma'}
+        maxWidth="md"
+      >
+        <div className="space-y-4 text-center sm:text-left">
+          {isTrial ? (
+            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-medium space-y-2">
+              <div className="flex items-center gap-2 font-black text-sm text-emerald-800">
+                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span>%100 Ücretsiz Bitiş Garantisi (0 ₺)</span>
+              </div>
+              <p className="leading-relaxed">
+                7 günlük ücretsiz denemenizi şimdi iptal ettiğinizde, <strong>{validUntilText}</strong> tarihine kadar Pro paket ayrıcalıklarınızdan (teklif verme, müşteri telefonlarını görme vb.) kesintisiz yararlanmaya devam edersiniz.
+              </p>
+              <div className="p-2.5 rounded-xl bg-white/80 border border-emerald-200/80 font-black text-emerald-900">
+                🛡️ 7 gün dolduğunda kartınızdan <strong>KESİNLİKLE HİÇBİR ÜCRET ÇEKİLMEYECEKTİR (0 ₺)</strong>. Otomatik yenileme derhal durdurulur.
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium space-y-2">
+              <div className="flex items-center gap-2 font-black text-sm text-amber-800">
+                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+                <span>Gelecek Ay Yenileme İptali</span>
+              </div>
+              <p className="leading-relaxed">
+                Aboneliğinizi iptal ettiğinizde <strong>{validUntilText}</strong> tarihine kadar Pro hesabınız ve tüm özellikleriniz geçerlidir.
+              </p>
+              <div className="p-2.5 rounded-xl bg-white/80 border border-amber-200/80 font-black text-amber-900">
+                📅 Dönem sonunda gelecek ay için <strong>kartınızdan herhangi bir ücret çekilmeyecek</strong> ve hesabınız ücretsiz Başlangıç paketine geçecektir.
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-2">
+            <button
+              type="button"
+              disabled={isCancelling}
+              onClick={() => setCancelModalOpen(false)}
+              className="w-full sm:w-auto px-5 py-2.5 min-h-[40px] rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              Vazgeç (Aboneliği Koru)
+            </button>
+            <button
+              type="button"
+              disabled={isCancelling}
+              onClick={handleConfirmCancel}
+              className="w-full sm:w-auto px-5 py-2.5 min-h-[40px] rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs transition-colors cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2 shadow-sm"
+            >
+              {isCancelling ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>İptal Ediliyor...</span>
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-3.5 h-3.5" />
+                  <span>{isTrial ? 'Denemeyi İptal Et (0 ₺ Garantili)' : 'Aboneliğimi İptal Et'}</span>
                 </>
               )}
             </button>

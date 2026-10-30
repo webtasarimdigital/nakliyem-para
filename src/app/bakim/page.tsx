@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -27,8 +27,8 @@ export default function BakimPage() {
     setAuthError('');
 
     const trimmed = secretKey.trim();
-    // Valid bypass passwords: tasin2026, 1967, or admin secret
-    if (trimmed === 'tasin2026' || trimmed === '1967') {
+    // Valid bypass key
+    if (trimmed === 'tasin2026') {
       // Set 30-day bypass cookie
       document.cookie = 'tasinteklif_maintenance_bypass=1; path=/; max-age=2592000; SameSite=Lax';
       setAuthSuccess(true);
