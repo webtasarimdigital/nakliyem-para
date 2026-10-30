@@ -1,7 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { Cookie, ShieldCheck, ArrowLeft, Settings, Info } from 'lucide-react';
+import { Cookie, ShieldCheck, ArrowLeft, Settings, Info, CheckCircle2 } from 'lucide-react';
+import { CookieSettingsTrigger } from '@/components/ui/CookieSettingsTrigger';
 
 export const metadata: Metadata = {
   title: 'Çerez (Cookie) Politikası',
@@ -37,7 +38,7 @@ export default function CerezPolitikasiPage() {
           </p>
 
           <div className="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-            TaşınTeklif olarak internet sitemizi ziyaret eden kullanıcılarımızın deneyimini zenginleştirmek, sayfa hızını optimize etmek ve oturum güvenliğini sağlamak amacıyla çerezler (cookies) kullanmaktayız. İşbu metin hangi çerezleri ne amaçla kullandığımızı açıklar.
+            Taşın Teklif olarak internet sitemizi ziyaret eden kullanıcılarımızın deneyimini zenginleştirmek, sayfa hızını optimize etmek ve oturum güvenliğini sağlamak amacıyla çerezler (cookies) kullanmaktayız. İşbu metin hangi çerezleri ne amaçla kullandığımızı açıklar.
           </div>
         </div>
 
@@ -60,51 +61,103 @@ export default function CerezPolitikasiPage() {
               <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#F95700] flex items-center justify-center font-bold text-sm">
                 2
               </div>
-              <h2 className="text-lg sm:text-xl font-bold">Sitemizde Kullanılan Çerez Türleri</h2>
+              <h2 className="text-lg sm:text-xl font-bold">Sitemizde Kullanılan Çerezler, Sağlayıcıları ve Saklama Süreleri</h2>
             </div>
-            <p>Platformumuzda yalnızca hizmetin gerektirdiği temel amaçlarla çerezler kullanılır:</p>
+            <p>
+              Platformumuzda kullanılan çerezlerin kategorisi, sağlayıcısı, kullanım amacı ve tarayıcınızda tutulma süreleri aşağıdaki tabloda detaylandırılmıştır:
+            </p>
             
-            <div className="space-y-3 pt-2">
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                <h3 className="font-bold text-[#111E38] text-sm mb-1 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" /> Zorunlu ve Teknik Çerezler
-                </h3>
-                <p className="text-xs text-slate-600">
-                  Web sitesinin temel işlevlerini yerine getirebilmesi için şarttır. Teklif oluşturma adımlarında seçtiğiniz oda sayısının, il-ilçe tercihlerinizin ve giriş oturumunuzun korunmasını sağlar. Bu çerezler kapatılamaz.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                <h3 className="font-bold text-[#111E38] text-sm mb-1 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#F95700]" /> İşlevsel Çerezler
-                </h3>
-                <p className="text-xs text-slate-600">
-                  Kullanıcı tercihlerini (örneğin seçilen şehir filtreleri, nakliyeci defteri sekme tercihleri veya tema ayarları) hatırlayarak bir sonraki ziyaretinizde size özel pratik bir deneyim sunar.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                <h3 className="font-bold text-[#111E38] text-sm mb-1 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500" /> Performans ve Analitik Çerezleri
-                </h3>
-                <p className="text-xs text-slate-600">
-                  Hangi sayfaların daha çok ziyaret edildiğini, formlardaki hata oranlarını ve genel site performansını anonim istatistiki verilerle ölçümlememize yarar. Bu veriler kimliğinizle eşleştirilmez.
-                </p>
-              </div>
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-xs">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-100 text-slate-800 font-bold border-b border-slate-200">
+                    <th className="p-3">Çerez Adı</th>
+                    <th className="p-3">Sağlayıcı</th>
+                    <th className="p-3">Kategori</th>
+                    <th className="p-3">Saklama Süresi</th>
+                    <th className="p-3">Kullanım Amacı</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 text-slate-700">
+                  <tr className="hover:bg-slate-50">
+                    <td className="p-3 font-mono font-bold text-[#111E38]">tt_session</td>
+                    <td className="p-3">Taşın Teklif</td>
+                    <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">Zorunlu</span></td>
+                    <td className="p-3">Oturum Süresince</td>
+                    <td className="p-3">Kullanıcı oturumunun güvenli bir şekilde sürdürülmesi ve sayfa geçişlerinde durumun korunması.</td>
+                  </tr>
+                  <tr className="hover:bg-slate-50">
+                    <td className="p-3 font-mono font-bold text-[#111E38]">tt_auth_token</td>
+                    <td className="p-3">Taşın Teklif</td>
+                    <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">Zorunlu</span></td>
+                    <td className="p-3">30 Gün</td>
+                    <td className="p-3">Giriş yapan müşteri veya nakliyat firmasının kimlik doğrulamasının güvenle hatırlanması.</td>
+                  </tr>
+                  <tr className="hover:bg-slate-50">
+                    <td className="p-3 font-mono font-bold text-[#111E38]">tt_cookie_consent_v1</td>
+                    <td className="p-3">Taşın Teklif</td>
+                    <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">Zorunlu</span></td>
+                    <td className="p-3">1 Yıl</td>
+                    <td className="p-3">Kullanıcının KVKK kapsamındaki çerez izin ve onay tercihlerinin kaydedilmesi.</td>
+                  </tr>
+                  <tr className="hover:bg-slate-50">
+                    <td className="p-3 font-mono font-bold text-[#111E38]">dodo_checkout_*</td>
+                    <td className="p-3">Dodo Payments</td>
+                    <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">Zorunlu</span></td>
+                    <td className="p-3">Oturum Süresince</td>
+                    <td className="p-3">Abonelik ve 0 ₺ provizyon işlemlerinde PCI-DSS güvenlik standartlarının ve dolandırıcılık önleme kontrollerinin sağlanması.</td>
+                  </tr>
+                  <tr className="hover:bg-slate-50">
+                    <td className="p-3 font-mono font-bold text-[#111E38]">_ga, _ga_*</td>
+                    <td className="p-3">Google Analytics</td>
+                    <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold text-[10px]">Analitik</span></td>
+                    <td className="p-3">2 Yıl</td>
+                    <td className="p-3">Ziyaretçilerin siteyi nasıl kullandığını, sayfa yükleme hızlarını anonim olarak ölçümleme (Kullanıcı onayı ile çalışır).</td>
+                  </tr>
+                  <tr className="hover:bg-slate-50">
+                    <td className="p-3 font-mono font-bold text-[#111E38]">_gid</td>
+                    <td className="p-3">Google Analytics</td>
+                    <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold text-[10px]">Analitik</span></td>
+                    <td className="p-3">24 Saat</td>
+                    <td className="p-3">Kullanıcı etkileşimlerini gün bazında anonim olarak gruplama.</td>
+                  </tr>
+                  <tr className="hover:bg-slate-50">
+                    <td className="p-3 font-mono font-bold text-[#111E38]">_fbp</td>
+                    <td className="p-3">Meta (Facebook)</td>
+                    <td className="p-3"><span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold text-[10px]">Pazarlama</span></td>
+                    <td className="p-3">3 Ay</td>
+                    <td className="p-3">İlgi alanlarına uygun nakliye kampanyalarının sunulması (Kullanıcı onayı ile çalışır).</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </section>
 
-          <section className="space-y-3">
+          <section className="space-y-4">
             <div className="flex items-center gap-2.5 text-[#111E38]">
               <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#F95700] flex items-center justify-center font-bold text-sm">
                 3
               </div>
-              <h2 className="text-lg sm:text-xl font-bold">Çerez Tercihleri Nasıl Yönetilir?</h2>
+              <h2 className="text-lg sm:text-xl font-bold">Çerez Tercihleri ve Açık Rızanın Yönetilmesi</h2>
             </div>
             <p>
-              Dilediğiniz zaman internet tarayıcınızın ayarlarından çerez kullanımını kısıtlayabilir, engelleyebilir veya mevcut çerezleri silebilirsiniz:
+              Taşın Teklif üzerinde zorunlu teknik çerezler haricindeki analitik ve pazarlama çerezleri yalnızca sizin <strong>açık rızanız</strong> ile işleme alınır. Tercihlerinizi dilediğiniz an tek tıkla değiştirebilir, onay verebilir veya önceden verdiğiniz onayı geri çekebilirsiniz.
             </p>
-            <ul className="list-disc list-inside space-y-1.5 text-slate-600 pl-1">
+            
+            <div className="p-5 rounded-2xl bg-orange-50/70 border border-orange-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="font-bold text-[#111E38] text-sm">Çerez İzinlerinizi Yönetin</h3>
+                <p className="text-xs text-slate-600">
+                  Analitik ve pazarlama çerez izinlerinizi anında güncelleyin.
+                </p>
+              </div>
+              <CookieSettingsTrigger />
+            </div>
+
+            <p className="text-xs text-slate-600">
+              Ayrıca dilediğiniz zaman internet tarayıcınızın ayarlarından da çerez kullanımını kısıtlayabilir veya silebilirsiniz:
+            </p>
+            <ul className="list-disc list-inside space-y-1.5 text-slate-600 pl-1 text-xs">
               <li><strong>Google Chrome:</strong> Ayarlar &gt; Gizlilik ve Güvenlik &gt; Çerezler ve Diğer Site Verileri</li>
               <li><strong>Apple Safari:</strong> Tercihler &gt; Gizlilik &gt; Tüm Çerezleri Engelle</li>
               <li><strong>Mozilla Firefox:</strong> Seçenekler &gt; Gizlilik ve Güvenlik &gt; Çerezler ve Site Verileri</li>

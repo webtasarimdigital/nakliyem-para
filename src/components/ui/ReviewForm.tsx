@@ -126,7 +126,12 @@ export function ReviewForm({
     };
 
     try {
-      db.addReviewAndUpdateCarrier(review);
+      const result = db.addReviewAndUpdateCarrier(review);
+      if (result && !result.success) {
+        setError(result.error || 'Yalnızca gerçekleşmiş veya teklifi kabul edilmiş taşımalar için yorum bırakılabilir.');
+        setSubmitting(false);
+        return;
+      }
       onSuccess();
     } catch (err) {
       setError('Bir hata oluştu. Lütfen tekrar deneyin.');

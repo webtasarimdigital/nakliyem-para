@@ -80,12 +80,27 @@ export async function POST(req: NextRequest) {
 
     const eventType = payload.type || payload.event;
     const eventData = payload.data || {};
+    const eventId = webhookId || eventData.payment_id || eventData.subscription_id || eventData.id;
 
     console.log(`[Dodo Webhook] Received verified event: ${eventType}`, {
-      id: eventData.payment_id || eventData.subscription_id || eventData.id,
+      id: eventId,
       customerEmail: eventData.customer?.email,
       metadata: eventData.metadata
     });
+
+    // Zero-Duplicate Guarantee: Check if event was already processed
+    const webhookDedupKey = `wh_${eventId}_${eventType}`;
+    const isDuplicate = await hasPaymentEmailBeenSent(webhookDedupKey);
+    if (isDuplicate) {
+      console.log(`[Dodo Webhook] Duplicate event ignored: ${webhookDedupKey}`);
+      return NextResponse.json({
+        received: true,
+        event: eventType,
+        duplicate: true,
+        note: 'Event already processed, no charge attempted'
+      });
+    }
+    await markPaymentEmailAsSent(webhookDedupKey, { eventType, timestamp: new Date().toISOString() });
 
     const metadata = eventData.metadata || {};
     const customerEmail = eventData.customer?.email || metadata.customerEmail;
@@ -219,7 +234,7 @@ export async function POST(req: NextRequest) {
                   </div>
                   <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
                   <p style="font-size: 11px; color: #94a3b8; text-align: center; margin: 0;">
-                    TaşınTeklif Teknoloji ve Bilişim Hizmetleri · Dodo Payments MoR Altyapısı
+                    Taşın Teklif · Dodo Payments MoR Altyapısı
                   </p>
                 </div>
               `,
@@ -270,6 +285,33 @@ export async function POST(req: NextRequest) {
           autoRenew: false
         }).catch(() => {});
         console.log(`[Dodo Webhook] Carrier ${matchedCarrier.id} cancelled/expired, downgraded to starter due to ${eventType}`);
+      }
+    }
+
+    // ── EVENT: PAYMENT FAILED / SUBSCRIPTION PAYMENT FAILED (72h Grace Period & Zero Extra Charge) ──
+    if (
+      eventType === 'payment.failed' ||
+      eventType === 'subscription.payment_failed' ||
+      eventType === 'payment.canceled'
+    ) {
+      let matchedCarrier = null;
+      if (carrierId) {
+        matchedCarrier = db.getCarriers().find(c => c.id === carrierId || c.userId === carrierId);
+      }
+      if (!matchedCarrier && customerEmail) {
+        matchedCarrier = db.getCarriers().find(c => c.email?.toLowerCase() === customerEmail.toLowerCase());
+      }
+      if (!matchedCarrier && customerEmail) {
+        const u = db.getUsers().find(user => user.email?.toLowerCase() === customerEmail.toLowerCase()) as any;
+        if (u?.carrierProfileId) {
+          matchedCarrier = db.getCarriers().find(c => c.id === u.carrierProfileId);
+        }
+      }
+      if (matchedCarrier) {
+        const failureReason = eventData.failure_reason || eventData.error_message || 'Banka provizyon reddi (Yetersiz bakiye)';
+        // 72 hours Grace Period, marks PAST_DUE, stops auto-retry, logs failed invoice
+        db.markSubscriptionPaymentFailed(matchedCarrier.id, failureReason);
+        console.log(`[Dodo Webhook] Carrier ${matchedCarrier.id} payment failed, granted 72h Grace Period. No duplicate retry.`);
       }
     }
 

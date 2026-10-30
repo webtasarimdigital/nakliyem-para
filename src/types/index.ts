@@ -294,7 +294,27 @@ export interface CarrierSubscription {
   cardBrand?: string;
   autoRenew: boolean;
   dodoSubscriptionId?: string;
+  gracePeriodEndsAt?: string;
+  lastPaymentStatus?: 'SUCCESS' | 'FAILED';
+  failedPaymentReason?: string;
   createdAt: string;
+}
+
+export interface CarrierInvoice {
+  id: string;
+  carrierId: string;
+  invoiceNumber: string;
+  date: string;
+  planName: string;
+  planKey: string;
+  amount: number;
+  taxAmount: number;
+  totalAmount: number;
+  status: 'PAID' | 'FAILED' | 'REFUNDED';
+  paymentMethod: string;
+  cardLastFour?: string;
+  dodoPaymentId?: string;
+  billingPeriod: string;
 }
 
 export type AdSlotPlacement = 

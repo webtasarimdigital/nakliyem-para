@@ -135,7 +135,7 @@ export default function BakimPage() {
 
       {/* Footer */}
       <footer className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 text-center text-xs text-slate-500 border-t border-white/5">
-        <p>© 2026 TaşınTeklif Teknoloji ve Bilişim Hizmetleri. Tüm hakları saklıdır.</p>
+        <p>© 2026 Taşın Teklif. Tüm hakları saklıdır.</p>
       </footer>
 
       {/* Authorized Access Modal */}

@@ -120,7 +120,7 @@ const HOMEPAGE_FAQS = [
   },
   {
     q: 'Firmaların güvenilirliği ve yetki belgeleri nasıl denetlenir?',
-    a: 'Platformumuzdaki firmalar T.C. Ulaştırma ve Altyapı Bakanlığı K3 Yetki Belgesi, Vergi Levhası ve Adli Sicil onayından geçirilir. Yalnızca evrakları onaylanan nakliyeciler teklif verebilir.'
+    a: 'Platformumuzdaki firmalar T.C. Ulaştırma ve Altyapı Bakanlığı K3/K1 Yetki Belgesi, Vergi Levhası ve Kurumsal Kimlik onayından geçirilir. Yalnızca evrakları onaylanan nakliyeciler teklif verebilir.'
   },
   {
     q: 'Mobil asansör ve mobilya montajı dahil mi?',
@@ -128,13 +128,14 @@ const HOMEPAGE_FAQS = [
   },
   {
     q: 'Nakliyeciler platforma nasıl katılır?',
-    a: 'Nakliyeci kayıt formunu doldurup işletme belgelerinizi yükleyerek 7 gün ücretsiz Gold deneme üyeliğinizi hemen başlatabilirsiniz. Onaylanan başvurularla aynı gün iş teklifleri vermeye başlayabilirsiniz.'
+    a: 'Nakliyeci kayıt formunu doldurup işletme belgelerinizi yükleyerek 7 gün ücretsiz Profesyonel deneme üyeliğinizi (0 ₺ Provizyon) hemen başlatabilirsiniz. Onaylanan başvurularla aynı gün iş teklifleri vermeye başlayabilirsiniz.'
   }
 ];
 
 const POPULAR_CITIES = ['İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Adana', 'Konya', 'Gaziantep'];
 
 export default function HomePage() {
+  const liveStats = db.getPlatformLiveStats();
   const defterPosts = db.getDefterPosts().slice(0, 4);
   const verifiedCarriers = db.getCarriers().filter(c => c.verificationStatus === 'APPROVED').slice(0, 3);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
@@ -170,7 +171,7 @@ export default function HomePage() {
               {/* Üst Canlı Rozet */}
               <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold border border-orange-200/90 bg-orange-50/80 text-[#F95700] shadow-2xs">
                 <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#F95700] animate-pulse" />
-                <span>Türkiye&apos;nin 81 İlinde Aktif · 10.000+ Güvenli Taşınma</span>
+                <span>Türkiye&apos;nin 81 İlinde Aktif · Doğrulanmış Firmalar &amp; Güvenli Taşınma</span>
               </div>
 
               {/* H1 Girişi & Hedefleme Açıklaması */}
@@ -225,7 +226,7 @@ export default function HomePage() {
                 <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                 <div className="flex items-center gap-2">
                   <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
-                  <span>10.000+ Mutlu Taşınma (4.8/5)</span>
+                  <span>Doğrulanmış Müşteri Puanı ({liveStats.averageRating}/5)</span>
                 </div>
               </div>
 

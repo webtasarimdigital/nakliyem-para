@@ -18,6 +18,7 @@ import {
   NotificationItem, 
   SystemSettings,
   CarrierDocument,
+  CarrierInvoice,
   UserRole
 } from '@/types';
 
@@ -1865,12 +1866,174 @@ class MockDatabase {
       });
     }
 
+    // Record invoice for successful renewal/purchase
+    try {
+      const isGoldPlan = (planId === 'plan_gold' || planId === 'gold');
+      const invoiceAmount = isGoldPlan ? 5990 : 2990;
+      const invoiceTax = Math.round(invoiceAmount * 0.20);
+      this.addCarrierInvoice({
+        id: `inv_sub_${Date.now()}`,
+        carrierId,
+        invoiceNumber: `TT-FAT-${Math.floor(100000 + Math.random() * 899999)}`,
+        date: new Date().toLocaleDateString('tr-TR'),
+        planName: isGoldPlan ? 'Filo / Kurumsal (Gold) Paket' : 'Profesyonel Paket',
+        planKey: isGoldPlan ? 'gold' : 'pro',
+        amount: invoiceAmount,
+        taxAmount: invoiceTax,
+        totalAmount: invoiceAmount + invoiceTax,
+        status: 'PAID',
+        paymentMethod: 'Kredi Kartı (Otomatik Yenileme)',
+        cardLastFour: sub?.cardLastFour || '4242',
+        billingPeriod: '30 Günlük Dönem',
+      });
+    } catch {}
+
+    return updated;
+  }
+
+  // Grace Period (72h) & Failed Payment Handling
+  markSubscriptionPaymentFailed(carrierId: string, reason?: string): CarrierSubscription {
+    const sub = this.getCarrierSubscription(carrierId);
+    const now = new Date();
+    // 72 hours Grace Period (Ek Süre)
+    const graceEnd = new Date(now.getTime() + 72 * 60 * 60 * 1000);
+    const updated: CarrierSubscription = {
+      ...sub,
+      status: 'PAST_DUE',
+      lastPaymentStatus: 'FAILED',
+      failedPaymentReason: reason || 'Kart limiti yetersiz / Banka provizyon onayı alınamadı',
+      gracePeriodEndsAt: graceEnd.toISOString(),
+      autoRenew: false,
+    };
+    const subs = this.getItem<Record<string, CarrierSubscription>>('carrierSubscriptions', {});
+    subs[carrierId] = updated;
+    this.setItem('carrierSubscriptions', subs);
+
+    // Record failed payment invoice attempt (WITHOUT duplicate charge)
+    try {
+      const isGoldPlan = (sub.planId === 'plan_gold' || sub.planId === 'gold');
+      const invoiceAmount = isGoldPlan ? 5990 : 2990;
+      const invoiceTax = Math.round(invoiceAmount * 0.20);
+      this.addCarrierInvoice({
+        id: `inv_fail_${Date.now()}`,
+        carrierId,
+        invoiceNumber: `TT-FAIL-${Math.floor(100000 + Math.random() * 899999)}`,
+        date: now.toLocaleDateString('tr-TR'),
+        planName: isGoldPlan ? 'Filo / Kurumsal (Gold) Paket' : 'Profesyonel Paket',
+        planKey: isGoldPlan ? 'gold' : 'pro',
+        amount: invoiceAmount,
+        taxAmount: invoiceTax,
+        totalAmount: invoiceAmount + invoiceTax,
+        status: 'FAILED',
+        paymentMethod: 'Kredi Kartı (Yetersiz Bakiye)',
+        cardLastFour: sub?.cardLastFour || '4242',
+        billingPeriod: 'Yenileme Dönemi (72 Saat Ek Süre)',
+      });
+    } catch {}
+
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('auth-changed'));
       window.dispatchEvent(new Event('storage'));
     }
 
     return updated;
+  }
+
+  changeCarrierPlan(carrierId: string, targetPlanId: string, isDowngrade?: boolean): CarrierSubscription {
+    const sub = this.getCarrierSubscription(carrierId);
+    const carrier = this.getCarrierById(carrierId);
+    
+    if (isDowngrade) {
+      // Downgrade applies at end of paid period
+      const updated: CarrierSubscription = {
+        ...sub,
+        planId: targetPlanId,
+        cancelAtPeriodEnd: targetPlanId === 'plan_starter',
+        autoRenew: targetPlanId !== 'plan_starter',
+      };
+      const subs = this.getItem<Record<string, CarrierSubscription>>('carrierSubscriptions', {});
+      subs[carrierId] = updated;
+      this.setItem('carrierSubscriptions', subs);
+      
+      if (carrier && targetPlanId === 'plan_starter') {
+        this.updateCarrier(carrierId, {
+          autoRenew: false,
+        });
+      }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('auth-changed'));
+        window.dispatchEvent(new Event('storage'));
+      }
+      return updated;
+    } else {
+      // Upgrade is immediately active
+      return this.renewCarrierSubscription(carrierId, targetPlanId);
+    }
+  }
+
+  // Carrier Invoices (Fatura / Ödeme Geçmişi)
+  getCarrierInvoices(carrierId: string): CarrierInvoice[] {
+    const list = this.getItem<CarrierInvoice[]>('carrier_invoices', []);
+    const carrierInvoices = list.filter(i => i.carrierId === carrierId);
+    if (carrierInvoices.length > 0) return carrierInvoices;
+
+    // Seed realistic default invoice based on carrier state
+    const sub = this.getCarrierSubscription(carrierId);
+    const carrier = this.getCarrierById(carrierId);
+    const planId = carrier?.planId || sub?.planId || 'plan_starter';
+    const isGold = planId === 'plan_gold' || planId === 'gold';
+    const isPro = planId === 'plan_pro' || planId === 'pro';
+
+    const defaultInvoices: CarrierInvoice[] = [];
+    if (carrier?.hasCardAdded || sub?.hasCardAdded) {
+      defaultInvoices.push({
+        id: `inv_seed_trial_${carrierId}`,
+        carrierId,
+        invoiceNumber: `TT-PRV-839201`,
+        date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toLocaleDateString('tr-TR'),
+        planName: 'Profesyonel Paket (0 ₺ Kart Doğrulama)',
+        planKey: 'pro',
+        amount: 0,
+        taxAmount: 0,
+        totalAmount: 0,
+        status: 'PAID',
+        paymentMethod: 'Kredi / Banka Kartı (0 ₺ Provizyon)',
+        cardLastFour: sub?.cardLastFour || '4242',
+        billingPeriod: '7 Günlük Deneme',
+      });
+    }
+
+    if (carrier?.trialStatus === 'CONVERTED' || (sub?.status === 'ACTIVE' && (isGold || isPro))) {
+      const amount = isGold ? 5990 : 2990;
+      const tax = Math.round(amount * 0.20);
+      defaultInvoices.unshift({
+        id: `inv_seed_paid_${carrierId}`,
+        carrierId,
+        invoiceNumber: `TT-FAT-948102`,
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toLocaleDateString('tr-TR'),
+        planName: isGold ? 'Filo / Kurumsal (Gold) Paket' : 'Profesyonel Paket',
+        planKey: isGold ? 'gold' : 'pro',
+        amount,
+        taxAmount: tax,
+        totalAmount: amount + tax,
+        status: 'PAID',
+        paymentMethod: 'Kredi Kartı',
+        cardLastFour: sub?.cardLastFour || '4242',
+        billingPeriod: '30 Günlük Dönem',
+      });
+    }
+
+    return defaultInvoices;
+  }
+
+  addCarrierInvoice(invoice: CarrierInvoice): void {
+    const list = [invoice, ...this.getItem<CarrierInvoice[]>('carrier_invoices', [])];
+    this.setItem('carrier_invoices', list);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('invoice-added'));
+    }
   }
 
   // Requests
@@ -2538,6 +2701,9 @@ class MockDatabase {
     canViewPhone: boolean;
     dailyOfferLimit: number;
     monthlyOfferLimit: number | 'unlimited';
+    isGracePeriod?: boolean;
+    gracePeriodEndsAt?: string;
+    failedPaymentReason?: string;
   } {
     const starterPlan = this.getPlanById('plan_starter') || SEED_PLANS[0];
     const carrier = this.getCarrierById(carrierId) || this.getCarriers().find(c => c.id === carrierId);
@@ -2551,6 +2717,7 @@ class MockDatabase {
         canViewPhone: false,
         dailyOfferLimit: 3,
         monthlyOfferLimit: 15,
+        isGracePeriod: false,
       };
     }
 
@@ -2560,7 +2727,52 @@ class MockDatabase {
     const periodEndMs = sub?.currentPeriodEnd ? new Date(sub.currentPeriodEnd).getTime() : 0;
     const isSubActive = sub?.status === 'ACTIVE' && (!sub.cancelAtPeriodEnd || periodEndMs > now);
 
-    // 0. Purchased / Re-subscribed carrier (trialStatus: 'CONVERTED')
+    // 0. Active Grace Period Handling (72 Hours)
+    const graceEndsMs = sub?.gracePeriodEndsAt ? new Date(sub.gracePeriodEndsAt).getTime() : 0;
+    const isGracePeriodActive = sub?.status === 'PAST_DUE' && graceEndsMs > now;
+    const isGracePeriodExpired = sub?.status === 'PAST_DUE' && graceEndsMs <= now;
+
+    if (isGracePeriodActive) {
+      const isGold = carrier.planId === 'plan_gold' || carrier.planId === 'gold' || sub?.planId === 'plan_gold';
+      const activePlan = this.getPlanById(isGold ? 'plan_gold' : 'plan_pro') || (isGold ? SEED_PLANS[2] : SEED_PLANS[1]);
+      return {
+        plan: activePlan,
+        planId: isGold ? 'plan_gold' : 'plan_pro',
+        isProOrGold: true,
+        isTrialActive: false,
+        isExpired: false,
+        canViewPhone: true,
+        dailyOfferLimit: 9999,
+        monthlyOfferLimit: isGold ? 'unlimited' : 50,
+        isGracePeriod: true,
+        gracePeriodEndsAt: sub?.gracePeriodEndsAt,
+        failedPaymentReason: sub?.failedPaymentReason,
+      };
+    }
+
+    if (isGracePeriodExpired) {
+      // Grace period expired: automatically restrict membership to Starter
+      if (carrier.planId !== 'plan_starter') {
+        this.updateCarrier(carrier.id, {
+          planId: 'plan_starter',
+          autoRenew: false,
+        });
+      }
+      return {
+        plan: starterPlan,
+        planId: 'plan_starter',
+        isProOrGold: false,
+        isTrialActive: false,
+        isExpired: true,
+        canViewPhone: false,
+        dailyOfferLimit: 3,
+        monthlyOfferLimit: 15,
+        isGracePeriod: false,
+        failedPaymentReason: sub?.failedPaymentReason,
+      };
+    }
+
+    // 1. Purchased / Re-subscribed carrier (trialStatus: 'CONVERTED')
     // When a carrier buys Pro or Gold, privileges are 100% unlocked immediately without restriction!
     if (carrier.trialStatus === 'CONVERTED' && (carrier.planId === 'plan_gold' || carrier.planId === 'gold' || carrier.planId === 'plan_pro' || carrier.planId === 'pro')) {
       const isGold = carrier.planId === 'plan_gold' || carrier.planId === 'gold' || sub?.planId === 'plan_gold' || sub?.planId === 'gold';
@@ -2579,10 +2791,11 @@ class MockDatabase {
         canViewPhone: true,
         dailyOfferLimit: 9999,
         monthlyOfferLimit: isGold ? 'unlimited' : 50,
+        isGracePeriod: false,
       };
     }
 
-    // 1. Paid active subscription (Pro or Gold)
+    // 2. Paid active subscription (Pro or Gold)
     if (isSubActive && (sub.planId === 'plan_gold' || sub.planId === 'gold' || carrier.planId === 'plan_gold' || carrier.planId === 'gold')) {
       const goldPlan = this.getPlanById('plan_gold') || SEED_PLANS[2];
       return {
@@ -2594,6 +2807,7 @@ class MockDatabase {
         canViewPhone: true,
         dailyOfferLimit: 9999,
         monthlyOfferLimit: 'unlimited',
+        isGracePeriod: false,
       };
     }
 
@@ -2608,10 +2822,11 @@ class MockDatabase {
         canViewPhone: true,
         dailyOfferLimit: 9999,
         monthlyOfferLimit: 50,
+        isGracePeriod: false,
       };
     }
 
-    // 2. Active 7-Day Trial (Gets Pro features during trial)
+    // 3. Active 7-Day Trial (Gets Pro features during trial)
     if (trialInfo.isTrialActive) {
       const proPlan = this.getPlanById('plan_pro') || SEED_PLANS[1];
       return {
@@ -2623,10 +2838,11 @@ class MockDatabase {
         canViewPhone: true,
         dailyOfferLimit: 9999,
         monthlyOfferLimit: 50,
+        isGracePeriod: false,
       };
     }
 
-    // 3. Expired or cancelled: Auto-downgrade to Starter
+    // 4. Expired or cancelled: Auto-downgrade to Starter
     if (carrier.planId !== 'plan_starter' || carrier.trialStatus === 'ACTIVE_TRIAL') {
       this.updateCarrier(carrier.id, {
         planId: 'plan_starter',
@@ -2644,6 +2860,7 @@ class MockDatabase {
       canViewPhone: false,
       dailyOfferLimit: 3,
       monthlyOfferLimit: 15,
+      isGracePeriod: false,
     };
   }
 
@@ -2743,7 +2960,22 @@ class MockDatabase {
     );
   }
 
-  addReviewAndUpdateCarrier(review: Review): void {
+  addReviewAndUpdateCarrier(review: Review): { success: boolean; error?: string } {
+    if (review.requestId) {
+      const req = this.getRequestById(review.requestId);
+      if (!req) {
+        return { success: false, error: 'İlgili taşıma talebi bulunamadı.' };
+      }
+      if (req.status !== 'ASSIGNED' && req.status !== 'CLOSED') {
+        return { success: false, error: 'Yalnızca gerçekleşmiş veya teklifi kabul edilmiş taşımalar için yorum bırakılabilir.' };
+      }
+      if (req.assignedCarrierId && req.assignedCarrierId !== review.carrierId) {
+        return { success: false, error: 'Yorum yalnızca taşımayı gerçekleştiren yetkili nakliyeci için yapılabilir.' };
+      }
+      if (this.hasReviewForRequest(review.requestId)) {
+        return { success: false, error: 'Bu taşıma talebi için daha önce değerlendirme yapılmıştır.' };
+      }
+    }
     this.addReview(review);
     const allReviews = this.getReviewsForCarrier(review.carrierId);
     const newAvg = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
@@ -2751,6 +2983,7 @@ class MockDatabase {
       rating: Math.round(newAvg * 10) / 10,
       reviewCount: allReviews.length
     });
+    return { success: true };
   }
 
   // Conversations & Messages
@@ -2992,6 +3225,44 @@ class MockDatabase {
       window.dispatchEvent(new CustomEvent('storage-updated'));
       window.dispatchEvent(new CustomEvent('auth-changed', { detail: this.getCurrentUser() }));
     }
+  }
+
+  // Live Platform Real Statistics (Zero fake numbers)
+  getPlatformLiveStats() {
+    const carriers = this.getCarriers();
+    const approvedCarriers = carriers.filter(c => c.verificationStatus === 'APPROVED');
+    const requests = this.getRequests();
+    const reviews = this.getReviews();
+    const defter = this.getDefterPosts();
+
+    const completedMoves = requests.filter(r => r.status === 'ASSIGNED' || r.status === 'CLOSED');
+    
+    const now = Date.now();
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+    const weeklyMoves = requests.filter(r => {
+      const created = r.createdAt ? new Date(r.createdAt).getTime() : 0;
+      return created >= sevenDaysAgo;
+    });
+
+    const totalRating = reviews.reduce((sum, r) => sum + (r.rating || 0), 0);
+    const avgRating = reviews.length > 0 ? Math.round((totalRating / reviews.length) * 10) / 10 : 5.0;
+
+    return {
+      approvedCarriersCount: approvedCarriers.length,
+      totalCarriersCount: carriers.length,
+      totalRequestsCount: requests.length,
+      completedMovesCount: completedMoves.length,
+      weeklyMovesCount: weeklyMoves.length > 0 ? weeklyMoves.length : requests.length,
+      averageRating: avgRating,
+      totalReviewsCount: reviews.length,
+      categoryStats: {
+        evdenEve: requests.filter(r => !r.serviceCategory || r.serviceCategory === 'EVDEN_EVE').length,
+        parca: requests.filter(r => r.serviceCategory === 'PARCA_ESYA').length,
+        depolama: requests.filter(r => r.serviceCategory === 'ESYA_DEPOLAMA').length,
+        ofis: requests.filter(r => r.serviceCategory === 'OFIS_TASIMA').length,
+        defter: defter.length,
+      }
+    };
   }
 }
 

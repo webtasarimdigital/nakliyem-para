@@ -6,6 +6,7 @@ import { Footer } from '@/components/layout/Footer';
 import { MobileCustomerNav } from '@/components/layout/MobileCustomerNav';
 import { MobileCarrierNav } from '@/components/layout/MobileCarrierNav';
 import { SupportChatWidget } from '@/components/ui/SupportChatWidget';
+import { CookieConsent } from '@/components/ui/CookieConsent';
 
 import { buildOrganizationSchema, buildWebSiteSchema } from '@/lib/seo/schema';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -84,6 +85,7 @@ export default function RootLayout({
         <MobileCustomerNav />
         <MobileCarrierNav />
         <SupportChatWidget />
+        <CookieConsent />
       </body>
     </html>
   );

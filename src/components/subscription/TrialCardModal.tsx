@@ -132,12 +132,12 @@ export function TrialCardModal({ isOpen, onClose, onSuccess }: TrialCardModalPro
             </p>
 
             <p className="text-xs text-slate-600 leading-relaxed font-medium">
-              İptal edene kadar her ay otomatik yenilenir. İptal sonraki yenilemeyi durdurur; erişim dönem sonuna kadar sürer.
+              Deneme süresi kart onayından itibaren <strong>7 gün (168 saat)</strong> geçerlidir. İptal edene kadar seçilen periyotta otomatik yenilenir. Panelden dilediğiniz an tek tıkla iptal edebilirsiniz. İptal sonraki yenilemeyi durdurur; erişim dönem sonuna kadar sürer.
             </p>
 
             <div className="pt-2 border-t border-emerald-200/60 flex items-center gap-1.5 text-xs font-bold text-emerald-800">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Deneme bitmeden iptal ederseniz paket ücreti asla alınmaz.</span>
+              <span>Deneme süresinde iptal ederseniz 0 ₺ tahsil edilir. Yenilemelerde asla mükerrer çekim yapılmaz.</span>
             </div>
           </div>
 

@@ -69,11 +69,19 @@ export default function NakliyeciSozlesmesiPage() {
               <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#F95700] flex items-center justify-center font-bold text-sm">
                 2
               </div>
-              <h2 className="text-lg sm:text-xl font-bold">Komisyonsuz Model ve Şeffaf Fiyatlandırma</h2>
+              <h2 className="text-lg sm:text-xl font-bold">Komisyonsuz Model ve Tek Geçerli Standart Fiyatlandırma</h2>
             </div>
             <p>
-              TaşınTeklif, geleneksel komisyoncu mantığıyla çalışmaz. Nakliyeciden aldığı iş başına %15-20 gibi yüksek komisyonlar <strong>kesilmez</strong>. Nakliyeci, sabit aylık/yıllık paket üyeliği ile sisteme dahil olur ve müşteriye verdiği fiyatın %100&apos;ünü doğrudan kendisi tahsil eder.
+              Taşın Teklif, geleneksel komisyoncu mantığıyla çalışmaz. Nakliyeciden aldığı iş başına %15-20 gibi yüksek komisyonlar <strong>kesilmez</strong>. Nakliyeci, sabit aylık/yıllık paket üyeliği ile sisteme dahil olur ve müşteriye verdiği fiyatın %100&apos;ünü doğrudan kendisi tahsil eder.
             </p>
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
+              <p className="font-bold text-slate-800">Platformda Geçerli Standart Paket Ücretleri:</p>
+              <ul className="list-disc list-inside space-y-1 text-slate-600 pl-1">
+                <li><strong>Başlangıç Paketi:</strong> 1.199 ₺/ay (Yıllık peşin alımda 11.990 ₺/yıl + KDV - 2 ay bedava). Aylık 15 teklif hakkı, 2 rota alarmı ve Defter erişimi.</li>
+                <li><strong>Profesyonel Paket (En Çok Tercih Edilen):</strong> 2.990 ₺/ay (Yıllık peşin alımda 29.900 ₺/yıl + KDV - 2 ay bedava). <strong>7 Gün Ücretsiz Deneme (0 ₺ Provizyon)</strong>, aylık 50 teklif hakkı, 35 müşteri telefonu görme, onaylı rozet.</li>
+                <li><strong>Filo / Kurumsal (Gold) Paket:</strong> 5.990 ₺/ay (Yıllık peşin alımda 59.900 ₺/yıl + KDV - 2 ay bedava). Sınırsız teklif, sınırsız müşteri telefonu, tam vitrin görünürlüğü ve VIP destek.</li>
+              </ul>
+            </div>
           </section>
 
           <section className="space-y-3">
@@ -81,14 +89,20 @@ export default function NakliyeciSozlesmesiPage() {
               <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#F95700] flex items-center justify-center font-bold text-sm">
                 3
               </div>
-              <h2 className="text-lg sm:text-xl font-bold">7 Günlük Ücretsiz Deneme ve İptal Hakkı</h2>
+              <h2 className="text-lg sm:text-xl font-bold">7 Günlük Ücretsiz Deneme, Otomatik Yenileme, İptal ve İade Şartları</h2>
             </div>
             <p>
-              Gold paketini seçen yeni nakliyecilerimize <strong>7 gün boyunca tamamen ücretsiz ve sınırsız deneme</strong> imkanı sağlanır. Bu süre zarfında nakliyeci platformu test edebilir, müşteri taleplerine teklif verebilir ve Nakliyeci Defteri&apos;ni kullanabilir.
+              Platformumuzda yeni kayıt olan kurumsal nakliyat firmalarına <strong>Profesyonel Paket</strong> için <strong>7 gün (168 saat) boyunca tamamen ücretsiz deneme (0 ₺ Provizyon)</strong> imkanı sağlanır.
             </p>
-            <p>
-              Deneme süresi sona ermeden önce iptal talebinde bulunulursa hiçbir ücret tahsil edilmez. Üyeliğini devam ettiren firmalar, seçtikleri faturalandırma periyodu (aylık veya 2 ay bedava avantajlı yıllık) üzerinden güvenli kart çekimiyle yenilenir. Firmalar diledikleri an panelden aboneliklerini tek tıkla durdurabilir.
-            </p>
+            <div className="space-y-2 text-slate-600 pl-1">
+              <p><strong>• Deneme Süresi Başlangıcı &amp; 0 ₺ Provizyon:</strong> Firma, kredi veya banka kartını Dodo Payments altyapısıyla sisteme tanımladığı ve kart doğrulandığı an 7 günlük (168 saat) ücretsiz deneme süresi başlar. Bu aşamada karttan kesinlikle herhangi bir abonelik ücreti çekilmez (0 ₺ provizyon).</p>
+              <p><strong>• İlk Tahsilat Zamanı:</strong> 7 günlük (168 saat) deneme süresi dolduğunda, firma üyeliğini iptal etmediği takdirde seçmiş olduğu periyoda göre (aylık 2.990 ₺ + KDV veya yıllık 29.900 ₺ + KDV) ilk periyot tahsilatı gerçekleştirilir ve e-Arşiv faturası düzenlenir.</p>
+              <p><strong>• Deneme Süresinde İptal:</strong> Firma, 7 günlük deneme süresi dolmadan önce nakliyeci panelindeki <em>&quot;Abonelik &amp; Paket Yönetimi&quot;</em> sayfasından tek tıkla denemesini iptal edebilir. İptal edildiğinde karttan kesinlikle hiçbir ücret tahsil edilmez; kalan deneme süresi boyunca Profesyonel paket hakları kullanılabilir ve 7 günün sonunda hesap otomatik olarak Başlangıç paketine aktarılır.</p>
+              <p><strong>• Otomatik Yenileme ve İstediğin An İptal:</strong> Ücretli abonelikler, faturalandırma dönemi bitiminde kesintisiz hizmet için otomatik yenilenir. Nakliyeci dilediği an ceza, taahhüt veya cayma bedeli ödemeksizin aboneliğini panelden iptal edebilir. İptal durumunda mevcut fatura dönemi bitene kadar tüm özellikler açık kalır, dönem bitince otomatik yenileme durdurulur.</p>
+              <p><strong>• Paket Yükseltme ve Düşürme:</strong> Firmalar diledikleri an panelden paket yükseltebilir veya düşürebilir. Paket yükseltme işlemi anında yürürlüğe girer; paket düşürme ise mevcut ödenmiş dönemin bitiminde aktifleşir.</p>
+              <p><strong>• Başarısız Ödemeler, 72 Saatlik Ek Süre (Grace Period) ve Sıfır Mükerrer Çekim:</strong> Yenileme gününde kart limitinin yetersiz olması durumunda sistem asla art arda tekrar tekrar çekim yaparak mükerrer tahsilat veya kullanıcı mağduriyeti yaratmaz. Firmaya 72 saatlik ek süre (Grace Period) tanınır ve panelden bilgi verilir. 72 saat içinde ödeme tamamlanmazsa paket Başlangıç düzeyine sınırlandırılır; habersiz veya fazladan para çekimi kesinlikle yapılmaz.</p>
+              <p><strong>• Ücret İadesi:</strong> Dijital platform kullanım ve teklif hakkı ifa edildikten sonra geriye dönük kısmi/tam iade yapılmaz. Ancak teknik aksaklık kaynaklı mükerrer tahsilat söz konusu olursa fazladan çekilen tutar eksiksiz olarak derhal kullanıcının kartına iade edilir.</p>
+            </div>
           </section>
 
           <section className="space-y-3">

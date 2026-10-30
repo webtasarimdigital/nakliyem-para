@@ -56,11 +56,12 @@ export default function KullanimKosullariPage() {
             <p>
               İşbu sözleşmede geçen terimler aşağıdaki anlamları ifade eder:
             </p>
-            <ul className="list-disc list-inside space-y-1 text-slate-600 pl-1">
-              <li><strong>Platform:</strong> TaşınTeklif Teknoloji ve Bilişim Hizmetleri tarafından işletilen tasinteklif.com web sitesi ve mobil arayüzleri.</li>
-              <li><strong>Müşteri:</strong> Taşınma, ofis taşıma, parça eşya veya depolama talebi açarak teklif toplayan gerçek veya tüzel kişi.</li>
-              <li><strong>Nakliyeci / Firma:</strong> Platforma üye olup müşterilere fiyat teklifi sunan, bağımsız taşıma yetki belgesine sahip nakliyat şirketi.</li>
-              <li><strong>Talep:</strong> Müşterinin sisteme girdiği oda sayısı, adres, tarih ve eşya detaylarını içeren taşıma ilanı.</li>
+            <ul className="list-disc list-inside space-y-2 text-slate-600 pl-1">
+              <li><strong>Platform:</strong> Taşın Teklif tarafından işletilen tasinteklif.com web sitesi ve mobil arayüzleri.</li>
+              <li><strong>Aracı Hizmet Sağlayıcı Rolü:</strong> Taşın Teklif, 6563 sayılı Elektronik Ticaretin Düzenlenmesi Hakkında Kanun kapsamında münhasıran bir &quot;Aracı Hizmet Sağlayıcı&quot;dır. Taşın Teklif, taşınma ihtiyacı olan Müşteriler ile bağımsız çalışan taşımacı nakliye firmalarını bir araya getiren bir teknoloji platformudur. Taşın Teklif hiçbir nakliye firması ile ortaklık, acentelik, temsilcilik veya iş ortaklığı içinde değildir; nakliyeciler bağımsız ticari işletmelerdir.</li>
+              <li><strong>Müşteri:</strong> Taşınma, ofis taşıma, parça eşya veya depolama talebi açarak bağımsız firmalardan teklif toplayan gerçek veya tüzel kişi.</li>
+              <li><strong>Nakliyeci / Firma:</strong> Platforma üye olup müşterilere fiyat teklifi sunan, kendi adına müstakil K3/K1 yetki belgesine sahip bağımsız nakliyat şirketi.</li>
+              <li><strong>Taraflar Arası İletişim ve Sorumluluk:</strong> Nakliyecilerle kurulan tüm görüşmeler, fiyat pazarlıkları, sözleşme şartları ve taşımaya ilişkin ifa sorumluluğu doğrudan Müşteri ile Nakliyeci firma arasındadır.</li>
             </ul>
           </section>
 
@@ -117,10 +118,10 @@ export default function KullanimKosullariPage() {
               <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#F95700] flex items-center justify-center font-bold text-sm">
                 6
               </div>
-              <h2 className="text-lg sm:text-xl font-bold">Sorumluluk Reddi Beyanı (Disclaimer)</h2>
+              <h2 className="text-lg sm:text-xl font-bold">Hizmet İlişkisi ve Sorumluluk Çerçevesi</h2>
             </div>
             <p>
-              Taşınma esnasında meydana gelebilecek eşya hasarları, kırılmalar, taşıma günü gecikmeleri veya müşteri ile firma arasındaki bireysel anlaşmazlıklarda TaşınTeklif doğrudan hukuki veya maddi bir taraf değildir. Ancak Platform, haksız fiilde bulunan, taahhüdüne uymayan veya müşteri mağduriyeti yaratan nakliye firmalarının hesaplarını askıya alma, üyeliklerini iptal etme ve sisteme erişimlerini kalıcı olarak engelleme hakkını saklı tutar.
+              Taşın Teklif, taşınma hizmetinin fiili sağlayıcısı veya tarafı değildir. Taşıma fiili, ambalajlama, eşya güvenliği, taşıma günü zamanlaması ve teslimat tamamen Müşteri ile bağımsız Nakliyeci arasındaki taşıma sözleşmesinin konusudur. Taşın Teklif, 6563 sayılı Kanun uyarınca taraflarca sunulan içerikleri ve fiziki hizmetin kalitesini denetlemekle kanunen yükümlü olmamakla birlikte; haksız fiilde bulunan, taahhüdüne uymayan veya müşteri mağduriyeti yaratan firmaların hesaplarını askıya alma, üyeliklerini feshetme ve sistemden kalıcı olarak çıkarma yetkisine sahiptir.
             </p>
           </section>
 
@@ -132,15 +133,21 @@ export default function KullanimKosullariPage() {
               <h2 className="text-lg sm:text-xl font-bold">Fikri ve Sınai Mülkiyet Hakları</h2>
             </div>
             <p>
-              tasinteklif.com sitesinin tüm marka hakları, yazılım kodları, tasarımı, metinleri, logoları ve veritabanı yapısı TaşınTeklif&apos;e aittir. Önceden yazılı izin alınmaksızın kısmen dahi kopyalanamaz, çoğaltılamaz veya scraping yöntemleriyle çekilemez.
+              tasinteklif.com sitesinin tüm marka hakları, yazılım kodları, tasarımı, metinleri, logoları ve veritabanı yapısı Taşın Teklif&apos;e aittir. Önceden yazılı izin alınmaksızın kısmen dahi kopyalanamaz, çoğaltılamaz veya scraping yöntemleriyle çekilemez.
             </p>
           </section>
 
           <section className="pt-4 border-t border-slate-200">
-            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 space-y-2">
-              <h3 className="font-bold text-[#111E38] text-base">Uyuşmazlık Çözümü ve Yetkili Mahkemeler</h3>
+            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 space-y-3">
+              <h3 className="font-bold text-[#111E38] text-base">Uyuşmazlık Çözüm Prosedürü ve Tüketici Hakları</h3>
               <p>
-                İşbu sözleşmenin uygulanmasından doğabilecek uyuşmazlıklarda Türkiye Cumhuriyeti Kanunları uygulanır ve İstanbul Merkez (Çağlayan) Mahkemeleri ile İcra Daireleri yetkilidir. Sorularınız için <strong>bilgi@tasinteklif.com</strong> adresinden bize ulaşabilirsiniz.
+                <strong>1. Taşın Teklif Çözüm Merkezi:</strong> Müşteri veya Nakliyeci arasında doğabilecek her türlü hizmet uyuşmazlığında, taraflar öncelikle <strong>bilgi@tasinteklif.com</strong> veya Müşteri Destek Hattı üzerinden şikayet kaydı oluşturabilir. Platform, tarafsız bir kolaylaştırıcı olarak uyuşmazlığın sulh yoluyla çözülmesi için azami çabayı gösterir.
+              </p>
+              <p>
+                <strong>2. Tüketici Hakları Güvencesi:</strong> İşbu kullanım koşullarındaki hiçbir madde, 6502 sayılı Tüketicinin Korunması Hakkında Kanun (&quot;TKHK&quot;) ve ilgili tüketici mevzuatından kaynaklanan emredici yasal hakları sınırlandırmaz. Tüketiciler, şikayet ve itirazları konusunda her zaman yerleşim yerlerinin bulunduğu veya tüketici işleminin yapıldığı yerdeki <strong>Tüketici Hakem Heyetleri</strong> ve <strong>Tüketici Mahkemeleri</strong>ne başvurma hakkına sahiptir.
+              </p>
+              <p className="text-slate-500 text-xs">
+                Genel ticari uyuşmazlıklarda Türkiye Cumhuriyeti Kanunları uygulanır ve İstanbul (Çağlayan) Mahkemeleri ile İcra Daireleri yetkilidir.
               </p>
             </div>
           </section>

@@ -40,6 +40,7 @@ export default function CustomerDashboard() {
     db.getRequests().sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
   );
   const offers = db.getOffers();
+  const liveStats = db.getPlatformLiveStats();
 
   const loadRequests = async () => {
     let localReqs = db.getRequests();
@@ -626,7 +627,7 @@ export default function CustomerDashboard() {
                     Evden Eve Nakliyat
                   </h4>
                   <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
-                    4792 taşınma talebi
+                    {liveStats.categoryStats.evdenEve} taşınma talebi
                   </span>
                 </div>
               </Link>
@@ -644,7 +645,7 @@ export default function CustomerDashboard() {
                     Ekspres Parça
                   </h4>
                   <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
-                    521 taşınma talebi
+                    {liveStats.categoryStats.parca} taşınma talebi
                   </span>
                 </div>
               </Link>
@@ -662,7 +663,7 @@ export default function CustomerDashboard() {
                     Depolama
                   </h4>
                   <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
-                    232 taşınma talebi
+                    {liveStats.categoryStats.depolama} taşınma talebi
                   </span>
                 </div>
               </Link>
@@ -680,7 +681,7 @@ export default function CustomerDashboard() {
                     Ofis Taşıma
                   </h4>
                   <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
-                    229 taşınma talebi
+                    {liveStats.categoryStats.ofis} taşınma talebi
                   </span>
                 </div>
               </Link>
@@ -698,7 +699,7 @@ export default function CustomerDashboard() {
                     Defter
                   </h4>
                   <span className="text-[11px] text-slate-400 font-semibold block mt-0.5">
-                    30000+ iş paylaşımı
+                    {liveStats.categoryStats.defter} iş paylaşımı
                   </span>
                 </div>
               </Link>

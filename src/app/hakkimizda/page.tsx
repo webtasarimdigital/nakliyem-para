@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { db } from '@/lib/data/mock-db';
 
 export const metadata: Metadata = {
   title: 'Hakkımızda & Vizyonumuz',
@@ -24,6 +25,7 @@ export const metadata: Metadata = {
 };
 
 export default function HakkimizdaPage() {
+  const stats = db.getPlatformLiveStats();
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <section className="bg-white border-b border-slate-200 py-12 sm:py-16">
@@ -63,7 +65,7 @@ export default function HakkimizdaPage() {
             </div>
             <h3 className="font-extrabold text-lg text-[#111E38]">%100 Belge Doğrulama</h3>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Sistemimizdeki tüm nakliye şirketlerinin Ulaştırma Bakanlığı K3 Yetki Belgesi, Vergi Levhası ve Adli Sicili operasyon ekibimizce titizlikle incelenir.
+              Sistemimizdeki tüm nakliye şirketlerinin Ulaştırma Bakanlığı K3/K1 Yetki Belgesi, Vergi Levhası ve Kurumsal Kimlik Doğrulaması operasyon ekibimizce titizlikle incelenir.
             </p>
           </div>
 
@@ -97,16 +99,22 @@ export default function HakkimizdaPage() {
               <span className="text-xs text-slate-300">Tüm Türkiye Kapsamı</span>
             </div>
             <div>
-              <span className="text-3xl sm:text-4xl font-black text-[#F95700] block">10.000+</span>
-              <span className="text-xs text-slate-300">Mutlu Taşınma</span>
+              <span className="text-3xl sm:text-4xl font-black text-[#F95700] block">
+                {stats.totalRequestsCount > 0 ? `${stats.totalRequestsCount}+` : 'Canlı'}
+              </span>
+              <span className="text-xs text-slate-300">Taşınma Talebi</span>
             </div>
             <div>
-              <span className="text-3xl sm:text-4xl font-black text-[#F95700] block">500+</span>
-              <span className="text-xs text-slate-300">Onaylı K3 Nakliyeci</span>
+              <span className="text-3xl sm:text-4xl font-black text-[#F95700] block">
+                {stats.approvedCarriersCount > 0 ? `${stats.approvedCarriersCount}+` : 'Onaylı'}
+              </span>
+              <span className="text-xs text-slate-300">Onaylı K3/K1 Nakliyeci</span>
             </div>
             <div>
-              <span className="text-3xl sm:text-4xl font-black text-[#F95700] block">4.8 / 5</span>
-              <span className="text-xs text-slate-300">Müşteri Memnuniyeti</span>
+              <span className="text-3xl sm:text-4xl font-black text-[#F95700] block">
+                {stats.averageRating} / 5
+              </span>
+              <span className="text-xs text-slate-300">Müşteri Memnuniyeti ({stats.totalReviewsCount} Yorum)</span>
             </div>
           </div>
         </div>
