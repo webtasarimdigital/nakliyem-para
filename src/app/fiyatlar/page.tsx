@@ -160,7 +160,7 @@ export default function FiyatlarPage() {
       id: 'starter',
       name: 'Başlangıç',
       nametag: 'Yeni Başlayanlar',
-      desc: 'Platformu denemek ve bölgedeki iş hacmini görmek isteyen yeni firmalar için ideal başlangıç.',
+      desc: 'Platformu denemek ve bölgesel işleri görmek isteyen yeni firmalar için ideal başlangıç.',
       monthlyPrice: 1199,
       yearlyMonthlyPrice: 999,
       yearlyTotal: 11990,
@@ -182,7 +182,7 @@ export default function FiyatlarPage() {
       id: 'pro',
       name: 'Profesyonel',
       nametag: 'En Avantajlı',
-      desc: 'Aktif taşıma yapan, müşteri telefonlarına doğrudan ulaşmak isteyen profesyonel nakliyeciler için.',
+      desc: 'Müşteri telefonlarına doğrudan ulaşıp düzenli iş almak isteyen nakliyeciler için.',
       monthlyPrice: 2990,
       yearlyMonthlyPrice: 2491,
       yearlyTotal: 29900,
@@ -207,7 +207,7 @@ export default function FiyatlarPage() {
       id: 'gold',
       name: 'Filo / Kurumsal',
       nametag: 'Ekipler & Filolar',
-      desc: 'Maksimum güç, sınırsız iş teklifi, sınırsız doğrudan müşteri telefonu ve tam vitrin görünürlüğü.',
+      desc: 'Maksimum güç, sınırsız doğrudan müşteri telefonu ve tam vitrin görünürlüğü.',
       monthlyPrice: 5990,
       yearlyMonthlyPrice: 4991,
       yearlyTotal: 59900,
@@ -370,16 +370,16 @@ export default function FiyatlarPage() {
                     ) : null}
                   </div>
 
-                  <h3 className="text-2xl sm:text-3xl font-black text-[#111E38] mb-2">
+                  <h3 className="text-2xl sm:text-3xl font-black text-[#111E38] mb-2 min-h-[36px] flex items-center">
                     {plan.name}
                   </h3>
 
-                  <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed mb-6">
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed mb-6 min-h-[44px] sm:min-h-[48px] flex items-center">
                     {plan.desc}
                   </p>
 
-                  {/* Price Block */}
-                  <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 mb-6 space-y-1">
+                  {/* Price Block (Always vertically aligned across all 3 cards) */}
+                  <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 mb-6 space-y-1 min-h-[96px] flex flex-col justify-center">
                     <div className="flex items-baseline gap-1.5">
                       <span className="text-3xl sm:text-4xl font-black text-[#111E38]">
                         ₺{price.toLocaleString('tr-TR')}

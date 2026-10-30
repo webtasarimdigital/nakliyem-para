@@ -458,7 +458,7 @@ function PaketlerContent() {
                 )}
 
                 <h2 className="text-2xl sm:text-3xl font-black mb-1 tracking-tight">{plan.name}</h2>
-                <p className={`text-xs sm:text-sm font-medium ${plan.isFeatured ? 'text-slate-300' : 'text-slate-500'}`}>
+                <p className={`text-xs sm:text-sm font-medium min-h-[36px] sm:min-h-[40px] flex items-center ${plan.isFeatured ? 'text-slate-300' : 'text-slate-500'}`}>
                   {plan.tagline}
                 </p>
 
