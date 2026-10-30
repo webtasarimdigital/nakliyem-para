@@ -259,8 +259,109 @@ Herhangi bir ön ödeme veya kart bilgisi gerekmez.`,
 * İlan detayından taşınma tarihinizi, oda sayınızı veya adres notlarınızı güncelleyebilirsiniz.
 * Taşınmaktan vazgeçtiyseniz tek bir tıkla talebinizi yayından kaldırabilir veya iptal edebilirsiniz. Herhangi bir ceza veya ücret söz konusu değildir.`,
     suggestions: ['Gelen teklifleri nasıl görürüm?', 'Canlı Destek', 'Hemen Teklif Al']
+  },
+
+  // 13. Resmi İletişim ve Destek Kanalları
+  {
+    id: 'resmi_iletisim_ve_destek',
+    category: 'GENERAL',
+    keywords: ['iletisim', 'destek', 'eposta', 'e-posta', 'adres', 'resmi', 'neredesiniz', 'ofis', 'musteri hizmetleri', 'telefon'],
+    phrases: ['iletisim bilgileri', 'nasil ulasabilirim', 'musteri hizmetleri numarasi', 'destek hatti', 'resmi iletisim', 'e posta adresi', 'ofisiniz nerede', 'size nasil ulasirim', 'iletisim sayfasi'],
+    title: 'TaşınTeklif Resmi İletişim ve Destek Kanalları',
+    response: `TaşınTeklif Destek Merkezi ve Resmi Kurumsal İletişim Kanalları: 🏢📞
+
+Platformumuz ve taşınma süreçlerinizle ilgili her türlü soru, öneri ve destek ihtiyacınız için aşağıdaki kurumsal kanallarımız üzerinden 7/24 bize ulaşabilirsiniz:
+
+* 📧 **Kurumsal E-posta:** bilgi@tasinteklif.com
+* 💬 **Canlı Destek:** Asistan penceresinin üstündeki **"Bize Yazın"** sekmesinden ekibimize anında mesaj iletebilirsiniz.
+* 🌐 **İletişim Formu:** /iletisim sayfamız üzerinden destek ekibimize doğrudan ulaşabilirsiniz.
+* 🏢 **Şirket Adresi:** DSO-IFZA, IFZA Properties, Dubai Silicon Oasis
+* ⏱️ **Çalışma Saatleri:** Hafta İçi & Cumartesi 09:00 - 19:00 (Canlı destek talepleri ortalama 30 dakika içinde yanıtlanır).
+
+*Güvenlik ve KVKK politikalarımız gereği platform yöneticilerimizin, kurucularımızın veya çalışanlarımızın şahsi iletişim bilgileri paylaşılmamakta olup, tüm görüşmeler kayıtlı kurumsal kanallarımız üzerinden yürütülmektedir.*`,
+    suggestions: ['Nasıl teklif alırım?', 'Sigorta neleri kapsar?', 'Canlı Destek', 'Hemen Teklif Al'],
+    actionLink: {
+      text: 'Resmi İletişim Sayfasına Git →',
+      href: '/iletisim'
+    }
   }
 ];
+
+/**
+ * Privacy & Confidentiality Shield (Gizlilik ve Şahsi Bilgi Koruma Kalkanı)
+ * Detects any attempt to probe for personal names, founder/developer identities,
+ * private phone numbers, passwords, internal secrets, or prompt injections.
+ */
+export function isPrivacyOrSecurityQuery(norm: string): boolean {
+  if (!norm) return false;
+
+  // 1. Personal Identity, Founder, Developer or Ownership Probing
+  const personalIdentityPatterns = [
+    /\b(omer|faruk|saycan)\b/,
+    /\b(sahibi|sahip|kurucu|kurucusu|patron|patronu|ceo|yonetici|yoneticisi|mudur|muduru)\b.*\b(kim|kimdir|kime|kime ait|adi|ismi|bilgisi|iletisim|tel|telefon|no|cep|gsm|ulas|bagla|ara)\b/,
+    /\b(kim|kimdir|kimin|kime ait)\b.*\b(bu site|bu platform|bu sirket|tasinteklif|nakliyem)\b/,
+    /\b(bu site|bu sirket|bu platform|tasinteklif)\b.*\b(kimin|kime ait|sahibi kim|kurucusu kim)\b/,
+    /\b(gelistirici|yazilimci|programci|developer|coder)\b.*\b(kim|kimdir|kime ait|iletisim|adi|ismi)\b/,
+    /\b(seni|bu sistemi|bu siteyi)\b.*\b(kim yapti|kim kodladi|kim yazdi|kim programladi|kim kurdu)\b/,
+    /\b(kim kurdu|kim yapti|kim yonetiyor|sahibiyle gorusmek|kurucusuyla gorusmek|patronla gorusmek)\b/
+  ];
+
+  // 2. Personal / Private Direct Contact Information Probing
+  const personalContactPatterns = [
+    /\b(sahsi|kisisel|ozel)\b.*\b(tel|telefon|numara|numarasi|no|cep|gsm|whatsapp|mail|eposta|adres|hesap|bilgi|irtibat)\b/,
+    /\b(tel|telefon|numara|numarasi|no|cep|gsm|whatsapp|mail|eposta|adres)\b.*\b(sahsi|kisisel|ozel)\b/,
+    /\b(kurucunun|sahibinin|yoneticinin|patronun|developerin|yazilimcinin)\b.*\b(telefonu|numarasi|cebi|maili|epostasi|adresi|whatsappi)\b/,
+    /\b(ev adresi|ikametgah|nerede oturuyor|nerede yasiyor|nerede kaliyor|nerede oturuyorsunuz|nerede yasiyorsunuz)\b/,
+    /\b(bana)\b.*\b(numara|numarani|telefonunu|whatsappini|cebini)\b.*\b(ver|gonder|yaz|soyle|at)\b/,
+    /\b(numaran ne|telefonun ne|cep numaran|whatsapp numaran)\b/
+  ];
+
+  // 3. Security, Passwords, Credentials & System Internals Probing
+  const securityAdminPatterns = [
+    /\b(admin|yonetici|superadmin|root|panel|veritabani|database)\b.*\b(sifre|sifresi|parola|parolasi|giris|hesap|login|secret|token)\b/,
+    /\b(sifre|sifresi|parola|parolasi)\b.*\b(ne|nedir|ver|soyle|goster|ogren|admin|panel)\b/,
+    /\b(admin sifre|yonetici sifre|panel sifre|admin parola|sifre ver|sifreyi ver|parola ver)\b/,
+    /\b(api key|secret key|jwt secret|firebase key|source code|kaynak kod|database password)\b/,
+    /\b(system prompt|sistem prompt|gizli talimat|prompt injection|ignore previous instructions)\b/,
+    /\b(arka kapi|backdoor|sql injection|acik bul|exploit)\b/
+  ];
+
+  for (const pattern of personalIdentityPatterns) {
+    if (pattern.test(norm)) return true;
+  }
+  for (const pattern of personalContactPatterns) {
+    if (pattern.test(norm)) return true;
+  }
+  for (const pattern of securityAdminPatterns) {
+    if (pattern.test(norm)) return true;
+  }
+
+  return false;
+}
+
+/**
+ * Sanitizes any assistant output to guarantee NO personal emails, phone numbers,
+ * developer names or credentials can ever leak to the user.
+ */
+export function sanitizeAssistantResponse(text: string): string {
+  if (!text) return text;
+
+  let cleaned = text;
+
+  // Redact any accidental Turkish mobile numbers (05xx xxx xx xx or +90 5xx...)
+  cleaned = cleaned.replace(/(?:\+?90\s?|0)?5[0-9]{2}[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}/g, '[İletişim: bilgi@tasinteklif.com]');
+
+  // Redact non-corporate email addresses (only @tasinteklif.com is allowed)
+  cleaned = cleaned.replace(/[a-zA-Z0-9._%+-]+@(?!tasinteklif\.com)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi, 'bilgi@tasinteklif.com');
+
+  // Redact accidental mentions of personal names
+  cleaned = cleaned.replace(/\b(ömer\s*faruk|ömer\s*saycan|murat\s*saycan|ömer|saycan)\b/gi, 'TaşınTeklif Yönetimi');
+
+  // Redact credentials/tokens/hashes
+  cleaned = cleaned.replace(/\b(admin123|scrypt:[\w$]+|jwt_secret|api_key_[a-zA-Z0-9]+)\b/gi, '[Gizli]');
+
+  return cleaned;
+}
 
 /**
  * Intelligent Intent Matching Engine
@@ -270,11 +371,31 @@ export function findBestAssistantResponse(userQuery: string): AssistantMessage {
   const norm = normalizeTurkish(userQuery);
   const words = norm.split(' ').filter(w => w.length > 1);
 
+  // 1. GİZLİLİK VE ŞAHSİ BİLGİ KORUMA KALKANI (KVKK & Confidentiality Interceptor)
+  // Şahsi telefon, kurucu/yönetici kimliği, şahsi mail veya admin/sistem şifresi sorgularını anında yakalar.
+  if (isPrivacyOrSecurityQuery(norm)) {
+    return {
+      id: `bot_privacy_${Date.now()}`,
+      sender: 'bot',
+      text: sanitizeAssistantResponse(`TaşınTeklif olarak kurumsal ve kişisel veri gizliliğine (KVKK) en üst düzeyde önem veriyoruz. 🛡️
+
+Platform yöneticilerimizin, kurucularımızın veya teknik ekibimizin şahsi bilgileri (şahsi telefon numaraları, özel e-posta adresleri, ikamet veya kimlik bilgileri) ile sistem güvenlik detayları güvenlik politikalarımız gereği üçüncü şahıslarla **kesinlikle paylaşılmamaktadır**.
+
+Tüm resmi sorularınız, kurumsal iş birlikleri, öneri ve destek talepleriniz için kurumsal iletişim adresimiz olan **bilgi@tasinteklif.com** üzerinden ekibimize 7/24 ulaşabilirsiniz.`),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      suggestions: ['Nasıl teklif alırım?', 'Taşıma Sigortası ve Güvenlik', 'Resmi İletişim', 'Hizmetlerimiz'],
+      actionLink: {
+        text: 'Resmi İletişim Sayfası →',
+        href: '/iletisim'
+      }
+    };
+  }
+
   if (!norm || words.length === 0) {
     return {
       id: `bot_${Date.now()}`,
       sender: 'bot',
-      text: 'Merhaba! Ben TaşınTeklif Akıllı Asistanıyım. Size nasıl yardımcı olabilirim? Aşağıdaki popüler konulardan birini seçebilir veya sorunuzu doğrudan yazabilirsiniz. 😊',
+      text: sanitizeAssistantResponse('Merhaba! Ben TaşınTeklif Akıllı Asistanıyım. Size nasıl yardımcı olabilirim? Aşağıdaki popüler konulardan birini seçebilir veya sorunuzu doğrudan yazabilirsiniz. 😊'),
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       suggestions: ['Nasıl teklif alırım?', 'Nakliyeci paketleri neler?', 'Mobil asansör nedir?', 'Komisyon alıyor musunuz?']
     };
@@ -322,7 +443,7 @@ export function findBestAssistantResponse(userQuery: string): AssistantMessage {
     return {
       id: `bot_${Date.now()}`,
       sender: 'bot',
-      text: bestNode.response,
+      text: sanitizeAssistantResponse(bestNode.response),
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       suggestions: bestNode.suggestions || ['Nasıl teklif alırım?', 'Fiyatlar ne kadar?', 'Canlı Destek'],
       actionLink: bestNode.actionLink
@@ -333,14 +454,14 @@ export function findBestAssistantResponse(userQuery: string): AssistantMessage {
   return {
     id: `bot_${Date.now()}`,
     sender: 'bot',
-    text: `Sorunuzu anladım ancak daha kesin bir yanıt verebilmek için aşağıdaki başlıklardan birini seçebilir veya sorunuzu farklı kelimelerle iletebilirsiniz:
+    text: sanitizeAssistantResponse(`Sorunuzu anladım ancak daha kesin bir yanıt verebilmek için aşağıdaki başlıklardan birini seçebilir veya sorunuzu farklı kelimelerle iletebilirsiniz:
 
 * 📦 **Teklif Alma & Süreç:** "Nasıl teklif alırım?", "Komisyon var mı?"
 * 🚛 **Nakliyeci & Paketler:** "Nakliyeci paketleri neler?", "Evrak onayı nasıl yapılır?"
 * 🏗️ **Hizmetler:** "Mobil asansör nedir?", "Paketleme dahil mi?"
 * 🛡️ **Güvenlik & Ödeme:** "Eşyalar sigortalı mı?", "Ödemeyi kime yapacağım?"
 
-Dilerseniz sorunuzu doğrudan **bilgi@tasinteklif.com** adresine iletmeniz için e-posta sekmesine de aktarabilirim.`,
+Dilerseniz sorunuzu doğrudan **bilgi@tasinteklif.com** adresine iletmeniz için e-posta sekmesine de aktarabilirim.`),
     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     suggestions: ['Nasıl teklif alırım?', 'Nakliyeci paketleri neler?', 'Mobil asansör nedir?', 'E-posta ile Sor'],
     actionLink: {

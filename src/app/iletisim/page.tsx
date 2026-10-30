@@ -188,7 +188,7 @@ export default function IletisimPage() {
                 </div>
                 <h3 className="text-xl font-bold text-[#111E38]">Mesajınız Başarıyla İletildi!</h3>
                 <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
-                  Mesajınız destek ekibimize ve <strong>tasinteklif@gmail.com</strong> adresine ulaştırıldı. En kısa sürede sizinle iletişime geçeceğiz.
+                  Mesajınız destek ekibimize ve <strong>bilgi@tasinteklif.com</strong> adresine ulaştırıldı. En kısa sürede sizinle iletişime geçeceğiz.
                 </p>
                 <button
                   onClick={() => {
