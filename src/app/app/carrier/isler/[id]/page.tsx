@@ -728,22 +728,22 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
             </span>
           )}
 
-          <div className="flex gap-2 pt-1">
+          <div className="flex flex-col-reverse sm:flex-row gap-2 pt-1">
             <button
               type="button"
               onClick={() => setWarningModalOpen(false)}
-              className="flex-1 h-10 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-sm transition-colors cursor-pointer"
+              className="w-full sm:flex-1 py-2.5 px-3 min-h-[40px] rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-xs sm:text-sm transition-colors cursor-pointer"
             >
               Vazgeç
             </button>
             <Link
               href={warningModalData?.actionLink || "/paketler"}
-              className="flex-1"
+              className="w-full sm:flex-1"
               onClick={() => setWarningModalOpen(false)}
             >
               <button
                 type="button"
-                className="w-full h-10 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-sm transition-colors cursor-pointer"
+                className="w-full py-2.5 px-3 min-h-[40px] rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-xs sm:text-sm transition-colors cursor-pointer"
               >
                 {warningModalData?.actionText || "Paketleri İncele"}
               </button>

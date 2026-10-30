@@ -677,10 +677,10 @@ export default function FiyatlarPage() {
         maxWidth="lg"
       >
         {selectedPlanForUpgrade && (
-          <div className="p-6 sm:p-7 space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Paket ve Fiyat Özeti Kutusu */}
-            <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-orange-50/70 to-amber-50/40 border border-orange-200/80">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-orange-50/70 to-amber-50/40 border border-orange-200/80">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-black uppercase tracking-wider text-[#F95700] bg-orange-100/70 px-2.5 py-0.5 rounded-full">
@@ -699,7 +699,7 @@ export default function FiyatlarPage() {
                 </div>
 
                 <div className="text-left sm:text-right pt-2 sm:pt-0 border-t sm:border-t-0 border-orange-100">
-                  <div className="text-2xl sm:text-3xl font-black text-[#111E38] tracking-tight">
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-black text-[#111E38] tracking-tight whitespace-nowrap">
                     {(billingCycle === 'yearly' ? selectedPlanForUpgrade.yearlyTotal : selectedPlanForUpgrade.monthlyPrice).toLocaleString('tr-TR')} TL
                   </div>
                   <div className="text-xs text-slate-400 font-bold">
@@ -719,9 +719,9 @@ export default function FiyatlarPage() {
               <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                 Paket Kapsamındaki Ayrıcalıklar:
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 {selectedPlanForUpgrade.features.slice(0, 4).map((f: string, i: number) => (
-                  <div key={i} className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                  <div key={i} className="flex items-center gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                     <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span className="font-bold text-slate-800">{f}</span>
                   </div>
@@ -730,21 +730,21 @@ export default function FiyatlarPage() {
             </div>
 
             {/* Aksiyon Butonları */}
-            <div className="pt-4 border-t border-slate-100 space-y-3">
+            <div className="pt-3 border-t border-slate-100 space-y-2.5 sm:space-y-3">
               <button
                 type="button"
                 onClick={() => handleDodoCheckout(selectedPlanForUpgrade)}
                 disabled={isRedirectingToCheckout}
-                className="w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-2xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-base shadow-lg shadow-orange-500/25 hover:shadow-orange-500/35 transition-all cursor-pointer disabled:opacity-60"
+                className="w-full flex items-center justify-center gap-2 py-3 sm:py-3.5 px-4 sm:px-6 rounded-2xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-sm sm:text-base min-h-[46px] shadow-lg shadow-orange-500/25 hover:shadow-orange-500/35 transition-all cursor-pointer disabled:opacity-60"
               >
                 {isRedirectingToCheckout ? (
                   <>
-                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     <span>Ödeme Sayfasına Yönlendiriliyor...</span>
                   </>
                 ) : (
                   <>
-                    <Lock className="w-5 h-5" />
+                    <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span>Güvenli Öde ({(billingCycle === 'yearly' ? selectedPlanForUpgrade.yearlyTotal : selectedPlanForUpgrade.monthlyPrice).toLocaleString('tr-TR')} TL)</span>
                   </>
                 )}
@@ -776,7 +776,7 @@ export default function FiyatlarPage() {
         title="Müşteri Hesabı ile Giriş Yapıldı"
         maxWidth="md"
       >
-        <div className="p-6 text-center space-y-4">
+        <div className="text-center space-y-4">
           <div className="w-14 h-14 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto border border-amber-200">
             <AlertCircle className="w-7 h-7" />
           </div>
@@ -788,22 +788,22 @@ export default function FiyatlarPage() {
               Bu paketler taşımacılık hizmeti sunan profesyonel nakliyat firmaları içindir. Ev veya ofis taşıtmak isteyen müşterilerimiz için sistemimiz <strong>%100 ücretsizdir</strong>.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 pt-2">
-            <Link href="/teklif-al" className="flex-1">
+          <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setCustomerModalOpen(false)}
+              className="w-full sm:w-auto py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition-colors"
+            >
+              Kapat
+            </button>
+            <Link href="/teklif-al" className="w-full sm:flex-1">
               <button
                 type="button"
-                className="w-full py-2.5 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-xs"
+                className="w-full py-2.5 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-xs shadow-sm transition-colors"
               >
                 Ücretsiz Teklif Al
               </button>
             </Link>
-            <button
-              type="button"
-              onClick={() => setCustomerModalOpen(false)}
-              className="py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50"
-            >
-              Kapat
-            </button>
           </div>
         </div>
       </Modal>

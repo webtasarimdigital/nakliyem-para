@@ -418,9 +418,13 @@ export default function CustomerRequestDetailPage({ params }: { params: Promise<
             ))}
           </div>
 
-          <div className="pt-4 flex items-center justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setCloseModalOpen(false)}>Vazgeç</Button>
-            <Button variant="danger" size="sm" onClick={handleCloseRequest}>Talebi Kapat</Button>
+          <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => setCloseModalOpen(false)} className="w-full sm:w-auto">
+              Vazgeç
+            </Button>
+            <Button variant="danger" size="sm" onClick={handleCloseRequest} className="w-full sm:w-auto">
+              Talebi Kapat
+            </Button>
           </div>
         </div>
       </Modal>

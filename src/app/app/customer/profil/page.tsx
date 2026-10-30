@@ -294,7 +294,7 @@ export default function CustomerProfilePage() {
               title="Hesabınızı Kalıcı Olarak Silmek İstiyor Musunuz?"
               maxWidth="md"
             >
-              <div className="p-6 space-y-5 text-center sm:text-left">
+              <div className="space-y-4 sm:space-y-5 text-center sm:text-left">
                 <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-900 text-xs font-semibold">
                   <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
                   <span>
@@ -302,12 +302,12 @@ export default function CustomerProfilePage() {
                   </span>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-end gap-2.5 pt-2">
+                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-2">
                   <button
                     type="button"
                     disabled={isDeleting}
                     onClick={() => setDeleteModalOpen(false)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
+                    className="w-full sm:w-auto px-5 py-2.5 min-h-[40px] rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
                   >
                     Vazgeç
                   </button>
@@ -315,7 +315,7 @@ export default function CustomerProfilePage() {
                     type="button"
                     disabled={isDeleting}
                     onClick={handleDeleteAccount}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs transition-colors cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2 shadow-sm"
+                    className="w-full sm:w-auto px-5 py-2.5 min-h-[40px] rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs transition-colors cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2 shadow-sm"
                   >
                     {isDeleting ? (
                       <>

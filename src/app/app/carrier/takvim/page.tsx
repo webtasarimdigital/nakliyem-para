@@ -582,12 +582,12 @@ export default function CarrierTakvimPage() {
             />
           </div>
 
-          <div className="flex gap-3 pt-3">
+          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-3">
             <Button
               type="button"
               variant="outline"
               size="md"
-              className="flex-1 font-bold"
+              className="w-full sm:flex-1 font-bold"
               onClick={() => setIsAddModalOpen(false)}
             >
               Vazgeç
@@ -596,7 +596,7 @@ export default function CarrierTakvimPage() {
               type="submit"
               variant="primary"
               size="md"
-              className="flex-1 font-black shadow-md"
+              className="w-full sm:flex-1 font-black shadow-md"
             >
               Takvime Kaydet
             </Button>
