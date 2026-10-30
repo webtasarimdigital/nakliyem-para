@@ -135,24 +135,24 @@ export function ReviewForm({
   };
 
   return (
-    <div className="fixed inset-0 bg-[#0A1128]/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-[#0A1128]/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-lg w-full max-h-[calc(100dvh-2rem)] overflow-y-auto my-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-100">
           <div>
-            <h2 className="text-lg font-black text-[#0A1128]">Taşıma Değerlendirmesi</h2>
+            <h2 className="text-base sm:text-lg font-black text-[#0A1128]">Taşıma Değerlendirmesi</h2>
             <p className="text-xs text-slate-500 mt-0.5 font-medium">{carrierName}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
           >
             <X className="w-5 h-5 text-slate-600" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5">
           {/* Route info */}
           <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
             <span className="px-2 py-1 bg-slate-100 rounded-lg font-bold text-slate-700">{originCity}</span>
@@ -212,18 +212,18 @@ export function ReviewForm({
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors"
+              className="w-full sm:w-auto px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors text-center"
             >
               İptal
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2.5 rounded-xl text-sm font-black text-white bg-[#F95700] hover:bg-[#e04f00] disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-md shadow-orange-900/20"
+              className="w-full sm:w-auto px-5 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-black text-white bg-[#F95700] hover:bg-[#e04f00] disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-md text-center"
             >
               {submitting ? 'Gönderiliyor...' : 'Değerlendirmeyi Gönder'}
             </button>

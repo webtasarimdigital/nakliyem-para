@@ -324,8 +324,8 @@ export function DefterRightRail() {
 
       {/* ── 5. FİRMA İLETİŞİM / DETAY MODALI ── */}
       {selectedBanner && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 animate-scale-up">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-fade-in">
+          <div className="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 animate-scale-up my-auto max-h-[calc(100dvh-2rem)] overflow-y-auto">
             {/* Modal Banner Görseli */}
             <div className="relative w-full aspect-[2.65/1] bg-slate-900">
               <Image
@@ -344,18 +344,18 @@ export function DefterRightRail() {
             </div>
 
             {/* Modal İçerik */}
-            <div className="p-5 space-y-4">
+            <div className="p-4 sm:p-5 space-y-3.5">
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="text-lg font-black text-[#111E38]">
+                  <h3 className="text-base sm:text-lg font-black text-[#111E38] truncate">
                     {selectedBanner.companyName}
                   </h3>
-                  <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 shrink-0" />
                 </div>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">
                   {selectedBanner.city} · {selectedBanner.typeLabel}
                 </p>
-                <p className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-100 mt-2.5">
+                <p className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-100 mt-2">
                   {selectedBanner.highlightText}
                 </p>
               </div>
@@ -364,13 +364,13 @@ export function DefterRightRail() {
               <div className="space-y-2">
                 <a
                   href={`tel:${selectedBanner.phone.replace(/\s+/g, '')}`}
-                  className="flex items-center justify-between p-3 rounded-2xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-[#C23E00] font-black text-sm transition-colors"
+                  className="flex flex-wrap items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-[#C23E00] font-black text-xs sm:text-sm transition-colors gap-2"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <Phone className="w-4 h-4 text-[#F95700]" />
-                    <span>Hemen Ara: {selectedBanner.phone}</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Phone className="w-4 h-4 text-[#F95700] shrink-0" />
+                    <span className="truncate">Hemen Ara: {selectedBanner.phone}</span>
                   </div>
-                  <span className="text-xs font-bold bg-[#F95700] text-white px-2.5 py-1 rounded-lg">
+                  <span className="text-xs font-bold bg-[#F95700] text-white px-2.5 py-1 rounded-lg shrink-0">
                     Ara
                   </span>
                 </a>

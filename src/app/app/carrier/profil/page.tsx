@@ -753,11 +753,11 @@ export default function CarrierProfileEditorPage() {
 
       {/* ── MODAL 1: Biyografi & Firma Bilgisi Düzenleme ── */}
       {editBioOpen && (
-        <div className="fixed inset-0 z-50 bg-[#0A1128]/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in">
+        <div className="fixed inset-0 z-50 bg-[#0A1128]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 max-w-lg w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in my-auto max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-black text-[#0A1128]">Kurumsal Bilgileri Düzenle</h3>
-              <button onClick={() => setEditBioOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+              <button onClick={() => setEditBioOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -795,17 +795,17 @@ export default function CarrierProfileEditorPage() {
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setEditBioOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer text-center"
                 >
                   Vazgeç
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-[#F95700] text-white font-black text-xs hover:bg-[#E04D00] shadow-sm cursor-pointer"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#F95700] text-white font-black text-xs hover:bg-[#E04D00] shadow-sm cursor-pointer text-center"
                 >
                   Kaydet &amp; Yayınla
                 </button>
@@ -817,11 +817,11 @@ export default function CarrierProfileEditorPage() {
 
       {/* ── MODAL 2: İletişim & Konum Düzenleme ── */}
       {editContactOpen && (
-        <div className="fixed inset-0 z-50 bg-[#0A1128]/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in">
+        <div className="fixed inset-0 z-50 bg-[#0A1128]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in my-auto max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-black text-[#0A1128]">İletişim &amp; Konum Bilgileri</h3>
-              <button onClick={() => setEditContactOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+              <button onClick={() => setEditContactOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -873,17 +873,17 @@ export default function CarrierProfileEditorPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setEditContactOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer text-center"
                 >
                   Vazgeç
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-[#F95700] text-white font-black text-xs hover:bg-[#E04D00] shadow-sm cursor-pointer"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#F95700] text-white font-black text-xs hover:bg-[#E04D00] shadow-sm cursor-pointer text-center"
                 >
                   Kaydet
                 </button>
@@ -895,11 +895,11 @@ export default function CarrierProfileEditorPage() {
 
       {/* ── MODAL 3: Hizmetler & Asansör Düzenleme ── */}
       {editServicesOpen && (
-        <div className="fixed inset-0 z-50 bg-[#0A1128]/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in">
+        <div className="fixed inset-0 z-50 bg-[#0A1128]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in my-auto max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-black text-[#0A1128]">Hizmetler &amp; Donanım</h3>
-              <button onClick={() => setEditServicesOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+              <button onClick={() => setEditServicesOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -957,17 +957,17 @@ export default function CarrierProfileEditorPage() {
                 )}
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setEditServicesOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer text-center"
                 >
                   Vazgeç
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-[#F95700] text-white font-black text-xs hover:bg-[#E04D00] shadow-sm cursor-pointer"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#F95700] text-white font-black text-xs hover:bg-[#E04D00] shadow-sm cursor-pointer text-center"
                 >
                   Kaydet
                 </button>
@@ -984,7 +984,7 @@ export default function CarrierProfileEditorPage() {
         title="Firma Hesabınızı Kalıcı Olarak Silmek İstiyor Musunuz?"
         maxWidth="md"
       >
-        <div className="p-6 space-y-5 text-center sm:text-left">
+        <div className="space-y-4 text-center sm:text-left">
           <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-900 text-xs font-semibold">
             <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
             <span>

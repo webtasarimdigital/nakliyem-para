@@ -44,7 +44,7 @@ export const Modal: React.FC<ModalProps> = ({
   }[maxWidth];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-[#0D1B2A]/60 backdrop-blur-xs transition-opacity animate-fade-in"
@@ -53,20 +53,20 @@ export const Modal: React.FC<ModalProps> = ({
 
       {/* Modal Dialog */}
       <div 
-        className={`relative w-full ${maxWidthStyles} bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-10 animate-fade-in transform transition-all my-8`}
+        className={`relative w-full ${maxWidthStyles} bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-10 animate-fade-in transform transition-all my-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2.5rem)] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-slate-100">
-            <div>
-              {title && <h3 className="text-lg font-bold text-[#0A1128]">{title}</h3>}
-              {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
+          <div className="flex items-start justify-between px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-slate-100 shrink-0 gap-2">
+            <div className="pr-1 min-w-0 flex-1">
+              {title && <h3 className="text-base sm:text-lg font-black text-[#0A1128] leading-snug break-words">{title}</h3>}
+              {subtitle && <p className="text-xs text-slate-500 mt-1 leading-snug break-words">{subtitle}</p>}
             </div>
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors ml-auto"
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
                 aria-label="Kapat"
               >
                 <X className="w-5 h-5" />
@@ -76,7 +76,7 @@ export const Modal: React.FC<ModalProps> = ({
         )}
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6 overflow-y-auto overflow-x-hidden min-h-0 flex-1">
           {children}
         </div>
       </div>

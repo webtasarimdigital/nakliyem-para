@@ -1325,19 +1325,19 @@ function CustomerOffersContent() {
       >
         {selectedOffer && (
           <div>
-            <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5 mb-5 text-center">
-              <p className="text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Seçilen Firma</p>
-              <p className="font-black text-[#0A1128] text-xl">{selectedOffer.carrier?.companyName || 'Nakliyat Firması'}</p>
-              <p className="text-3xl font-black text-[#F95700] mt-1">{selectedOffer.price.toLocaleString('tr-TR')} TL</p>
+            <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 sm:p-5 mb-4 text-center">
+              <p className="text-[11px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Seçilen Firma</p>
+              <p className="font-black text-[#0A1128] text-base sm:text-lg truncate">{selectedOffer.carrier?.companyName || 'Nakliyat Firması'}</p>
+              <p className="text-2xl sm:text-3xl font-black text-[#F95700] mt-1 break-words">{selectedOffer.price.toLocaleString('tr-TR')} TL</p>
             </div>
-            <p className="text-xs sm:text-sm text-slate-600 font-medium mb-5 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 font-medium mb-4 leading-relaxed">
               Bu teklifi onayladığınızda diğer teklifler arşivlenecek ve seçtiğiniz nakliyat firmasına taşıma detayı iletilecektir.
             </p>
-            <div className="flex gap-3">
-              <Button variant="outline" size="md" className="flex-1 font-bold" onClick={() => setSelectedOffer(null)}>
+            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
+              <Button variant="outline" size="md" className="w-full sm:flex-1 font-bold text-xs sm:text-sm py-2.5 sm:py-3" onClick={() => setSelectedOffer(null)}>
                 Vazgeç
               </Button>
-              <Button variant="primary" size="md" className="flex-1 font-black" onClick={handleAccept}>
+              <Button variant="primary" size="md" className="w-full sm:flex-1 font-black text-xs sm:text-sm py-2.5 sm:py-3" onClick={handleAccept}>
                 Evet, Bu Firmayı Seç
               </Button>
             </div>

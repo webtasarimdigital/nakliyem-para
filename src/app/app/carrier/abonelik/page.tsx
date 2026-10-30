@@ -536,11 +536,12 @@ export default function CarrierSubscriptionPage() {
               </div>
             </div>
 
-            <div className="pt-4 flex items-center justify-end gap-2">
+            <div className="pt-3 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2">
               <Button
                 variant="outline"
-                size="sm"
+                size="md"
                 type="button"
+                className="w-full sm:w-auto font-bold text-xs sm:text-sm py-2.5 sm:py-3 text-center"
                 onClick={() => {
                   setSelectedPlanForTrial(null);
                   setCardError('');
@@ -548,7 +549,7 @@ export default function CarrierSubscriptionPage() {
               >
                 Vazgeç
               </Button>
-              <Button variant="primary" size="md" type="submit" isLoading={isActivating}>
+              <Button variant="primary" size="md" type="submit" isLoading={isActivating} className="w-full sm:w-auto font-black text-xs sm:text-sm py-2.5 sm:py-3 text-center">
                 Denemeyi Başlat
               </Button>
             </div>
@@ -569,11 +570,11 @@ export default function CarrierSubscriptionPage() {
           <p className="text-slate-600">
             Aboneliğinizi veya 7 günlük ücretsiz denemenizi iptal ettiğinizde dönem sonuna (<strong>{periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>) kadar mevcut teklif verme avantajlarınızdan yararlanmaya devam edebilirsiniz. Dönem bittiğinde kartınızdan kesinlikle hiçbir ücret çekilmez.
           </p>
-          <div className="pt-4 flex items-center justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setCancelModalOpen(false)} disabled={isCancelling}>
+          <div className="pt-3 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2">
+            <Button variant="outline" size="md" className="w-full sm:w-auto font-bold text-xs sm:text-sm py-2.5 sm:py-3 text-center" onClick={() => setCancelModalOpen(false)} disabled={isCancelling}>
               Vazgeç
             </Button>
-            <Button variant="danger" size="sm" onClick={handleCancelSubscription} disabled={isCancelling}>
+            <Button variant="danger" size="md" className="w-full sm:w-auto font-black text-xs sm:text-sm py-2.5 sm:py-3 text-center" onClick={handleCancelSubscription} disabled={isCancelling}>
               {isCancelling ? 'İptal Ediliyor...' : 'Aboneliği İptal Et'}
             </Button>
           </div>

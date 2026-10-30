@@ -716,38 +716,38 @@ function PaketlerContent() {
         maxWidth="lg"
       >
         {selectedPlanForUpgrade && (
-          <div className="p-5 sm:p-7 space-y-6">
+          <div className="space-y-4 sm:space-y-5">
             {/* Firma Bilgi Şeridi */}
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-[#111E38] text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200/80 gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-[#111E38] text-white flex items-center justify-center font-black text-xs shadow-xs shrink-0">
                   {(carrier?.companyName || currentUser?.companyName || 'NK').slice(0, 2).toUpperCase()}
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Aktif Nakliye Firması</div>
-                  <div className="text-sm font-black text-[#111E38] flex items-center gap-1.5 truncate">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aktif Nakliye Firması</div>
+                  <div className="text-xs sm:text-sm font-black text-[#111E38] flex items-center gap-1.5 truncate">
                     <span className="truncate">{carrier?.companyName || currentUser?.companyName || 'Nakliye Firması'}</span>
-                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   </div>
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <div className="text-[11px] font-bold text-slate-400">Mevcut Durum</div>
-                <span className="inline-block px-2.5 py-0.5 rounded-full bg-slate-200/70 text-slate-700 text-xs font-bold">
+                <div className="text-[10px] font-bold text-slate-400">Mevcut Durum</div>
+                <span className="inline-block px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-700 text-[11px] font-bold">
                   {carrier?.planId === 'plan_gold' ? 'Gold Üye' : carrier?.planId === 'plan_pro' ? 'Pro Üye' : 'Standart'}
                 </span>
               </div>
             </div>
 
             {/* Seçilen Paket Özeti */}
-            <div className="p-5 rounded-2xl border-2 border-orange-200 bg-gradient-to-br from-orange-50/50 via-white to-amber-50/30 shadow-xs">
+            <div className="p-4 sm:p-5 rounded-2xl border-2 border-orange-200 bg-gradient-to-br from-orange-50/50 via-white to-amber-50/30 shadow-xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-orange-100 text-[#F95700] text-[10px] font-black uppercase tracking-wider">
+                <div className="min-w-0">
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-orange-100 text-[#F95700] text-[10px] font-black uppercase tracking-wider">
                     <Sparkles className="w-3 h-3" />
                     Seçilen Paket
                   </div>
-                  <h3 className="text-xl font-black text-[#111E38] mt-1.5 tracking-tight">
+                  <h3 className="text-lg sm:text-xl font-black text-[#111E38] mt-1 tracking-tight truncate">
                     {selectedPlanForUpgrade.name} Paketi
                   </h3>
                   <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -755,17 +755,17 @@ function PaketlerContent() {
                   </p>
                 </div>
 
-                <div className="text-left sm:text-right pt-2 sm:pt-0 border-t sm:border-t-0 border-orange-100">
-                  <div className="text-2xl sm:text-3xl font-black text-[#111E38] tracking-tight">
+                <div className="text-left sm:text-right pt-2 sm:pt-0 border-t sm:border-t-0 border-orange-100 shrink-0">
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-black text-[#111E38] tracking-tight whitespace-nowrap">
                     {getPrice(selectedPlanForUpgrade).toLocaleString('tr-TR')} TL
                   </div>
-                  <div className="text-xs text-slate-400 font-bold">
+                  <div className="text-[11px] sm:text-xs text-slate-400 font-bold">
                     {billing === 'yearly' ? 'Yıllık Peşin (Özel İndirimli)' : 'Aylık Üyelik'}
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-orange-100/80 flex items-center gap-2 text-xs text-slate-600 font-medium">
+              <div className="mt-3 pt-2.5 border-t border-orange-100/80 flex items-center gap-2 text-xs text-slate-600 font-medium">
                 <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>Taahhütsüz üyelik — Dilediğiniz zaman tek tıkla iptal edebilirsiniz.</span>
               </div>
@@ -805,21 +805,21 @@ function PaketlerContent() {
             </div>
 
             {/* Aksiyon Butonları */}
-            <div className="pt-4 border-t border-slate-100 space-y-3">
+            <div className="pt-3 border-t border-slate-100 space-y-2.5">
               <button
                 type="button"
                 onClick={() => handleDodoCheckout(selectedPlanForUpgrade)}
                 disabled={isRedirectingToCheckout}
-                className="w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-2xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-base shadow-lg shadow-orange-500/25 hover:shadow-orange-500/35 transition-all cursor-pointer disabled:opacity-60"
+                className="w-full flex items-center justify-center gap-2 py-3 sm:py-3.5 px-4 sm:px-6 rounded-2xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all cursor-pointer disabled:opacity-60 text-center"
               >
                 {isRedirectingToCheckout ? (
                   <>
-                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0" />
                     <span>Ödeme Sayfasına Yönlendiriliyor...</span>
                   </>
                 ) : (
                   <>
-                    <Lock className="w-5 h-5" />
+                    <Lock className="w-4 h-4 shrink-0" />
                     <span>Güvenli Öde ({getPrice(selectedPlanForUpgrade).toLocaleString('tr-TR')} TL)</span>
                   </>
                 )}
@@ -829,7 +829,7 @@ function PaketlerContent() {
                 type="button"
                 disabled={isRedirectingToCheckout}
                 onClick={() => setSelectedPlanForUpgrade(null)}
-                className="w-full py-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors cursor-pointer text-center block"
+                className="w-full py-1.5 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors cursor-pointer text-center block"
               >
                 Vazgeç ve Kapat
               </button>
@@ -851,9 +851,9 @@ function PaketlerContent() {
         maxWidth="md"
       >
         {upgradeSuccessPlan && (
-          <div className="p-6 sm:p-8 text-center space-y-5">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 border-4 border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto animate-bounce shadow-md">
-              <CheckCircle2 className="w-8 h-8" />
+          <div className="text-center space-y-4">
+            <div className="w-14 h-14 rounded-full bg-emerald-100 border-4 border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-md">
+              <CheckCircle2 className="w-7 h-7" />
             </div>
 
             <div>
@@ -916,26 +916,26 @@ function PaketlerContent() {
         title="Paketler Nakliyat Firmalarına Özeldir"
         maxWidth="md"
       >
-        <div className="p-5 sm:p-6 space-y-4 text-center">
-          <div className="w-14 h-14 rounded-full bg-blue-100 text-[#146EF5] flex items-center justify-center mx-auto">
-            <Users className="w-7 h-7" />
+        <div className="space-y-4 text-center">
+          <div className="w-12 h-12 rounded-full bg-blue-100 text-[#146EF5] flex items-center justify-center mx-auto">
+            <Users className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-black text-[#111E38]">
+            <h3 className="text-base sm:text-lg font-black text-[#111E38]">
               Platformumuz Müşteriler İçin %100 Ücretsizdir!
             </h3>
-            <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1.5 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1 leading-relaxed">
               Ev veya ofis taşıtmak isteyen müşterilerimizden hiçbir abonelik, teklif alma veya komisyon ücreti alınmaz. Bu sayfadaki paketler, taşıma işi alan nakliye firmalarına aittir.
             </p>
           </div>
-          <div className="space-y-2 pt-2">
+          <div className="space-y-2 pt-1">
             <Link href="/teklif-al" className="block w-full">
-              <Button variant="primary" size="lg" className="w-full font-black text-sm">
+              <Button variant="primary" size="md" className="w-full font-black text-xs sm:text-sm py-2.5 sm:py-3">
                 Ücretsiz Taşınma Talebi Oluştur →
               </Button>
             </Link>
             <Link href="/kayit?role=nakliyeci" rel="nofollow" className="block w-full">
-              <Button variant="outline" size="md" className="w-full font-bold text-xs text-slate-700">
+              <Button variant="outline" size="md" className="w-full font-bold text-xs text-slate-700 py-2">
                 Nakliye Firması Hesabı Aç
               </Button>
             </Link>

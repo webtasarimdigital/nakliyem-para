@@ -46,18 +46,18 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         <div className="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mt-3 mb-1 md:hidden" />
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h3 className="text-base font-bold text-[#0A1128]">{title}</h3>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 shrink-0">
+          <h3 className="text-base font-black text-[#0A1128] truncate pr-2">{title}</h3>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Scrollable Content */}
-        <div className="p-6 overflow-y-auto pb-safe">
+        <div className="p-4 sm:p-6 overflow-y-auto pb-safe min-h-0 flex-1">
           {children}
         </div>
       </div>

@@ -763,7 +763,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
                 onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
                 placeholder="000000"
                 autoFocus
-                className="w-full py-3 px-4 rounded-xl border-2 border-slate-300 focus:border-[#F95700] focus:ring-2 focus:ring-[#F95700]/20 text-center tracking-[0.4em] font-mono text-2xl font-black text-[#111E38] outline-none transition-all"
+                className="w-full py-2.5 sm:py-3 px-2 sm:px-4 rounded-xl border-2 border-slate-300 focus:border-[#F95700] focus:ring-2 focus:ring-[#F95700]/20 text-center tracking-[0.25em] sm:tracking-[0.4em] font-mono text-xl sm:text-2xl font-black text-[#111E38] outline-none transition-all"
               />
             </div>
 
@@ -773,12 +773,12 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
               size="md"
               isLoading={isLoading}
               disabled={otpCode.length !== 6 || timeLeft <= 0}
-              className="w-full font-black text-xs py-3 shadow-md bg-[#F95700] hover:bg-[#E04F00]"
+              className="w-full font-black text-xs sm:text-sm py-2.5 sm:py-3 shadow-md bg-[#F95700] hover:bg-[#E04F00]"
             >
               {isLoading ? 'Doğrulanıyor...' : 'Doğrula ve Üye Ol'}
             </Button>
 
-            <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs pt-2 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => {
@@ -786,20 +786,20 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
                   setErrorMessage('');
                   setOtpSuccessMsg('');
                 }}
-                className="text-slate-500 hover:text-slate-800 font-semibold flex items-center gap-1 cursor-pointer"
+                className="w-full sm:w-auto text-slate-500 hover:text-slate-800 font-semibold flex items-center justify-center sm:justify-start gap-1 cursor-pointer py-1"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                {otpChannel === 'sms' || phone ? 'Telefonu Değiştir' : 'E-postayı Değiştir'}
+                <span>{otpChannel === 'sms' || phone ? 'Telefonu Değiştir' : 'E-postayı Değiştir'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleResendOtp}
                 disabled={resendCooldown > 0 || isLoading}
-                className="text-[#F95700] hover:underline font-bold disabled:opacity-50 disabled:no-underline cursor-pointer flex items-center gap-1"
+                className="w-full sm:w-auto text-[#F95700] hover:underline font-bold disabled:opacity-50 disabled:no-underline cursor-pointer flex items-center justify-center sm:justify-end gap-1 py-1"
               >
                 <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
-                {resendCooldown > 0 ? `Tekrar Gönder (${resendCooldown}s)` : 'Tekrar Kod Gönder'}
+                <span>{resendCooldown > 0 ? `Tekrar Gönder (${resendCooldown}s)` : 'Tekrar Kod Gönder'}</span>
               </button>
             </div>
           </form>

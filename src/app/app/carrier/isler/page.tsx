@@ -1030,10 +1030,10 @@ export default function CarrierJobsPage() {
             </span>
           )}
 
-          <div className="flex gap-2 pt-1">
+          <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
             <button
               type="button"
-              className="flex-1 h-10 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-sm transition-colors cursor-pointer"
+              className="w-full sm:flex-1 py-2.5 px-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs sm:text-sm transition-colors cursor-pointer text-center"
               onClick={() => setPlanModalOpen(false)}
             >
               Vazgeç
@@ -1041,11 +1041,11 @@ export default function CarrierJobsPage() {
             <Link
               href={planModalData?.actionLink || "/paketler"}
               onClick={() => setPlanModalOpen(false)}
-              className="flex-1"
+              className="w-full sm:flex-1"
             >
               <button
                 type="button"
-                className="w-full h-10 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-bold text-sm transition-colors cursor-pointer"
+                className="w-full py-2.5 px-3 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs sm:text-sm transition-colors cursor-pointer text-center"
               >
                 {planModalData?.actionText || "Paketleri İncele"}
               </button>
@@ -1084,14 +1084,14 @@ export default function CarrierJobsPage() {
               />
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <Button variant="outline" size="md" className="flex-1 font-bold" onClick={resetOfferForm}>
+            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2">
+              <Button variant="outline" size="md" className="w-full sm:flex-1 font-bold text-xs sm:text-sm py-2.5 sm:py-3" onClick={resetOfferForm}>
                 İptal
               </Button>
               <Button
                 variant="primary"
                 size="md"
-                className="flex-1 font-black"
+                className="w-full sm:flex-1 font-black text-xs sm:text-sm py-2.5 sm:py-3"
                 disabled={!offerPrice || parseOfferInput(offerPrice).price <= 0}
                 onClick={() => {
                   if (!currentUser || (currentUser.role !== 'CARRIER' && !currentUser.isMasterUser) || !carrier) {
@@ -1225,44 +1225,44 @@ export default function CarrierJobsPage() {
       )}
       {/* ── MÜŞTERİ PROFİLİ MODALI (Paket Korumalı Telefon & Mesaj) ── */}
       {customerModalReq && (
-        <div className="fixed inset-0 z-50 bg-[#111E38]/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in">
+        <div className="fixed inset-0 z-50 bg-[#111E38]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 max-w-md w-full shadow-2xl border border-slate-100 space-y-4 animate-scale-in my-auto max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-black text-[#111E38]">Müşteri Profili</h3>
               <button
                 onClick={() => { setCustomerModalReq(null); setCustomerPhoneWarning(false); }}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-lg hover:bg-slate-100"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="flex items-center gap-3.5">
-              <div className="w-14 h-14 rounded-2xl bg-[#111E38] text-white font-black text-lg flex items-center justify-center shadow-md">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#111E38] text-white font-black text-base sm:text-lg flex items-center justify-center shadow-md shrink-0">
                 {customerModalReq.customerName[0]}
               </div>
-              <div>
-                <h4 className="font-black text-base text-[#111E38]">{customerModalReq.customerName}</h4>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md mt-0.5">
+              <div className="min-w-0">
+                <h4 className="font-black text-sm sm:text-base text-[#111E38] truncate">{customerModalReq.customerName}</h4>
+                <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md mt-0.5">
                   ✓ Doğrulanmış Cep Telefonu
                 </span>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 text-xs">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-slate-50 border border-slate-100">
                 <span className="text-slate-400 block text-[10px] font-bold uppercase">Konum</span>
-                <span className="font-black text-[#111E38]">{customerModalReq.originCity} / {customerModalReq.originDistrict}</span>
+                <span className="font-black text-[#111E38] truncate block">{customerModalReq.originCity} / {customerModalReq.originDistrict}</span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-slate-50 border border-slate-100">
                 <span className="text-slate-400 block text-[10px] font-bold uppercase">Taşınma Sayısı</span>
-                <span className="font-black text-[#111E38]">2 Başarılı Taşıma</span>
+                <span className="font-black text-[#111E38] block">2 Başarılı Taşıma</span>
               </div>
             </div>
 
             {/* Telefon Alanı: Paket Kontrolü veya Anlaşıldı Koruması */}
             {customerModalReq.status === 'ASSIGNED' ? (
-              <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-950 text-xs space-y-2">
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-950 text-xs space-y-2">
                 <div className="flex items-center gap-2 font-black text-blue-900">
                   <span className="text-base">🤝</span>
                   <span>Bu Talep İçin Nakliyeci ile Anlaşılmıştır</span>
@@ -1281,7 +1281,7 @@ export default function CarrierJobsPage() {
               </div>
             ) : (
               <>
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-600">İletişim Numarası</span>
                     {canViewPhone ? (
@@ -1296,25 +1296,25 @@ export default function CarrierJobsPage() {
                   </div>
 
                   {canViewPhone ? (
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="font-black text-base text-[#111E38] tracking-wider">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                      <span className="font-black text-sm sm:text-base text-[#111E38] tracking-wider">
                         {customerModalReq.customerPhone}
                       </span>
-                      <a href={`tel:${customerModalReq.customerPhone}`}>
-                        <button className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer">
+                      <a href={`tel:${customerModalReq.customerPhone}`} className="shrink-0">
+                        <button className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs inline-flex items-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap">
                           <Phone className="w-3.5 h-3.5" />
                           <span>Hemen Ara</span>
                         </button>
                       </a>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="font-black text-sm text-slate-400 tracking-wider">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                      <span className="font-black text-xs sm:text-sm text-slate-400 tracking-wider">
                         {customerModalReq.customerPhone.slice(0, 4)} *** ** {customerModalReq.customerPhone.slice(-2)}
                       </span>
                       <button
                         onClick={() => setCustomerPhoneWarning(true)}
-                        className="px-3 py-1.5 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs inline-flex items-center gap-1 shadow-sm cursor-pointer transition-colors"
+                        className="px-3 py-1.5 rounded-xl bg-[#F95700] hover:bg-[#E04D00] text-white font-black text-xs inline-flex items-center gap-1 shadow-sm cursor-pointer transition-colors shrink-0 whitespace-nowrap"
                       >
                         <Lock className="w-3.5 h-3.5" />
                         <span>Numarayı Gör</span>

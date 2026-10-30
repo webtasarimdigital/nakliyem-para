@@ -424,31 +424,31 @@ export function LiveOfferChatModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#0A1128]/40 backdrop-blur-xs animate-fade-in">
       
       {/* ── CHAT MODAL CONTAINER (Image media_1788383028254 exact) ── */}
-      <div className="bg-white rounded-3xl sm:rounded-4xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[650px] max-h-[92vh] animate-scale-in">
+      <div className="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[650px] max-h-[92dvh] animate-scale-in my-auto">
         
         {/* 1. Header Bar: Back arrow + Avatar + Company Name + Close */}
-        <div className="px-4 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
-          <div className="flex items-center gap-2.5">
+        <div className="px-3.5 sm:px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-white shrink-0 gap-2">
+          <div className="flex items-center gap-2 min-w-0 pr-1">
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer shrink-0"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
 
             {/* Carrier Avatar SN */}
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-xs">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shadow-xs shrink-0">
               {carrierName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'SN'}
             </div>
 
-            <span className="font-black text-xs sm:text-sm text-[#0A1128] tracking-tight">
+            <span className="font-black text-xs sm:text-sm text-[#0A1128] tracking-tight truncate max-w-[150px] sm:max-w-[200px]">
               {carrierName}
             </span>
           </div>
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0"
           >
             <X className="w-4 h-4" />
           </button>
