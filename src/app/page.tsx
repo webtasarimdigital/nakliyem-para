@@ -163,7 +163,7 @@ export default function HomePage() {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-3.5 sm:px-6 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-8 lg:gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-8 lg:gap-8 xl:gap-10 items-center">
 
             {/* ── SOL KOLON (Mobilde 1. ve 2. Bölüm): H1 Girişi + Hedefleme + Nakliyeci Müşteri Bul ── */}
             <div className="lg:col-span-7 space-y-2.5 sm:space-y-6 text-center lg:text-left">
@@ -176,9 +176,11 @@ export default function HomePage() {
 
               {/* H1 Girişi & Hedefleme Açıklaması */}
               <div className="space-y-1.5 sm:space-y-3.5">
-                <h1 className="text-xl sm:text-4xl lg:text-5xl xl:text-6xl font-black text-[#111E38] tracking-tight leading-tight">
-                  Taşınmanın ve Nakliyenin <br className="hidden sm:inline" />
-                  <span className="text-[#F95700]">En Hızlı &amp; Güvenilir</span> Yolu
+                <h1 className="text-[1.35rem] sm:text-3xl md:text-4xl lg:text-[2.55rem] xl:text-[3.15rem] 2xl:text-6xl font-black text-[#111E38] tracking-tight leading-[1.15]">
+                  <span className="block whitespace-nowrap">Taşınmanın ve Nakliyenin</span>
+                  <span className="block whitespace-nowrap">
+                    <span className="text-[#F95700]">En Hızlı &amp; En Uygun</span> Yolu
+                  </span>
                 </h1>
                 <p className="text-xs sm:text-base lg:text-lg text-slate-600 font-normal leading-snug sm:leading-relaxed max-w-2xl mx-auto lg:mx-0">
                   Müşteriler için ücretsiz ve komisyonsuz anında fiyat teklifleri; nakliyeciler için tek kayıtla doğrudan müşteri bulma ve kazanma merkezi.
