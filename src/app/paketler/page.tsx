@@ -717,7 +717,7 @@ function PaketlerContent() {
       {/* ── NAKLİYECİ PAKET YÜKSELTME / 7 GÜN ÜCRETSİZ DENEME MODALI ── */}
       {/* ── NAKLİYECİ PAKET SEÇİMİ VE GÜVENLİ ÖDEME MODALI ── */}
       <Modal
-        isOpen={!!selectedPlanForUpgrade}
+        isOpen={!!selectedPlanForUpgrade && !!currentUser}
         onClose={() => !isRedirectingToCheckout && setSelectedPlanForUpgrade(null)}
         title="Paket Seçimi & Güvenli Ödeme"
         maxWidth="lg"
@@ -953,7 +953,10 @@ function PaketlerContent() {
       {/* ── GİRİŞ YAPILMAMIŞSA GİRİŞ / KAYIT MODALI ── */}
       <IntentAuthModal
         isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
+        onClose={() => {
+          setAuthModalOpen(false);
+          setSelectedPlanForUpgrade(null);
+        }}
         targetRole={authModalConfig.targetRole}
         title={authModalConfig.title}
         subtitle={authModalConfig.subtitle}

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Maintenance mode is controlled via environment variable (default: false / live)
-// or cookie. When false, the site is 100% live and publicly accessible.
-const IS_MAINTENANCE_MODE = process.env.MAINTENANCE_MODE === 'true';
+// Maintenance mode is ACTIVE (Site bakım moduna alındı)
+const IS_MAINTENANCE_MODE = true;
 const BYPASS_SECRET = process.env.MAINTENANCE_BYPASS_SECRET || 'tasin2026';
 const BYPASS_COOKIE_NAME = 'tasinteklif_maintenance_bypass';
 

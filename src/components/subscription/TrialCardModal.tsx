@@ -32,6 +32,11 @@ export function TrialCardModal({ isOpen, onClose, onSuccess }: TrialCardModalPro
 
     try {
       const currentUser = db.getCurrentUser();
+      if (!currentUser) {
+        setError('Ödeme ve 7 günlük ücretsiz deneme süresini başlatmak için lütfen önce nakliyeci hesabınıza giriş yapın veya kayıt olun.');
+        setLoading(false);
+        return;
+      }
       const carrier = db.getCurrentCarrier() || 
         (currentUser?.role === 'CARRIER' 
           ? db.getCarriers().find(c => c.userId === currentUser.id || c.id === currentUser.carrierProfileId) 

@@ -83,12 +83,12 @@ export default function FiyatlarPage() {
   const handlePlanClick = (plan: typeof PLANS[0]) => {
     const user = currentUser || db.getCurrentUser();
     if (!user) {
+      setSelectedPlanForUpgrade(null);
       setAuthModalConfig({
-        title: 'Paket Seçimi İçin Giriş Yapın',
-        subtitle: `${plan.name} paketini firmanıza tanımlamak ve teklif vermeye başlamak için lütfen nakliyeci hesabınıza giriş yapın.`,
+        title: plan.id === 'pro' || (plan as any).trialBadge ? '7 Gün Ücretsiz Deneme İçin Giriş Yapın' : 'Paket Seçimi İçin Giriş Yapın',
+        subtitle: `${plan.name} paketini firmanıza tanımlamak ve teklif vermeye başlamak için lütfen nakliyeci hesabınıza giriş yapın veya yeni üyelik oluşturun.`,
         targetRole: 'CARRIER'
       });
-      setSelectedPlanForUpgrade(plan);
       setAuthModalOpen(true);
       return;
     }
@@ -110,6 +110,18 @@ export default function FiyatlarPage() {
     try {
       setIsRedirectingToCheckout(true);
       const user = currentUser || db.getCurrentUser();
+      if (!user) {
+        setIsRedirectingToCheckout(false);
+        setSelectedPlanForUpgrade(null);
+        setAuthModalConfig({
+          title: 'Paket Seçimi İçin Giriş Yapın',
+          subtitle: 'Abonelik başlatmak için lütfen önce nakliyeci hesabınıza giriş yapın veya kayıt olun.',
+          targetRole: 'CARRIER'
+        });
+        setAuthModalOpen(true);
+        return;
+      }
+
       let c = carrier;
       if (!c && user) {
         c = db.getCurrentCarrier() || db.getCarriers().find(item => item.userId === user.id || item.id === user.carrierProfileId) || null;
@@ -680,7 +692,7 @@ export default function FiyatlarPage() {
 
       {/* ── SATIN ALMA / GÜVENLİ ÖDEME MODALI ── */}
       <Modal
-        isOpen={!!selectedPlanForUpgrade && !authModalOpen && !customerModalOpen}
+        isOpen={!!selectedPlanForUpgrade && !authModalOpen && !customerModalOpen && !!currentUser}
         onClose={() => !isRedirectingToCheckout && setSelectedPlanForUpgrade(null)}
         title="Paket Seçimi & Güvenli Ödeme"
         maxWidth="lg"
@@ -820,7 +832,10 @@ export default function FiyatlarPage() {
       {/* ── GİRİŞ / KAYIT MODALI ── */}
       <IntentAuthModal
         isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
+        onClose={() => {
+          setAuthModalOpen(false);
+          setSelectedPlanForUpgrade(null);
+        }}
         targetRole={authModalConfig.targetRole}
         title={authModalConfig.title}
         subtitle={authModalConfig.subtitle}
