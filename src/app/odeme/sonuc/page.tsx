@@ -70,8 +70,8 @@ function OdemeSonucContent() {
           }
         } else {
           // Normal ödeme / paket yenileme
-          db.updateCarrier(carrier.id, { planId: targetPlanId, trialStatus: 'CONVERTED' });
-          db.renewCarrierSubscription(carrier.id);
+          db.updateCarrier(carrier.id, { planId: targetPlanId, trialStatus: 'CONVERTED', autoRenew: true });
+          db.renewCarrierSubscription(carrier.id, targetPlanId);
           const updated = db.getCarrierById(carrier.id);
           setCarrierData(updated);
           updateFirestoreCarrier(carrier.id, { planId: targetPlanId, trialStatus: 'CONVERTED' }).catch(() => {});

@@ -39,7 +39,7 @@ import { TURKEY_CITIES } from '@/lib/data/turkey-geo';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
 import { deleteCurrentUserFirebase } from '@/lib/firebase/auth';
-import { updateFirestoreUserProfile } from '@/lib/firebase/firestore';
+import { updateFirestoreUserProfile, updateFirestoreCarrier } from '@/lib/firebase/firestore';
 import { CarrierProfile, CarrierSubscription, CarrierDocument } from '@/types';
 
 const ALL_SERVICES = [
@@ -786,10 +786,12 @@ export default function CarrierProfileEditorPage() {
               {isCancelled ? (
                 <button
                   onClick={() => {
-                    const updated = db.renewCarrierSubscription(carrier.id);
+                    const targetPlan = carrier.planId === 'plan_gold' ? 'plan_gold' : 'plan_pro';
+                    const updated = db.renewCarrierSubscription(carrier.id, targetPlan);
                     setSub(updated);
-                    const updatedCarrier = db.getCarrierById(carrier.id) || carrier;
+                    const updatedCarrier = db.getCarrierById(carrier.id) || { ...carrier, planId: targetPlan, trialStatus: 'CONVERTED' as const };
                     setCarrier(updatedCarrier);
+                    updateFirestoreCarrier(carrier.id, { planId: targetPlan, trialStatus: 'CONVERTED' }).catch(() => {});
                     showNotification('Aboneliğiniz yeniden aktif edildi.');
                   }}
                   className="px-4 py-2 rounded-xl bg-[#F95700] text-white font-black text-xs hover:bg-[#E04D00] transition-all cursor-pointer shadow-sm"

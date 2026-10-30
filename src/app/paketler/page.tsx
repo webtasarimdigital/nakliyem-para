@@ -340,12 +340,19 @@ function PaketlerContent() {
       };
       db.addCarrier(activeCarrier);
     } else if (activeCarrier) {
-      db.updateCarrier(activeCarrier.id, { planId: targetDbPlanId });
-      db.renewCarrierSubscription(activeCarrier.id);
+      db.updateCarrier(activeCarrier.id, { 
+        planId: targetDbPlanId,
+        trialStatus: 'CONVERTED',
+        autoRenew: true,
+      });
+      db.renewCarrierSubscription(activeCarrier.id, targetDbPlanId);
     }
 
     if (activeCarrier) {
-      updateFirestoreCarrier(activeCarrier.id, { planId: targetDbPlanId }).catch(() => {});
+      updateFirestoreCarrier(activeCarrier.id, { 
+        planId: targetDbPlanId,
+        trialStatus: 'CONVERTED',
+      }).catch(() => {});
     }
 
     if (currentUser && activeCarrier) {

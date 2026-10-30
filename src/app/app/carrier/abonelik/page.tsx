@@ -134,8 +134,12 @@ export default function CarrierSubscriptionPage() {
 
   const handleRenewSubscription = () => {
     if (!carrier) return;
-    const updated = db.renewCarrierSubscription(carrier.id);
+    const targetPlan = carrier.planId === 'plan_gold' ? 'plan_gold' : 'plan_pro';
+    const updated = db.renewCarrierSubscription(carrier.id, targetPlan);
+    const freshCarrier = db.getCarrierById(carrier.id) || { ...carrier, planId: targetPlan, trialStatus: 'CONVERTED' as const, autoRenew: true };
     setSub(updated);
+    setCarrier(freshCarrier);
+    updateFirestoreCarrier(carrier.id, { planId: targetPlan, trialStatus: 'CONVERTED' }).catch(() => {});
   };
 
   const handleStartTrial = (e: React.FormEvent) => {
@@ -159,7 +163,8 @@ export default function CarrierSubscriptionPage() {
     setCardError('');
     setIsActivating(true);
     setTimeout(async () => {
-      const isTrial = selectedPlanForTrial.trialDays > 0 || selectedPlanForTrial.id === 'plan_pro';
+      const hasUsedTrial = carrier.trialStatus === 'EXPIRED' || carrier.trialStatus === 'CONVERTED';
+      const isTrial = !hasUsedTrial && (selectedPlanForTrial.trialDays > 0 || selectedPlanForTrial.id === 'plan_pro');
       let updatedCarrier: CarrierProfile;
       let updatedSub: CarrierSubscription;
 
@@ -189,12 +194,14 @@ export default function CarrierSubscriptionPage() {
           console.warn('Firestore trial sync warning:', err);
         }
       } else {
-        db.updateCarrier(carrier.id, { planId: selectedPlanForTrial.id });
-        updatedSub = db.renewCarrierSubscription(carrier.id);
-        updatedCarrier = db.getCarrierById(carrier.id) || { ...carrier, planId: selectedPlanForTrial.id };
+        // Doğrudan satın alma / abonelik yenileme — Tüm Pro/Gold yetkilerini anında aç
+        updatedSub = db.renewCarrierSubscription(carrier.id, selectedPlanForTrial.id);
+        const fresh = db.getCarrierById(carrier.id);
+        updatedCarrier = fresh || { ...carrier, planId: selectedPlanForTrial.id, trialStatus: 'CONVERTED' as const, autoRenew: true };
         try {
           await updateFirestoreCarrier(carrier.id, {
             planId: selectedPlanForTrial.id,
+            trialStatus: 'CONVERTED',
           });
         } catch (err) {
           console.warn('Firestore plan sync warning:', err);
@@ -443,7 +450,7 @@ export default function CarrierSubscriptionPage() {
                       className="w-full"
                       onClick={() => setSelectedPlanForTrial(p)}
                     >
-                      7 Gün Ücretsiz Dene
+                      {carrier.trialStatus === 'EXPIRED' || carrier.trialStatus === 'CONVERTED' ? 'Paketi Satın Al / Aktif Et' : '7 Gün Ücretsiz Dene'}
                     </Button>
                   )}
                 </div>
@@ -453,30 +460,38 @@ export default function CarrierSubscriptionPage() {
         </div>
       </div>
 
-      {/* 7-DAY TRIAL START MODAL (Spec Item 21) */}
+      {/* 7-DAY TRIAL OR SUBSCRIPTION ACTIVATION MODAL */}
       <Modal
         isOpen={!!selectedPlanForTrial}
         onClose={() => {
           setSelectedPlanForTrial(null);
           setCardError('');
         }}
-        title="7 Gün Ücretsiz Denemenizi Başlatın"
+        title={carrier.trialStatus === 'EXPIRED' || carrier.trialStatus === 'CONVERTED' ? `${selectedPlanForTrial?.name} Paketini Başlat` : '7 Gün Ücretsiz Denemenizi Başlatın'}
       >
         {selectedPlanForTrial && (
           <form onSubmit={handleStartTrial} className="space-y-4 text-xs sm:text-sm">
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
               <div>
                 <span className="font-bold text-[#0A1128] block text-base">{selectedPlanForTrial.name} Paket</span>
-                <span className="text-xs text-slate-500">{selectedPlanForTrial.priceMonthly} TL / Ay (7 gün sonra)</span>
+                <span className="text-xs text-slate-500">
+                  {carrier.trialStatus === 'EXPIRED' || carrier.trialStatus === 'CONVERTED' 
+                    ? `${selectedPlanForTrial.priceMonthly.toLocaleString('tr-TR')} TL / Ay` 
+                    : `${selectedPlanForTrial.priceMonthly.toLocaleString('tr-TR')} TL / Ay (7 gün sonra)`}
+                </span>
               </div>
               <Badge variant="gold" size="sm" />
             </div>
 
-            {/* Transparent Billing Notice (Spec Item 21) */}
+            {/* Transparent Billing Notice */}
             <div className="p-4 rounded-xl bg-[#EAF3FF] border border-blue-200 text-xs text-[#0B3B8F] leading-relaxed space-y-1">
-              <strong className="block font-bold">Bugün Hiçbir Ücret Alınmaz</strong>
+              <strong className="block font-bold">
+                {carrier.trialStatus === 'EXPIRED' || carrier.trialStatus === 'CONVERTED' ? 'Anında Tam Yetki & Aktivasyon' : 'Bugün Hiçbir Ücret Alınmaz'}
+              </strong>
               <p>
-                7 günlük ücretsiz kullanımınız bittikten sonra seçtiğiniz paket üzerinden üyeliğiniz otomatik yenilenir. İstediğiniz zaman tek tıkla iptal edebilirsiniz.
+                {carrier.trialStatus === 'EXPIRED' || carrier.trialStatus === 'CONVERTED'
+                  ? 'Aboneliğiniz tanımlanır tanımlanmaz tüm ilanlara teklif verme ve müşteri telefonu görme yetkiniz anında açılacaktır.'
+                  : '7 günlük ücretsiz kullanımınız bittikten sonra seçtiğiniz paket üzerinden üyeliğiniz otomatik yenilenir. İstediğiniz zaman tek tıkla iptal edebilirsiniz.'}
               </p>
             </div>
 
@@ -557,7 +572,7 @@ export default function CarrierSubscriptionPage() {
                 Vazgeç
               </Button>
               <Button variant="primary" size="md" type="submit" isLoading={isActivating} className="w-full sm:w-auto font-black text-xs sm:text-sm py-2.5 sm:py-3 text-center">
-                Denemeyi Başlat
+                {carrier.trialStatus === 'EXPIRED' || carrier.trialStatus === 'CONVERTED' ? 'Aboneliği Aktif Et' : 'Denemeyi Başlat'}
               </Button>
             </div>
           </form>

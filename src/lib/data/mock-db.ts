@@ -1826,21 +1826,50 @@ class MockDatabase {
     return updated;
   }
 
-  renewCarrierSubscription(carrierId: string): CarrierSubscription {
+  renewCarrierSubscription(carrierId: string, targetPlanId?: string): CarrierSubscription {
     const sub = this.getCarrierSubscription(carrierId);
+    const carrier = this.getCarrierById(carrierId) || this.getCarriers().find(c => c.id === carrierId);
+    
+    let planId = targetPlanId || sub?.planId;
+    if (!targetPlanId) {
+      if (carrier?.planId === 'plan_gold' || carrier?.planId === 'gold' || sub?.planId === 'plan_gold' || sub?.planId === 'gold') {
+        planId = 'plan_gold';
+      } else {
+        planId = 'plan_pro';
+      }
+    }
+    
     const now = new Date();
     const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     const updated: CarrierSubscription = {
       ...sub,
+      planId,
       status: 'ACTIVE',
       cancelAtPeriodEnd: false,
       autoRenew: true,
       currentPeriodStart: now.toISOString(),
       currentPeriodEnd: periodEnd.toISOString(),
+      lastPaymentDate: now.toISOString(),
+      lastPaymentAmount: (planId === 'plan_gold' || planId === 'gold') ? 5990 : 2990,
     };
     const subs = this.getItem<Record<string, CarrierSubscription>>('carrierSubscriptions', {});
     subs[carrierId] = updated;
     this.setItem('carrierSubscriptions', subs);
+
+    // CRITICAL: Immediately update carrier profile so all privileges (phone access, 50/unlimited offers) unlock instantly!
+    if (carrier) {
+      this.updateCarrier(carrierId, {
+        planId,
+        trialStatus: 'CONVERTED',
+        autoRenew: true,
+      });
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-changed'));
+      window.dispatchEvent(new Event('storage'));
+    }
+
     return updated;
   }
 
@@ -2531,6 +2560,28 @@ class MockDatabase {
     const periodEndMs = sub?.currentPeriodEnd ? new Date(sub.currentPeriodEnd).getTime() : 0;
     const isSubActive = sub?.status === 'ACTIVE' && (!sub.cancelAtPeriodEnd || periodEndMs > now);
 
+    // 0. Purchased / Re-subscribed carrier (trialStatus: 'CONVERTED')
+    // When a carrier buys Pro or Gold, privileges are 100% unlocked immediately without restriction!
+    if (carrier.trialStatus === 'CONVERTED' && (carrier.planId === 'plan_gold' || carrier.planId === 'gold' || carrier.planId === 'plan_pro' || carrier.planId === 'pro')) {
+      const isGold = carrier.planId === 'plan_gold' || carrier.planId === 'gold' || sub?.planId === 'plan_gold' || sub?.planId === 'gold';
+      const activePlan = this.getPlanById(isGold ? 'plan_gold' : 'plan_pro') || (isGold ? SEED_PLANS[2] : SEED_PLANS[1]);
+      
+      if (!isSubActive && !sub?.cancelAtPeriodEnd) {
+        this.renewCarrierSubscription(carrierId, isGold ? 'plan_gold' : 'plan_pro');
+      }
+
+      return {
+        plan: activePlan,
+        planId: isGold ? 'plan_gold' : 'plan_pro',
+        isProOrGold: true,
+        isTrialActive: false,
+        isExpired: false,
+        canViewPhone: true,
+        dailyOfferLimit: 9999,
+        monthlyOfferLimit: isGold ? 'unlimited' : 50,
+      };
+    }
+
     // 1. Paid active subscription (Pro or Gold)
     if (isSubActive && (sub.planId === 'plan_gold' || sub.planId === 'gold' || carrier.planId === 'plan_gold' || carrier.planId === 'gold')) {
       const goldPlan = this.getPlanById('plan_gold') || SEED_PLANS[2];
@@ -2546,7 +2597,7 @@ class MockDatabase {
       };
     }
 
-    if (isSubActive && (sub.planId === 'plan_pro' || sub.planId === 'pro')) {
+    if (isSubActive && (sub.planId === 'plan_pro' || sub.planId === 'pro' || carrier.planId === 'plan_pro' || carrier.planId === 'pro')) {
       const proPlan = this.getPlanById('plan_pro') || SEED_PLANS[1];
       return {
         plan: proPlan,
