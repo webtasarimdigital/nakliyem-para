@@ -187,7 +187,7 @@ export default function FiyatlarPage() {
       yearlyMonthlyPrice: 2491,
       yearlyTotal: 29900,
       isFeatured: true,
-      badge: '⭐ EN ÇOK TERCİH EDİLEN & 7G ÜCRETSİZ',
+      badge: 'En Popüler',
       trialBadge: '⭐ 7 GÜN ÜCRETSİZ DENEME (0 ₺)',
       ctaText: '7 Gün Ücretsiz Denemeyi Başlat',
       ctaUrl: '/paketler?plan=pro',
@@ -212,7 +212,7 @@ export default function FiyatlarPage() {
       yearlyMonthlyPrice: 4991,
       yearlyTotal: 59900,
       isFeatured: false,
-      badge: 'FİLOLAR & KURUMSALLAR',
+      badge: 'Kurumsal Filo',
       trialBadge: null,
       ctaText: 'Filo Paketini Seç',
       ctaUrl: '/paketler?plan=gold',
@@ -339,28 +339,35 @@ export default function FiyatlarPage() {
             return (
               <div
                 key={plan.id}
-                className={`rounded-3xl p-7 sm:p-8 flex flex-col justify-between transition-all bg-white relative ${
+                className={`rounded-3xl p-6 sm:p-8 flex flex-col justify-between transition-all bg-white relative ${
                   plan.isFeatured
                     ? 'border-2 border-[#F95700] ring-4 ring-[#F95700]/15 shadow-2xl lg:-translate-y-2'
                     : 'border border-slate-200/90 shadow-md hover:shadow-xl'
                 }`}
               >
+                {/* Crown Ribbon on Top of Featured Card (Never breaks or wraps) */}
+                {plan.isFeatured && plan.trialBadge && (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 sm:px-4 py-1 rounded-full bg-gradient-to-r from-[#F95700] to-[#FF7020] text-white font-black text-[10px] sm:text-[11px] uppercase tracking-wider shadow-md whitespace-nowrap z-20 flex items-center gap-1.5 border border-white/20">
+                    <Star className="w-3.5 h-3.5 fill-current" />
+                    <span>{plan.trialBadge}</span>
+                  </div>
+                )}
+
                 <div>
-                  {/* Top Badges */}
-                  <div className="flex items-center justify-between gap-2 mb-4">
-                    <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                  {/* Top Badges (Zero-wrap, guaranteed single-line per badge) */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-wider whitespace-nowrap shrink-0">
                       {plan.nametag}
                     </span>
-                    {plan.trialBadge && (
-                      <span className="text-[10px] font-black text-white bg-[#F95700] px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">
-                        {plan.trialBadge}
+                    {plan.isFeatured ? (
+                      <span className="text-[11px] font-black text-[#F95700] bg-orange-50 border border-orange-200/80 px-2.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap shrink-0 shadow-2xs">
+                        ⭐ {plan.badge}
                       </span>
-                    )}
-                    {plan.badge && !plan.trialBadge && (
-                      <span className="text-[10px] font-black text-white bg-[#F95700] px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">
+                    ) : plan.badge ? (
+                      <span className="text-[11px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap shrink-0">
                         {plan.badge}
                       </span>
-                    )}
+                    ) : null}
                   </div>
 
                   <h3 className="text-2xl sm:text-3xl font-black text-[#111E38] mb-2">

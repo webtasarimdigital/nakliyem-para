@@ -894,7 +894,7 @@ export default function CarrierSubscriptionPage() {
                     <div className="flex items-center gap-2">
                       <span className="font-black text-slate-900 text-sm">{p.name} Paketi</span>
                       {isCurrent && (
-                        <span className="text-[10px] font-bold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] font-bold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
                           Mevcut
                         </span>
                       )}

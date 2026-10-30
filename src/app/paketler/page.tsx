@@ -61,7 +61,7 @@ const PLANS = [
     color: 'border-[#F95700] ring-4 ring-[#F95700]/20 shadow-2xl',
     headerBg: 'bg-gradient-to-br from-[#0A1128] via-[#111E38] to-[#0A1128]',
     isFeatured: true,
-    badge: '⭐ EN ÇOK TERCİH EDİLEN & EN AVANTAJLI',
+    badge: '⭐ EN ÇOK TERCİH EDİLEN',
     ctaText: '7 Gün Ücretsiz Denemeyi Başlat',
     ctaVariant: 'primary' as const,
     features: {
@@ -451,9 +451,9 @@ function PaketlerContent() {
                 
                 {/* 7 Days Free Trial Banner for Top Tier */}
                 {plan.hasTrial && (
-                  <div className="mb-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500 text-white text-xs font-black tracking-wide shadow-sm animate-pulse">
-                    <Check className="w-3.5 h-3.5" />
-                    {plan.trialBadge}
+                  <div className="mb-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500 text-white text-xs font-black tracking-wide shadow-sm animate-pulse whitespace-nowrap">
+                    <Check className="w-3.5 h-3.5 shrink-0" />
+                    <span>{plan.trialBadge}</span>
                   </div>
                 )}
 
