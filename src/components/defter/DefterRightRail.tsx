@@ -39,9 +39,9 @@ const SPONSOR_BANNERS: SponsorBanner[] = [
     city: 'Adana',
     category: 'nakliyeci',
     typeLabel: 'Evden Eve & Şehirlerarası',
-    phone: '0536 225 93 28',
-    secondaryPhone: '0537 250 49 08',
-    whatsapp: '905362259328',
+    phone: '',
+    secondaryPhone: '',
+    whatsapp: '',
     imageSrc: '/banners/toros-nakliyat.png',
     isCustomImage: true,
     highlightText: 'Kalitenin Bilinen Adresi · Adana Evden Eve Nakliyat Hizmetleri',
@@ -53,9 +53,9 @@ const SPONSOR_BANNERS: SponsorBanner[] = [
     city: 'İstanbul',
     category: 'nakliyeci',
     typeLabel: 'Google 1. Sıra · Sigortalı Taşıma',
-    phone: '444 65 84',
-    secondaryPhone: '0216 493 84 84',
-    whatsapp: '902164938484',
+    phone: '',
+    secondaryPhone: '',
+    whatsapp: '',
     imageSrc: '/banners/kozcuoglu-nakliyat.svg',
     highlightText: 'İstanbul İçi & Türkiye Geneli Asansörlü Taşımacılık',
     badge: 'Öne Çıkan'
@@ -66,9 +66,9 @@ const SPONSOR_BANNERS: SponsorBanner[] = [
     city: 'Türkiye Geneli',
     category: 'nakliyeci',
     typeLabel: "1956'dan Beri Güvenle",
-    phone: '444 65 90',
-    secondaryPhone: '0532 411 22 33',
-    whatsapp: '905324112233',
+    phone: '',
+    secondaryPhone: '',
+    whatsapp: '',
     imageSrc: '/banners/colakoglu-nakliyat.svg',
     highlightText: 'Kurumsal Ev, Villa ve Ofis Taşımacılığı & Depolama',
     badge: 'Kurumsal'
@@ -79,9 +79,9 @@ const SPONSOR_BANNERS: SponsorBanner[] = [
     city: 'İzmir - İstanbul',
     category: 'nakliyeci',
     typeLabel: 'Sabit Fiyat Garantisi · K3 Belgeli',
-    phone: '444 7 343',
-    secondaryPhone: '0232 455 10 20',
-    whatsapp: '902324551020',
+    phone: '',
+    secondaryPhone: '',
+    whatsapp: '',
     imageSrc: '/banners/egetur-nakliyat.svg',
     highlightText: 'İzmir ⇄ İstanbul ⇄ Ankara Günlük Düzenli Seferler',
     badge: 'Pro Sponsor'
@@ -92,8 +92,8 @@ const SPONSOR_BANNERS: SponsorBanner[] = [
     city: 'Balıkesir - Bandırma',
     category: 'asansor',
     typeLabel: '18. Kata Kadar Mobil Asansör Kiralama',
-    phone: '0532 135 39 72',
-    whatsapp: '905321353972',
+    phone: '',
+    whatsapp: '',
     imageSrc: '/banners/oztas-nakliyat.svg',
     highlightText: 'Balıkesir, Bandırma, Gönen & Çevre İller Asansörlü Nakliyat',
     badge: 'Asansör'
@@ -104,9 +104,9 @@ const SPONSOR_BANNERS: SponsorBanner[] = [
     city: 'Aydın - Ege',
     category: 'nakliyeci',
     typeLabel: 'Güvenli · Hızlı · Profesyonel',
-    phone: '0256 614 50 32',
-    secondaryPhone: '0532 739 66 73',
-    whatsapp: '905327396673',
+    phone: '',
+    secondaryPhone: '',
+    whatsapp: '',
     imageSrc: '/banners/alkan-nakliyat.svg',
     highlightText: 'Aydın, Kuşadası, Didim, Nazilli Ege Bölge Nakliyatı',
     badge: 'Öne Çıkan'
@@ -117,9 +117,9 @@ const SPONSOR_BANNERS: SponsorBanner[] = [
     city: 'Mersin - Çukurova',
     category: 'asansor',
     typeLabel: '21. Kata Kadar Hidrolik Asansör',
-    phone: '0324 325 42 22',
-    secondaryPhone: '0531 229 97 67',
-    whatsapp: '905312299767',
+    phone: '',
+    secondaryPhone: '',
+    whatsapp: '',
     imageSrc: '/banners/mersin-evren-nakliyat.svg',
     highlightText: 'Mersin, Tarsus, Adana & Tüm Çukurova Asansör Kiralama',
     badge: 'Asansör'
@@ -268,27 +268,22 @@ export function DefterRightRail() {
                 </div>
               </div>
 
-              {/* Hızlı Arama & WhatsApp Butonları */}
+              {/* Hızlı Arama & WhatsApp Butonları (Fake/Örnek veri olduğu için numara boş bırakıldı ve tıklama pasife alındı) */}
               <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
-                <a
-                  href={`tel:${banner.phone.replace(/\s+/g, '')}`}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-[#C23E00] border border-orange-200/80 font-bold text-xs transition-colors"
+                <div
+                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-xl bg-slate-50 text-slate-400 border border-slate-200/80 font-bold text-xs select-none cursor-default"
+                  title="İletişim numarası aktif değil"
                 >
-                  <Phone className="w-3 h-3 text-[#F95700]" />
-                  <span>{banner.phone}</span>
-                </a>
+                  <Phone className="w-3 h-3 text-slate-300" />
+                  <span>{banner.phone || ''}</span>
+                </div>
 
-                {banner.whatsapp && (
-                  <a
-                    href={`https://wa.me/${banner.whatsapp}?text=Merhaba%20${encodeURIComponent(banner.companyName)}%2C%20Ta%C5%9F%C4%B1nTeklif%20Defter%20reklam%C4%B1n%C4%B1z%20%C3%BCzerinden%20ula%C5%9F%C4%B1yorum.`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors shrink-0"
-                    title="WhatsApp'tan Yaz"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                  </a>
-                )}
+                <div
+                  className="p-1.5 rounded-xl bg-slate-50 text-slate-300 border border-slate-200/80 shrink-0 cursor-not-allowed select-none"
+                  title="Mesajlaşma aktif değil"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                </div>
 
                 <button
                   type="button"
@@ -360,44 +355,39 @@ export function DefterRightRail() {
                 </p>
               </div>
 
-              {/* Telefonlar & İletişim */}
+              {/* Telefonlar & İletişim (Fake sponsorlar için pasif) */}
               <div className="space-y-2">
-                <a
-                  href={`tel:${selectedBanner.phone.replace(/\s+/g, '')}`}
-                  className="flex flex-wrap items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-[#C23E00] font-black text-xs sm:text-sm transition-colors gap-2"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Phone className="w-4 h-4 text-[#F95700] shrink-0" />
-                    <span className="truncate">Hemen Ara: {selectedBanner.phone}</span>
-                  </div>
-                  <span className="text-xs font-bold bg-[#F95700] text-white px-2.5 py-1 rounded-lg shrink-0">
-                    Ara
-                  </span>
-                </a>
-
-                {selectedBanner.secondaryPhone && (
+                {selectedBanner.phone ? (
                   <a
-                    href={`tel:${selectedBanner.secondaryPhone.replace(/\s+/g, '')}`}
-                    className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-xs transition-colors"
+                    href={`tel:${selectedBanner.phone.replace(/\s+/g, '')}`}
+                    className="flex flex-wrap items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-[#C23E00] font-black text-xs sm:text-sm transition-colors gap-2"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <Phone className="w-3.5 h-3.5 text-slate-500" />
-                      <span>İkinci Hat: {selectedBanner.secondaryPhone}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Phone className="w-4 h-4 text-[#F95700] shrink-0" />
+                      <span className="truncate">Hemen Ara: {selectedBanner.phone}</span>
                     </div>
-                    <span className="text-xs text-slate-600">Ara</span>
+                    <span className="text-xs font-bold bg-[#F95700] text-white px-2.5 py-1 rounded-lg shrink-0">
+                      Ara
+                    </span>
                   </a>
-                )}
-
-                {selectedBanner.whatsapp && (
-                  <a
-                    href={`https://wa.me/${selectedBanner.whatsapp}?text=Merhaba%20${encodeURIComponent(selectedBanner.companyName)}%2C%20Ta%C5%9F%C4%B1nTeklif%20Defter%20reklam%C4%B1n%C4%B1z%20%C3%BCzerinden%20ula%C5%9F%C4%B1yorum.`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition-colors shadow-xs"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    <span>WhatsApp ile Mesaj Gönder</span>
-                  </a>
+                ) : (
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-center space-y-1.5">
+                    <p className="text-xs font-bold text-slate-700">
+                      Bu firma alanı örnek reklam / sponsorluk tanıtımıdır.
+                    </p>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      Doğrudan arama ve WhatsApp mesajlaşma henüz aktif edilmemiştir.
+                    </p>
+                    <a
+                      href="https://wa.me/971585188543?text=Merhaba%2C%20Defter%20sa%C4%9F%20banner%20alan%C4%B1nda%20reklam%20vermek%20istiyorum."
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F95700] hover:bg-[#e04e00] text-white font-bold text-xs transition-colors mt-1"
+                    >
+                      <Megaphone className="w-3.5 h-3.5" />
+                      Reklam Vermek İstiyorum
+                    </a>
+                  </div>
                 )}
               </div>
 
