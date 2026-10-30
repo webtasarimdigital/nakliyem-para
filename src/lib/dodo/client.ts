@@ -221,3 +221,41 @@ export function verifyDodoWebhookSignature(
 
   return { isValid: false, error: 'Invalid webhook signature' };
 }
+
+/**
+ * Cancels a Dodo Payments subscription to ensure no recurring charges occur after trial or current period.
+ */
+export async function cancelDodoSubscription(subscriptionId: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  if (!subscriptionId) {
+    return { success: false, error: 'Subscription ID is required' };
+  }
+
+  try {
+    const response = await fetch(`${DODO_CONFIG.baseUrl}/subscriptions/${subscriptionId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${DODO_CONFIG.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        cancel_at_next_billing_date: true,
+        cancellation_feedback: 'customer_service',
+        cancellation_comment: 'Customer cancelled subscription via profile. No recurring charges.',
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.warn(`[Dodo Payments] Subscription cancel warning (${response.status}):`, errorText);
+      return { success: false, error: errorText };
+    }
+
+    const data = await response.json();
+    console.log(`[Dodo Payments] Subscription ${subscriptionId} successfully cancelled:`, data);
+    return { success: true, data };
+  } catch (err: any) {
+    console.warn('[Dodo Payments] Subscription cancel exception:', err?.message || err);
+    return { success: false, error: err?.message || String(err) };
+  }
+}
+

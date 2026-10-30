@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { db as firestoreDb, auth as firebaseAuth, isFirebaseConfigured } from '@/lib/firebase/config';
 import { doc, getDoc, setDoc, getDocs, collection, query, limit } from 'firebase/firestore';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { ensureServerWorkerAuth } from '@/lib/firebase/server-auth';
 
 const DATA_DIR = path.join(process.cwd(), '.data');
 
@@ -39,13 +39,7 @@ let memoryListings: any[] = [];
 
 async function ensureWorkerAuth() {
   if (!isFirebaseConfigured() || !firebaseAuth) return;
-  try {
-    if (!firebaseAuth.currentUser) {
-      await signInWithEmailAndPassword(firebaseAuth, 'sync_service_worker@tasinteklif.com', 'TasinteklifSync2024!');
-    }
-  } catch (err) {
-    console.warn('Marketplace worker auth error:', err);
-  }
+  await ensureServerWorkerAuth(firebaseAuth);
 }
 
 export async function GET(req: NextRequest) {

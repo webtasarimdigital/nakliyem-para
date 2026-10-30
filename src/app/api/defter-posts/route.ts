@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { getFirestoreDefterPosts, createFirestoreDefterPost } from "@/lib/firebase/firestore";
+import { db as firestoreDb, auth as firebaseAuth, isFirebaseConfigured } from "@/lib/firebase/config";
+import { ensureServerWorkerAuth } from "@/lib/firebase/server-auth";
 import { DefterPost } from "@/types";
 
 const DATA_DIR = path.join(process.cwd(), ".data");
@@ -68,6 +70,9 @@ export async function POST(req: NextRequest) {
 
     // 1. Firestore senkronizasyonu (tüm istemciler ve gizli sekmeler için)
     try {
+      if (isFirebaseConfigured() && firebaseAuth) {
+        await ensureServerWorkerAuth(firebaseAuth);
+      }
       await createFirestoreDefterPost(post);
     } catch (fsErr) {
       console.warn("API route createFirestoreDefterPost error:", fsErr);

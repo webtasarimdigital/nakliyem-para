@@ -133,23 +133,9 @@ export async function createFirestoreDefterPost(post: DefterPost): Promise<void>
   }));
 
   try {
-    if (auth && !auth.currentUser) {
-      const { signInWithEmailAndPassword } = await import('firebase/auth');
-      await signInWithEmailAndPassword(auth, 'sync_service_worker@tasinteklif.com', 'TasinteklifSync2024!').catch(() => {});
-    }
-    // Requests koleksiyonu create iznine sahip olduğu için oraya yazıyoruz
     await setDoc(doc(db, 'requests', post.id), cleanPost);
   } catch (err) {
-    console.warn('createFirestoreDefterPost first attempt error, retrying with sync worker:', err);
-    try {
-      if (auth) {
-        const { signInWithEmailAndPassword } = await import('firebase/auth');
-        await signInWithEmailAndPassword(auth, 'sync_service_worker@tasinteklif.com', 'TasinteklifSync2024!');
-        await setDoc(doc(db, 'requests', post.id), cleanPost);
-      }
-    } catch (retryErr) {
-      console.error('createFirestoreDefterPost retry error:', retryErr);
-    }
+    console.warn('createFirestoreDefterPost write notice:', err);
   }
 }
 

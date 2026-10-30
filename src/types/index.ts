@@ -65,6 +65,8 @@ export interface CarrierProfile {
   trialEndsAt?: string;
   trialNotificationSent?: boolean;
   isProfileCompleted?: boolean;
+  dodoSubscriptionId?: string;
+  autoRenew?: boolean;
   rating: number;
   reviewCount: number;
   completedJobsCount: number;
@@ -291,6 +293,7 @@ export interface CarrierSubscription {
   cardLastFour?: string;
   cardBrand?: string;
   autoRenew: boolean;
+  dodoSubscriptionId?: string;
   createdAt: string;
 }
 

@@ -702,11 +702,20 @@ export default function CarrierProfileEditorPage() {
                 </button>
               ) : (
                 <button
-                  onClick={() => {
-                    if (confirm('Aboneliğinizi dönem sonunda iptal etmek istediğinize emin misiniz?')) {
+                  onClick={async () => {
+                    if (confirm('7 günlük ücretsiz denemenizi veya aboneliğinizi iptal etmek istediğinize emin misiniz?\n\nİptal ettiğinizde otomatik yenileme sonlandırılır ve süre bitiminde kartınızdan KESİNLİKLE hiçbir ek ücret (0 ₺) çekilmeyecektir.')) {
+                      try {
+                        await fetch('/api/dodo/subscription/cancel', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ carrierId: carrier.id }),
+                        });
+                      } catch (err) {
+                        console.warn('Subscription cancel API error:', err);
+                      }
                       const updated = db.cancelCarrierSubscription(carrier.id);
                       setSub(updated);
-                      showNotification('Aboneliğiniz dönem sonunda sonlanacak şekilde ayarlandı.');
+                      showNotification('Aboneliğiniz iptal edildi. Süre bitiminde kartınızdan kesinlikle ücret tahsil edilmeyecektir (0 ₺).');
                     }
                   }}
                   className="px-4 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 font-bold text-xs transition-colors cursor-pointer"

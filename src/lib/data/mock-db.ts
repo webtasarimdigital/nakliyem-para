@@ -1800,6 +1800,21 @@ class MockDatabase {
     const subs = this.getItem<Record<string, CarrierSubscription>>('carrierSubscriptions', {});
     subs[carrierId] = updated;
     this.setItem('carrierSubscriptions', subs);
+
+    // Otomatik yenilemeyi kapat, deneme sürecindeyse karttan ücret çekilmemesi için EXPIRED olarak işaretle
+    const carrier = this.getCarrierById(carrierId) || this.getCarriers().find(c => c.id === carrierId);
+    if (carrier) {
+      this.updateCarrier(carrierId, {
+        autoRenew: false,
+        trialStatus: 'EXPIRED',
+      });
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth-changed'));
+      window.dispatchEvent(new Event('storage'));
+    }
+
     return updated;
   }
 

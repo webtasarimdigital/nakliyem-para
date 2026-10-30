@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { 
   Truck, 
@@ -51,6 +51,25 @@ function RequestWizardContent() {
 
   const [step, setStep] = useState(1);
   const totalSteps = 8;
+  const wizardTopRef = useRef<HTMLDivElement>(null);
+
+  const scrollToWizardTop = () => {
+    if (typeof window === 'undefined') return;
+    if (wizardTopRef.current) {
+      const yOffset = -24; // Mobilde üst bar/header için pay
+      const y = wizardTopRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Mobilde sonraki veya önceki adıma geçildiğinde ekranı formun tepesine kaydır
+  useEffect(() => {
+    scrollToWizardTop();
+    const timer = setTimeout(scrollToWizardTop, 60);
+    return () => clearTimeout(timer);
+  }, [step]);
 
   // Form State
   const [serviceCategory, setServiceCategory] = useState<ServiceCategory>('EVDEN_EVE');
@@ -233,12 +252,12 @@ function RequestWizardContent() {
   };
 
   const handleNext = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToWizardTop();
     setStep(prev => Math.min(prev + 1, totalSteps + 1));
   };
 
   const handleBack = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToWizardTop();
     setStep(prev => Math.max(prev - 1, 1));
   };
 
@@ -374,7 +393,7 @@ function RequestWizardContent() {
   }
 
   return (
-    <div className="max-w-4xl lg:max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-8 md:py-12">
+    <div ref={wizardTopRef} id="teklif-al-form" className="max-w-4xl lg:max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-8 md:py-12 scroll-mt-6">
       {/* ── INTERACTIVE CARGO ROLLING TO TRUCK PROGRESS BAR ── */}
       <div className="mb-4 sm:mb-7 bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-3.5 sm:p-5 shadow-xs select-none">
         

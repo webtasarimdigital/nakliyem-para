@@ -231,8 +231,10 @@ export default function CarrierDashboard() {
   const isStarter = !isGold && !isPro;
 
   const trialInfo = db.getCarrierTrialInfo(carrier);
+  const carrierSub = carrier ? db.getCarrierSubscription(carrier.id) : null;
+  const isSubscriptionCancelled = carrier.trialStatus === 'EXPIRED' || carrier.autoRenew === false || carrierSub?.cancelAtPeriodEnd || carrierSub?.status === 'CANCELED';
   const hasCardAdded = Boolean(carrier.hasCardAdded);
-  const canViewCustomerPhone = (isPro || isGold || trialInfo.isTrialActive) && hasCardAdded && isApproved;
+  const canViewCustomerPhone = (isPro || isGold || (trialInfo.isTrialActive && !isSubscriptionCancelled)) && hasCardAdded && isApproved;
 
   // Günlük teklif kotası (Başlangıç paketinde günde 3 teklif)
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -411,7 +413,7 @@ export default function CarrierDashboard() {
         </div>
 
         {/* ── AKTİF 7 GÜNLÜK PRO DENEME SAYACI ── */}
-        {trialInfo.isTrialActive && (
+        {trialInfo.isTrialActive && !isSubscriptionCancelled && (
           <div className="mb-6 rounded-3xl bg-gradient-to-r from-orange-50 via-amber-50 to-white border-2 border-orange-300 p-5 sm:p-6 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
@@ -446,6 +448,25 @@ export default function CarrierDashboard() {
                 <span className="text-[10px] text-slate-400 font-medium block text-right">
                   {trialInfo.daysRemaining} gün sonra yenilenecek
                 </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── İPTAL EDİLMİŞ ABONELİK BİLGİLENDİRMESİ (0 ₺ GÜVENCESİ) ── */}
+        {isSubscriptionCancelled && hasCardAdded && (
+          <div className="mb-6 rounded-3xl bg-emerald-50/80 border-2 border-emerald-300 p-5 sm:p-6 shadow-xs">
+            <div className="flex items-start sm:items-center gap-4">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-100 border border-emerald-200 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <h4 className="text-sm sm:text-base font-black text-emerald-950">
+                  Aboneliğiniz İptal Edildi — Kartınızdan Kesinlikle Ek Ücret Çekilmeyecektir
+                </h4>
+                <p className="text-xs sm:text-sm text-emerald-800 mt-1 font-medium leading-relaxed">
+                  7 günlük denemeniz / aboneliğiniz iptal edilmiştir. Otomatik yenileme kapatılmıştır; deneme süresi bitiminde veya sonrasında kartınızdan kesinlikle <strong>1 kuruş dahi ücret tahsil edilmeyecektir (0 ₺)</strong>.
+                </p>
               </div>
             </div>
           </div>

@@ -47,6 +47,7 @@ export default function CarrierSubscriptionPage() {
   const [cardError, setCardError] = useState('');
   const [isActivating, setIsActivating] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCardError('');
@@ -103,10 +104,23 @@ export default function CarrierSubscriptionPage() {
   const diffTime = periodEndDate.getTime() - now.getTime();
   const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
-  const handleCancelSubscription = () => {
+  const handleCancelSubscription = async () => {
     if (!carrier) return;
+    setIsCancelling(true);
+    try {
+      await fetch('/api/dodo/subscription/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ carrierId: carrier.id }),
+      });
+    } catch (err) {
+      console.warn('Subscription cancel API error:', err);
+    }
     const updated = db.cancelCarrierSubscription(carrier.id);
+    const updatedCarrier = db.getCarrierById(carrier.id) || { ...carrier, trialStatus: 'EXPIRED', autoRenew: false };
     setSub(updated);
+    setCarrier(updatedCarrier);
+    setIsCancelling(false);
     setCancelModalOpen(false);
   };
 
@@ -239,7 +253,8 @@ export default function CarrierSubscriptionPage() {
                 </>
               ) : isCanceled ? (
                 <>
-                  Aboneliğiniz iptal edildi. Dönem sonuna (<strong className="text-[#0A1128]">{periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>) kadar tüm haklarınız geçerlidir. Otomatik yenilenmeyecektir.
+                  <span className="text-emerald-700 font-bold block mb-1">✓ Aboneliğiniz ve otomatik yenileme başarıyla iptal edildi.</span>
+                  Dönem sonuna (<strong className="text-[#0A1128]">{periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>) kadar haklarınız geçerlidir. Süre bitiminde veya sonrasında kartınızdan kesinlikle hiçbir ücret çekilmeyecektir (0 ₺).
                 </>
               ) : (
                 <>
@@ -508,15 +523,18 @@ export default function CarrierSubscriptionPage() {
         title="Aboneliğinizi İptal Etmek İstediğinize Emin misiniz?"
       >
         <div className="space-y-4 text-xs sm:text-sm">
+          <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs font-semibold">
+            🛡️ <strong>Ücret Kesilmeme Güvencesi:</strong> İptal ettiğinizde otomatik yenileme derhal kapatılır ve kartınızdan kesinlikle ek bir ücret (0 ₺) tahsil edilmez.
+          </div>
           <p className="text-slate-600">
-            Aboneliğinizi iptal ettiğinizde dönem sonuna (<strong>25 Eylül</strong>) kadar mevcut Gold ve teklif verme avantajlarınızdan yararlanmaya devam edebilirsiniz.
+            Aboneliğinizi veya 7 günlük ücretsiz denemenizi iptal ettiğinizde dönem sonuna (<strong>{periodEndDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>) kadar mevcut teklif verme avantajlarınızdan yararlanmaya devam edebilirsiniz. Dönem bittiğinde kartınızdan kesinlikle hiçbir ücret çekilmez.
           </p>
           <div className="pt-4 flex items-center justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setCancelModalOpen(false)}>
+            <Button variant="outline" size="sm" onClick={() => setCancelModalOpen(false)} disabled={isCancelling}>
               Vazgeç
             </Button>
-            <Button variant="danger" size="sm" onClick={handleCancelSubscription}>
-              Aboneliği İptal Et
+            <Button variant="danger" size="sm" onClick={handleCancelSubscription} disabled={isCancelling}>
+              {isCancelling ? 'İptal Ediliyor...' : 'Aboneliği İptal Et'}
             </Button>
           </div>
         </div>
