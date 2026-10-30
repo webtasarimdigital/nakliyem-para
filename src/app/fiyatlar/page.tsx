@@ -33,6 +33,7 @@ import { User, CarrierProfile } from '@/types';
 export default function FiyatlarPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [liveStats, setLiveStats] = useState(() => db.getPlatformLiveStats());
 
   // Auth & Carrier State
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -58,6 +59,7 @@ export default function FiyatlarPage() {
     const syncUser = () => {
       const user = db.getCurrentUser();
       setCurrentUser(user);
+      setLiveStats(db.getPlatformLiveStats());
       if (user) {
         let c = db.getCurrentCarrier();
         if (!c) {
@@ -231,21 +233,21 @@ export default function FiyatlarPage() {
     },
   ];
 
-  // Comprehensive Comparison Matrix
+  // Comprehensive Comparison Matrix (Matches top cards & database 100%)
   const COMPARISON_ROWS = [
-    { label: '7 Gün Ücretsiz Deneme (0 ₺)', starter: '—', gold: '—', pro: '✓ 7 Gün Ücretsiz', highlightGold: true },
-    { label: 'Aylık Teklif Verme Limiti', starter: '15 Teklif', gold: 'Sınırsız Teklif', pro: '50 Teklif', highlightGold: true },
-    { label: 'Müşteri Telefon & WhatsApp Erişimi', starter: '5 Müşteri / Ay', gold: 'Sınırsız Doğrudan İletişim', pro: '35 Müşteri / Ay', highlightGold: true },
-    { label: 'Nakliyeci Defteri İlan Limiti', starter: '5 İlan / Ay', gold: 'Sınırsız Paylaşım', pro: '20 İlan / Ay', highlightGold: true },
-    { label: 'Akıllı Rota Alarmları (SMS & Bildirim)', starter: '2 Alarm', gold: 'Sınırsız Şehir Alarmı', pro: '5 Alarm', highlightGold: true },
-    { label: 'Ana Sayfa Vitrininde Öne Çıkma', starter: '—', gold: '1. Sıra Sponsorlu Vitrin', pro: '—', highlightGold: true },
-    { label: 'Defter Sağ Banner Reklam Vitrini', starter: '—', gold: 'Logolu Sponsor Bannerı', pro: '—', highlightGold: true },
-    { label: 'Şehir Sayfalarında Üst Sıralar', starter: '—', gold: 'Öncelikli Üst Sıra', pro: 'Standart Listeleme', highlightGold: true },
-    { label: 'Doğrulanmış Firma Rozeti', starter: 'Temel Profil', gold: '⭐ Altın Onay Rozeti', pro: 'Doğrulanmış Rozet', highlightGold: true },
-    { label: 'Pazar Yeri & Asansör İlanı', starter: '2 İlan / Ay', gold: 'Sınırsız İlan', pro: '10 İlan / Ay', highlightGold: true },
-    { label: 'Boş Dönüş Yük Eşleştirmesi', starter: 'Standart', gold: 'Anlık VIP Bildirim', pro: 'Öncelikli Eşleşme', highlightGold: true },
-    { label: 'Dijital Hizmetler İndirimi (Google & Harita SEO)', starter: '—', gold: '%25 İndirim', pro: '%15 İndirim', highlightGold: true },
-    { label: 'Destek Düzeyi', starter: 'E-posta Destek', gold: '7/24 Özel VIP Temsilci', pro: 'Öncelikli Destek', highlightGold: true },
+    { label: '7 Gün Ücretsiz Deneme (0 ₺)', starter: '—', pro: '✓ 7 Gün Ücretsiz (0 ₺)', gold: '—' },
+    { label: 'Aylık Teklif Verme Limiti', starter: '15 Teklif / Ay', pro: '50 Teklif / Ay', gold: 'Sınırsız Teklif' },
+    { label: 'Müşteri Telefon & WhatsApp Erişimi', starter: '5 Müşteri / Ay', pro: '35 Müşteri / Ay', gold: 'Sınırsız Doğrudan İletişim' },
+    { label: 'Nakliyeci Defteri İlan Limiti', starter: '5 İlan / Ay', pro: '20 İlan / Ay', gold: 'Sınırsız Paylaşım' },
+    { label: 'Akıllı Rota Alarmları (SMS & Bildirim)', starter: '2 Alarm', pro: '5 Alarm', gold: 'Sınırsız Şehir Alarmı' },
+    { label: 'Ana Sayfa Vitrininde Öne Çıkma', starter: '—', pro: '—', gold: '1. Sıra Sponsorlu Vitrin' },
+    { label: 'Defter Sağ Banner Reklam Vitrini', starter: '—', pro: '—', gold: 'Logolu Sponsor Bannerı' },
+    { label: 'Şehir Sayfalarında Üst Sıralar', starter: '—', pro: 'Öncelikli Listeleme', gold: '1. Sıra Vitrin' },
+    { label: 'Doğrulanmış Firma Rozeti', starter: 'Temel Profil', pro: 'Doğrulanmış Pro Rozeti', gold: '⭐ Altın Onay Rozeti' },
+    { label: 'Pazar Yeri & Asansör İlanı', starter: '2 İlan / Ay', pro: '10 İlan / Ay', gold: 'Sınırsız İlan' },
+    { label: 'Boş Dönüş Yük Eşleştirmesi', starter: 'Standart', pro: 'Öncelikli Eşleşme', gold: 'Anlık VIP Bildirim' },
+    { label: 'Dijital Hizmetler İndirimi (Google & Harita SEO)', starter: '—', pro: '%15 İndirim', gold: '%25 İndirim' },
+    { label: 'Destek Düzeyi', starter: 'E-posta Destek', pro: 'Öncelikli Destek', gold: '7/24 Özel VIP Temsilci' },
   ];
 
   // FAQ Items
@@ -512,8 +514,8 @@ export default function FiyatlarPage() {
                 <tr className="border-b border-slate-200 bg-slate-50/80 text-xs font-black uppercase tracking-wider text-slate-600">
                   <th className="py-4 px-4 sm:px-6 rounded-l-2xl">Özellik</th>
                   <th className="py-4 px-4 text-center">Başlangıç</th>
-                  <th className="py-4 px-4 text-center bg-orange-50/60 text-[#F95700]">Gold (Popüler)</th>
-                  <th className="py-4 px-4 sm:px-6 text-center rounded-r-2xl">Pro</th>
+                  <th className="py-4 px-4 text-center bg-orange-50/60 text-[#F95700] border-x-2 border-[#F95700]/30">Profesyonel (Popüler)</th>
+                  <th className="py-4 px-4 sm:px-6 text-center rounded-r-2xl">Filo / Kurumsal (Gold)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
@@ -525,11 +527,11 @@ export default function FiyatlarPage() {
                     <td className="py-3.5 px-4 text-center text-slate-600">
                       {row.starter}
                     </td>
-                    <td className="py-3.5 px-4 text-center bg-orange-50/30 text-[#F95700] font-black">
-                      {row.gold}
-                    </td>
-                    <td className="py-3.5 px-4 sm:px-6 text-center text-slate-600">
+                    <td className="py-3.5 px-4 text-center bg-orange-50/30 text-[#F95700] font-black border-x-2 border-[#F95700]/20">
                       {row.pro}
+                    </td>
+                    <td className="py-3.5 px-4 sm:px-6 text-center text-slate-700 font-bold">
+                      {row.gold}
                     </td>
                   </tr>
                 ))}
@@ -539,24 +541,24 @@ export default function FiyatlarPage() {
         </div>
       </section>
 
-      {/* ── 6. İSTATİSTİK ŞERİDİ (GÜVEN KANITI) ── */}
+      {/* ── 6. İSTATİSTİK ŞERİDİ (GÜVEN KANITI - CANLI VERİTABANI) ── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
         <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
           <div className="space-y-1">
-            <div className="text-3xl sm:text-4xl font-black text-[#111E38]">1.850+</div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Aktif Nakliyeci</div>
+            <div className="text-3xl sm:text-4xl font-black text-[#111E38]">{liveStats.approvedCarriersCount}</div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Doğrulanmış Nakliyeci</div>
           </div>
           <div className="space-y-1">
-            <div className="text-3xl sm:text-4xl font-black text-[#F95700]">45.000+</div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Verilen İş Teklifi</div>
+            <div className="text-3xl sm:text-4xl font-black text-[#F95700]">{liveStats.totalRequestsCount}</div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Toplam Taşıma Talebi</div>
           </div>
           <div className="space-y-1">
             <div className="text-3xl sm:text-4xl font-black text-[#111E38]">81 İl</div>
             <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Aktif Kapsama Ağı</div>
           </div>
           <div className="space-y-1">
-            <div className="text-3xl sm:text-4xl font-black text-[#F95700]">%98</div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Firma Memnuniyeti</div>
+            <div className="text-3xl sm:text-4xl font-black text-[#F95700]">{liveStats.averageRating} / 5</div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Müşteri Puanı ({liveStats.totalReviewsCount} Değerlendirme)</div>
           </div>
         </div>
       </section>
