@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Maintenance mode is controlled via environment variable (default: false / live)
+// or cookie. When false, the site is 100% live and publicly accessible.
+const IS_MAINTENANCE_MODE = process.env.MAINTENANCE_MODE === 'true';
 const BYPASS_SECRET = process.env.MAINTENANCE_BYPASS_SECRET || 'tasin2026';
 const BYPASS_COOKIE_NAME = 'tasinteklif_maintenance_bypass';
 
@@ -18,7 +21,19 @@ export function proxy(req: NextRequest) {
     }
   }
 
-  // 1. Secret bypass via query parameter (?bypass=tasin2026 or ?preview=tasin2026)
+  // 1. SİTE CANLIDA (Bakım Modu Kapalı)
+  // Bakım modu aktif değilse tüm ziyaretçiler siteye doğrudan erişebilir.
+  const isMaintenanceActive = IS_MAINTENANCE_MODE || req.cookies.get('tasinteklif_maintenance_mode')?.value === '1';
+
+  if (!isMaintenanceActive) {
+    // Bakım sayfasına gitmeye çalışanları ana sayfaya yönlendir
+    if (pathname === '/bakim') {
+      return NextResponse.redirect(new URL('/', req.url));
+    }
+    return NextResponse.next();
+  }
+
+  // 2. Secret bypass via query parameter (?bypass=tasin2026 or ?preview=tasin2026)
   const queryBypass = searchParams.get('bypass') || searchParams.get('admin_pass') || searchParams.get('preview');
   if (queryBypass && queryBypass === BYPASS_SECRET) {
     const cleanUrl = req.nextUrl.clone();

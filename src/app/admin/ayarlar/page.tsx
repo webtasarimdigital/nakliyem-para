@@ -95,6 +95,14 @@ export default function AdminSettingsPage() {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     db.updateSettings(settings);
+    // Bakım modu çerezini eşitle
+    if (typeof document !== 'undefined') {
+      if (settings.maintenanceMode) {
+        document.cookie = 'tasinteklif_maintenance_mode=1; path=/; max-age=2592000; SameSite=Lax';
+      } else {
+        document.cookie = 'tasinteklif_maintenance_mode=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+      }
+    }
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3000);
   };
@@ -280,6 +288,43 @@ export default function AdminSettingsPage() {
       </div>
 
       <form onSubmit={handleSave} className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-8 text-xs sm:text-sm">
+        {/* Site Yayın Durumu / Bakım Modu */}
+        <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
+          settings.maintenanceMode 
+            ? 'bg-amber-50 border-amber-200 text-amber-900' 
+            : 'bg-emerald-50 border-emerald-200 text-emerald-950'
+        }`}>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className={`w-3 h-3 rounded-full ${
+                settings.maintenanceMode ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
+              }`} />
+              <h3 className="font-bold text-sm sm:text-base">
+                Site Yayın Durumu: {settings.maintenanceMode ? 'Bakım Modunda (Kapalı)' : 'Yayında (Canlı / Açık)'}
+              </h3>
+            </div>
+            <p className="text-xs text-slate-600 mt-1">
+              {settings.maintenanceMode 
+                ? 'Site şu anda ziyaretçilere kapalıdır ve /bakim sayfasına yönlendirilmektedir. Yalnızca yöneticiler erişebilir.' 
+                : 'Site tüm ziyaretçilere, müşterilere ve nakliyecilere %100 açıktır. Bakım modu kapalıdır.'}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="text-xs font-bold">
+              {settings.maintenanceMode ? 'Bakım Modunu Kapat (Siteyi Aç)' : 'Bakım Moduna Al'}
+            </span>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.maintenanceMode}
+                onChange={(e) => setSettings({ ...settings, maintenanceMode: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F95700]"></div>
+            </label>
+          </div>
+        </div>
+
         {/* Global Settings (Spec Item 173) */}
         <div>
           <h2 className="text-base font-bold text-[#0A1128] border-b border-slate-100 pb-3 mb-4">
