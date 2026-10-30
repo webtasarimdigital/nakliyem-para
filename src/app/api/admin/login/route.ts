@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,9 +9,7 @@ export async function POST(req: NextRequest) {
     const validUser = (process.env.ADMIN_USERNAME || 'admin').trim();
     const validPass = (process.env.ADMIN_PASSWORD || '1967').trim();
 
-    const isMatched = 
-      (username.toLowerCase() === validUser.toLowerCase() && password === validPass) ||
-      (username.toLowerCase() === 'admin' && password === '1967');
+    const isMatched = (username.toLowerCase() === validUser.toLowerCase() && password === validPass);
 
     if (isMatched) {
       const token = Buffer.from(

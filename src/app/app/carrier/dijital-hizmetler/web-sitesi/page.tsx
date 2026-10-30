@@ -477,7 +477,7 @@ export default function WebSitesiServicePage() {
 
                     <div className="pt-6">
                       <a 
-                        href={`https://wa.me/908503080000?text=${encodeURIComponent(`Merhaba, ${pkg.name} web sitesi paketi hakkında örnek demo ve bilgi almak istiyorum.`)}`}
+                        href={`https://wa.me/971585188543?text=${encodeURIComponent(`Merhaba, ${pkg.name} web sitesi paketi hakkında örnek demo ve bilgi almak istiyorum.`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block w-full"
@@ -533,7 +533,7 @@ export default function WebSitesiServicePage() {
                 </p>
               </div>
               <a 
-                href="https://wa.me/908503080000?text=Merhaba,%20nakliyat%20web%20sitesi%20demolarını%20görmek%20istiyorum." 
+                href="https://wa.me/971585188543?text=Merhaba,%20nakliyat%20web%20sitesi%20demolarını%20görmek%20istiyorum." 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="shrink-0 relative z-10"

@@ -571,7 +571,7 @@ function CustomerOffersContent() {
     try {
       const fullCarrier = db.getCarriers().find(c => c.id === selectedOffer.carrierId) || selectedOffer.carrier;
       const carrierUser = db.getUsers().find((u: any) => u.id === fullCarrier?.userId);
-      const targetCarrierEmail = carrierUser?.email || fullCarrier?.email || selectedOffer?.carrier?.email || 'omerfaruksaycan@gmail.com';
+      const targetCarrierEmail = carrierUser?.email || fullCarrier?.email || selectedOffer?.carrier?.email || 'bilgi@tasinteklif.com';
       if (targetCarrierEmail) {
         await sendNotificationEmail({
           type: 'OFFER_ACCEPTED',

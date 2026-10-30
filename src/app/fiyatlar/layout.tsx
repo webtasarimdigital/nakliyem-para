@@ -22,8 +22,8 @@ export const metadata: Metadata = {
 
 const pricingFaqs = [
   {
-    question: 'Gold paketteki 7 günlük ücretsiz deneme nasıl çalışır?',
-    answer: 'En üst paketimiz olan Gold paketi seçtiğinizde ilk 7 gün boyunca hiçbir ücret ödemeden sınırsız teklif, doğrudan müşteri telefonu ve ana sayfa vitrini gibi tüm ayrıcalıkları kullanabilirsiniz. Memnun kalmazsanız süre bitmeden tek tıkla iptal edebilirsiniz.',
+    question: 'Profesyonel paketteki 7 günlük ücretsiz deneme nasıl çalışır?',
+    answer: 'En çok tercih edilen paketimiz olan Profesyonel paketi seçtiğinizde ilk 7 gün boyunca hiçbir ücret ödemeden aylık 50 teklif hakkı, doğrudan müşteri telefonu ve arama vitrinleri gibi tüm avantajları kullanabilirsiniz. Memnun kalmazsanız süre bitmeden tek tıkla kolayca iptal edebilirsiniz.',
   },
   {
     question: 'Yıllık ödeme avantajı nasıl çalışır?',

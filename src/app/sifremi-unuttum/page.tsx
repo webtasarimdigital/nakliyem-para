@@ -30,18 +30,18 @@ import {
 function SifremiUnuttumContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const urlEmail = searchParams.get('email') || '';
+  const urlEmail = searchParams?.get('email') || '';
 
   // Method: 'EMAIL' | 'PHONE'
   const [method, setMethod] = useState<'EMAIL' | 'PHONE'>('EMAIL');
   const [email, setEmail] = useState(urlEmail);
   const [emailSent, setEmailSent] = useState(false);
 
-  const oobCode = searchParams.get('oobCode');
-  const mode = searchParams.get('mode');
+  const oobCode = searchParams?.get('oobCode');
+  const mode = searchParams?.get('mode');
 
   useEffect(() => {
-    const p = searchParams.get('email');
+    const p = searchParams?.get('email');
     if (p) setEmail(p);
   }, [searchParams]);
 

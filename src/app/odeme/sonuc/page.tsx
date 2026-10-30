@@ -21,12 +21,12 @@ import { updateFirestoreCarrier } from '@/lib/firebase/firestore';
 
 function OdemeSonucContent() {
   const searchParams = useSearchParams();
-  const planKey = (searchParams.get('plan') || 'gold').toLowerCase();
-  const cycle = (searchParams.get('cycle') || 'monthly').toLowerCase();
-  const statusParam = (searchParams.get('status') || '').toLowerCase().trim();
-  const paymentId = searchParams.get('payment_id') || searchParams.get('paymentId') || '';
-  const email = searchParams.get('email') || '';
-  const isTrial = searchParams.get('trial') === 'true';
+  const planKey = (searchParams?.get('plan') || 'gold').toLowerCase();
+  const cycle = (searchParams?.get('cycle') || 'monthly').toLowerCase();
+  const statusParam = (searchParams?.get('status') || '').toLowerCase().trim();
+  const paymentId = searchParams?.get('payment_id') || searchParams?.get('paymentId') || '';
+  const email = searchParams?.get('email') || '';
+  const isTrial = searchParams?.get('trial') === 'true';
 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [carrierData, setCarrierData] = useState<any>(null);

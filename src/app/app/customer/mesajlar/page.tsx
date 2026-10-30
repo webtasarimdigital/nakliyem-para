@@ -297,7 +297,7 @@ function CustomerMessagesContent() {
     if (isFirstCustomerMessage) {
       try {
         const carrierUser = db.getUsers().find((u: any) => u.id === activeCarrier.userId);
-        const targetCarrierEmail = carrierUser?.email || (activeCarrier as any)?.email || 'omerfaruksaycan@gmail.com';
+        const targetCarrierEmail = carrierUser?.email || (activeCarrier as any)?.email || 'bilgi@tasinteklif.com';
         if (targetCarrierEmail) {
           sendNotificationEmail({
             type: 'FIRST_MESSAGE',

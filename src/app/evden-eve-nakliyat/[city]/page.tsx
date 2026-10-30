@@ -64,8 +64,8 @@ export default async function CityEvdenEvePage({
     c =>
       c.verificationStatus === 'APPROVED' &&
       (c.city === cityObj.name ||
-        c.serviceAreas.includes(cityObj.name) ||
-        c.serviceAreas.includes('TÜM_TÜRKİYE'))
+        (c.serviceAreas || []).includes(cityObj.name) ||
+        (c.serviceAreas || []).includes('TÜM_TÜRKİYE'))
   );
 
   const serviceSchema = buildServiceSchema({

@@ -127,7 +127,7 @@ const COMPARISON_ROWS: { key: keyof typeof PLANS[0]['features']; label: string; 
 ];
 
 const FAQS = [
-  { q: 'Gold paketteki 7 günlük ücretsiz deneme nasıl çalışır?', a: 'En üst paketimiz olan Gold paketi seçtiğinizde ilk 7 gün boyunca hiçbir ücret ödemeden tüm sınırsız özellikleri (sınırsız teklif, telefon erişimi, ana sayfa öne çıkma) hemen kullanabilirsiniz. Beğenmezseniz süre bitmeden tek tıkla iptal edebilirsiniz.' },
+  { q: 'Profesyonel paketteki 7 günlük ücretsiz deneme nasıl çalışır?', a: 'En popüler paketimiz olan Profesyonel paketi seçtiğinizde ilk 7 gün boyunca hiçbir ücret ödemeden tüm özellikleri (aylık 50 teklif, müşteri telefonu görme, vitrin gösterimleri) hemen kullanabilirsiniz. Memnun kalmazsanız süre bitmeden tek tıkla kolayca iptal edebilirsiniz.' },
   { q: 'Yıllık ödemede 2 ay bedava avantajı nedir?', a: 'Aboneliğinizi yıllık peşin tercih ettiğinizde 12 ay yerine sadece 10 ay ücreti ödersiniz. Tam 2 ay platform kullanımınız hediye edilir.' },
   { q: 'İstediğim zaman paket değiştirebilir miyim?', a: 'Evet. Hesabınızdan dilediğiniz an üst veya alt pakete geçiş yapabilir ya da aboneliğinizi yenileme tarihinde sonlandırabilirsiniz.' },
   { q: 'Müşterilerden para alınıyor mu?', a: 'Hayır. Müşteriler için talep açmak ve teklif almak %100 ücretsizdir. Nakliyecilerimiz abonelik modeli ile diledikleri kadar işe teklif verip müşteriyle doğrudan anlaşır.' },
@@ -136,8 +136,8 @@ const FAQS = [
 
 function PaketlerContent() {
   const searchParams = useSearchParams();
-  const planParam = searchParams.get('plan');
-  const cycleParam = searchParams.get('cycle');
+  const planParam = searchParams?.get('plan');
+  const cycleParam = searchParams?.get('cycle');
 
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const [openFaq, setOpenFaq] = useState<number | null>(null);

@@ -243,15 +243,30 @@ export async function POST(req: NextRequest) {
     if (eventType === 'subscription.cancelled' || eventType === 'subscription.expired') {
       let matchedCarrier = null;
       if (carrierId) {
-        matchedCarrier = db.getCarriers().find(c => c.id === carrierId);
+        matchedCarrier = db.getCarriers().find(c => c.id === carrierId || c.userId === carrierId);
       }
       if (!matchedCarrier && customerEmail) {
         matchedCarrier = db.getCarriers().find(c => c.email?.toLowerCase() === customerEmail.toLowerCase());
       }
+      if (!matchedCarrier && customerEmail) {
+        const u = db.getUsers().find(user => user.email?.toLowerCase() === customerEmail.toLowerCase()) as any;
+        if (u?.carrierProfileId) {
+          matchedCarrier = db.getCarriers().find(c => c.id === u.carrierProfileId);
+        }
+      }
       if (matchedCarrier) {
-        db.updateCarrier(matchedCarrier.id, { planId: 'plan_starter' });
-        updateFirestoreCarrier(matchedCarrier.id, { planId: 'plan_starter' }).catch(() => {});
-        console.log(`[Dodo Webhook] Carrier ${matchedCarrier.id} downgraded to starter due to ${eventType}`);
+        db.updateCarrier(matchedCarrier.id, { 
+          planId: 'plan_starter',
+          trialStatus: 'EXPIRED',
+          autoRenew: false
+        });
+        db.cancelCarrierSubscription(matchedCarrier.id);
+        updateFirestoreCarrier(matchedCarrier.id, { 
+          planId: 'plan_starter',
+          trialStatus: 'EXPIRED',
+          autoRenew: false
+        }).catch(() => {});
+        console.log(`[Dodo Webhook] Carrier ${matchedCarrier.id} cancelled/expired, downgraded to starter due to ${eventType}`);
       }
     }
 

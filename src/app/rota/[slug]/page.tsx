@@ -93,8 +93,8 @@ export default async function IntercityRoutePage({
       c.verificationStatus === 'APPROVED' &&
       (c.city === route.originCity ||
         c.city === route.destinationCity ||
-        c.serviceAreas.includes(route.originCity) ||
-        c.serviceAreas.includes('TÜM_TÜRKİYE'))
+        (c.serviceAreas || []).includes(route.originCity) ||
+        (c.serviceAreas || []).includes('TÜM_TÜRKİYE'))
   ).slice(0, 3);
 
   return (

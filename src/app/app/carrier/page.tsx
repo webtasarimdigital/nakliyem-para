@@ -38,19 +38,21 @@ import { db as firestoreDb, isFirebaseConfigured } from '@/lib/firebase/config';
 import { collection, onSnapshot } from 'firebase/firestore';
 
 // Rule-based rota eşleşme skoru simülasyonu
-function calcMatchScore(request: { originCity: string; destinationCity: string; serviceCategory: string }, carrier: { city: string; serviceAreas: string[]; services: string[] }) {
+function calcMatchScore(request: { originCity: string; destinationCity: string; serviceCategory: string }, carrier: { city?: string; serviceAreas?: string[]; services?: string[] }) {
   let score = 0;
   const reasons: string[] = [];
+  const serviceAreas = carrier?.serviceAreas || [];
+  const services = carrier?.services || [];
 
-  if (carrier.serviceAreas.includes(request.originCity) || carrier.serviceAreas.includes('TÜM_TÜRKİYE')) {
+  if (serviceAreas.includes(request.originCity) || serviceAreas.includes('TÜM_TÜRKİYE')) {
     score += 35;
     reasons.push('Hizmet bölgenizde');
   }
-  if (carrier.serviceAreas.includes(request.destinationCity) || carrier.serviceAreas.includes('TÜM_TÜRKİYE')) {
+  if (serviceAreas.includes(request.destinationCity) || serviceAreas.includes('TÜM_TÜRKİYE')) {
     score += 25;
     reasons.push('Varış şehrinizde aktifsiniz');
   }
-  if (carrier.city === request.originCity) {
+  if (carrier?.city === request.originCity) {
     score += 15;
     reasons.push('Çıkış şehrinizdesiniz');
   }
@@ -64,7 +66,7 @@ function calcMatchScore(request: { originCity: string; destinationCity: string; 
     PARCA_ESYA: 'parca-esya',
     ESYA_DEPOLAMA: 'depolama',
   };
-  if (carrier.services.includes(svcMap[request.serviceCategory])) {
+  if (services.includes(svcMap[request.serviceCategory])) {
     score += 10;
     reasons.push('Bu hizmeti veriyorsunuz');
   }

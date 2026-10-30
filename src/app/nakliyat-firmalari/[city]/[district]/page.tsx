@@ -106,8 +106,8 @@ export default async function DistrictDirectoryPage({
     c =>
       c.verificationStatus === 'APPROVED' &&
       (c.city === cityObj.name ||
-        c.serviceAreas.includes(cityObj.name) ||
-        c.serviceAreas.includes('TÜM_TÜRKİYE'))
+        (c.serviceAreas || []).includes(cityObj.name) ||
+        (c.serviceAreas || []).includes('TÜM_TÜRKİYE'))
   );
 
   const itemListSchema = buildItemListSchema(

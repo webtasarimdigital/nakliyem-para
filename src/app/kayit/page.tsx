@@ -150,7 +150,7 @@ function KayitContent() {
 
   // Sayfa yenilenirse veya geri gelinirse bekleyen telefon doğrulama oturumunu geri yükle
   useEffect(() => {
-    if (typeof window !== 'undefined') return;
+    if (typeof window === 'undefined') return;
     try {
       const saved = sessionStorage.getItem('pending_registration_session');
       if (saved) {
@@ -222,9 +222,14 @@ function KayitContent() {
     }
     // Yönlendirme kararını kullanıcının Firestore'daki gerçek rolüne göre al
     if (res.user.role === 'CARRIER') {
-      router.push('/app/carrier');
+      const existingCarrier = db.getCarriers().find(c => c.userId === res.user?.id || c.id === res.user?.carrierProfileId);
+      if (!existingCarrier || !existingCarrier.isProfileCompleted || !existingCarrier.companyName) {
+        router.push('/nakliyeci/onboarding');
+      } else {
+        router.push('/nakliyeci');
+      }
     } else {
-      router.push('/app/customer');
+      router.push('/musteri');
     }
   };
 

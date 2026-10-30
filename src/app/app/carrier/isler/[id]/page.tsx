@@ -52,8 +52,8 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
   const carrierPlan = carrier ? db.getPlanById(carrierSub?.planId || carrier.planId) : null;
   const isFreeOrStarterPlan = !carrier?.planId || carrier.planId === 'plan_starter' || carrier.planId === 'trial' || carrier.planId === 'free';
   const [activeOffers, setActiveOffers] = useState<Offer[]>(() => carrier ? db.getOffersForCarrier(carrier.id) : []);
-  const existingOffer = activeOffers.find(o => o.requestId === req.id && o.status !== 'WITHDRAWN');
-  const isAssignedOrClosed = req.status === 'ASSIGNED' || req.status === 'CLOSED';
+  const existingOffer = activeOffers.find(o => o.requestId === req?.id && o.status !== 'WITHDRAWN');
+  const isAssignedOrClosed = req?.status === 'ASSIGNED' || req?.status === 'CLOSED';
 
   // Müşteri Telefon Görme Yetkisi (Pro / Gold Paket veya Kabul Edilmiş Teklif)
   const isProOrGold = carrier?.planId === 'plan_pro' || carrier?.planId === 'plan_gold' || carrier?.planId === 'pro' || carrier?.planId === 'gold' || carrierSub?.planId === 'plan_pro' || carrierSub?.planId === 'plan_gold' || carrierSub?.planId === 'pro' || carrierSub?.planId === 'gold';
@@ -77,7 +77,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
   };
 
   // Distance estimate
-  const distanceInfo = calculateDistance(req.originCity, req.destinationCity);
+  const distanceInfo = req ? calculateDistance(req.originCity, req.destinationCity) : { km: 0, durationHours: 0 };
 
   // Quote Form State
   const [price, setPrice] = useState('');
@@ -170,7 +170,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
       if (isFirstOfferForThisCarrier) {
         try {
           const customerUser = db.getUsers().find((u: any) => u.id === req.customerId);
-          const targetEmail = req.customerEmail || customerUser?.email || 'omerfaruksaycan@gmail.com';
+          const targetEmail = req.customerEmail || customerUser?.email || 'bilgi@tasinteklif.com';
           if (targetEmail) {
             sendNotificationEmail({
               type: 'NEW_OFFER',
@@ -193,6 +193,18 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
       setSuccessModalOpen(true);
     }, 600);
   };
+
+  if (!req) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+        <h2 className="text-xl font-black text-slate-800 mb-2">İlan Bulunamadı</h2>
+        <p className="text-slate-500 text-xs sm:text-sm mb-6">Bu taşıma ilanı tamamlanmış, silinmiş veya geçerliliğini yitirmiş olabilir.</p>
+        <Link href="/app/carrier/isler">
+          <Button variant="primary" size="md">Açık İşler Listesine Dön</Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
@@ -394,7 +406,7 @@ export default function CarrierJobDetailPage({ params }: { params: Promise<{ id:
             </div>
 
             {/* Photos */}
-            {req.photos.length > 0 && (
+            {req.photos && req.photos.length > 0 && (
               <div>
                 <h3 className="text-xs font-bold text-[#0A1128] uppercase tracking-wider mb-2">Eşya Fotoğrafları ({req.photos.length})</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

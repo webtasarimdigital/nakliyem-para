@@ -156,12 +156,16 @@ export const SupportChatWidget: React.FC = () => {
       if (currentUser.email) setEmail(currentUser.email);
       if (currentUser.phone) setPhone(currentUser.phone);
     } else {
-      const savedName = localStorage.getItem('tasinteklif_support_name');
-      const savedEmail = localStorage.getItem('tasinteklif_support_email');
-      const savedPhone = localStorage.getItem('tasinteklif_support_phone');
-      if (savedName) setName(savedName);
-      if (savedEmail) setEmail(savedEmail);
-      if (savedPhone) setPhone(savedPhone);
+      try {
+        const savedName = localStorage.getItem('tasinteklif_support_name');
+        const savedEmail = localStorage.getItem('tasinteklif_support_email');
+        const savedPhone = localStorage.getItem('tasinteklif_support_phone');
+        if (savedName) setName(savedName);
+        if (savedEmail) setEmail(savedEmail);
+        if (savedPhone) setPhone(savedPhone);
+      } catch (err) {
+        // Ignore localStorage access errors (e.g. incognito/iframe restrictions)
+      }
     }
 
     // Global open event listener
@@ -208,9 +212,13 @@ export const SupportChatWidget: React.FC = () => {
 
     try {
       // Save contact details for next time
-      localStorage.setItem('tasinteklif_support_name', cleanName);
-      localStorage.setItem('tasinteklif_support_email', cleanEmail);
-      if (phone) localStorage.setItem('tasinteklif_support_phone', phone.trim());
+      try {
+        localStorage.setItem('tasinteklif_support_name', cleanName);
+        localStorage.setItem('tasinteklif_support_email', cleanEmail);
+        if (phone) localStorage.setItem('tasinteklif_support_phone', phone.trim());
+      } catch (err) {
+        // Ignore localStorage error
+      }
 
       const payload = {
         name: cleanName,

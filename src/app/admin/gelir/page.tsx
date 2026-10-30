@@ -15,20 +15,29 @@ import {
 import { db } from '@/lib/data/mock-db';
 
 const PLAN_PRICES: Record<string, number> = {
-  plan_starter: 1250,
-  plan_pro: 2450,
-  plan_gold: 4850,
+  starter: 1199,
+  plan_starter: 1199,
+  pro: 2990,
+  plan_pro: 2990,
+  gold: 5990,
+  plan_gold: 5990,
 };
 
 const PLAN_LABELS: Record<string, string> = {
+  starter: 'Başlangıç',
   plan_starter: 'Başlangıç',
+  pro: 'Pro',
   plan_pro: 'Pro',
+  gold: 'Gold',
   plan_gold: 'Gold',
 };
 
 const PLAN_COLORS: Record<string, { bar: string; badge: string; text: string }> = {
+  gold: { bar: 'bg-amber-400', badge: 'bg-amber-100 text-amber-800', text: 'text-amber-600' },
   plan_gold: { bar: 'bg-amber-400', badge: 'bg-amber-100 text-amber-800', text: 'text-amber-600' },
+  pro: { bar: 'bg-blue-500', badge: 'bg-blue-100 text-blue-800', text: 'text-blue-600' },
   plan_pro: { bar: 'bg-blue-500', badge: 'bg-blue-100 text-blue-800', text: 'text-blue-600' },
+  starter: { bar: 'bg-slate-400', badge: 'bg-slate-100 text-slate-700', text: 'text-slate-600' },
   plan_starter: { bar: 'bg-slate-400', badge: 'bg-slate-100 text-slate-700', text: 'text-slate-600' },
 };
 

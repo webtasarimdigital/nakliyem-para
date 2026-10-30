@@ -245,7 +245,12 @@ export async function POST(req: Request) {
     // Send via Nodemailer (SMTP)
     const smtpHost = process.env.SMTP_HOST || 'mail.guzel.net.tr';
     const smtpUser = process.env.SMTP_USER || 'bilgi@tasinteklif.com';
-    const smtpPass = process.env.SMTP_PASS || '6D3Sc0v7jr';
+    const smtpPass = process.env.SMTP_PASS || '';
+
+    if (!smtpPass) {
+      console.warn('SMTP_PASS is not configured in environment variables');
+      return NextResponse.json({ success: false, error: 'SMTP yapılandırılmamış' });
+    }
 
     const transporter = nodemailer.createTransport({
       host: smtpHost,

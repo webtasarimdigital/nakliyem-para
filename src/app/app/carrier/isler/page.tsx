@@ -424,7 +424,7 @@ export default function CarrierJobsPage() {
     if (isFirstOfferForThisCarrier) {
       try {
         const customerUser = db.getUsers().find((u: any) => u.id === req.customerId);
-        const targetEmail = req.customerEmail || customerUser?.email || 'omerfaruksaycan@gmail.com';
+        const targetEmail = req.customerEmail || customerUser?.email || 'bilgi@tasinteklif.com';
         if (targetEmail) {
           sendNotificationEmail({
             type: 'NEW_OFFER',
@@ -1152,7 +1152,7 @@ export default function CarrierJobsPage() {
                   if (isFirstOfferForThisCarrier) {
                     try {
                       const customerUser = db.getUsers().find((u: any) => u.id === offerModalReq.customerId);
-                      const targetEmail = offerModalReq.customerEmail || customerUser?.email || 'omerfaruksaycan@gmail.com';
+                      const targetEmail = offerModalReq.customerEmail || customerUser?.email || 'bilgi@tasinteklif.com';
                       if (targetEmail) {
                         sendNotificationEmail({
                           type: 'NEW_OFFER',

@@ -422,7 +422,7 @@ export default function GoogleAdsServicePage() {
 
                     <div className="pt-6">
                       <a 
-                        href={`https://wa.me/908503080000?text=${encodeURIComponent(`Merhaba, ${pkg.name} Ads paketi hakkında bilgi almak istiyorum.`)}`}
+                        href={`https://wa.me/971585188543?text=${encodeURIComponent(`Merhaba, ${pkg.name} Ads paketi hakkında bilgi almak istiyorum.`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block w-full"
@@ -478,7 +478,7 @@ export default function GoogleAdsServicePage() {
                 </p>
               </div>
               <a 
-                href="https://wa.me/908503080000?text=Merhaba,%20Google%20Ads%20reklam%20analizi%20için%20yazıyorum." 
+                href="https://wa.me/971585188543?text=Merhaba,%20Google%20Ads%20reklam%20analizi%20için%20yazıyorum." 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="shrink-0 relative z-10"

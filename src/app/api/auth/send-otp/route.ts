@@ -284,7 +284,11 @@ ${ADMIN_EMAIL}
     `.trim();
 
     // Dev logging for testing
-    console.log(`[AUTH OTP SENT] To: ${email} | Code: ${verificationCode} (Expires in 3 min)`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[AUTH OTP SENT] To: ${email} | Code: ${verificationCode}`);
+    } else {
+      console.log(`[AUTH OTP SENT] To: ${email} (Expires in 3 min)`);
+    }
 
     let emailSent = false;
 

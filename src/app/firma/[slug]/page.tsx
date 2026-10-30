@@ -325,7 +325,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                 <div>
                   <h2 className="text-xl font-black text-[#111E38] mb-1">Verilen Hizmetler</h2>
                   <div className="flex flex-wrap gap-2 mt-3">
-                    {carrier.services.map((s, i) => (
+                    {(carrier.services || []).map((s, i) => (
                       <span key={i} className="px-3 py-1.5 rounded-xl bg-orange-50 text-[#C23E00] border border-orange-200 font-black text-xs">
                         ✓ {s.toUpperCase().replace('-', ' ')}
                       </span>
@@ -339,7 +339,7 @@ export default function PublicCarrierProfilePage({ params }: { params: Promise<{
                     Bu iller arasında düzenli seferler ve araç üstü nakliyat sağlanmaktadır.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {carrier.serviceAreas.map((city, i) => {
+                    {(carrier.serviceAreas || []).map((city, i) => {
                       const matchedCityObj = TURKEY_CITIES.find(
                         c => c.name.toLowerCase() === city.toLowerCase()
                       );

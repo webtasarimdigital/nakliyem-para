@@ -41,6 +41,8 @@ export async function registerWithFirebase(params: RegisterParams): Promise<{ us
     const userCredential = await createUserWithEmailAndPassword(auth, params.email, params.password);
     const fbUser = userCredential.user;
 
+    const carrierProfileId = (params.role === 'CARRIER' && params.companyName) ? `carrier_${fbUser.uid}` : undefined;
+
     const userProfile: User = {
       id: fbUser.uid,
       email: params.email,
@@ -48,6 +50,7 @@ export async function registerWithFirebase(params: RegisterParams): Promise<{ us
       role: params.role,
       fullName: params.fullName,
       companyName: params.companyName,
+      carrierProfileId,
       createdAt: new Date().toISOString(),
     };
 
@@ -59,8 +62,7 @@ export async function registerWithFirebase(params: RegisterParams): Promise<{ us
     });
 
     // If carrier, create carrier profile record
-    if (params.role === 'CARRIER' && params.companyName) {
-      const carrierProfileId = `carrier_${fbUser.uid}`;
+    if (params.role === 'CARRIER' && params.companyName && carrierProfileId) {
       await setDoc(doc(db, 'carriers', carrierProfileId), {
         id: carrierProfileId,
         userId: fbUser.uid,
@@ -178,12 +180,14 @@ export async function loginWithGoogleFirebase(targetRole: UserRole = 'CUSTOMER')
       userProfile = userDoc.data() as User;
     } else {
       // Yeni kullanıcı — targetRole ile kayıt oluştur
+      const carrierProfileId = targetRole === 'CARRIER' ? `carrier_${fbUser.uid}` : undefined;
       userProfile = {
         id: fbUser.uid,
         email: fbUser.email || '',
         phone: fbUser.phoneNumber || '',
         role: targetRole,
-        fullName: fbUser.displayName || 'Google Kullanıcısı',
+        fullName: fbUser.displayName || (targetRole === 'CARRIER' ? 'Nakliyeci' : 'Kullanıcı'),
+        carrierProfileId,
         createdAt: new Date().toISOString(),
       };
       await setDoc(userDocRef, {
@@ -191,6 +195,43 @@ export async function loginWithGoogleFirebase(targetRole: UserRole = 'CUSTOMER')
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+
+      if (targetRole === 'CARRIER' && carrierProfileId) {
+        const carrierDocRef = doc(db, 'carriers', carrierProfileId);
+        const exCarrier = await getDoc(carrierDocRef);
+        if (!exCarrier.exists()) {
+          await setDoc(carrierDocRef, {
+            id: carrierProfileId,
+            userId: fbUser.uid,
+            companyName: '',
+            slug: '',
+            authorizedPersonName: fbUser.displayName || '',
+            authorizedPersonSurname: '',
+            phone: fbUser.phoneNumber || '',
+            email: fbUser.email || '',
+            city: '',
+            district: '',
+            services: ['evden-eve'],
+            serviceAreas: ['TÜM_TÜRKİYE'],
+            verificationStatus: 'PENDING',
+            verificationBadges: {
+              identityVerified: false,
+              taxVerified: false,
+              transportPermitVerified: false,
+              elevatorVerified: false,
+            },
+            planId: 'plan_starter',
+            isProfileCompleted: false,
+            rating: 0,
+            reviewCount: 0,
+            completedJobsCount: 0,
+            responseRatePercent: 100,
+            shortBio: '',
+            joinedAt: new Date().toISOString(),
+            createdAt: serverTimestamp(),
+          });
+        }
+      }
     }
 
     return { user: userProfile, error: null };

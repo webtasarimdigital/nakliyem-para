@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { db } from '@/lib/data/mock-db';
+import { updateFirestoreCarrier } from '@/lib/firebase/firestore';
 import { SubscriptionPlan, CarrierProfile, CarrierSubscription } from '@/types';
 
 export default function CarrierSubscriptionPage() {
@@ -150,10 +151,49 @@ export default function CarrierSubscriptionPage() {
 
     setCardError('');
     setIsActivating(true);
-    setTimeout(() => {
-      db.updateCarrier(carrier.id, { planId: selectedPlanForTrial.id });
-      const updatedSub = db.renewCarrierSubscription(carrier.id);
-      const updatedCarrier = db.getCarrierById(carrier.id) || { ...carrier, planId: selectedPlanForTrial.id };
+    setTimeout(async () => {
+      const isTrial = selectedPlanForTrial.trialDays > 0 || selectedPlanForTrial.id === 'plan_pro';
+      let updatedCarrier: CarrierProfile;
+      let updatedSub: CarrierSubscription;
+
+      if (isTrial) {
+        db.recordCarrierCardAdded(carrier.id, rawCard.slice(-4));
+        db.startCarrierTrial(carrier.id);
+        const fresh = db.getCarrierById(carrier.id);
+        updatedCarrier = fresh || {
+          ...carrier,
+          planId: 'plan_pro',
+          hasCardAdded: true,
+          trialStatus: 'ACTIVE_TRIAL',
+          trialStartedAt: new Date().toISOString(),
+          trialEndsAt: new Date(Date.now() + 7 * 86400000).toISOString()
+        };
+        updatedSub = db.getCarrierSubscription(carrier.id);
+        
+        try {
+          await updateFirestoreCarrier(carrier.id, {
+            planId: 'plan_pro',
+            hasCardAdded: true,
+            trialStatus: updatedCarrier.trialStatus,
+            trialStartedAt: updatedCarrier.trialStartedAt,
+            trialEndsAt: updatedCarrier.trialEndsAt,
+          });
+        } catch (err) {
+          console.warn('Firestore trial sync warning:', err);
+        }
+      } else {
+        db.updateCarrier(carrier.id, { planId: selectedPlanForTrial.id });
+        updatedSub = db.renewCarrierSubscription(carrier.id);
+        updatedCarrier = db.getCarrierById(carrier.id) || { ...carrier, planId: selectedPlanForTrial.id };
+        try {
+          await updateFirestoreCarrier(carrier.id, {
+            planId: selectedPlanForTrial.id,
+          });
+        } catch (err) {
+          console.warn('Firestore plan sync warning:', err);
+        }
+      }
+
       setCarrier(updatedCarrier);
       setSub(updatedSub);
       setIsActivating(false);

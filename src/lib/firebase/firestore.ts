@@ -173,27 +173,36 @@ export function subscribeToFirestoreDefterPosts(callback: (posts: DefterPost[]) 
 
 // ─── REVIEWS (MÜŞTERİ YORUM & YILDIZLARI) ────────────────────
 export async function addFirestoreReview(review: Review): Promise<void> {
-  if (!isFirebaseConfigured()) return;
-  await setDoc(doc(db, 'reviews', review.id), {
-    ...review,
-    createdAt: serverTimestamp(),
-  });
+  if (!isFirebaseConfigured() || !db) return;
+  try {
+    await setDoc(doc(db, 'reviews', review.id), {
+      ...review,
+      createdAt: serverTimestamp(),
+    });
 
-  // Recalculate carrier rating
-  const reviews = await getFirestoreReviewsForCarrier(review.carrierId);
-  const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-  await updateDoc(doc(db, 'carriers', review.carrierId), {
-    rating: Math.round(avg * 10) / 10,
-    reviewCount: reviews.length,
-    updatedAt: serverTimestamp(),
-  });
+    // Recalculate carrier rating
+    const reviews = await getFirestoreReviewsForCarrier(review.carrierId);
+    const avg = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) : (review.rating || 5);
+    await updateDoc(doc(db, 'carriers', review.carrierId), {
+      rating: Math.round(avg * 10) / 10,
+      reviewCount: reviews.length,
+      updatedAt: serverTimestamp(),
+    });
+  } catch (err) {
+    console.warn('Failed to add Firestore review:', err);
+  }
 }
 
 export async function getFirestoreReviewsForCarrier(carrierId: string): Promise<Review[]> {
-  if (!isFirebaseConfigured()) return [];
-  const q = query(collection(db, 'reviews'), where('carrierId', '==', carrierId));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ ...d.data(), id: d.id } as Review));
+  if (!isFirebaseConfigured() || !db) return [];
+  try {
+    const q = query(collection(db, 'reviews'), where('carrierId', '==', carrierId));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ ...d.data(), id: d.id } as Review));
+  } catch (err) {
+    console.warn('Failed to fetch Firestore reviews for carrier:', err);
+    return [];
+  }
 }
 
 // ─── CARRIERS (FİRMALAR) ──────────────────────────────────────

@@ -251,8 +251,8 @@ export default function FiyatlarPage() {
   // FAQ Items
   const FAQS = [
     {
-      q: 'Gold paketteki 7 günlük ücretsiz deneme nasıl çalışır?',
-      a: 'Gold paketi seçtiğinizde ilk 7 gün boyunca hiçbir ücret ödemeden sınırsız teklif, doğrudan müşteri telefonu ve vitrin ayrıcalıklarını anında kullanmaya başlarsınız. 7 gün dolmadan dilediğiniz zaman tek tıkla iptal edebilirsiniz.',
+      q: 'Profesyonel paketteki 7 günlük ücretsiz deneme nasıl çalışır?',
+      a: 'Profesyonel paketi seçtiğinizde ilk 7 gün boyunca hiçbir ücret ödemeden aylık 50 teklif hakkı, doğrudan müşteri telefonu ve vitrin avantajlarını anında kullanmaya başlarsınız. 7 gün dolmadan dilediğiniz zaman tek tıkla iptal edebilirsiniz.',
     },
     {
       q: 'Yıllık ödeme avantajı nasıl çalışır?',

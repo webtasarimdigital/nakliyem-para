@@ -1778,7 +1778,7 @@ class MockDatabase {
       currentPeriodEnd: periodEnd.toISOString(),
       cancelAtPeriodEnd: false,
       lastPaymentDate: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-      lastPaymentAmount: planId === 'plan_gold' ? 4850 : planId === 'plan_pro' ? 2450 : planId === 'plan_starter' ? 1250 : 0,
+      lastPaymentAmount: (planId === 'plan_gold' || planId === 'gold') ? 5990 : (planId === 'plan_pro' || planId === 'pro') ? 2990 : (planId === 'plan_starter' || planId === 'starter') ? 1199 : 0,
       cardLastFour: '4242',
       cardBrand: 'Mastercard',
       autoRenew: true,

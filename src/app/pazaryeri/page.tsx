@@ -128,7 +128,7 @@ const SAMPLE_LISTINGS: VehicleListing[] = [
     category: 'ASANSOR',
     title: '18. Kat Hidrolik Araç Üstü Mobil Asansör',
     price: 0,
-    priceLabel: 'Fiyat Sorununuz',
+    priceLabel: 'Fiyat Sorunuz',
     isNegotiable: true,
     condition: 'IKINCI_EL',
     city: 'İstanbul',

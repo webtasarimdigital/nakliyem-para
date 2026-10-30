@@ -31,20 +31,29 @@ import { CarrierProfile } from '@/types';
 
 // Gelir hesaplama yardımcıları
 const PLAN_PRICES: Record<string, number> = {
-  plan_starter: 1250,
-  plan_pro: 2450,
-  plan_gold: 4850,
+  starter: 1199,
+  plan_starter: 1199,
+  pro: 2990,
+  plan_pro: 2990,
+  gold: 5990,
+  plan_gold: 5990,
 };
 
 const PLAN_LABELS: Record<string, string> = {
+  starter: 'Başlangıç',
   plan_starter: 'Başlangıç',
+  pro: 'Pro',
   plan_pro: 'Pro',
+  gold: 'Gold',
   plan_gold: 'Gold',
 };
 
 const PLAN_COLORS: Record<string, string> = {
+  starter: 'bg-slate-500',
   plan_starter: 'bg-slate-500',
+  pro: 'bg-blue-500',
   plan_pro: 'bg-blue-500',
+  gold: 'bg-amber-500',
   plan_gold: 'bg-amber-500',
 };
 
@@ -255,7 +264,7 @@ export default function AdminDashboardPage() {
   const newThisMonth = carriers.filter(c => new Date(c.joinedAt).getTime() > thirtyDaysAgo).length;
   const mockRenewedCount = Math.max(0, approvedCarriers.length - newThisMonth);
   const churnCount = 0;
-  const trialCount = carriers.filter(c => !c.planId || c.planId === 'trial').length;
+  const trialCount = carriers.filter(c => c.trialStatus === 'ACTIVE_TRIAL' || c.planId === 'trial').length;
 
   return (
     <div className="min-h-screen bg-slate-50 overflow-x-hidden w-full">
@@ -430,9 +439,9 @@ export default function AdminDashboardPage() {
 
             <div className="space-y-3">
               {[
-                { label: 'Gold', count: goldCarriers.length, price: 4850, planId: 'plan_gold' },
-                { label: 'Pro', count: proCarriers.length, price: 2450, planId: 'plan_pro' },
-                { label: 'Başlangıç', count: starterCarriers.length, price: 1250, planId: 'plan_starter' },
+                { label: 'Gold', count: goldCarriers.length, price: 5990, planId: 'plan_gold' },
+                { label: 'Pro', count: proCarriers.length, price: 2990, planId: 'plan_pro' },
+                { label: 'Başlangıç', count: starterCarriers.length, price: 1199, planId: 'plan_starter' },
                 { label: 'Deneme (Trial)', count: trialCount, price: 0, planId: 'trial' },
                 { label: 'İptal / Churn', count: churnCount, price: 0, planId: 'churn' },
               ].map((tier) => {
