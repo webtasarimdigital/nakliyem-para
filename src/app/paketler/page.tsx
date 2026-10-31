@@ -270,6 +270,7 @@ function PaketlerContent() {
   const handlePlanClick = (plan: typeof PLANS[0]) => {
     // 1. Giriş yapmamış kullanıcı -> Giriş / Kayıt Modalını aç
     if (!currentUser) {
+      setSelectedPlanForUpgrade(null);
       setAuthModalConfig({
         title: plan.hasTrial ? '7 Gün Ücretsiz Deneme İçin Giriş Yapın' : 'Paket Seçimi İçin Giriş Yapın',
         subtitle: 'Seçtiğiniz paketi firmanıza tanımlamak ve teklif vermeye başlamak için lütfen nakliyeci hesabınıza giriş yapın.',
@@ -717,7 +718,7 @@ function PaketlerContent() {
       {/* ── NAKLİYECİ PAKET YÜKSELTME / 7 GÜN ÜCRETSİZ DENEME MODALI ── */}
       {/* ── NAKLİYECİ PAKET SEÇİMİ VE GÜVENLİ ÖDEME MODALI ── */}
       <Modal
-        isOpen={!!selectedPlanForUpgrade && !!currentUser}
+        isOpen={!!selectedPlanForUpgrade && !authModalOpen && !customerModalOpen && !trialModalOpen && !!currentUser}
         onClose={() => !isRedirectingToCheckout && setSelectedPlanForUpgrade(null)}
         title="Paket Seçimi & Güvenli Ödeme"
         maxWidth="lg"

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Maintenance mode is ACTIVE (Site bakım moduna alındı)
-const IS_MAINTENANCE_MODE = true;
+// Maintenance mode is OFF (Site canlıda / yayında)
+const IS_MAINTENANCE_MODE = false;
 const BYPASS_SECRET = process.env.MAINTENANCE_BYPASS_SECRET || 'tasin2026';
 const BYPASS_COOKIE_NAME = 'tasinteklif_maintenance_bypass';
 
