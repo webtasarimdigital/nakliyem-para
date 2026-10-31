@@ -1280,6 +1280,50 @@ export function getCanonicalConvId(requestCodeOrId: string, carrierIdentifier?: 
 class MockDatabase {
   private isClient = typeof window !== 'undefined';
 
+  constructor() {
+    if (this.isClient) {
+      const CLEAN_TEST_EMAILS = [
+        'omerfarukamazon@gmail.com',
+        'omerfarukkdursun@gmail.com',
+        'nimetstepn61@gmail.com'
+      ];
+      const CLEAN_TEST_PHONE = '5376039508';
+
+      try {
+        const flagKey = 'tasin_test_accounts_purged_v2';
+        if (!localStorage.getItem(flagKey)) {
+          for (const email of CLEAN_TEST_EMAILS) {
+            this.purgeAllUserData('', { email, phone: CLEAN_TEST_PHONE });
+          }
+          // Remove from used_trial_history
+          const trials = this.getUsedTrialHistory().filter(t => 
+            !CLEAN_TEST_EMAILS.includes((t.email || '').toLowerCase()) && 
+            t.phone !== CLEAN_TEST_PHONE
+          );
+          this.setItem('used_trial_history', trials);
+
+          // Remove from banned_entities
+          const bans = this.getBannedEntities().filter(b => 
+            !CLEAN_TEST_EMAILS.includes((b.value || '').toLowerCase()) && 
+            b.value !== CLEAN_TEST_PHONE
+          );
+          this.setItem('banned_entities', bans);
+
+          // Clear current user if it was one of these test accounts
+          const current = this.getCurrentUser();
+          if (current) {
+            const curEmail = (current.email || '').toLowerCase();
+            const curPhone = (current.phone || '').replace(/\D/g, '').slice(-10);
+            if (CLEAN_TEST_EMAILS.includes(curEmail) || curPhone === CLEAN_TEST_PHONE) {
+              this.setCurrentUser(null);
+            }
+          }
+          localStorage.setItem(flagKey, 'true');
+        }
+      } catch {}
+    }
+  }
+
   slugifyTurkish(text: string): string {
     return slugifyTurkish(text);
   }

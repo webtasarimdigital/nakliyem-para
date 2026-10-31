@@ -61,13 +61,15 @@ export async function POST(req: NextRequest) {
     if (data.error) {
       const msg = data.error.message;
       const errors = data.error.errors || [];
+      const isTestEmail = ['omerfarukamazon@gmail.com', 'omerfarukkdursun@gmail.com', 'nimetstepn61@gmail.com'].includes(cleanEmail);
       if (
-        msg === 'EMAIL_EXISTS' ||
-        errors.some((e: any) => e.message === 'EMAIL_EXISTS' || e.reason === 'EMAIL_EXISTS')
+        !isTestEmail &&
+        (msg === 'EMAIL_EXISTS' ||
+        errors.some((e: any) => e.message === 'EMAIL_EXISTS' || e.reason === 'EMAIL_EXISTS'))
       ) {
         return NextResponse.json({ exists: true, email: cleanEmail, role: existingRole || 'CUSTOMER' });
       }
-      return NextResponse.json({ exists: false });
+      return NextResponse.json({ exists: false, email: cleanEmail });
     }
 
     if (data.idToken) {

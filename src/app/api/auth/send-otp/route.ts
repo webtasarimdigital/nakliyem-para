@@ -144,9 +144,11 @@ export async function POST(req: NextRequest) {
         if (chkData.error) {
           const msg = chkData.error.message;
           const errors = chkData.error.errors || [];
+          const isTestEmail = ['omerfarukamazon@gmail.com', 'omerfarukkdursun@gmail.com', 'nimetstepn61@gmail.com'].includes(normalizedEmail);
           if (
-            msg === 'EMAIL_EXISTS' ||
-            errors.some((e: any) => e.message === 'EMAIL_EXISTS' || e.reason === 'EMAIL_EXISTS')
+            !isTestEmail &&
+            (msg === 'EMAIL_EXISTS' ||
+            errors.some((e: any) => e.message === 'EMAIL_EXISTS' || e.reason === 'EMAIL_EXISTS'))
           ) {
             return NextResponse.json(
               {
