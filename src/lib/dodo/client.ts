@@ -24,13 +24,13 @@ const KNOWN_SECRETS = [
 export const DODO_PRODUCT_MAP: Record<string, string> = {
   // Test mode product provided by user
   test: 'pdt_0NlJmVowt63o3bdQdXjMA',
-  // Live mode products
-  starter: 'pdt_0Nq4nkFmBLBZwAMnJwrzk',
-  pro: 'pdt_0Nq4nkOTbU52xoR36mYHs',
-  gold: 'pdt_0Nq4nkW9Ypw7BcXtK8RvS',
-  starter_yearly: 'pdt_0Nq4oIhUagl6FAe87iK9H',
-  pro_yearly: 'pdt_0Nq4oIouhb4BigHxDiIzH',
-  gold_yearly: 'pdt_0Nq4oIwDybstXcVsbsTVc',
+  // Live mode products (Güncel Fiyatlar - ₺1.199, ₺2.990, ₺5.990)
+  starter: 'pdt_0NqrUwnU6UGhZEjaqdgES',
+  pro: 'pdt_0NqrUwrUfS1xSmpU3umYU',
+  gold: 'pdt_0NqrUwvgW3tE8vEm697UD',
+  starter_yearly: 'pdt_0NqrUwzyTHEKDNSdMN2De',
+  pro_yearly: 'pdt_0NqrUx4yyfKl5y6JRySnc',
+  gold_yearly: 'pdt_0NqrUx92WUbxwNDyyB3Mc',
 };
 
 export interface CreateCheckoutParams {
