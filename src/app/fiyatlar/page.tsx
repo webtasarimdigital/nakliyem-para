@@ -99,6 +99,16 @@ export default function FiyatlarPage() {
     }
 
     if (plan.id === 'pro' || (plan as any).trialBadge) {
+      const userPhone = user.phone || carrier?.phone;
+      const userEmail = user.email || carrier?.email;
+      const alreadyUsed = db.hasUsedTrialBefore({ phone: userPhone, email: userEmail, carrierId: carrier?.id, userId: user.id }) ||
+        carrier?.trialStatus === 'EXPIRED' || carrier?.trialStatus === 'CONVERTED';
+
+      if (alreadyUsed) {
+        setSelectedPlanForUpgrade(plan);
+        return;
+      }
+
       setTrialModalOpen(true);
       return;
     }

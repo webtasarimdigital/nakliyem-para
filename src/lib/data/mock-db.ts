@@ -20,7 +20,8 @@ import {
   CarrierDocument,
   CarrierInvoice,
   UserRole,
-  BannedEntity
+  BannedEntity,
+  UsedTrialRecord
 } from '@/types';
 
 // Seed Subscription Plans
@@ -1468,6 +1469,12 @@ class MockDatabase {
     const carrier = this.getCarrierById(carrierId);
     if (!carrier) return;
 
+    // Daha önce ücretsiz deneme kullanılmış mı kontrol et (telefon, email veya carrierId)
+    if (this.hasUsedTrialBefore({ phone: carrier.phone, email: carrier.email, carrierId })) {
+      console.warn('Carrier has already used free trial:', carrierId, carrier.phone);
+      return;
+    }
+
     const now = new Date();
     const endsAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -1476,6 +1483,16 @@ class MockDatabase {
       planId: 'plan_pro',
       trialStartedAt: now.toISOString(),
       trialEndsAt: endsAt.toISOString(),
+    });
+
+    // Kalıcı deneme geçmişine kaydet (üye silinse dahi bu telefon/mail bir daha deneme alamaz)
+    this.recordTrialUsed({
+      carrierId,
+      userId: carrier.userId,
+      companyName: carrier.companyName,
+      phone: carrier.phone,
+      email: carrier.email,
+      planId: 'plan_pro'
     });
 
     // Also update carrier subscription if exists
@@ -1518,12 +1535,24 @@ class MockDatabase {
       hasCardAdded: true,
     });
 
+    if (this.hasUsedTrialBefore({ phone: carrier.phone, email: carrier.email, carrierId })) {
+      return;
+    }
+
     // Profil onaylıysa doğrudan 7 günlük denemeyi başlat!
     if (carrier.verificationStatus === 'APPROVED') {
       this.startCarrierTrial(carrierId);
     } else {
       this.updateCarrier(carrierId, {
         trialStatus: 'PENDING_VERIFICATION',
+      });
+      this.recordTrialUsed({
+        carrierId,
+        userId: carrier.userId,
+        companyName: carrier.companyName,
+        phone: carrier.phone,
+        email: carrier.email,
+        planId: 'plan_pro'
       });
     }
   }
@@ -3446,6 +3475,74 @@ class MockDatabase {
     }
 
     return { isBanned: false };
+  }
+
+  // ── 7-Day Free Trial Anti-Abuse Tracking (Suistimal Önleme) ──
+  getUsedTrialHistory(): UsedTrialRecord[] {
+    return this.getItem<UsedTrialRecord[]>('used_trial_history', []);
+  }
+
+  recordTrialUsed(data: { carrierId?: string; userId?: string; companyName?: string; phone?: string; email?: string; planId?: string }): void {
+    const list = this.getUsedTrialHistory();
+    const normPhone = data.phone ? data.phone.replace(/\D/g, '').slice(-10) : '';
+    const normEmail = data.email ? data.email.trim().toLowerCase() : '';
+
+    const alreadyExists = list.some(r => 
+      (normPhone && r.phone === normPhone) ||
+      (normEmail && r.email === normEmail) ||
+      (data.carrierId && r.carrierId === data.carrierId)
+    );
+
+    if (alreadyExists) return;
+
+    const record: UsedTrialRecord = {
+      id: `trial_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      carrierId: data.carrierId,
+      userId: data.userId,
+      companyName: data.companyName,
+      phone: normPhone,
+      email: normEmail,
+      usedAt: new Date().toISOString(),
+      planId: data.planId || 'plan_pro'
+    };
+
+    const updated = [record, ...list];
+    this.setItem('used_trial_history', updated);
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      try {
+        fetch('/api/admin/trial-history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(record)
+        }).catch(() => {});
+      } catch {}
+    }
+  }
+
+  hasUsedTrialBefore(params: { phone?: string; email?: string; carrierId?: string; userId?: string }): boolean {
+    const list = this.getUsedTrialHistory();
+    const normPhone = params.phone ? params.phone.replace(/\D/g, '').slice(-10) : '';
+    const normEmail = params.email ? params.email.trim().toLowerCase() : '';
+
+    if (normPhone && list.some(r => r.phone === normPhone)) return true;
+    if (normEmail && list.some(r => r.email === normEmail)) return true;
+    if (params.carrierId && list.some(r => r.carrierId === params.carrierId)) return true;
+    if (params.userId && list.some(r => r.userId === params.userId)) return true;
+
+    // Check existing carriers in db if they have ever used trial
+    const carriers = this.getCarriers();
+    for (const c of carriers) {
+      const cNormPhone = c.phone ? c.phone.replace(/\D/g, '').slice(-10) : '';
+      const cNormEmail = c.email ? c.email.trim().toLowerCase() : '';
+      const match = (normPhone && cNormPhone === normPhone) || (normEmail && cNormEmail === normEmail) || (params.carrierId && c.id === params.carrierId);
+      if (match && (c.trialStatus === 'EXPIRED' || c.trialStatus === 'CONVERTED' || c.trialStatus === 'ACTIVE_TRIAL' || c.trialStartedAt)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   // Real Data Fetchers (Filters out seed / demo data)

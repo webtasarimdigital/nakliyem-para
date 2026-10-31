@@ -474,3 +474,15 @@ export interface BannedEntity {
   carrierId?: string;
   userId?: string;
 }
+
+export interface UsedTrialRecord {
+  id: string;
+  phone?: string;
+  email?: string;
+  companyName?: string;
+  carrierId?: string;
+  userId?: string;
+  usedAt: string;
+  planId?: string;
+  note?: string;
+}

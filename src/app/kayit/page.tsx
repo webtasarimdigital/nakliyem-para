@@ -633,6 +633,7 @@ function KayitContent() {
           },
           isProfileCompleted: false,
           planId: 'plan_starter',
+          trialStatus: db.hasUsedTrialBefore({ phone: phone.trim(), email }) ? 'EXPIRED' : 'NOT_STARTED',
           rating: 0,
           reviewCount: 0,
           completedJobsCount: 0,

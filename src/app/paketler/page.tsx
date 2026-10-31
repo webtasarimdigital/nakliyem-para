@@ -292,6 +292,16 @@ function PaketlerContent() {
     }
 
     if (plan.id === 'pro' || plan.hasTrial) {
+      const userPhone = currentUser.phone || carrier?.phone;
+      const userEmail = currentUser.email || carrier?.email;
+      const alreadyUsed = db.hasUsedTrialBefore({ phone: userPhone, email: userEmail, carrierId: carrier?.id, userId: currentUser.id }) ||
+        carrier?.trialStatus === 'EXPIRED' || carrier?.trialStatus === 'CONVERTED';
+
+      if (alreadyUsed) {
+        setSelectedPlanForUpgrade(plan);
+        return;
+      }
+
       setTrialModalOpen(true);
       return;
     }

@@ -5,6 +5,7 @@ import {
   getDoc, 
   getDocs, 
   updateDoc, 
+  deleteDoc,
   query, 
   where, 
   orderBy, 
@@ -13,7 +14,7 @@ import {
   Unsubscribe 
 } from 'firebase/firestore';
 import { db, auth, isFirebaseConfigured } from './config';
-import { MovingRequest, Offer, DefterPost, Review, CarrierProfile, User } from '@/types';
+import { MovingRequest, Offer, DefterPost, Review, CarrierProfile, User, UsedTrialRecord } from '@/types';
 
 // ─── USERS (KULLANICILAR) ─────────────────────────────────────
 export async function updateFirestoreUserProfile(userId: string, updates: Partial<User>): Promise<void> {
@@ -238,6 +239,79 @@ export async function updateFirestoreCarrier(carrierId: string, updates: Partial
     });
   } catch (err) {
     console.warn('Failed to update Firestore carrier:', err);
+  }
+}
+
+export async function deleteFirestoreUser(userId: string): Promise<void> {
+  if (!isFirebaseConfigured() || !db || !userId) return;
+  try {
+    await deleteDoc(doc(db, 'users', userId));
+  } catch (err) {
+    console.warn('Failed to delete Firestore user:', err);
+  }
+}
+
+export async function deleteFirestoreCarrier(carrierId: string): Promise<void> {
+  if (!isFirebaseConfigured() || !db || !carrierId) return;
+  try {
+    await deleteDoc(doc(db, 'carriers', carrierId));
+  } catch (err) {
+    console.warn('Failed to delete Firestore carrier:', err);
+  }
+}
+
+export async function deleteFirestoreRequest(requestId: string): Promise<void> {
+  if (!isFirebaseConfigured() || !db || !requestId) return;
+  try {
+    await deleteDoc(doc(db, 'requests', requestId));
+  } catch (err) {
+    console.warn('Failed to delete Firestore request:', err);
+  }
+}
+
+export async function deleteFirestoreRequestsByCustomer(customerId?: string, phone?: string): Promise<void> {
+  if (!isFirebaseConfigured() || !db) return;
+  const normPhone = phone ? phone.replace(/\D/g, '').slice(-10) : '';
+  try {
+    const snap = await getDocs(collection(db, 'requests'));
+    const toDelete: string[] = [];
+    snap.docs.forEach(d => {
+      const data = d.data();
+      const customer = data.customer || {};
+      const cId = data.customerId || customer.id || data.userId;
+      const cPhone = (customer.phone || data.phone || data.customerPhone || '').replace(/\D/g, '').slice(-10);
+      if ((customerId && cId === customerId) || (normPhone && cPhone === normPhone)) {
+        toDelete.push(d.id);
+      }
+    });
+    for (const rId of toDelete) {
+      await deleteDoc(doc(db, 'requests', rId)).catch(() => {});
+    }
+  } catch (err) {
+    console.warn('Failed to delete customer requests from Firestore:', err);
+  }
+}
+
+export async function recordFirestoreUsedTrial(record: UsedTrialRecord): Promise<void> {
+  if (!isFirebaseConfigured() || !db || !record.id) return;
+  try {
+    await setDoc(doc(db, 'used_trials', record.id), {
+      ...record,
+      createdAt: serverTimestamp(),
+    });
+  } catch (err) {
+    console.warn('Failed to record Firestore used trial:', err);
+  }
+}
+
+export async function getFirestoreUsedTrials(): Promise<UsedTrialRecord[]> {
+  if (!isFirebaseConfigured() || !db) return [];
+  try {
+    const snap = await getDocs(collection(db, 'used_trials'));
+    return snap.docs.map(d => ({ ...d.data(), id: d.id } as UsedTrialRecord));
+  } catch (err) {
+    console.warn('Failed to fetch Firestore used trials:', err);
+    return [];
   }
 }
 

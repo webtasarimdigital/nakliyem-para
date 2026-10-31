@@ -251,7 +251,7 @@ export default function CarrierSubscriptionPage() {
     setCardError('');
     setIsActivating(true);
     setTimeout(async () => {
-      const hasUsedTrial = carrier.trialStatus === 'EXPIRED' || carrier.trialStatus === 'CONVERTED';
+      const hasUsedTrial = carrier.trialStatus === 'EXPIRED' || carrier.trialStatus === 'CONVERTED' || db.hasUsedTrialBefore({ phone: carrier.phone, email: carrier.email, carrierId: carrier.id });
       const isTrial = !hasUsedTrial && (selectedPlanForTrial.trialDays > 0 || selectedPlanForTrial.id === 'plan_pro');
       let updatedCarrier: CarrierProfile;
       let updatedSub: CarrierSubscription;

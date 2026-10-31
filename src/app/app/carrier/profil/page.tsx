@@ -352,6 +352,15 @@ export default function CarrierProfileEditorPage() {
       await deleteCurrentUserFirebase();
       const currentUser = db.getCurrentUser();
       if (carrier) {
+        if (carrier.trialStatus === 'ACTIVE_TRIAL' || carrier.trialStatus === 'CONVERTED' || carrier.trialStatus === 'EXPIRED' || carrier.trialStartedAt) {
+          db.recordTrialUsed({
+            carrierId: carrier.id,
+            userId: carrier.userId,
+            companyName: carrier.companyName,
+            phone: carrier.phone,
+            email: carrier.email
+          });
+        }
         db.purgeAllUserData(carrier.id, { phone: carrier.phone, email: carrier.email });
       }
       if (currentUser) {

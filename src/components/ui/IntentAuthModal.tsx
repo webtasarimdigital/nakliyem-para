@@ -532,6 +532,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
               elevatorVerified: false,
             },
             planId: 'plan_starter',
+            trialStatus: db.hasUsedTrialBefore({ phone: cleanPhone, email }) ? 'EXPIRED' : 'NOT_STARTED',
             rating: 0,
             reviewCount: 0,
             completedJobsCount: 0,

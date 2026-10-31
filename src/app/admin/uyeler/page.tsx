@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { db, isSeedCarrier, isSeedUser, isSeedRequest } from '@/lib/data/mock-db';
-import { getFirestoreUsers, getFirestoreCarriers, updateFirestoreCarrier } from '@/lib/firebase/firestore';
+import { getFirestoreUsers, getFirestoreCarriers, updateFirestoreCarrier, deleteFirestoreUser, deleteFirestoreCarrier, deleteFirestoreRequestsByCustomer } from '@/lib/firebase/firestore';
 import { User, CarrierProfile } from '@/types';
 
 const PLAN_LABELS: Record<string, string> = {
@@ -143,17 +143,55 @@ export default function UyelerPage() {
     setTimeout(() => setNotice(null), 5000);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteModal) return;
+    const targetId = deleteModal.id;
+    const targetPhone = deleteModal.phone !== '—' ? deleteModal.phone : undefined;
+    const targetEmail = deleteModal.email !== '—' ? deleteModal.email : undefined;
+
     if (deleteModal.type === 'nakliyeci') {
-      db.deleteCarrier(deleteModal.id);
+      const carr = db.getCarrierById(targetId) || db.getCarriers().find(c => c.id === targetId || c.userId === targetId);
+      if (carr && (carr.trialStatus === 'ACTIVE_TRIAL' || carr.trialStatus === 'CONVERTED' || carr.trialStatus === 'EXPIRED' || carr.trialStartedAt)) {
+        db.recordTrialUsed({
+          carrierId: carr.id,
+          userId: carr.userId,
+          companyName: carr.companyName,
+          phone: carr.phone,
+          email: carr.email
+        });
+      }
+      db.deleteCarrier(targetId);
+      await deleteFirestoreCarrier(targetId).catch(() => {});
+      setFirestoreCarriers(prev => prev.filter(c => c.id !== targetId && c.userId !== targetId));
     } else {
-      db.deleteUser(deleteModal.id);
+      db.deleteUser(targetId);
+      await deleteFirestoreUser(targetId).catch(() => {});
+      await deleteFirestoreRequestsByCustomer(targetId, targetPhone).catch(() => {});
+      setFirestoreUsers(prev => prev.filter(u => u.id !== targetId));
     }
-    db.purgeAllUserData(deleteModal.id, {
-      phone: deleteModal.phone !== '—' ? deleteModal.phone : undefined,
-      email: deleteModal.email !== '—' ? deleteModal.email : undefined,
+
+    db.purgeAllUserData(targetId, {
+      phone: targetPhone,
+      email: targetEmail,
     });
+
+    if (targetPhone || targetEmail) {
+      const normPhone = targetPhone ? targetPhone.replace(/\D/g, '').slice(-10) : '';
+      const normEmail = targetEmail ? targetEmail.trim().toLowerCase() : '';
+      setFirestoreUsers(prev => prev.filter(u => {
+        if (u.id === targetId) return false;
+        if (normEmail && u.email && u.email.trim().toLowerCase() === normEmail) return false;
+        if (normPhone && u.phone && u.phone.replace(/\D/g, '').slice(-10) === normPhone) return false;
+        return true;
+      }));
+      setFirestoreCarriers(prev => prev.filter(c => {
+        if (c.id === targetId || c.userId === targetId) return false;
+        if (normEmail && c.email && c.email.trim().toLowerCase() === normEmail) return false;
+        if (normPhone && c.phone && c.phone.replace(/\D/g, '').slice(-10) === normPhone) return false;
+        return true;
+      }));
+    }
+
     setNotice(`"${deleteModal.name}" üyesi ve ilişkili TÜM kayıtları (talepleri, ilanları, teklifleri) kalıcı olarak silindi.`);
     setDeleteModal(null);
     setRefreshKey(k => k + 1);

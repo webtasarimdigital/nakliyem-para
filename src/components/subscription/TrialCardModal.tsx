@@ -42,6 +42,15 @@ export function TrialCardModal({ isOpen, onClose, onSuccess }: TrialCardModalPro
           ? db.getCarriers().find(c => c.userId === currentUser.id || c.id === currentUser.carrierProfileId) 
           : null);
 
+      const userPhone = currentUser?.phone || carrier?.phone;
+      const userEmail = currentUser?.email || carrier?.email;
+
+      if (db.hasUsedTrialBefore({ phone: userPhone, email: userEmail, carrierId: carrier?.id, userId: currentUser.id })) {
+        setError('Bu telefon numarası veya e-posta adresi ile daha önce 7 günlük ücretsiz deneme hakkı kullanılmıştır. Ücretsiz deneme hakkı firma başına yalnızca 1 defa geçerlidir.');
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch('/api/dodo/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
