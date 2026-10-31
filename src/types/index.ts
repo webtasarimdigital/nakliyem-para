@@ -462,3 +462,15 @@ export interface SystemSettings {
     reviewsEnabled: boolean;
   };
 }
+
+export interface BannedEntity {
+  id: string;
+  type: 'PHONE' | 'EMAIL' | 'USER_ID' | 'CARRIER_ID';
+  value: string;
+  name?: string;
+  reason?: string;
+  bannedAt: string;
+  bannedBy?: string;
+  carrierId?: string;
+  userId?: string;
+}

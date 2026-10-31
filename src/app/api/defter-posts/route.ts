@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { getFirestoreDefterPosts, createFirestoreDefterPost } from "@/lib/firebase/firestore";
 import { db as firestoreDb, auth as firebaseAuth, isFirebaseConfigured } from "@/lib/firebase/config";
+import { doc, deleteDoc } from "firebase/firestore";
 import { ensureServerWorkerAuth } from "@/lib/firebase/server-auth";
 import { DefterPost } from "@/types";
 
@@ -89,6 +90,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("defter-posts POST route error:", err);
+    return NextResponse.json({ success: false, error: "Sunucu hatası." }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    if (!id) {
+      return NextResponse.json({ success: false, error: "Geçersiz ID" }, { status: 400 });
+    }
+
+    // 1. Local file cache
+    try {
+      const existing = readJson<DefterPost[]>("defter_posts.json", []);
+      const filtered = existing.filter(p => p.id !== id);
+      writeJson("defter_posts.json", filtered);
+    } catch {}
+
+    // 2. Cloud Firestore
+    try {
+      if (isFirebaseConfigured() && firestoreDb) {
+        if (firebaseAuth) await ensureServerWorkerAuth(firebaseAuth);
+        await deleteDoc(doc(firestoreDb, "defter_posts", id));
+      }
+    } catch (fsErr) {
+      console.warn("API route deleteFirestoreDefterPost error:", fsErr);
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("defter-posts DELETE error:", err);
     return NextResponse.json({ success: false, error: "Sunucu hatası." }, { status: 500 });
   }
 }

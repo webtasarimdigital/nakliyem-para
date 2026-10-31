@@ -32,6 +32,7 @@ import {
   formatPhoneNumber, 
   maskEmail 
 } from '@/lib/validation/phone';
+import { AppealModal } from '@/components/auth/AppealModal';
 
 export interface IntentAuthModalProps {
   isOpen: boolean;
@@ -61,6 +62,8 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [bannedError, setBannedError] = useState(false);
+  const [appealOpen, setAppealOpen] = useState(false);
 
   // ── OTP State (3 Dakika Süreli Kod) ──
   const [registerStep, setRegisterStep] = useState<'FORM' | 'OTP'>('FORM');
@@ -143,6 +146,13 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
           return;
         }
         if (res.user) {
+          const userBanCheck = db.isBanned({ email: res.user.email, phone: res.user.phone, userId: res.user.id });
+          if (userBanCheck.isBanned) {
+            setBannedError(true);
+            setErrorMessage('Hesabınız sistem kuralları gereği askıya alınmıştır/yasaklanmıştır.');
+            setGoogleLoading(false);
+            return;
+          }
           db.setCurrentUser(res.user);
         } else {
           // User closed popup
@@ -254,6 +264,14 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
       return;
     }
     const cleanPhone = phoneValidation.normalized;
+
+    // Kara liste kontrolü
+    const banCheck = db.isBanned({ phone: cleanPhone, email: email.trim().toLowerCase() });
+    if (banCheck.isBanned) {
+      setBannedError(true);
+      setErrorMessage('Telefon numaranız veya e-posta adresiniz sistem kuralları gereği askıya alınmıştır/yasaklanmıştır. Tekrar kayıt olamazsınız.');
+      return;
+    }
 
     const emailCheck = validateEmailAddress(email);
     if (!emailCheck.isValid) {
@@ -576,11 +594,21 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
+    setBannedError(false);
     setIsLoading(true);
 
     const emailCheck = validateEmailAddress(email);
     if (!emailCheck.isValid) {
       setErrorMessage(emailCheck.error || 'Geçersiz e-posta adresi.');
+      setIsLoading(false);
+      return;
+    }
+
+    // Kara liste kontrolü
+    const banCheck = db.isBanned({ email: email.trim().toLowerCase() });
+    if (banCheck.isBanned) {
+      setBannedError(true);
+      setErrorMessage('Hesabınız sistem kuralları gereği askıya alınmıştır/yasaklanmıştır.');
       setIsLoading(false);
       return;
     }
@@ -600,6 +628,13 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
           return;
         }
         if (res.user) {
+          const userBanCheck = db.isBanned({ email: res.user.email, phone: res.user.phone, userId: res.user.id });
+          if (userBanCheck.isBanned) {
+            setBannedError(true);
+            setErrorMessage('Hesabınız sistem kuralları gereği askıya alınmıştır/yasaklanmıştır.');
+            setIsLoading(false);
+            return;
+          }
           db.setCurrentUser(res.user);
         }
       } else {
@@ -659,6 +694,7 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
     : 'Hızlıca giriş yapın veya ücretsiz üye olun.';
 
   return (
+    <>
     <Modal
       isOpen={isOpen}
       onClose={handleModalClose}
@@ -669,9 +705,25 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
       <div className="space-y-4 pt-1">
         {/* Error Alert */}
         {errorMessage && (
-          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
-            <span>{errorMessage}</span>
+          <div className={`p-3.5 rounded-xl border text-xs font-medium ${
+            bannedError ? 'bg-red-50 border-red-300 text-red-900 space-y-2' : 'bg-red-50 border-red-200 text-red-700 flex items-center gap-2'
+          }`}>
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+              <span className="font-bold leading-relaxed">{errorMessage}</span>
+            </div>
+            {bannedError && (
+              <div className="pt-2 border-t border-red-200 flex items-center justify-between">
+                <span className="text-[11px] text-red-700 font-medium">Haksız olduğunu mu düşünüyorsunuz?</span>
+                <button
+                  type="button"
+                  onClick={() => setAppealOpen(true)}
+                  className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-colors cursor-pointer shadow-xs"
+                >
+                  Yasaklamaya İtiraz Et
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -1210,5 +1262,13 @@ export const IntentAuthModal: React.FC<IntentAuthModalProps> = ({
         )}
       </div>
     </Modal>
+    <AppealModal
+      isOpen={appealOpen}
+      onClose={() => setAppealOpen(false)}
+      initialEmail={email}
+      initialPhone={phone}
+      initialName={isCarrier ? companyName : name}
+    />
+    </>
   );
 };

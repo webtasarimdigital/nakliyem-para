@@ -30,6 +30,13 @@ function DogrulaContent() {
     setLoading(true);
     setError('');
 
+    const banCheck = db.isBanned({ email: email || currentUser?.email, phone: currentUser?.phone, userId: currentUser?.id });
+    if (banCheck.isBanned) {
+      setError('Hesabınız sistem kuralları gereği askıya alınmıştır/yasaklanmıştır.');
+      setLoading(false);
+      return;
+    }
+
     setTimeout(() => {
       // Mark verified
       if (currentUser) {

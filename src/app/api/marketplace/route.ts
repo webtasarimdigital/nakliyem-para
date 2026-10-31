@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { db as firestoreDb, auth as firebaseAuth, isFirebaseConfigured } from '@/lib/firebase/config';
-import { doc, getDoc, setDoc, getDocs, collection, query, limit } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getDocs, collection, query, limit, deleteDoc } from 'firebase/firestore';
 import { ensureServerWorkerAuth } from '@/lib/firebase/server-auth';
 
 const DATA_DIR = path.join(process.cwd(), '.data');
@@ -110,6 +110,36 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, listing });
   } catch (err: any) {
     console.error('Marketplace POST error:', err);
+    return NextResponse.json({ error: err.message || 'Sunucu hatası' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ error: 'Geçersiz ilan ID' }, { status: 400 });
+    }
+
+    const fileList = readJson<any[]>('marketplace_listings.json', []);
+    const filtered = fileList.filter(l => String(l.id) !== String(id));
+    writeJson('marketplace_listings.json', filtered);
+
+    memoryListings = memoryListings.filter(l => String(l.id) !== String(id));
+
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        await ensureWorkerAuth();
+        await deleteDoc(doc(firestoreDb, 'marketplace_listings', String(id)));
+      } catch (fbErr) {
+        console.warn('Firestore marketplace DELETE error:', fbErr);
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error('Marketplace DELETE error:', err);
     return NextResponse.json({ error: err.message || 'Sunucu hatası' }, { status: 500 });
   }
 }

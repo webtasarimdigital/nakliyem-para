@@ -15,12 +15,14 @@ import {
   LogOut,
   ExternalLink,
   Menu,
-  X
+  X,
+  FileText
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/uyeler', label: 'Üyeler', icon: Users },
+  { href: '/admin/icerik', label: 'İçerik & Moderasyon', icon: FileText },
   { href: '/admin/gelir', label: 'Gelir', icon: TrendingUp },
   { href: '/admin/dogrulamalar', label: 'Doğrulamalar', icon: ShieldCheck },
   { href: '/admin/paketler', label: 'Paketler', icon: Award },

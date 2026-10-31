@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { db as firestoreDb, auth as firebaseAuth, isFirebaseConfigured } from '@/lib/firebase/config';
-import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, deleteDoc } from 'firebase/firestore';
 import { ensureServerWorkerAuth } from '@/lib/firebase/server-auth';
 import { extractNumericRequestCode } from '@/lib/data/mock-db';
 
@@ -151,6 +151,57 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, request: updatedReq });
   } catch (err: any) {
     console.error('API /api/requests error:', err);
+    return NextResponse.json({ error: err.message || 'Sunucu hatası' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ error: 'Geçersiz talep ID' }, { status: 400 });
+    }
+
+    const cleanNum = extractNumericRequestCode(id);
+
+    // 1. Local file cache
+    const fileRequests = readJson<any[]>('requests.json', []);
+    const filtered = fileRequests.filter(r => {
+      if (r.id === id || r.requestCode === id) return false;
+      if (cleanNum && (r.requestCode === `#${cleanNum}` || r.id === `req_${cleanNum}`)) return false;
+      return true;
+    });
+    writeJson('requests.json', filtered);
+
+    // Remove from offers.json as well
+    const fileOffers = readJson<any[]>('offers.json', []);
+    const filteredOffers = fileOffers.filter(o => o.requestId !== id && (!cleanNum || !o.requestId.includes(cleanNum)));
+    writeJson('offers.json', filteredOffers);
+
+    memoryRequests = memoryRequests.filter(r => {
+      if (r.id === id || r.requestCode === id) return false;
+      if (cleanNum && (r.requestCode === `#${cleanNum}` || r.id === `req_${cleanNum}`)) return false;
+      return true;
+    });
+
+    // 2. Cloud Firestore
+    if (isFirebaseConfigured() && firestoreDb) {
+      try {
+        await ensureWorkerAuth();
+        await deleteDoc(doc(firestoreDb, 'requests', id));
+        if (cleanNum) {
+          await deleteDoc(doc(firestoreDb, 'requests', `req_${cleanNum}`)).catch(() => {});
+          await deleteDoc(doc(firestoreDb, 'requests', `chat_${cleanNum}`)).catch(() => {});
+        }
+      } catch (fbErr) {
+        console.warn('Firestore requests DELETE error:', fbErr);
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error('API /api/requests DELETE error:', err);
     return NextResponse.json({ error: err.message || 'Sunucu hatası' }, { status: 500 });
   }
 }

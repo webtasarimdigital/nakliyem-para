@@ -22,6 +22,7 @@ import {
 import { loginWithFirebase, loginWithGoogleFirebase, logoutFirebase } from '@/lib/firebase/auth';
 import { isFirebaseConfigured } from '@/lib/firebase/config';
 import { db } from '@/lib/data/mock-db';
+import { AppealModal } from '@/components/auth/AppealModal';
 
 function GirisContent() {
   const router = useRouter();
@@ -49,6 +50,8 @@ function GirisContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [bannedError, setBannedError] = useState(false);
+  const [appealOpen, setAppealOpen] = useState(false);
   const [roleMismatch, setRoleMismatch] = useState<{
     expected: 'CUSTOMER' | 'CARRIER';
     actual: 'CUSTOMER' | 'CARRIER';
@@ -61,15 +64,26 @@ function GirisContent() {
     setTab(newTab);
     setRoleMismatch(null);
     setErrorMessage('');
+    setBannedError(false);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMessage('');
+    setBannedError(false);
     setRoleMismatch(null);
 
     const cleanInput = (email || '').trim().toLowerCase();
+
+    // Kara liste / Yasaklı kullanıcı kontrolü
+    const banCheck = db.isBanned({ email: cleanInput, phone: cleanInput });
+    if (banCheck.isBanned) {
+      setLoading(false);
+      setBannedError(true);
+      setErrorMessage('Hesabınız sistem kuralları gereği askıya alınmıştır/yasaklanmıştır.');
+      return;
+    }
     const isMasterCredential = (
       (cleanInput === 'master' || cleanInput === 'master@tasinteklif.com' || cleanInput === 'yonetici' || cleanInput === 'admin@tasinteklif.com' || cleanInput === 'admin') &&
       (password === 'Tasinteklif2026!' || password === '123456')
@@ -114,6 +128,17 @@ function GirisContent() {
       if (res.error) {
         setErrorMessage(res.error);
       } else {
+        // Yasaklı kullanıcı kontrolü
+        if (res.user) {
+          const userBanCheck = db.isBanned({ email: res.user.email, phone: res.user.phone, userId: res.user.id });
+          if (userBanCheck.isBanned) {
+            await logoutFirebase();
+            setBannedError(true);
+            setErrorMessage('Hesabınız sistem kuralları gereği askıya alınmıştır/yasaklanmıştır.');
+            return;
+          }
+        }
+
         // Rol uyuşmazlığı kontrolü
         if (res.user && !res.user.isMasterUser) {
           if (res.user.role === 'CARRIER' && tab === 'musteri') {
@@ -211,6 +236,15 @@ function GirisContent() {
 
     // Kullanıcı popup'ı kapattı — sessizce iptal et
     if (!res.user) {
+      return;
+    }
+
+    // Yasaklı kullanıcı kontrolü
+    const userBanCheck = db.isBanned({ email: res.user.email, phone: res.user.phone, userId: res.user.id });
+    if (userBanCheck.isBanned) {
+      await logoutFirebase();
+      setBannedError(true);
+      setErrorMessage('Hesabınız sistem kuralları gereği askıya alınmıştır/yasaklanmıştır.');
       return;
     }
 
@@ -460,9 +494,25 @@ function GirisContent() {
             {/* Form */}
             <form onSubmit={handleLogin} className="space-y-4">
               {errorMessage && (
-                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                  {errorMessage}
+                <div className={`p-3.5 rounded-xl border text-xs font-medium ${
+                  bannedError ? 'bg-red-50 border-red-300 text-red-900 space-y-2' : 'bg-red-50 border-red-200 text-red-700 flex items-center gap-2'
+                }`}>
+                  <div className="flex items-start gap-2">
+                    <span className="w-2 h-2 rounded-full bg-red-600 shrink-0 mt-1" />
+                    <span className="font-bold leading-relaxed">{errorMessage}</span>
+                  </div>
+                  {bannedError && (
+                    <div className="pt-2 border-t border-red-200 flex items-center justify-between">
+                      <span className="text-[11px] text-red-700 font-medium">Haksız olduğunu mu düşünüyorsunuz?</span>
+                      <button
+                        type="button"
+                        onClick={() => setAppealOpen(true)}
+                        className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-colors cursor-pointer shadow-xs"
+                      >
+                        Yasaklamaya İtiraz Et
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -553,6 +603,12 @@ function GirisContent() {
         </div>
 
       </div>
+
+      <AppealModal
+        isOpen={appealOpen}
+        onClose={() => setAppealOpen(false)}
+        initialEmail={email}
+      />
     </div>
   );
 }

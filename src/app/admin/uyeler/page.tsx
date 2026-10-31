@@ -19,8 +19,11 @@ import {
   Phone,
   Mail,
   Filter,
-  Check
+  Check,
+  Ban,
+  ShieldAlert
 } from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
 import { db, isSeedCarrier, isSeedUser, isSeedRequest } from '@/lib/data/mock-db';
 import { getFirestoreUsers, getFirestoreCarriers, updateFirestoreCarrier } from '@/lib/firebase/firestore';
 import { User, CarrierProfile } from '@/types';
@@ -93,6 +96,69 @@ export default function UyelerPage() {
   const [firestoreCarriers, setFirestoreCarriers] = useState<CarrierProfile[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Moderation Modals State
+  const [banModal, setBanModal] = useState<{
+    open: boolean;
+    type: 'nakliyeci' | 'musteri';
+    id: string;
+    name: string;
+    phone: string;
+    email: string;
+    reason: string;
+  } | null>(null);
+
+  const [deleteModal, setDeleteModal] = useState<{
+    open: boolean;
+    type: 'nakliyeci' | 'musteri';
+    id: string;
+    name: string;
+    phone?: string;
+    email?: string;
+  } | null>(null);
+
+  const handleConfirmBan = () => {
+    if (!banModal) return;
+    db.banEntity({
+      carrierId: banModal.type === 'nakliyeci' ? banModal.id : undefined,
+      userId: banModal.type === 'musteri' ? banModal.id : undefined,
+      phone: banModal.phone !== '—' ? banModal.phone : undefined,
+      email: banModal.email !== '—' ? banModal.email : undefined,
+      name: banModal.name,
+      reason: banModal.reason || 'Sistem kuralları ihlali',
+    });
+    setNotice(`"${banModal.name}" üyesi başarıyla yasaklandı. Telefonu ve e-postası kara listeye alındı, tüm aktif ilan ve paylaşımları siteden kaldırıldı.`);
+    setBanModal(null);
+    setRefreshKey(k => k + 1);
+    setTimeout(() => setNotice(null), 5000);
+  };
+
+  const handleUnban = (id: string, name: string, phone?: string, email?: string) => {
+    if (!confirm(`"${name}" üyesinin yasağını kaldırmak ve sisteme tekrar erişim vermesini sağlamak istiyor musunuz?`)) return;
+    if (phone && phone !== '—') db.unbanEntity(phone);
+    if (email && email !== '—') db.unbanEntity(email);
+    db.unbanEntity(id);
+    setNotice(`"${name}" üyesinin yasağı kaldırıldı.`);
+    setRefreshKey(k => k + 1);
+    setTimeout(() => setNotice(null), 5000);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteModal) return;
+    if (deleteModal.type === 'nakliyeci') {
+      db.deleteCarrier(deleteModal.id);
+    } else {
+      db.deleteUser(deleteModal.id);
+    }
+    db.purgeAllUserData(deleteModal.id, {
+      phone: deleteModal.phone !== '—' ? deleteModal.phone : undefined,
+      email: deleteModal.email !== '—' ? deleteModal.email : undefined,
+    });
+    setNotice(`"${deleteModal.name}" üyesi ve ilişkili TÜM kayıtları (talepleri, ilanları, teklifleri) kalıcı olarak silindi.`);
+    setDeleteModal(null);
+    setRefreshKey(k => k + 1);
+    setTimeout(() => setNotice(null), 5000);
+  };
 
   // Fetch Firestore live users and carriers
   useEffect(() => {
@@ -635,10 +701,17 @@ export default function UyelerPage() {
                           </span>
                         </td>
                         <td className="px-5 py-4">
-                          <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${statusConf.color}`}>
-                            <StatusIcon className="w-3 h-3" />
-                            {statusConf.label}
-                          </span>
+                          {db.isBanned({ phone: carrier.phone, email: carrier.email, carrierId: carrier.id }).isBanned ? (
+                            <span className="inline-flex items-center gap-1.5 text-xs font-black px-2.5 py-1 rounded-full border bg-red-100 text-red-700 border-red-300">
+                              <Ban className="w-3 h-3" />
+                              YASAKLI
+                            </span>
+                          ) : (
+                            <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${statusConf.color}`}>
+                              <StatusIcon className="w-3 h-3" />
+                              {statusConf.label}
+                            </span>
+                          )}
                         </td>
                         <td className="px-5 py-4">
                           <div className="space-y-1.5 min-w-[200px]">
@@ -690,30 +763,74 @@ export default function UyelerPage() {
                             : '—'}
                         </td>
                         <td className="px-5 py-4 text-right">
-                          {carrier.verificationStatus === 'PENDING' ? (
-                            <div className="flex items-center justify-end gap-2">
-                              <Link href={`/admin/dogrulamalar?carrierId=${carrier.id}`}>
-                                <span className="inline-block px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-black text-xs transition-colors shadow-xs">
-                                  Evrak İncele
+                          <div className="flex items-center justify-end gap-1.5">
+                            {carrier.verificationStatus === 'PENDING' && (
+                              <>
+                                <Link href={`/admin/dogrulamalar?carrierId=${carrier.id}`}>
+                                  <span className="inline-block px-2 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition-colors shadow-xs">
+                                    Evrak
+                                  </span>
+                                </Link>
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuickApproveCarrier(carrier.id, carrier.companyName)}
+                                  className="inline-block px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors shadow-xs cursor-pointer"
+                                >
+                                  Onayla
+                                </button>
+                              </>
+                            )}
+                            {carrier.slug && (
+                              <Link href={`/firma/${carrier.slug}`} target="_blank">
+                                <span className="inline-block text-xs font-bold text-slate-500 hover:text-[#0A1128] transition-colors px-1.5 py-1">
+                                  Profil →
                                 </span>
                               </Link>
+                            )}
+                            {db.isBanned({ phone: carrier.phone, email: carrier.email, carrierId: carrier.id }).isBanned ? (
                               <button
                                 type="button"
-                                onClick={() => handleQuickApproveCarrier(carrier.id, carrier.companyName)}
-                                className="inline-block px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition-colors shadow-xs cursor-pointer"
+                                onClick={() => handleUnban(carrier.id, carrier.companyName, carrier.phone, carrier.email)}
+                                className="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs border border-emerald-200 transition-colors cursor-pointer"
+                                title="Yasağı Kaldır"
                               >
-                                Onayla
+                                Yasağı Kaldır
                               </button>
-                            </div>
-                          ) : carrier.slug ? (
-                            <Link href={`/firma/${carrier.slug}`} target="_blank">
-                              <span className="inline-block text-xs font-bold text-slate-500 hover:text-[#0A1128] transition-colors">
-                                Profili Gör →
-                              </span>
-                            </Link>
-                          ) : (
-                            <span className="text-xs text-slate-400 font-medium">Aktif</span>
-                          )}
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setBanModal({
+                                  open: true,
+                                  type: 'nakliyeci',
+                                  id: carrier.id,
+                                  name: carrier.companyName,
+                                  phone: carrier.phone,
+                                  email: carrier.email,
+                                  reason: ''
+                                })}
+                                className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors cursor-pointer flex items-center gap-1"
+                                title="Firmayı Yasakla (Kara Liste)"
+                              >
+                                <Ban className="w-3 h-3" />
+                                Yasakla
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setDeleteModal({
+                                open: true,
+                                type: 'nakliyeci',
+                                id: carrier.id,
+                                name: carrier.companyName,
+                                phone: carrier.phone,
+                                email: carrier.email
+                              })}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                              title="Firmayı ve Tüm İlanlarını Kalıcı Olarak Sil"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -730,52 +847,110 @@ export default function UyelerPage() {
                     <th className="text-left px-5 py-3 text-xs font-black text-slate-500 uppercase tracking-wider">Toplam İlan</th>
                     <th className="text-left px-5 py-3 text-xs font-black text-slate-500 uppercase tracking-wider">Güzergah</th>
                     <th className="text-left px-5 py-3 text-xs font-black text-slate-500 uppercase tracking-wider">Kayıt / Son İşlem</th>
-                    <th className="text-left px-5 py-3 text-xs font-black text-slate-500 uppercase tracking-wider">Kaynak</th>
+                    <th className="text-left px-5 py-3 text-xs font-black text-slate-500 uppercase tracking-wider">Durum & Kaynak</th>
+                    <th className="text-right px-5 py-3 text-xs font-black text-slate-500 uppercase tracking-wider">İşlem</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredCustomers.map((cust) => (
-                    <tr key={cust.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-black shrink-0">
-                            {(cust.name || 'M').charAt(0).toUpperCase()}
+                  {filteredCustomers.map((cust) => {
+                    const isBanned = db.isBanned({ phone: cust.phone, email: cust.email, userId: cust.id }).isBanned;
+                    return (
+                      <tr key={cust.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-black shrink-0">
+                              {(cust.name || 'M').charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <span className="font-bold text-[#0A1128] block">{cust.name || 'Müşteri'}</span>
+                              {isBanned && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.2 rounded mt-0.5">
+                                  <Ban className="w-2.5 h-2.5" /> YASAKLI
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <span className="font-bold text-[#0A1128]">{cust.name || 'Müşteri'}</span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 font-bold text-slate-800">
-                        {cust.phone !== '—' ? (
-                          <a href={`tel:${cust.phone}`} className="hover:text-[#F95700] transition-colors flex items-center gap-1.5">
-                            <Phone className="w-3.5 h-3.5 text-slate-400" />
-                            {cust.phone}
-                          </a>
-                        ) : (
-                          <span className="text-slate-400 font-normal">—</span>
-                        )}
-                      </td>
-                      <td className="px-5 py-4 text-slate-600 text-xs">
-                        {cust.email || '—'}
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className="font-black text-[#0A1128]">{cust.requestCount}</span>
-                        <span className="text-slate-400 text-xs ml-1">ilan</span>
-                      </td>
-                      <td className="px-5 py-4 text-slate-600 text-xs font-medium">
-                        {cust.cities.length > 0 ? cust.cities[cust.cities.length - 1] : '—'}
-                      </td>
-                      <td className="px-5 py-4 text-slate-500 text-xs font-medium" suppressHydrationWarning>
-                        {cust.lastRequest && !isNaN(new Date(cust.lastRequest).getTime())
-                          ? new Date(cust.lastRequest).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })
-                          : '—'}
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700">
-                          {cust.source}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-5 py-4 font-bold text-slate-800">
+                          {cust.phone !== '—' ? (
+                            <a href={`tel:${cust.phone}`} className="hover:text-[#F95700] transition-colors flex items-center gap-1.5">
+                              <Phone className="w-3.5 h-3.5 text-slate-400" />
+                              {cust.phone}
+                            </a>
+                          ) : (
+                            <span className="text-slate-400 font-normal">—</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-4 text-slate-600 text-xs">
+                          {cust.email || '—'}
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className="font-black text-[#0A1128]">{cust.requestCount}</span>
+                          <span className="text-slate-400 text-xs ml-1">ilan</span>
+                        </td>
+                        <td className="px-5 py-4 text-slate-600 text-xs font-medium">
+                          {cust.cities.length > 0 ? cust.cities[cust.cities.length - 1] : '—'}
+                        </td>
+                        <td className="px-5 py-4 text-slate-500 text-xs font-medium" suppressHydrationWarning>
+                          {cust.lastRequest && !isNaN(new Date(cust.lastRequest).getTime())
+                            ? new Date(cust.lastRequest).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })
+                            : '—'}
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700">
+                            {cust.source}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {isBanned ? (
+                              <button
+                                type="button"
+                                onClick={() => handleUnban(cust.id, cust.name, cust.phone, cust.email)}
+                                className="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs border border-emerald-200 transition-colors cursor-pointer"
+                                title="Yasağı Kaldır"
+                              >
+                                Yasağı Kaldır
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setBanModal({
+                                  open: true,
+                                  type: 'musteri',
+                                  id: cust.id,
+                                  name: cust.name,
+                                  phone: cust.phone || '',
+                                  email: cust.email || '',
+                                  reason: ''
+                                })}
+                                className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors cursor-pointer flex items-center gap-1"
+                                title="Müşteriyi Yasakla (Kara Liste)"
+                              >
+                                <Ban className="w-3 h-3" />
+                                Yasakla
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setDeleteModal({
+                                open: true,
+                                type: 'musteri',
+                                id: cust.id,
+                                name: cust.name,
+                                phone: cust.phone,
+                                email: cust.email
+                              })}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                              title="Müşteriyi ve Taleplerini Kalıcı Olarak Sil"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
@@ -831,6 +1006,97 @@ export default function UyelerPage() {
           </div>
         </div>
       </div>
+
+      {/* Üye Yasaklama Modalı */}
+      {banModal && (
+        <Modal
+          isOpen={banModal.open}
+          onClose={() => setBanModal(null)}
+          title={`Üye Yasakla (${banModal.type === 'nakliyeci' ? 'Firma' : 'Müşteri'})`}
+        >
+          <div className="space-y-4">
+            <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5">
+              <ShieldAlert className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+              <div className="text-xs text-red-900 leading-relaxed font-medium">
+                <strong>{banModal.name}</strong> üyesini yasaklamak üzeresiniz.
+                <ul className="list-disc pl-4 mt-1.5 space-y-1 text-red-800">
+                  {banModal.phone !== '—' && <li>Telefon: <strong>{banModal.phone}</strong> kara listeye eklenecek.</li>}
+                  {banModal.email !== '—' && <li>E-posta: <strong>{banModal.email}</strong> kara listeye eklenecek.</li>}
+                  <li>Bu kişi sisteme bir daha <strong>giriş yapamayacak ve tekrar kayıt olamayacaktır</strong>.</li>
+                  <li>Bu üyeye ait tüm <strong>ilanlar, defter paylaşımları ve teklifler siteden derhal kaldırılacaktır</strong>.</li>
+                </ul>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Yasaklama Gerekçesi (İsteğe Bağlı)
+              </label>
+              <input
+                type="text"
+                value={banModal.reason}
+                onChange={e => setBanModal({ ...banModal, reason: e.target.value })}
+                placeholder="Örn: Platform kuralları ihlali, sahte paylaşım..."
+                className="w-full p-2.5 text-xs rounded-xl border border-slate-300 font-medium focus:border-red-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setBanModal(null)}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Vazgeç
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmBan}
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <Ban className="w-3.5 h-3.5" />
+                Yasakla ve İlanlarını Temizle
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Üye Silme Modalı */}
+      {deleteModal && (
+        <Modal
+          isOpen={deleteModal.open}
+          onClose={() => setDeleteModal(null)}
+          title="Üyeyi Kalıcı Olarak Sil"
+        >
+          <div className="space-y-4">
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-900 leading-relaxed font-medium">
+              <strong>{deleteModal.name}</strong> üyesini ve bu üyeye ait <strong>TÜM kayıtları</strong> (defter paylaşımları, taşınma talepleri, ilanlar, teklifler) kalıcı olarak silmek istediğinize emin misiniz?
+              <div className="mt-2 text-rose-700 font-bold">
+                ⚠️ Bu işlem geri alınamaz. Silinen kullanıcının profili ve ilanları siteden tamamen temizlenecektir.
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setDeleteModal(null)}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Vazgeç
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Kalıcı Olarak Sil
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

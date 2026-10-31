@@ -108,17 +108,14 @@ export default function CustomerProfilePage() {
       await deleteCurrentUserFirebase();
       const u = currentUser || db.getCurrentUser();
       if (u) {
-        const remaining = db.getRegisteredUsers().filter(
-          ru => ru.id !== u.id && ru.email?.toLowerCase() !== u.email?.toLowerCase()
-        );
-        db.setItem('registeredUsers', remaining);
+        db.purgeAllUserData(u.id, { phone: u.phone, email: u.email });
       }
       db.setCurrentUser(null);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('auth-changed'));
         window.dispatchEvent(new Event('storage'));
       }
-      alert('Hesabınız ve tüm kayıtlı verileriniz KVKK kapsamında başarıyla silindi.');
+      alert('Hesabınız ve yayındaki tüm taşınma talepleriniz kalıcı olarak silindi. Artık hiçbir firma sizi arayamaz veya rahatsız edemez.');
       router.push('/');
       router.refresh();
     } catch (err: any) {

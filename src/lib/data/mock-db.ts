@@ -19,7 +19,8 @@ import {
   SystemSettings,
   CarrierDocument,
   CarrierInvoice,
-  UserRole
+  UserRole,
+  BannedEntity
 } from '@/types';
 
 // Seed Subscription Plans
@@ -1314,16 +1315,13 @@ class MockDatabase {
   }
 
   deleteUser(userId: string): void {
-    const remaining = this.getRegisteredUsers().filter(u => u.id !== userId);
-    this.setItem('registeredUsers', remaining);
-    if (this.getCurrentUser()?.id === userId) {
-      this.setCurrentUser(null);
-    }
+    const user = this.getRegisteredUsers().find(u => u.id === userId);
+    this.purgeAllUserData(userId, { phone: user?.phone, email: user?.email });
   }
 
   deleteCarrier(carrierId: string): void {
-    const remaining = this.getCarriers().filter(c => c.id !== carrierId);
-    this.setItem('carriers', remaining);
+    const carrier = this.getCarriers().find(c => c.id === carrierId);
+    this.purgeAllUserData(carrierId, { phone: carrier?.phone, email: carrier?.email });
   }
 
   // Active User session (Simulated auth state for demo)
@@ -3159,6 +3157,295 @@ class MockDatabase {
   addMarketplaceListing(listing: any): void {
     const list = [listing, ...this.getMarketplaceListings()];
     this.setItem('marketplace_listings', list);
+  }
+
+  // Content Deletion Helpers
+  deleteDefterPost(postId: string): void {
+    const remaining = this.getDefterPosts().filter(p => p.id !== postId);
+    this.setItem('defter_posts', remaining);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('defter-post-deleted', { detail: { id: postId } }));
+      try {
+        fetch(`/api/defter-posts?id=${encodeURIComponent(postId)}`, { method: 'DELETE' }).catch(() => {});
+      } catch {}
+    }
+  }
+
+  deleteMarketplaceListing(listingId: string): void {
+    const remaining = this.getMarketplaceListings().filter(l => String(l.id) !== String(listingId));
+    this.setItem('marketplace_listings', remaining);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('marketplace-listing-deleted', { detail: { id: listingId } }));
+      try {
+        fetch(`/api/marketplace?id=${encodeURIComponent(listingId)}`, { method: 'DELETE' }).catch(() => {});
+      } catch {}
+    }
+  }
+
+  deleteMovingRequest(requestId: string): void {
+    const cleanId = requestId.replace(/[^0-9]/g, '');
+    const remaining = this.getRequests().filter(r => {
+      if (r.id === requestId || r.requestCode === requestId) return false;
+      if (cleanId && cleanId.length >= 4) {
+        const rCleanCode = (r.requestCode || '').replace(/[^0-9]/g, '');
+        const rCleanId = r.id.replace(/[^0-9]/g, '');
+        if (rCleanCode === cleanId || rCleanId === cleanId) return false;
+      }
+      return true;
+    });
+    this.setItem('requests', remaining);
+
+    // Also remove offers for this request
+    const remainingOffers = this.getOffers().filter(o => o.requestId !== requestId && (!cleanId || !o.requestId.includes(cleanId)));
+    this.setItem('offers', remainingOffers);
+
+    // Record in closed/cancelled
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('tasinteklif_closed_requests') || '{}';
+        const parsed = JSON.parse(raw);
+        parsed[requestId] = { status: 'DELETED', deletedAt: new Date().toISOString() };
+        if (cleanId) parsed[cleanId] = { status: 'DELETED' };
+        localStorage.setItem('tasinteklif_closed_requests', JSON.stringify(parsed));
+      } catch {}
+
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('request-added'));
+      window.dispatchEvent(new Event('offer-updated'));
+      try {
+        fetch(`/api/requests?id=${encodeURIComponent(requestId)}`, { method: 'DELETE' }).catch(() => {});
+      } catch {}
+    }
+  }
+
+  // Cascade Purge: Completely removes all traces of a user or carrier from the entire platform
+  purgeAllUserData(userIdOrCarrierId: string, options?: { phone?: string; email?: string }): void {
+    if (!userIdOrCarrierId && !options?.phone && !options?.email) return;
+
+    const normPhone = options?.phone ? options.phone.replace(/\D/g, '').slice(-10) : '';
+    const normEmail = options?.email ? options.email.trim().toLowerCase() : '';
+
+    // 1. Remove from registeredUsers
+    const remainingUsers = this.getRegisteredUsers().filter(u => {
+      if (userIdOrCarrierId && (u.id === userIdOrCarrierId || u.carrierId === userIdOrCarrierId)) return false;
+      if (normEmail && u.email && u.email.trim().toLowerCase() === normEmail) return false;
+      if (normPhone && u.phone && u.phone.replace(/\D/g, '').slice(-10) === normPhone) return false;
+      return true;
+    });
+    this.setItem('registeredUsers', remainingUsers);
+
+    // 2. Remove from carriers
+    const remainingCarriers = this.getCarriers().filter(c => {
+      if (userIdOrCarrierId && (c.id === userIdOrCarrierId || c.userId === userIdOrCarrierId)) return false;
+      if (normEmail && c.email && c.email.trim().toLowerCase() === normEmail) return false;
+      if (normPhone && c.phone && c.phone.replace(/\D/g, '').slice(-10) === normPhone) return false;
+      return true;
+    });
+    this.setItem('carriers', remainingCarriers);
+
+    // 3. Remove customer moving requests (so nobody sees or contacts them)
+    const remainingRequests = this.getRequests().filter(r => {
+      if (userIdOrCarrierId && (r.customerId === userIdOrCarrierId || r.id === userIdOrCarrierId)) return false;
+      if (normPhone && r.customerPhone && r.customerPhone.replace(/\D/g, '').slice(-10) === normPhone) return false;
+      return true;
+    });
+    this.setItem('requests', remainingRequests);
+
+    // 4. Remove carrier defter posts
+    const remainingDefter = this.getDefterPosts().filter(p => {
+      if (userIdOrCarrierId && (p.carrierId === userIdOrCarrierId || (p as any).userId === userIdOrCarrierId)) return false;
+      const pPhone = (p as any).carrierPhone || p.carrier?.phone || '';
+      if (normPhone && pPhone && pPhone.replace(/\D/g, '').slice(-10) === normPhone) return false;
+      return true;
+    });
+    this.setItem('defter_posts', remainingDefter);
+
+    // 5. Remove marketplace listings
+    const remainingListings = this.getMarketplaceListings().filter(l => {
+      if (userIdOrCarrierId && (l.sellerId === userIdOrCarrierId || l.carrierId === userIdOrCarrierId || l.userId === userIdOrCarrierId)) return false;
+      if (normPhone && (l.sellerPhone || l.phone) && String(l.sellerPhone || l.phone).replace(/\D/g, '').slice(-10) === normPhone) return false;
+      return true;
+    });
+    this.setItem('marketplace_listings', remainingListings);
+
+    // 6. Remove carrier offers
+    const remainingOffers = this.getOffers().filter(o => {
+      if (userIdOrCarrierId && o.carrierId === userIdOrCarrierId) return false;
+      return true;
+    });
+    this.setItem('offers', remainingOffers);
+
+    // 7. Remove carrier route alarms
+    const remainingAlarms = this.getAlarms().filter(a => {
+      if (userIdOrCarrierId && a.carrierId === userIdOrCarrierId) return false;
+      return true;
+    });
+    this.setItem('alarms', remainingAlarms);
+
+    // 8. If active session belongs to this user, log them out
+    const current = this.getCurrentUser();
+    if (current) {
+      const matchCurrent =
+        (userIdOrCarrierId && (current.id === userIdOrCarrierId || current.carrierProfileId === userIdOrCarrierId || current.customerProfileId === userIdOrCarrierId)) ||
+        (normEmail && current.email && current.email.trim().toLowerCase() === normEmail) ||
+        (normPhone && current.phone && current.phone.replace(/\D/g, '').slice(-10) === normPhone);
+      if (matchCurrent) {
+        this.setCurrentUser(null);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new Event('auth-changed'));
+      window.dispatchEvent(new Event('request-added'));
+      window.dispatchEvent(new Event('offer-updated'));
+    }
+  }
+
+  // ── Blacklist / Banned Entities (Kara Liste) ──
+  getBannedEntities(): BannedEntity[] {
+    return this.getItem<BannedEntity[]>('banned_entities', []);
+  }
+
+  banEntity(data: { phone?: string; email?: string; name?: string; reason?: string; carrierId?: string; userId?: string }): void {
+    const list = this.getBannedEntities();
+    const newRecords: BannedEntity[] = [];
+    const now = new Date().toISOString();
+
+    const normPhone = data.phone ? data.phone.replace(/\D/g, '').slice(-10) : '';
+    const normEmail = data.email ? data.email.trim().toLowerCase() : '';
+
+    if (normPhone) {
+      const exists = list.some(b => b.type === 'PHONE' && b.value === normPhone);
+      if (!exists) {
+        newRecords.push({
+          id: `ban_p_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          type: 'PHONE',
+          value: normPhone,
+          name: data.name,
+          reason: data.reason || 'Sistem kuralları ihlali',
+          bannedAt: now,
+          bannedBy: 'ADMIN',
+          carrierId: data.carrierId,
+          userId: data.userId
+        });
+      }
+    }
+
+    if (normEmail) {
+      const exists = list.some(b => b.type === 'EMAIL' && b.value === normEmail);
+      if (!exists) {
+        newRecords.push({
+          id: `ban_e_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          type: 'EMAIL',
+          value: normEmail,
+          name: data.name,
+          reason: data.reason || 'Sistem kuralları ihlali',
+          bannedAt: now,
+          bannedBy: 'ADMIN',
+          carrierId: data.carrierId,
+          userId: data.userId
+        });
+      }
+    }
+
+    if (data.carrierId) {
+      const exists = list.some(b => b.type === 'CARRIER_ID' && b.value === data.carrierId);
+      if (!exists) {
+        newRecords.push({
+          id: `ban_c_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          type: 'CARRIER_ID',
+          value: data.carrierId,
+          name: data.name,
+          reason: data.reason || 'Sistem kuralları ihlali',
+          bannedAt: now,
+          bannedBy: 'ADMIN',
+          carrierId: data.carrierId
+        });
+      }
+    }
+
+    if (data.userId) {
+      const exists = list.some(b => b.type === 'USER_ID' && b.value === data.userId);
+      if (!exists) {
+        newRecords.push({
+          id: `ban_u_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          type: 'USER_ID',
+          value: data.userId,
+          name: data.name,
+          reason: data.reason || 'Sistem kuralları ihlali',
+          bannedAt: now,
+          bannedBy: 'ADMIN',
+          userId: data.userId
+        });
+      }
+    }
+
+    if (newRecords.length > 0) {
+      const updated = [...newRecords, ...list];
+      this.setItem('banned_entities', updated);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('storage'));
+        try {
+          fetch('/api/admin/banned', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ records: newRecords })
+          }).catch(() => {});
+        } catch {}
+      }
+    }
+
+    // Cascade purge all active content immediately
+    this.purgeAllUserData(data.carrierId || data.userId || '', { phone: data.phone, email: data.email });
+  }
+
+  unbanEntity(idOrValue: string): void {
+    const norm = idOrValue.replace(/\D/g, '').slice(-10);
+    const normEmail = idOrValue.trim().toLowerCase();
+
+    const remaining = this.getBannedEntities().filter(b => {
+      if (b.id === idOrValue) return false;
+      if (b.value === idOrValue) return false;
+      if (norm && b.type === 'PHONE' && b.value === norm) return false;
+      if (normEmail && b.type === 'EMAIL' && b.value === normEmail) return false;
+      return true;
+    });
+
+    this.setItem('banned_entities', remaining);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
+      try {
+        fetch(`/api/admin/banned?id=${encodeURIComponent(idOrValue)}`, { method: 'DELETE' }).catch(() => {});
+      } catch {}
+    }
+  }
+
+  isBanned(params: { phone?: string; email?: string; userId?: string; carrierId?: string }): { isBanned: boolean; record?: BannedEntity } {
+    const list = this.getBannedEntities();
+    if (!list || list.length === 0) return { isBanned: false };
+
+    const normPhone = params.phone ? params.phone.replace(/\D/g, '').slice(-10) : '';
+    const normEmail = params.email ? params.email.trim().toLowerCase() : '';
+
+    for (const b of list) {
+      if (normPhone && b.type === 'PHONE' && b.value === normPhone) {
+        return { isBanned: true, record: b };
+      }
+      if (normEmail && b.type === 'EMAIL' && b.value === normEmail) {
+        return { isBanned: true, record: b };
+      }
+      if (params.userId && b.type === 'USER_ID' && b.value === params.userId) {
+        return { isBanned: true, record: b };
+      }
+      if (params.carrierId && b.type === 'CARRIER_ID' && b.value === params.carrierId) {
+        return { isBanned: true, record: b };
+      }
+    }
+
+    return { isBanned: false };
   }
 
   // Real Data Fetchers (Filters out seed / demo data)

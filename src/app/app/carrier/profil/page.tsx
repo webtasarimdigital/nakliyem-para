@@ -351,22 +351,18 @@ export default function CarrierProfileEditorPage() {
     try {
       await deleteCurrentUserFirebase();
       const currentUser = db.getCurrentUser();
-      if (currentUser) {
-        const remaining = db.getRegisteredUsers().filter(
-          ru => ru.id !== currentUser.id && ru.email?.toLowerCase() !== currentUser.email?.toLowerCase()
-        );
-        db.setItem('registeredUsers', remaining);
-      }
       if (carrier) {
-        const remainingCarriers = db.getCarriers().filter(c => c.id !== carrier.id);
-        db.setItem('carriers', remainingCarriers);
+        db.purgeAllUserData(carrier.id, { phone: carrier.phone, email: carrier.email });
+      }
+      if (currentUser) {
+        db.purgeAllUserData(currentUser.id, { phone: currentUser.phone, email: currentUser.email });
       }
       db.setCurrentUser(null);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('auth-changed'));
         window.dispatchEvent(new Event('storage'));
       }
-      alert('Firma hesabınız, kayıtlı belgeleriniz ve profiliniz KVKK kapsamında kalıcı olarak silindi.');
+      alert('Firma hesabınız, kayıtlı ilanlarınız, teklifleriniz ve defter paylaşımlarınız kalıcı olarak silindi.');
       router.push('/');
       router.refresh();
     } catch (err: any) {

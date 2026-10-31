@@ -43,6 +43,7 @@ import {
   formatPhoneNumber, 
   maskEmail 
 } from '@/lib/validation/phone';
+import { AppealModal } from '@/components/auth/AppealModal';
 
 function KayitContent() {
   const router = useRouter();
@@ -93,6 +94,8 @@ function KayitContent() {
   const [commercialConsent, setCommercialConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [bannedError, setBannedError] = useState(false);
+  const [appealOpen, setAppealOpen] = useState(false);
   const [alreadyRegistered, setAlreadyRegistered] = useState<string | null>(null);
   const [roleMismatch, setRoleMismatch] = useState<{
     expected: 'CUSTOMER' | 'CARRIER';
@@ -112,6 +115,7 @@ function KayitContent() {
     setAlreadyRegistered(null);
     setPhoneAlreadyRegistered(null);
     setErrorMessage('');
+    setBannedError(false);
   };
 
   // Carrier specific
@@ -200,6 +204,15 @@ function KayitContent() {
       return;
     }
 
+    // Yasaklı kontrolü
+    const userBanCheck = db.isBanned({ email: res.user.email, phone: res.user.phone, userId: res.user.id });
+    if (userBanCheck.isBanned) {
+      await logoutFirebase();
+      setBannedError(true);
+      setErrorMessage('Hesabınız sistem kuralları gereği askıya alınmıştır/yasaklanmıştır. Tekrar kayıt olamazsınız.');
+      return;
+    }
+
     // Google ile kayıt olmaya çalışırken rol uyuşmazlığı kontrolü
     if (!res.user.isMasterUser) {
       if (res.user.role === 'CARRIER' && !isCarrier) {
@@ -285,6 +298,15 @@ function KayitContent() {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+
+    // Kara Liste / Yasaklılık Kontrolü
+    const banCheck = db.isBanned({ phone: cleanPhone, email: cleanEmail });
+    if (banCheck.isBanned) {
+      setLoading(false);
+      setBannedError(true);
+      setErrorMessage('Telefon numaranız veya e-posta adresiniz sistem kuralları gereği askıya alınmıştır/yasaklanmıştır. Tekrar kayıt olamazsınız.');
+      return;
+    }
 
     setLoading(true);
 
@@ -1196,11 +1218,23 @@ function KayitContent() {
                       </div>
                     </div>
                   ) : errorMessage ? (
-                    <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                        <span>{errorMessage}</span>
+                    <div className="p-3.5 rounded-xl bg-red-50 border border-red-300 text-red-900 text-xs font-medium space-y-2">
+                      <div className="flex items-start gap-2">
+                        <span className="w-2 h-2 rounded-full bg-red-600 shrink-0 mt-1" />
+                        <span className="font-bold leading-relaxed">{errorMessage}</span>
                       </div>
+                      {bannedError && (
+                        <div className="pt-2 border-t border-red-200 flex items-center justify-between">
+                          <span className="text-[11px] text-red-700 font-medium">Haksız olduğunu mu düşünüyorsunuz?</span>
+                          <button
+                            type="button"
+                            onClick={() => setAppealOpen(true)}
+                            className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-colors cursor-pointer shadow-xs"
+                          >
+                            Yasaklamaya İtiraz Et
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : null}
 
@@ -1494,6 +1528,14 @@ function KayitContent() {
         </div>
 
       </div>
+
+      <AppealModal
+        isOpen={appealOpen}
+        onClose={() => setAppealOpen(false)}
+        initialEmail={email}
+        initialPhone={phone}
+        initialName={isCarrier ? companyName : name}
+      />
     </div>
   );
 }
