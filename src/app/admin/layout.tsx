@@ -39,7 +39,12 @@ export default function AdminRootLayout({
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-  const [isAdminAuth, setIsAdminAuth] = useState(false);
+  const [isAdminAuth, setIsAdminAuth] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('admin_token_active') === 'true';
+    }
+    return false;
+  });
 
   useEffect(() => {
     setMounted(true);

@@ -112,7 +112,16 @@ export async function GET(req: NextRequest) {
     // 1. Yeni HMAC-SHA256 imzalı token doğrulaması
     const verifyResult = await verifyAdminSessionToken(token);
     if (verifyResult.valid && verifyResult.username) {
-      return NextResponse.json({ authenticated: true, username: verifyResult.username });
+      const isHttps = req.headers.get('x-forwarded-proto') === 'https' || req.url.startsWith('https:');
+      const response = NextResponse.json({ authenticated: true, username: verifyResult.username, token });
+      response.cookies.set('admin_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production' || isHttps,
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24, // 24 saat
+        path: '/',
+      });
+      return response;
     }
 
     // 2. Geriye dönük geçiş (Legacy fallback) — Sadece geçerli biçimdeyse ve admin_secret içeriyorsa
@@ -121,7 +130,16 @@ export async function GET(req: NextRequest) {
       const [user] = decoded.split(':');
       const validUser = (process.env.ADMIN_USERNAME || 'admin').trim();
       if (user && (user.toLowerCase() === validUser.toLowerCase() || user.toLowerCase() === 'admin')) {
-        return NextResponse.json({ authenticated: true, username: user });
+        const isHttps = req.headers.get('x-forwarded-proto') === 'https' || req.url.startsWith('https:');
+        const response = NextResponse.json({ authenticated: true, username: user, token });
+        response.cookies.set('admin_token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production' || isHttps,
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24,
+          path: '/',
+        });
+        return response;
       }
     }
   } catch {

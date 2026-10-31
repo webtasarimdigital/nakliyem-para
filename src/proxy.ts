@@ -8,16 +8,9 @@ const BYPASS_COOKIE_NAME = 'tasinteklif_maintenance_bypass';
 export function proxy(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
 
-  // 0. Admin Giriş yönlendirmesi & Admin Güvenlik Kontrolleri
+  // 0. Admin Giriş yönlendirmesi
   if (pathname === '/admin/giris') {
     return NextResponse.redirect(new URL('/admin', req.url));
-  }
-
-  if (pathname.startsWith('/admin/') && pathname !== '/admin') {
-    const adminToken = req.cookies.get('admin_token')?.value;
-    if (!adminToken) {
-      return NextResponse.redirect(new URL('/admin', req.url));
-    }
   }
 
   // 1. SİTE CANLIDA (Bakım Modu Kapalı)
